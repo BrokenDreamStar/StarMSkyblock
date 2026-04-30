@@ -1,0 +1,19 @@
+# Gradle
+build/
+.gradle/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Environment
+*.log
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Plugin output
+*.jar

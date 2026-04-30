@@ -1,0 +1,60 @@
+plugins {
+    id 'java'
+    id 'com.gradleup.shadow' version '9.4.1'
+}
+
+group = 'team.starm'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+    maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+    // FAWE and WorldEdit APIs
+    maven { url = 'https://maven.enginehub.org/repo/' }
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+    
+    // SQLite JDBC 驱动（编译时需要，运行时服务器自带）
+    compileOnly 'org.xerial:sqlite-jdbc:3.46.1.0'
+    
+    // FastAsyncWorldEdit API
+    compileOnly 'com.fastasyncworldedit:FastAsyncWorldEdit-Core:2.12.3'
+    compileOnly 'com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit:2.12.3'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs.add('-Xlint:all')
+}
+
+def projectVersion = version
+processResources {
+    filesMatching('plugin.yml') {
+        expand 'version': projectVersion
+    }
+    
+    // 包含schematics文件夹中的所有文件
+    from('src/main/resources') {
+        include 'schematics/**'
+        duplicatesStrategy = 'INCLUDE'
+    }
+}
+
+shadowJar {
+    archiveBaseName.set('StarMSkyblock')
+    archiveClassifier.set('')
+    archiveVersion.set('')
+}
+
+build {
+    dependsOn shadowJar
+}

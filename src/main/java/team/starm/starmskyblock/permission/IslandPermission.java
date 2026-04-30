@@ -1,0 +1,141 @@
+package team.starm.starmskyblock.permission;
+
+public enum IslandPermission {
+    // ====================== 管理权限 ======================
+    ALL("所有操作"),
+    DELETE_ISLAND("删除岛屿"),
+    CHANGE_NAME("修改岛屿名称"),
+    SET_PERMISSIONS("修改岛屿权限"),
+    INVITE_MEMBER("邀请成员"),
+    REMOVE_MEMBER("移除成员"),
+    SET_ROLE("设置成员角色"),
+    INVITE_COOP("邀请合作者"),
+    REMOVE_COOP("移除合作者"),
+    SET_HOME("设置传送点"),
+    SET_BIOME("设置生物群系"),
+
+    // ====================== 拾取 ======================
+    DROP_ITEMS("丢弃物品"),
+    PICKUP_DROPS("捡起物品"),
+    EXP_BALL("吸取经验球"),
+
+    // ====================== 方块 ======================
+    BREAK("破坏方块"),
+    BUILD("放置方块"),
+
+    // ====================== 工作方块 ======================
+    WORKBENCH("使用工作台"),
+    ENCHANTING_TABLES("使用附魔台"),
+    BEACON("使用信标"),
+    ANVIL("使用铁砧"),
+    GRINDSTONE("使用砂轮"),
+    CARTOGRAPHY_TABLE("使用制图台"),
+    STONECUTTER("使用切石机"),
+    LOOM("使用织布机"),
+    SMITHING_TABLE("使用锻造台"),
+    CAMPFIRE("使用营火"),
+    NOTE_BLOCK("使用音符盒"),
+
+    // ====================== 容器 ======================
+    FURNACE("使用熔炉"),
+    CHEST("打开箱子"),
+    BARREL("打开木桶"),
+    ENDER_CHEST("打开末影箱"),
+    SHULKER_BOX("打开潜影盒"),
+    HOPPER("使用漏斗"),
+    DISPENSER("打开发射器"),
+    DROPPER("打开投掷器"),
+    CRAFTING("打开自动合成器"),
+    BREWING_STAND("打开酿造台"),
+    SHELF("使用展示架"),
+    ITEM_FRAME("使用物品展示框"),
+    JUKEBOX("使用唱片机"),
+    LECTERN("使用讲台"),
+    CHISELED_BOOKSHELF("使用雕纹书架"),
+    DECORATED_POT("使用陶罐"),
+    COMPOSTER("使用堆肥桶"),
+    FLOWER_POT("使用花盆"),
+    ANIMAL_INVENTORY("打开生物背包"),
+
+    // ====================== 红石 ======================
+    BUTTON("按按钮"),
+    LEVER("拉拉杆"),
+    REDSTONE_REPEATER("切换红石中继器"),
+    REDSTONE_COMPARATOR("切换红石比较器"),
+    DAYLIGHT_DETECTOR("切换阳光探测器"),
+    PRESSURE_PLATE("触发压力板"),
+    TRIPWIRE_HOOK("触发绊线钩"),
+    SCULK_SENSOR("触发幽匿感测体"),
+    BELL("敲击钟"),
+
+    // ====================== 门 ======================
+    DOOR("开关门"),
+    FENCE_GATE("开关栅栏门"),
+    TRAPDOOR("开关活板门"),
+
+    // ====================== 载具 ======================
+    MINECART_DAMAGE("破坏矿车"),
+    MINECART_ENTER("乘坐矿车"),
+    MINECART_PLACE("放置矿车"),
+    BOAT_DAMAGE("破坏船"),
+    BOAT_ENTER("乘坐船"),
+    BOAT_PLACE("放置船"),
+
+    // ====================== 工具 ======================
+    BOW("使用弓/弩"),
+    AXE("使用斧"),
+    SHOVEL("使用锹"),
+    HOE("使用锄头"),
+    BUCKET("使用桶"),
+    GLASS_BOTTLE("使用玻璃瓶"),
+    BOWL("使用碗"),
+    FISH("钓鱼"),
+    FIRE("点火(使用打火石/火焰弹)"),
+    SHEARS("使用剪刀"),
+    BRUSH("使用刷子"),
+    LEASH("使用拴绳"),
+
+    // ====================== 物品 ======================
+    FIREWORK("使用烟花"),
+    NAME("使用命名牌"),
+    POTION("使用药水"),
+    FERTILIZE("使用骨粉"),
+    DYE("使用染料"),
+    HONEYCOMB("涂蜡(使用蜜脾)"),
+    CHORUS_FRUIT("食用紫颂果"),
+    ENDER_PEARL("使用末影珍珠"),
+    ENDER_EYE("使用末影之眼"),
+    WIND_CHARGE("使用风弹"),
+    DROP_SNOWBALL("丢雪球"),
+    DROP_EGG("丢鸡蛋"),
+
+    // ====================== 生物 ======================
+    ANIMAL_FEEDING("喂食动物"),
+    ENTITY_RIDE("骑乘生物"),
+    ENTITY_EQUIP("装备生物"),
+    ANIMAL_DAMAGE("攻击动物"),
+    MONSTER_DAMAGE("攻击怪物"),
+    VILLAGER_DAMAGE("攻击村民"),
+    VILLAGER_TRADING("村民交易"),
+
+    // ====================== 其它 ======================
+
+    FARM_TRAMPING("踩踏耕地"),
+    TURTLE_EGG_TRAMPING("踩坏海龟蛋"),
+    BERRY("采摘浆果"),
+    CAKE("食用蛋糕"),
+    SIGN_INTERACT("与告示牌交互"),
+    BED("使用床"),
+    RESPAWN_ANCHOR("使用重生锚"),
+    END_CRYSTAL("使用末地水晶");
+
+    private final String displayName;
+
+    IslandPermission(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+}

@@ -1,0 +1,28 @@
+name: StarMSkyblock
+version: '$version'
+
+main: team.starm.starmskyblock.StarMSkyblock
+api-version: '1.21.11'
+load: POSTWORLD
+
+authors: [BrokenDream_Star]
+website: https://starm.team/
+description: StarM的空岛插件
+
+commands:
+  is:
+    description: 空岛主命令
+    usage: /is <create|home|border|help>
+    permission: skyblock.is
+  isadmin:
+    description: 空岛管理员命令
+    usage: /isadmin setradius <id> <radius>
+    permission: skyblock.admin
+
+permissions:
+  skyblock.is:
+    description: 允许玩家使用基础空岛命令
+    default: true
+  skyblock.admin:
+    description: 允许玩家使用管理员空岛命令
+    default: op
