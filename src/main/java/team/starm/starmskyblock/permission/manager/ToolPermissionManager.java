@@ -16,12 +16,13 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.EntityEquipment;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.permission.IslandPermission;
-import team.starm.starmskyblock.util.TagsUtil;
-import team.starm.starmskyblock.util.EntityUtil;
+import team.starm.starmskyblock.tag.EntityTags;
+import team.starm.starmskyblock.tag.ItemTags;
 
 /**
  * 工具权限管理器
@@ -134,51 +135,38 @@ public class ToolPermissionManager extends IslandPermissionManager {
 
         // ==================== 严格检查装备/鞍/地毯/挽具 ====================
         if (entity instanceof LivingEntity living) {
+            EntityEquipment equipment = living.getEquipment();
+            if (equipment == null) return false;
 
-            // 6. 穿着狼铠(Wolf Armor)的狼(Wolf)
-            if (entityType == EntityType.WOLF) {
-                ItemStack bodyArmor = Objects.requireNonNull(living.getEquipment()).getItem(EquipmentSlot.BODY);
-                if (!bodyArmor.isEmpty()) {
-                    return true;
-                }
-            }
+            // 统一判定是否已驯服或为骷髅马（与 EntityPermissionManager 保持一致）
+            boolean isTamedCheckPassed = (entity instanceof Tameable tameable && tameable.isTamed())
+                    || entityType == EntityType.SKELETON_HORSE;
 
-            // 7. 【优化】判断是否为能穿鹦鹉螺铠(Nautilus Armor)的生物，并检查是否穿戴
-            if (Tag.ENTITY_TYPES_CAN_WEAR_NAUTILUS_ARMOR.isTagged(entityType)) {
-                ItemStack bodyArmor = Objects.requireNonNull(living.getEquipment()).getItem(EquipmentSlot.BODY);
-                if (!bodyArmor.isEmpty() && TagsUtil.ITEMS_NAUTILUS_ARMORS.contains(bodyArmor.getType())) {
-                    return true;
-                }
-            }
-
-            // 8. 统一判断所有生物（含原版骑乘生物、鹦鹉螺、骆驼尸壳等）是否装备了鞍
-            if (EntityUtil.hasSaddle(living)) {
-                return true;
-            }
-
-            // 8.5 装备有挽具(Harness)的快乐恶魂(Happy Ghast)
-            if (entityType == EntityType.HAPPY_GHAST) {
-                ItemStack harness = Objects.requireNonNull(living.getEquipment()).getItem(EquipmentSlot.BODY);
-
-                if (!harness.isEmpty() && Tag.ITEMS_HARNESSES.isTagged(harness.getType())) {
-                    return true;
-                }
-            }
-
-            // 9. 【优化】判断是否为能穿马铠的生物，并检查是否穿戴
-            if (Tag.ENTITY_TYPES_CAN_WEAR_HORSE_ARMOR.isTagged(entityType)) {
-                if (entity instanceof Horse horse) {
-                    ItemStack armor = horse.getInventory().getArmor();
-                    if (armor != null && !armor.isEmpty() && TagsUtil.ITEMS_HORSE_ARMORS.contains(armor.getType())) {
+            // 1. 检查鞍 (Saddle) 槽位
+            ItemStack saddleItem = equipment.getItem(EquipmentSlot.SADDLE);
+            if (!saddleItem.isEmpty() && saddleItem.getType() == Material.SADDLE) {
+                if (Tag.ENTITY_TYPES_CAN_EQUIP_SADDLE.isTagged(entityType)) {
+                    if (isTamedCheckPassed || entity instanceof Steerable) {
                         return true;
                     }
                 }
             }
 
-            // 10. 只有“羊驼(Llama)”和“行商羊驼(Trader Llama)”才能装备地毯
-            if (entity instanceof Llama llama) {
-                ItemStack decor = llama.getInventory().getDecor();
-                return decor != null && !decor.isEmpty();
+            ItemStack bodyItem = equipment.getItem(EquipmentSlot.BODY);
+            if (!bodyItem.isEmpty()) {
+                Material type = bodyItem.getType();
+                
+                if (isTamedCheckPassed) {
+                    if (ItemTags.HORSE_ARMORS.contains(type) && Tag.ENTITY_TYPES_CAN_WEAR_HORSE_ARMOR.isTagged(entityType)) {
+                        return true;
+                    } else if (ItemTags.NAUTILUS_ARMORS.contains(type) && Tag.ENTITY_TYPES_CAN_WEAR_NAUTILUS_ARMOR.isTagged(entityType)) {
+                        return true;
+                    } else if (Tag.ITEMS_WOOL_CARPETS.isTagged(type) && entity instanceof Llama) {
+                        return true;
+                    } else if (Tag.ITEMS_HARNESSES.isTagged(type) && entity instanceof HappyGhast) {
+                        return true;
+                    }
+                }
             }
         }
 
@@ -201,7 +189,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
         if (entity == null)
             return false;
         EntityType type = entity.getType();
-        return TagsUtil.ENTITY_TYPES_CAN_BE_LEASHED.contains(type) || TagsUtil.ENTITY_TYPES_CHEST_BOATS.contains(type)
+        return EntityTags.CAN_BE_LEASHED.contains(type) || EntityTags.CHEST_BOATS.contains(type)
                 || Tag.ENTITY_TYPES_BOAT.isTagged(type);
     }
 
@@ -304,7 +292,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
                 }
             }
             // 针对不同种类的桶的精细化方块交互检查（内联方法逻辑）
-            else if (TagsUtil.ITEMS_BUCKETS.contains(toolType)) {
+            else if (ItemTags.BUCKETS.contains(toolType)) {
                 if (toolType == Material.MILK_BUCKET) {
                     // 奶桶不做限制
                     return;
@@ -363,7 +351,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
         // 经过精确判断后仍未分配权限，并且工具不是已精细化处理的工具时，才使用通用方法
         // （已将 LEAD 加入已处理列表，避免在非栅栏方块上误触发权限检查）
         boolean isHandledTool = Tag.ITEMS_AXES.isTagged(toolType) || Tag.ITEMS_SHOVELS.isTagged(toolType) ||
-                Tag.ITEMS_HOES.isTagged(toolType) || TagsUtil.ITEMS_BUCKETS.contains(toolType) ||
+                Tag.ITEMS_HOES.isTagged(toolType) || ItemTags.BUCKETS.contains(toolType) ||
                 toolType == Material.GLASS_BOTTLE || toolType == Material.SHEARS ||
                 toolType == Material.BRUSH || toolType == Material.LEAD;
         if (permission == null && !isHandledTool) {
@@ -550,7 +538,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
         }
 
         // 针对不同种类的桶的精细化实体交互检查（内联方法逻辑）
-        if (TagsUtil.ITEMS_BUCKETS.contains(toolType)) {
+        if (ItemTags.BUCKETS.contains(toolType)) {
             if (toolType == Material.BUCKET) {
                 // 铁桶：只对 牛/哞菇/山羊 右键时检查权限
                 if (entityType == EntityType.COW ||
@@ -653,12 +641,11 @@ public class ToolPermissionManager extends IslandPermissionManager {
         return switch (toolType) {
             case BOW, CROSSBOW -> IslandPermission.BOW;
             case WOODEN_AXE, STONE_AXE, COPPER_AXE, IRON_AXE, GOLDEN_AXE, DIAMOND_AXE, NETHERITE_AXE ->
-                IslandPermission.AXE;
+                    IslandPermission.AXE;
             case WOODEN_SHOVEL, STONE_SHOVEL, COPPER_SHOVEL, IRON_SHOVEL, GOLDEN_SHOVEL, DIAMOND_SHOVEL,
-                    NETHERITE_SHOVEL ->
-                IslandPermission.SHOVEL;
+                 NETHERITE_SHOVEL -> IslandPermission.SHOVEL;
             case WOODEN_HOE, STONE_HOE, IRON_HOE, COPPER_HOE, GOLDEN_HOE, DIAMOND_HOE, NETHERITE_HOE ->
-                IslandPermission.HOE;
+                    IslandPermission.HOE;
             case FLINT_AND_STEEL, FIRE_CHARGE -> IslandPermission.FIRE;
             case SHEARS -> IslandPermission.SHEARS;
             case BRUSH -> IslandPermission.BRUSH;

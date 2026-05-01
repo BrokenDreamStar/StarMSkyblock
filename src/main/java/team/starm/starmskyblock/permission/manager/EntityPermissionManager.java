@@ -1,37 +1,29 @@
 package team.starm.starmskyblock.permission.manager;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
-import org.bukkit.entity.AbstractHorse;
-import org.bukkit.entity.AbstractVillager;
-import org.bukkit.entity.Animals;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.HappyGhast;
-import org.bukkit.entity.Llama;
-import org.bukkit.entity.Monster;
-import org.bukkit.entity.Pig;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Strider;
-import org.bukkit.entity.Wolf;
-import org.bukkit.entity.AbstractNautilus;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityBreedEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityMountEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.EntityEquipment;
+
 
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.permission.IslandPermission;
-import team.starm.starmskyblock.util.TagsUtil;
-import team.starm.starmskyblock.util.EntityUtil;
+import team.starm.starmskyblock.tag.EntityTags;
+import team.starm.starmskyblock.tag.ItemTags;
 
 /**
  * 生物权限管理器
@@ -55,8 +47,8 @@ public class EntityPermissionManager extends IslandPermissionManager {
         Entity entity = event.getEntity();
         IslandPermission permission = (entity instanceof Animals) ? IslandPermission.ANIMAL_DAMAGE
                 : (entity instanceof Monster) ? IslandPermission.MONSTER_DAMAGE
-                        : (entity instanceof AbstractVillager) ? IslandPermission.VILLAGER_DAMAGE
-                                : null;
+                : (entity instanceof AbstractVillager) ? IslandPermission.VILLAGER_DAMAGE
+                : null;
 
         if (permission != null && !checkPermission(entity.getLocation(), player.getUniqueId(), permission)) {
             event.setCancelled(true);
@@ -78,60 +70,54 @@ public class EntityPermissionManager extends IslandPermissionManager {
         }
     }
 
+
     /**
      * 监听玩家给生物装备物品事件
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityEquip(PlayerInteractEntityEvent event) {
-        Player player = event.getPlayer();
         Entity entity = event.getRightClicked();
-
-        // 获取玩家交互使用的物品
+        Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItem(event.getHand());
+        Material type = item.getType();
 
-        boolean isEquipping = false;
 
-        // 对马/骷髅马/僵尸马/驴/猪/炽足兽/骆驼/骆驼尸壳/鹦鹉螺/僵尸鹦鹉螺使用鞍
-        if (item.getType() == Material.SADDLE) {
-            if (Tag.ENTITY_TYPES_CAN_EQUIP_SADDLE.isTagged(entity.getType())) {
-                if (entity instanceof LivingEntity && !EntityUtil.hasSaddle((LivingEntity) entity)) {
-                    isEquipping = true;
-                }
-            }
-        }
-        // 对马/僵尸马使用马铠
-        else if (TagsUtil.ITEMS_HORSE_ARMORS.contains(item.getType())) {
-            if (Tag.ENTITY_TYPES_CAN_WEAR_HORSE_ARMOR.isTagged(entity.getType())) {
-                isEquipping = true;
-            }
-        }
-        // 对狼使用狼铠
-        else if (item.getType() == Material.WOLF_ARMOR) {
-            if (entity instanceof Wolf) {
-                isEquipping = true;
-            }
-        }
-        // 对鹦鹉螺/僵尸鹦鹉螺使用鹦鹉螺铠
-        else if (TagsUtil.ITEMS_NAUTILUS_ARMORS.contains(item.getType())) {
-            if (Tag.ENTITY_TYPES_CAN_WEAR_NAUTILUS_ARMOR.isTagged(entity.getType())) {
-                isEquipping = true;
-            }
-        }
-        // 对羊驼/行商羊驼使用地毯
-        else if (Tag.ITEMS_WOOL_CARPETS.isTagged(item.getType())) {
-            if (entity instanceof Llama) {
-                isEquipping = true;
-            }
+        if (type.isAir() || !(entity instanceof LivingEntity livingEntity)) {
+            return;
         }
 
-        // 对快乐恶魂使用挽具
-        else if (Tag.ITEMS_HARNESSES.isTagged(item.getType())) {
-            if (entity instanceof HappyGhast) {
-                isEquipping = true;
+        EntityEquipment equipment = livingEntity.getEquipment();
+        if (equipment == null) return;
+
+        EntityType entityType = entity.getType();
+
+        boolean isTamedCheckPassed = (entity instanceof Tameable tameable && tameable.isTamed())
+                || entityType == EntityType.SKELETON_HORSE;
+
+        EquipmentSlot targetSlot = null;
+
+        if (type == Material.SADDLE && Tag.ENTITY_TYPES_CAN_EQUIP_SADDLE.isTagged(entityType)) {
+            if (isTamedCheckPassed || entity instanceof Steerable) {
+                targetSlot = EquipmentSlot.SADDLE;
+            }
+        } else if (isTamedCheckPassed) {
+            if (ItemTags.HORSE_ARMORS.contains(type) && Tag.ENTITY_TYPES_CAN_WEAR_HORSE_ARMOR.isTagged(entityType)) {
+                targetSlot = EquipmentSlot.BODY;
+            }
+            // 玩家只能对自己驯服的狼交互 这里无需处理
+//            else if (type == Material.WOLF_ARMOR && entity instanceof Wolf) {
+//                targetSlot = EquipmentSlot.BODY;
+//            }
+            else if (ItemTags.NAUTILUS_ARMORS.contains(type) && Tag.ENTITY_TYPES_CAN_WEAR_NAUTILUS_ARMOR.isTagged(entityType)) {
+                targetSlot = EquipmentSlot.BODY;
+            } else if (Tag.ITEMS_WOOL_CARPETS.isTagged(type) && entity instanceof Llama) {
+                targetSlot = EquipmentSlot.BODY;
+            } else if (Tag.ITEMS_HARNESSES.isTagged(type) && entity instanceof HappyGhast) {
+                targetSlot = EquipmentSlot.BODY;
             }
         }
 
-        if (isEquipping) {
+        if (targetSlot != null && equipment.getItem(targetSlot).isEmpty()) {
             if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.ENTITY_EQUIP)) {
                 event.setCancelled(true);
                 sendDenyMessage(player, IslandPermission.ENTITY_EQUIP);
@@ -166,23 +152,12 @@ public class EntityPermissionManager extends IslandPermissionManager {
 
         Entity mount = event.getMount();
 
-        if (isRideable(mount)) {
+        if (EntityTags.RIDEABLE.contains(mount.getType())) {
             if (!checkPermission(mount.getLocation(), player.getUniqueId(), IslandPermission.ENTITY_RIDE)) {
                 event.setCancelled(true);
                 sendDenyMessage(player, IslandPermission.ENTITY_RIDE);
             }
         }
-    }
-
-    /**
-     * 判断实体是否为可骑乘生物 (已使用 Abstract 类进行优化)
-     */
-    private boolean isRideable(Entity entity) {
-        return entity instanceof AbstractHorse ||
-                entity instanceof AbstractNautilus ||
-                entity instanceof Pig ||
-                entity instanceof Strider ||
-                entity instanceof HappyGhast;
     }
 
     public boolean canBreedAnimal(Location location, UUID uuid) {

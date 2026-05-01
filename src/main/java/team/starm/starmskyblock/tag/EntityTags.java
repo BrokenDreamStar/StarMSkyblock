@@ -1,56 +1,15 @@
-package team.starm.starmskyblock.util;
+package team.starm.starmskyblock.tag;
 
-import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 
 import java.util.EnumSet;
 import java.util.Set;
 
-public class TagsUtil {
-    /**
-     * 所有种类的马铠
-     */
-    public static final Set<Material> ITEMS_HORSE_ARMORS = EnumSet.of(
-            Material.LEATHER_HORSE_ARMOR,
-            Material.COPPER_HORSE_ARMOR,
-            Material.IRON_HORSE_ARMOR,
-            Material.GOLDEN_HORSE_ARMOR,
-            Material.DIAMOND_HORSE_ARMOR,
-            Material.NETHERITE_HORSE_ARMOR
-    );
-
-    /**
-     * 所有种类的鹦鹉螺铠
-     */
-    public static final Set<Material> ITEMS_NAUTILUS_ARMORS = EnumSet.of(
-            Material.COPPER_NAUTILUS_ARMOR,
-            Material.IRON_NAUTILUS_ARMOR,
-            Material.GOLDEN_NAUTILUS_ARMOR,
-            Material.DIAMOND_NAUTILUS_ARMOR,
-            Material.NETHERITE_NAUTILUS_ARMOR
-    );
-
-    /**
-     * 所有种类的桶(除奶桶)
-     */
-    public static final Set<Material> ITEMS_BUCKETS = EnumSet.of(
-            Material.BUCKET,
-            Material.WATER_BUCKET,
-            Material.LAVA_BUCKET,
-            Material.POWDER_SNOW_BUCKET,
-            Material.AXOLOTL_BUCKET,
-            Material.COD_BUCKET,
-            Material.PUFFERFISH_BUCKET,
-            Material.SALMON_BUCKET,
-            Material.TROPICAL_FISH_BUCKET,
-            Material.TADPOLE_BUCKET
-    );
-
-
+public class EntityTags {
     /**
      * 所有运输船(实体)
      */
-    public static final Set<EntityType> ENTITY_TYPES_CHEST_BOATS = EnumSet.of(
+    public static final Set<EntityType> CHEST_BOATS = EnumSet.of(
             EntityType.OAK_CHEST_BOAT,
             EntityType.SPRUCE_CHEST_BOAT,
             EntityType.BIRCH_CHEST_BOAT,
@@ -64,9 +23,25 @@ public class TagsUtil {
     );
 
     /**
+     * 所有可被骑乘的生物
+     */
+    public static final Set<EntityType> RIDEABLE = EnumSet.of(
+            EntityType.HORSE,
+            EntityType.DONKEY,
+            EntityType.MULE,
+            EntityType.SKELETON_HORSE,
+            EntityType.ZOMBIE_HORSE,
+            EntityType.NAUTILUS,
+            EntityType.ZOMBIE_NAUTILUS,
+            EntityType.PIG,
+            EntityType.STRIDER,
+            EntityType.HAPPY_GHAST
+    );
+
+    /**
      * 可被拴绳拴住的生物
      */
-    public static final Set<EntityType> ENTITY_TYPES_CAN_BE_LEASHED = EnumSet.of(
+    public static final Set<EntityType> CAN_BE_LEASHED = EnumSet.of(
             EntityType.ALLAY,
             EntityType.ARMADILLO,
             EntityType.AXOLOTL,
