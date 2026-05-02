@@ -117,6 +117,8 @@ public enum IslandPermission {
     MONSTER_DAMAGE("攻击怪物"),
     VILLAGER_DAMAGE("攻击村民"),
     VILLAGER_TRADING("村民交易"),
+    BARTERING("以物易物"),
+    ALLAY("与悦灵交互"),
 
     // ====================== 其它 ======================
 

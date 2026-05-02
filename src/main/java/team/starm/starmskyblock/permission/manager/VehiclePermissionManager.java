@@ -3,6 +3,8 @@ package team.starm.starmskyblock.permission.manager;
 import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.Tag;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
@@ -18,6 +20,7 @@ import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
+import team.starm.starmskyblock.tag.ItemTags;
 
 /**
  * 载具/坐骑权限管理器
@@ -50,7 +53,7 @@ public class VehiclePermissionManager extends IslandPermissionManager {
     }
 
     /**
-     * 监听载具进入事件
+     * 监听乘坐矿车/船事件
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onVehicleEnter(VehicleEnterEvent event) {
@@ -76,22 +79,31 @@ public class VehiclePermissionManager extends IslandPermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent event) {
+
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR) {
             return;
         }
 
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
-        if (item == null) {
+
+        if (item == null || item.getType().isAir()) {
             return;
         }
 
-        String typeName = item.getType().name();
         IslandPermission permission = null;
+        Block clickedBlock = event.getClickedBlock();
 
-        if (typeName.endsWith("MINECART")) {
+        if (ItemTags.MINECARTS.contains(item.getType())) {
+            if (event.getAction() != Action.RIGHT_CLICK_BLOCK || clickedBlock == null) {
+                return;
+            }
+            if (!Tag.RAILS.isTagged(clickedBlock.getType())) {
+                return;
+            }
             permission = IslandPermission.MINECART_PLACE;
-        } else if (typeName.endsWith("_BOAT") || typeName.endsWith("RAFT")) {
+
+        } else if (Tag.ITEMS_BOATS.isTagged(item.getType())) {
             permission = IslandPermission.BOAT_PLACE;
         }
 
@@ -99,9 +111,8 @@ public class VehiclePermissionManager extends IslandPermissionManager {
             return;
         }
 
-        // 使用点击位置作为检查坐标
-        Location checkLoc = (event.getClickedBlock() != null)
-                ? event.getClickedBlock().getLocation()
+        Location checkLoc = (clickedBlock != null)
+                ? clickedBlock.getLocation()
                 : player.getLocation();
 
         if (!checkPermission(checkLoc, player.getUniqueId(), permission)) {
@@ -109,6 +120,7 @@ public class VehiclePermissionManager extends IslandPermissionManager {
             sendDenyMessage(player, permission);
         }
     }
+
 
     /**
      * 检查是否可以破坏矿车

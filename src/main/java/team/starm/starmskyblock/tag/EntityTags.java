@@ -7,7 +7,7 @@ import java.util.Set;
 
 public class EntityTags {
     /**
-     * 所有运输船(实体)
+     * 所有种类的运输船(实体)
      */
     public static final Set<EntityType> CHEST_BOATS = EnumSet.of(
             EntityType.OAK_CHEST_BOAT,
@@ -23,7 +23,7 @@ public class EntityTags {
     );
 
     /**
-     * 所有可被骑乘的生物
+     * 可被骑乘的生物
      */
     public static final Set<EntityType> RIDEABLE = EnumSet.of(
             EntityType.HORSE,
@@ -35,6 +35,10 @@ public class EntityTags {
             EntityType.ZOMBIE_NAUTILUS,
             EntityType.PIG,
             EntityType.STRIDER,
+            EntityType.LLAMA,
+            EntityType.TRADER_LLAMA,
+            EntityType.CAMEL,
+            EntityType.CAMEL_HUSK,
             EntityType.HAPPY_GHAST
     );
 

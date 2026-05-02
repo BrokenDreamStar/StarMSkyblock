@@ -44,4 +44,15 @@ public class ItemTags {
             Material.TROPICAL_FISH_BUCKET,
             Material.TADPOLE_BUCKET
     );
+
+    /**
+     * 所有种类的矿车
+     */
+    public static final Set<Material> MINECARTS = EnumSet.of(
+            Material.MINECART,
+            Material.CHEST_MINECART,
+            Material.FURNACE_MINECART,
+            Material.HOPPER_MINECART,
+            Material.TNT_MINECART
+    );
 }

@@ -140,7 +140,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
 
             // 统一判定是否已驯服或为骷髅马（与 EntityPermissionManager 保持一致）
             boolean isTamedCheckPassed = (entity instanceof Tameable tameable && tameable.isTamed())
-                    || entityType == EntityType.SKELETON_HORSE;
+                    || entityType == EntityType.SKELETON_HORSE || entityType == EntityType.HAPPY_GHAST;
 
             // 1. 检查鞍 (Saddle) 槽位
             ItemStack saddleItem = equipment.getItem(EquipmentSlot.SADDLE);
@@ -155,7 +155,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
             ItemStack bodyItem = equipment.getItem(EquipmentSlot.BODY);
             if (!bodyItem.isEmpty()) {
                 Material type = bodyItem.getType();
-                
+
                 if (isTamedCheckPassed) {
                     if (ItemTags.HORSE_ARMORS.contains(type) && Tag.ENTITY_TYPES_CAN_WEAR_HORSE_ARMOR.isTagged(entityType)) {
                         return true;
@@ -512,8 +512,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
     public void onToolUseOnEntity(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
         org.bukkit.entity.Entity clickedEntity = event.getRightClicked();
-
-        // 【重要修复】移除栅栏上的拴绳结（LeashHitch），即使空手也会触发权限检查
+        
         if (clickedEntity instanceof LeashHitch) {
             if (!checkPermission(clickedEntity.getLocation(), player.getUniqueId(), IslandPermission.LEASH)) {
                 event.setCancelled(true);

@@ -274,6 +274,6 @@ public class IslandPermissionManager implements Listener {
      * 权限消息提示
      */
     protected void sendDenyMessage(Player player, IslandPermission permission) {
-        MessageUtil.sendMessage(player, String.format("&e岛屿保护 &f|&a 你没有&c %s &a权限！", permission.getDisplayName()));
+        MessageUtil.sendMessage(player, String.format("&e岛屿保护 &f|&c 你没有&e %s &c权限！", permission.getDisplayName()));
     }
 }
