@@ -69,31 +69,4 @@ public class DoorPermissionManager extends IslandPermissionManager {
         return IslandPermission.DOOR;
     }
 
-    /**
-     * 检查是否可以开关门
-     */
-    public boolean canUseDoors(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.DOOR);
-    }
-
-    /**
-     * 检查是否可以开关木门
-     */
-    public boolean canUseDoor(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.DOOR);
-    }
-
-    /**
-     * 检查是否可以开关栅栏门
-     */
-    public boolean canUseFenceGate(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.FENCE_GATE);
-    }
-
-    /**
-     * 检查是否可以开关活板门
-     */
-    public boolean canUseTrapdoor(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.TRAPDOOR);
-    }
 }

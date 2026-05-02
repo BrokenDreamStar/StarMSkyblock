@@ -6,9 +6,11 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Jukebox;
+import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.type.ChiseledBookshelf;
 import org.bukkit.block.data.type.Lectern;
 import org.bukkit.entity.*;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -150,7 +152,7 @@ public class ContainerPermissionManager extends IslandPermissionManager {
         if (material == Material.COMPOSTER) {
             ItemStack heldItem = event.getItem();
 
-            org.bukkit.block.data.Levelled composterData = (org.bukkit.block.data.Levelled) block.getBlockData();
+            Levelled composterData = (Levelled) block.getBlockData();
 
             boolean isPlacing = (heldItem != null && heldItem.getType() != Material.AIR);
             boolean isTaking = (composterData.getLevel() == composterData.getMaximumLevel());
@@ -232,7 +234,7 @@ public class ContainerPermissionManager extends IslandPermissionManager {
             return;
         }
 
-        if (event.getInventory().getType() != org.bukkit.event.inventory.InventoryType.ENDER_CHEST) {
+        if (event.getInventory().getType() != InventoryType.ENDER_CHEST) {
             return;
         }
 
@@ -317,7 +319,7 @@ public class ContainerPermissionManager extends IslandPermissionManager {
      * 根据方块类型获取对应的容器权限
      */
     private IslandPermission getContainerPermission(Block block, Material material) {
-        if (block.getState() instanceof org.bukkit.inventory.InventoryHolder) {
+        if (block.getState() instanceof InventoryHolder) {
             return switch (material) {
                 case FURNACE, FURNACE_MINECART, BLAST_FURNACE, SMOKER -> IslandPermission.FURNACE;
                 case CHEST, TRAPPED_CHEST, COPPER_CHEST, EXPOSED_COPPER_CHEST,
@@ -367,115 +369,4 @@ public class ContainerPermissionManager extends IslandPermissionManager {
                 entity instanceof ZombieNautilus;
     }
 
-    /**
-     * 检查是否可以使用熔炉
-     */
-    public boolean canUseFurnace(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.FURNACE);
-    }
-
-    /**
-     * 检查是否可以打开箱子
-     */
-    public boolean canOpenChest(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.CHEST);
-    }
-
-    /**
-     * 检查是否可以打开木桶
-     */
-    public boolean canOpenBarrel(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.BARREL);
-    }
-
-    /**
-     * 检查是否可以打开末影箱
-     */
-    public boolean canOpenEnderChest(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.ENDER_CHEST);
-    }
-
-    /**
-     * 检查是否可以打开潜影盒
-     */
-    public boolean canOpenShulkerBox(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.SHULKER_BOX);
-    }
-
-    /**
-     * 检查是否可以使用漏斗
-     */
-    public boolean canUseHopper(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.HOPPER);
-    }
-
-    /**
-     * 检查是否可以使用发射器
-     */
-    public boolean canUseDispenser(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.DISPENSER);
-    }
-
-    /**
-     * 检查是否可以使用投掷器
-     */
-    public boolean canUseDropper(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.DROPPER);
-    }
-
-    /**
-     * 检查是否可以使用酿造台
-     */
-    public boolean canUseBrewingStand(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.BREWING_STAND);
-    }
-
-    /**
-     * 检查是否可以使用唱片机
-     */
-    public boolean canUseJukebox(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.JUKEBOX);
-    }
-
-    /**
-     * 检查是否可以使用展示架
-     */
-    public boolean canUseShelf(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.SHELF);
-    }
-
-    /**
-     * 检查是否可以使用讲台
-     */
-    public boolean canUseLectern(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.LECTERN);
-    }
-
-    /**
-     * 检查是否可以使用雕纹书架
-     */
-    public boolean canUseChiseledBookshelf(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.CHISELED_BOOKSHELF);
-    }
-
-    /**
-     * 检查是否可以使用堆肥桶
-     */
-    public boolean canUseComposter(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.COMPOSTER);
-    }
-
-    /**
-     * 检查是否可以使用花盆
-     */
-    public boolean canUseFlowerPot(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.FLOWER_POT);
-    }
-
-    /**
-     * 检查是否可以打开生物背包
-     */
-    public boolean canOpenAnimalInventory(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.ANIMAL_INVENTORY);
-    }
 }

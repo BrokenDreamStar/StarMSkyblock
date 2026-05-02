@@ -17,6 +17,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
@@ -61,9 +63,9 @@ public class ToolPermissionManager extends IslandPermissionManager {
      * @param player 目标玩家
      * @param entity 目标实体
      */
-    private void syncEntityStatusForPlayer(Player player, org.bukkit.entity.Entity entity) {
-        org.bukkit.plugin.Plugin plugin = org.bukkit.plugin.java.JavaPlugin.getProvidingPlugin(getClass());
-        org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+    private void syncEntityStatusForPlayer(Player player, Entity entity) {
+        Plugin plugin = JavaPlugin.getProvidingPlugin(getClass());
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline() && entity.isValid()) {
                 player.hideEntity(plugin, entity);
                 player.showEntity(plugin, entity);
@@ -98,7 +100,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
     /**
      * 判断右键实体时是否需要 SHEARS 权限（严格检测是否穿戴了特定的装备/鞍/地毯/挽具）
      */
-    private boolean requiresShearsOnEntity(org.bukkit.entity.Entity entity) {
+    private boolean requiresShearsOnEntity(Entity entity) {
         if (entity == null)
             return false;
         EntityType entityType = entity.getType();
@@ -113,7 +115,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
         }
         // 3. 身上有蘑菇的沼骸
         if (entityType == EntityType.BOGGED) {
-            if (entity instanceof org.bukkit.entity.Bogged bogged && !bogged.isSheared()) {
+            if (entity instanceof Bogged bogged && !bogged.isSheared()) {
                 return true;
             }
         }
@@ -185,7 +187,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
     /**
      * 判断实体是否为可被拴绳的生物或船
      */
-    private boolean isLeashableEntity(org.bukkit.entity.Entity entity) {
+    private boolean isLeashableEntity(Entity entity) {
         if (entity == null)
             return false;
         EntityType type = entity.getType();
@@ -199,7 +201,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
     private boolean isPlayerLeadingMob(Player player) {
         if (player == null)
             return false;
-        for (org.bukkit.entity.Entity entity : player.getNearbyEntities(16, 16, 16)) {
+        for (Entity entity : player.getNearbyEntities(16, 16, 16)) {
             if (entity instanceof LivingEntity livingEntity && livingEntity.isLeashed()
                     && player.equals(livingEntity.getLeashHolder())) {
                 return true;
@@ -435,7 +437,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
             }
 
             if (consumable != null && !consumable.isEmpty()) {
-                boolean isCreative = player.getGameMode() == org.bukkit.GameMode.CREATIVE;
+                boolean isCreative = player.getGameMode() == GameMode.CREATIVE;
                 ItemStack bow = event.getBow();
                 boolean hasInfinity = bow != null && bow.containsEnchantment(Enchantment.INFINITY);
                 if (!isCreative && !hasInfinity) {
@@ -511,8 +513,8 @@ public class ToolPermissionManager extends IslandPermissionManager {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onToolUseOnEntity(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
-        org.bukkit.entity.Entity clickedEntity = event.getRightClicked();
-        
+        Entity clickedEntity = event.getRightClicked();
+
         if (clickedEntity instanceof LeashHitch) {
             if (!checkPermission(clickedEntity.getLocation(), player.getUniqueId(), IslandPermission.LEASH)) {
                 event.setCancelled(true);
@@ -598,7 +600,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerShearEntity(PlayerShearEntityEvent event) {
         Player player = event.getPlayer();
-        org.bukkit.entity.Entity entity = event.getEntity();
+        Entity entity = event.getEntity();
 
         if (requiresShearsOnEntity(entity)) {
             if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.SHEARS)) {
@@ -648,93 +650,9 @@ public class ToolPermissionManager extends IslandPermissionManager {
             case FLINT_AND_STEEL, FIRE_CHARGE -> IslandPermission.FIRE;
             case SHEARS -> IslandPermission.SHEARS;
             case BRUSH -> IslandPermission.BRUSH;
-            case NAME_TAG -> IslandPermission.NAME;
             case LEAD -> IslandPermission.LEASH;
             default -> null;
         };
     }
 
-    /**
-     * 是否拥有使用弓/弩权限
-     */
-    public boolean canUseBow(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.BOW);
-    }
-
-    /**
-     * 是否拥有使用斧头权限
-     */
-    public boolean canUseAxe(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.AXE);
-    }
-
-    /**
-     * 是否拥有使用锹权限
-     */
-    public boolean canUseShovel(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.SHOVEL);
-    }
-
-    /**
-     * 是否拥有使用锄头权限
-     */
-    public boolean canUseFarming(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.HOE);
-    }
-
-    /**
-     * 是否拥有桶使用权限
-     */
-    public boolean canUseBucket(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.BUCKET);
-    }
-
-    /**
-     * 是否拥有碗使用权限
-     */
-    public boolean canUseBowl(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.BOWL);
-    }
-
-    /**
-     * 是否拥有玻璃瓶使用权限
-     */
-    public boolean canUseBottle(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.GLASS_BOTTLE);
-    }
-
-    /**
-     * 是否拥有钓鱼权限
-     */
-    public boolean canFish(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.FISH);
-    }
-
-    /**
-     * 是否拥有点火权限
-     */
-    public boolean canUseFire(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.FIRE);
-    }
-
-    /**
-     * 是否拥有剪刀使用权限
-     */
-    public boolean canUseShears(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.SHEARS);
-    }
-
-    /**
-     * 是否拥有刷子使用权限
-     */
-    public boolean canUseBrush(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.BRUSH);
-    }
-
-    /**
-     * 是否拥有拴绳使用权限
-     */
-    public boolean canUseLeash(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.LEASH);
-    }
 }

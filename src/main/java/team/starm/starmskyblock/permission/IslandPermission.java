@@ -98,7 +98,7 @@ public enum IslandPermission {
     // ====================== 物品 ======================
     FIREWORK("使用烟花"),
     NAME("使用命名牌"),
-    POTION("使用药水"),
+    POTION("投掷药水"),
     FERTILIZE("使用骨粉"),
     DYE("使用染料"),
     HONEYCOMB("涂蜡(使用蜜脾)"),

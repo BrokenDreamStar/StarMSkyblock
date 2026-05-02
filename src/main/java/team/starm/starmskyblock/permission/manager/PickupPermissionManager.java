@@ -63,24 +63,4 @@ public class PickupPermissionManager extends IslandPermissionManager {
         }
     }
 
-    /**
-     * 检查是否可以丢弃物品
-     */
-    public boolean canDropItems(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.DROP_ITEMS);
-    }
-
-    /**
-     * 检查是否可以拾取物品
-     */
-    public boolean canPickupDrops(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.PICKUP_DROPS);
-    }
-
-    /**
-     * 检查是否可以吸取经验球
-     */
-    public boolean canPickupExpBalls(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.EXP_BALL);
-    }
 }

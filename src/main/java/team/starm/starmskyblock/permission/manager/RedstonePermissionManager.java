@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.type.SculkSensor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -114,8 +115,8 @@ public class RedstonePermissionManager extends IslandPermissionManager {
                 sendDenyMessage(player, IslandPermission.SCULK_SENSOR);
             }
 
-            if (block.getBlockData() instanceof org.bukkit.block.data.type.SculkSensor sensorData) {
-                sensorData.setSculkSensorPhase(org.bukkit.block.data.type.SculkSensor.Phase.INACTIVE);
+            if (block.getBlockData() instanceof SculkSensor sensorData) {
+                sensorData.setSculkSensorPhase(SculkSensor.Phase.INACTIVE);
                 block.setBlockData(sensorData);
             }
         }
@@ -177,66 +178,4 @@ public class RedstonePermissionManager extends IslandPermissionManager {
         };
     }
 
-    /**
-     * 检查是否可以按按钮
-     */
-    public boolean canUseButton(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.BUTTON);
-    }
-
-    /**
-     * 检查是否可以拉拉杆
-     */
-    public boolean canUseLever(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.LEVER);
-    }
-
-    /**
-     * 检查是否可以切换红石中继器
-     */
-    public boolean canUseRedstoneRepeater(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.REDSTONE_REPEATER);
-    }
-
-    /**
-     * 检查是否可以切换红石比较器
-     */
-    public boolean canUseRedstoneComparator(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.REDSTONE_COMPARATOR);
-    }
-
-    /**
-     * 检查是否可以阳光传感器
-     */
-    public boolean canUseDaylightDetector(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.DAYLIGHT_DETECTOR);
-    }
-
-    /**
-     * 检查是否可以触发压力板
-     */
-    public boolean canUsePressurePlate(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.PRESSURE_PLATE);
-    }
-
-    /**
-     * 检查是否可以绊线钩
-     */
-    public boolean canUseTripwireHook(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.TRIPWIRE_HOOK);
-    }
-
-    /**
-     * 检查是否可以触发幽匿感测体
-     */
-    public boolean canUseSculkSensor(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.SCULK_SENSOR);
-    }
-
-    /**
-     * 检查是否可以敲钟
-     */
-    public boolean canUseBell(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.BELL);
-    }
 }

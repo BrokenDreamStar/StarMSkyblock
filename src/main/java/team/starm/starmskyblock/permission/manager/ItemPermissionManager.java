@@ -1,15 +1,24 @@
 package team.starm.starmskyblock.permission.manager;
 
-import java.util.UUID;
-
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Tag;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Sheep;
+import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockFertilizeEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
@@ -18,7 +27,6 @@ import team.starm.starmskyblock.permission.IslandPermission;
 
 /**
  * 物品权限管理器
- * 处理烟花、药水、骨粉、染料等物品的使用权限
  */
 public class ItemPermissionManager extends IslandPermissionManager {
 
@@ -27,17 +35,25 @@ public class ItemPermissionManager extends IslandPermissionManager {
     }
 
     /**
-     * 监听玩家使用物品事件
+     * 监听玩家使用物品事件 (拦截投掷喷溅/滞留药水和附魔之瓶、丢雪球等)
      */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onItemUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) {
+        Action action = event.getAction();
+
+        // 仅处理右键空气和右键方块
+        if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) {
             return;
         }
 
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
-        if (item == null) {
+
+        if (item == null || item.getType() == Material.AIR) {
+            return;
+        }
+
+        if (item.getType() == Material.NAME_TAG) {
             return;
         }
 
@@ -46,7 +62,113 @@ public class ItemPermissionManager extends IslandPermissionManager {
 
         if (permission != null && !checkPermission(loc, player.getUniqueId(), permission)) {
             event.setCancelled(true);
+
+            // 明确拒绝物品在手中的使用以及与方块的交互
+            event.setUseItemInHand(Result.DENY);
+            event.setUseInteractedBlock(Result.DENY);
+
             sendDenyMessage(player, permission);
+
+            // 延迟 1 tick 更新背包，解决客户端物品假象问题，自动获取插件实例
+            Bukkit.getScheduler().runTask(
+                    JavaPlugin.getProvidingPlugin(getClass()),
+                    player::updateInventory
+            );
+        }
+    }
+
+    /**
+     * 监听玩家与实体交互事件 (拦截命名牌、染料等特定的实体交互)
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = player.getInventory().getItem(event.getHand());
+
+        if (item.getType() == Material.AIR) {
+            return;
+        }
+
+        Material itemType = item.getType();
+        Entity clickedEntity = event.getRightClicked();
+
+        if (itemType == Material.NAME_TAG) {
+            if (!(clickedEntity instanceof Mob)) {
+                return;
+            }
+
+            ItemMeta meta = item.getItemMeta();
+
+            if (meta == null || !meta.hasDisplayName()) {
+                return;
+            }
+
+            Location loc = clickedEntity.getLocation();
+
+            if (!checkPermission(loc, player.getUniqueId(), IslandPermission.NAME)) {
+                event.setCancelled(true);
+                sendDenyMessage(player, IslandPermission.NAME);
+                player.updateInventory();
+            }
+
+            return;
+        }
+
+        if (clickedEntity instanceof Sheep sheep) {
+            if (Tag.ITEMS_DYEABLE.isTagged(itemType)) {
+                Location loc = sheep.getLocation();
+
+                if (!checkPermission(loc, player.getUniqueId(), IslandPermission.DYE)) {
+                    event.setCancelled(true);
+                    sendDenyMessage(player, IslandPermission.DYE);
+                    player.updateInventory();
+                }
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlayerItemConsume(PlayerItemConsumeEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = event.getItem();
+
+        if (item.getType() == Material.AIR) {
+            return;
+        }
+
+        if (item.getType() == Material.CHORUS_FRUIT) {
+            Location loc = player.getLocation();
+
+            if (!checkPermission(loc, player.getUniqueId(), IslandPermission.CHORUS_FRUIT)) {
+                event.setCancelled(true);
+                sendDenyMessage(player, IslandPermission.CHORUS_FRUIT);
+
+                Bukkit.getScheduler().runTask(
+                        JavaPlugin.getProvidingPlugin(getClass()),
+                        player::updateInventory
+                );
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBlockFertilize(BlockFertilizeEvent event) {
+        Player player = event.getPlayer();
+
+        if (player == null) {
+            return;
+        }
+
+        Location loc = event.getBlock().getLocation();
+
+        if (!checkPermission(loc, player.getUniqueId(), IslandPermission.FERTILIZE)) {
+            event.setCancelled(true);
+            sendDenyMessage(player, IslandPermission.FERTILIZE);
+
+            Bukkit.getScheduler().runTask(
+                    JavaPlugin.getProvidingPlugin(getClass()),
+                    player::updateInventory
+            );
         }
     }
 
@@ -54,102 +176,19 @@ public class ItemPermissionManager extends IslandPermissionManager {
      * 根据玩家手中持有的物品类型，映射对应的岛屿权限
      */
     private IslandPermission getItemUsePermission(Material itemMat) {
+        if (Tag.ITEMS_EGGS.isTagged(itemMat)) {
+            return IslandPermission.DROP_EGG;
+        }
+
         return switch (itemMat) {
             case FIREWORK_ROCKET -> IslandPermission.FIREWORK;
-            case NAME_TAG -> IslandPermission.NAME;
-            case POTION, SPLASH_POTION, LINGERING_POTION -> IslandPermission.POTION;
+            case SPLASH_POTION, LINGERING_POTION, EXPERIENCE_BOTTLE -> IslandPermission.POTION;
             case CHORUS_FRUIT -> IslandPermission.CHORUS_FRUIT;
             case ENDER_PEARL -> IslandPermission.ENDER_PEARL;
             case ENDER_EYE -> IslandPermission.ENDER_EYE;
             case WIND_CHARGE -> IslandPermission.WIND_CHARGE;
             case SNOWBALL -> IslandPermission.DROP_SNOWBALL;
-            case EGG -> IslandPermission.DROP_EGG;
-            case BONE_MEAL -> IslandPermission.FERTILIZE;
             default -> null;
         };
-    }
-
-    /**
-     * 检查是否可以使用烟花
-     */
-    public boolean canUseFirework(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.FIREWORK);
-    }
-
-    /**
-     * 是否拥有命名牌使用权限
-     */
-    public boolean canUseNameTag(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.NAME);
-    }
-
-    /**
-     * 检查是否可以使用药水（喝/丢）
-     */
-    public boolean canUsePotion(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.POTION);
-    }
-
-    /**
-     * 检查是否可以使用骨粉
-     */
-    public boolean canFertilize(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.FERTILIZE);
-    }
-
-    /**
-     * 检查是否可以使用染料
-     */
-    public boolean canUseDye(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.DYE);
-    }
-
-    /**
-     * 检查是否可以涂蜡（使用蜜脾）
-     */
-    public boolean canUseHoneycomb(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.HONEYCOMB);
-    }
-
-    /**
-     * 检查是否可以食用紫颂果
-     */
-    public boolean canEatChorusFruit(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.CHORUS_FRUIT);
-    }
-
-    /**
-     * 检查是否可以使用末影珍珠
-     */
-    public boolean canUseEnderPearl(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.ENDER_PEARL);
-    }
-
-    /**
-     * 检查是否可以使用末影之眼
-     */
-    public boolean canUseEnderEye(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.ENDER_EYE);
-    }
-
-    /**
-     * 检查是否可以使用风弹
-     */
-    public boolean canUseWindCharge(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.WIND_CHARGE);
-    }
-
-    /**
-     * 检查是否可以丢雪球
-     */
-    public boolean canDropSnowball(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.DROP_SNOWBALL);
-    }
-
-    /**
-     * 检查是否可以丢鸡蛋
-     */
-    public boolean canDropEgg(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.DROP_EGG);
     }
 }

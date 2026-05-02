@@ -8,6 +8,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Vehicle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
@@ -38,7 +39,7 @@ public class VehiclePermissionManager extends IslandPermissionManager {
     public void onVehicleDestroy(VehicleDestroyEvent event) {
         if (!(event.getAttacker() instanceof Player player))
             return;
-        org.bukkit.entity.Vehicle vehicle = event.getVehicle();
+        Vehicle vehicle = event.getVehicle();
 
         IslandPermission permission = null;
         if (vehicle instanceof Minecart)
@@ -60,7 +61,7 @@ public class VehiclePermissionManager extends IslandPermissionManager {
         if (!(event.getEntered() instanceof Player player))
             return;
 
-        org.bukkit.entity.Vehicle vehicle = event.getVehicle();
+        Vehicle vehicle = event.getVehicle();
         IslandPermission permission = null;
 
         if (vehicle instanceof Minecart)
@@ -122,45 +123,4 @@ public class VehiclePermissionManager extends IslandPermissionManager {
     }
 
 
-    /**
-     * 检查是否可以破坏矿车
-     */
-    public boolean canDamageMinecart(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.MINECART_DAMAGE);
-    }
-
-    /**
-     * 检查是否可以乘坐矿车
-     */
-    public boolean canEnterMinecart(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.MINECART_ENTER);
-    }
-
-    /**
-     * 检查是否可以放置矿车
-     */
-    public boolean canPlaceMinecart(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.MINECART_PLACE);
-    }
-
-    /**
-     * 检查是否可以破坏船
-     */
-    public boolean canDamageShip(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.BOAT_DAMAGE);
-    }
-
-    /**
-     * 检查是否可以乘坐船
-     */
-    public boolean canEnterShip(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.BOAT_ENTER);
-    }
-
-    /**
-     * 检查是否可以放置船
-     */
-    public boolean canPlaceShip(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.BOAT_PLACE);
-    }
 }

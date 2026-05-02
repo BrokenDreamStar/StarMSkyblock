@@ -15,7 +15,9 @@ import team.starm.starmskyblock.island.IslandCreateTask;
 import team.starm.starmskyblock.island.IslandDeleteTask;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.island.InvitationManager;
+import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
+import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.message.MessageUtil;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
@@ -293,7 +295,10 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             }
 
             Island island = optionalIsland.get();
-            if (!plugin.getPermissionCoordinator().canManageMembers(island, player.getUniqueId())) {
+            if (!island.getOwnerId().equals(player.getUniqueId()) &&
+                    !IslandPermissionManager.hasPermission(island, player.getUniqueId(), IslandPermission.INVITE_MEMBER) &&
+                    !IslandPermissionManager.hasPermission(island, player.getUniqueId(), IslandPermission.REMOVE_MEMBER) &&
+                    !IslandPermissionManager.hasPermission(island, player.getUniqueId(), IslandPermission.SET_ROLE)) {
                 MessageUtil.sendMessage(player, "&c你没有权限邀请成员！");
                 return true;
             }
@@ -333,7 +338,10 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             }
 
             Island island = optionalIsland.get();
-            if (!plugin.getPermissionCoordinator().canManageMembers(island, player.getUniqueId())) {
+            if (!island.getOwnerId().equals(player.getUniqueId()) &&
+                    !IslandPermissionManager.hasPermission(island, player.getUniqueId(), IslandPermission.INVITE_MEMBER) &&
+                    !IslandPermissionManager.hasPermission(island, player.getUniqueId(), IslandPermission.REMOVE_MEMBER) &&
+                    !IslandPermissionManager.hasPermission(island, player.getUniqueId(), IslandPermission.SET_ROLE)) {
                 MessageUtil.sendMessage(player, "&c你没有权限踢出成员！");
                 return true;
             }
@@ -372,7 +380,10 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             }
 
             Island island = optionalIsland.get();
-            if (!plugin.getPermissionCoordinator().canManageMembers(island, player.getUniqueId())) {
+            if (!island.getOwnerId().equals(player.getUniqueId()) &&
+                    !IslandPermissionManager.hasPermission(island, player.getUniqueId(), IslandPermission.INVITE_MEMBER) &&
+                    !IslandPermissionManager.hasPermission(island, player.getUniqueId(), IslandPermission.REMOVE_MEMBER) &&
+                    !IslandPermissionManager.hasPermission(island, player.getUniqueId(), IslandPermission.SET_ROLE)) {
                 MessageUtil.sendMessage(player, "&c你没有权限管理成员角色！");
                 return true;
             }

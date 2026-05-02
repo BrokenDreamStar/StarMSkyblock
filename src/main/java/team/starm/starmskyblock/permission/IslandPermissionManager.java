@@ -264,13 +264,6 @@ public class IslandPermissionManager implements Listener {
     }
 
     /**
-     * 判断玩家是否具有管理成员的权限
-     */
-    public boolean canManageMembers(Island island, UUID uuid) {
-        return managementManager.canManageMembers(island, uuid);
-    }
-
-    /**
      * 权限消息提示
      */
     protected void sendDenyMessage(Player player, IslandPermission permission) {

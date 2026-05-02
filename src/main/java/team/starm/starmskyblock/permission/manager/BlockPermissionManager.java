@@ -75,17 +75,4 @@ public class BlockPermissionManager extends IslandPermissionManager {
         }
     }
 
-    /**
-     * 检查是否可以破坏方块
-     */
-    public boolean canBreakBlock(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.BREAK);
-    }
-
-    /**
-     * 检查是否可以放置方块
-     */
-    public boolean canPlaceBlock(Location location, UUID uuid) {
-        return checkPermission(location, uuid, IslandPermission.BUILD);
-    }
 }
