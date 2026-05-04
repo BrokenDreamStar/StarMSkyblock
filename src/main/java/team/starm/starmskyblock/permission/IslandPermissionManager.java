@@ -202,4 +202,8 @@ public class IslandPermissionManager implements Listener {
         lastDenyMessageTime.put(player.getUniqueId(), now);
         MessageUtil.sendMessage(player, String.format("&e岛屿保护 &f|&c 你没有&e %s &c权限！", permission.getDisplayName()));
     }
+
+    public ManagementPermissionManager getManagementManager() {
+        return managementManager;
+    }
 }

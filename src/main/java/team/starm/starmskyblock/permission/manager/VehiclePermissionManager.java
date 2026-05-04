@@ -1,7 +1,5 @@
 package team.starm.starmskyblock.permission.manager;
 
-import java.util.UUID;
-
 import org.bukkit.Location;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
@@ -24,7 +22,7 @@ import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.tag.ItemTags;
 
 /**
- * 载具/坐骑权限管理器
+ * 载具权限管理器
  */
 public class VehiclePermissionManager extends IslandPermissionManager {
 
@@ -37,15 +35,17 @@ public class VehiclePermissionManager extends IslandPermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onVehicleDestroy(VehicleDestroyEvent event) {
-        if (!(event.getAttacker() instanceof Player player))
+        if (!(event.getAttacker() instanceof Player player)) {
             return;
+        }
         Vehicle vehicle = event.getVehicle();
 
         IslandPermission permission = null;
-        if (vehicle instanceof Minecart)
+        if (vehicle instanceof Minecart) {
             permission = IslandPermission.MINECART_DAMAGE;
-        else if (vehicle instanceof Boat)
+        } else if (vehicle instanceof Boat) {
             permission = IslandPermission.BOAT_DAMAGE;
+        }
 
         if (permission != null && !checkPermission(vehicle.getLocation(), player.getUniqueId(), permission)) {
             event.setCancelled(true);
@@ -58,16 +58,17 @@ public class VehiclePermissionManager extends IslandPermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onVehicleEnter(VehicleEnterEvent event) {
-        if (!(event.getEntered() instanceof Player player))
+        if (!(event.getEntered() instanceof Player player)) {
             return;
+        }
 
         Vehicle vehicle = event.getVehicle();
         IslandPermission permission = null;
-
-        if (vehicle instanceof Minecart)
+        if (vehicle instanceof Minecart) {
             permission = IslandPermission.MINECART_ENTER;
-        else if (vehicle instanceof Boat)
+        } else if (vehicle instanceof Boat) {
             permission = IslandPermission.BOAT_ENTER;
+        }
 
         if (permission != null && !checkPermission(vehicle.getLocation(), player.getUniqueId(), permission)) {
             event.setCancelled(true);
@@ -80,14 +81,12 @@ public class VehiclePermissionManager extends IslandPermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent event) {
-
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR) {
             return;
         }
 
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
-
         if (item == null || item.getType().isAir()) {
             return;
         }
@@ -103,7 +102,6 @@ public class VehiclePermissionManager extends IslandPermissionManager {
                 return;
             }
             permission = IslandPermission.MINECART_PLACE;
-
         } else if (Tag.ITEMS_BOATS.isTagged(item.getType())) {
             permission = IslandPermission.BOAT_PLACE;
         }
@@ -112,15 +110,10 @@ public class VehiclePermissionManager extends IslandPermissionManager {
             return;
         }
 
-        Location checkLoc = (clickedBlock != null)
-                ? clickedBlock.getLocation()
-                : player.getLocation();
-
+        Location checkLoc = (clickedBlock != null) ? clickedBlock.getLocation() : player.getLocation();
         if (!checkPermission(checkLoc, player.getUniqueId(), permission)) {
             event.setCancelled(true);
             sendDenyMessage(player, permission);
         }
     }
-
-
 }

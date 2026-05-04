@@ -16,9 +16,9 @@ import team.starm.starmskyblock.permission.IslandPermissionManager;
 /**
  * 拾取权限管理器
  */
-public class PickupPermissionManager extends IslandPermissionManager {
+public class DropPickupPermissionManager extends IslandPermissionManager {
 
-    public PickupPermissionManager(IslandManager islandManager, ConfigManager configManager) {
+    public DropPickupPermissionManager(IslandManager islandManager, ConfigManager configManager) {
         super(islandManager, configManager);
     }
 

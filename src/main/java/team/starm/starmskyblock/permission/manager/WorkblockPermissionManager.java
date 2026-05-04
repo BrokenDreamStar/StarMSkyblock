@@ -11,12 +11,11 @@ import org.bukkit.inventory.EquipmentSlot;
 
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
-import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.permission.IslandPermission;
+import team.starm.starmskyblock.permission.IslandPermissionManager;
 
 /**
  * 工作方块权限管理器
- * 处理工作台、附魔台、信标等工作方块的权限
  */
 public class WorkblockPermissionManager extends IslandPermissionManager {
 
@@ -32,8 +31,6 @@ public class WorkblockPermissionManager extends IslandPermissionManager {
         if (event.getHand() != EquipmentSlot.HAND || event.getClickedBlock() == null) {
             return;
         }
-
-        // 左键点击方块为破坏行为，由 BlockBreakEvent 处理 BREAK 权限
         if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
             return;
         }
@@ -78,7 +75,6 @@ public class WorkblockPermissionManager extends IslandPermissionManager {
         if (event.getItem() == null || event.getAction() != Action.RIGHT_CLICK_BLOCK) {
             return false;
         }
-
         Material itemType = event.getItem().getType();
         return switch (itemType) {
             case BEEF, CHICKEN, PORKCHOP, MUTTON, RABBIT,
@@ -86,5 +82,4 @@ public class WorkblockPermissionManager extends IslandPermissionManager {
             default -> false;
         };
     }
-
 }

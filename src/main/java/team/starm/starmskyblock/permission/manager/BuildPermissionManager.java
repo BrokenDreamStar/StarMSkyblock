@@ -20,9 +20,9 @@ import team.starm.starmskyblock.permission.IslandPermissionManager;
 /**
  * 方块权限管理器
  */
-public class BlockPermissionManager extends IslandPermissionManager {
+public class BuildPermissionManager extends IslandPermissionManager {
 
-    public BlockPermissionManager(IslandManager islandManager, ConfigManager configManager) {
+    public BuildPermissionManager(IslandManager islandManager, ConfigManager configManager) {
         super(islandManager, configManager);
     }
 

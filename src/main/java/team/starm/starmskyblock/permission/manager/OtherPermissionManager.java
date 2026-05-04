@@ -1,5 +1,7 @@
 package team.starm.starmskyblock.permission.manager;
 
+import io.papermc.paper.event.player.PlayerOpenSignEvent;
+
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
@@ -16,11 +18,10 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.raid.RaidTriggerEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
-import io.papermc.paper.event.player.PlayerOpenSignEvent;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
-import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.permission.IslandPermission;
+import team.starm.starmskyblock.permission.IslandPermissionManager;
 
 /**
  * 其它权限管理器
@@ -46,10 +47,8 @@ public class OtherPermissionManager extends IslandPermissionManager {
         Material material = block.getType();
         Action action = event.getAction();
 
-        // 1. 处理物理踩踏事件 (不需要判断 Hand)
         if (action == Action.PHYSICAL) {
             IslandPermission permission = null;
-
             if (material == Material.FARMLAND) {
                 permission = IslandPermission.FARMLAND_TRAMPLE;
             } else if (material == Material.TURTLE_EGG) {
@@ -63,14 +62,11 @@ public class OtherPermissionManager extends IslandPermissionManager {
             return;
         }
 
-        // 2. 处理右键交互事件 (采摘、吃蛋糕、使用床等)
         if (action == Action.RIGHT_CLICK_BLOCK) {
             if (event.getHand() != EquipmentSlot.HAND) {
                 return;
             }
-
             IslandPermission permission = getRightClickPermission(material);
-
             if (permission != null && !checkPermission(block.getLocation(), player.getUniqueId(), permission)) {
                 event.setCancelled(true);
                 sendDenyMessage(player, permission);
@@ -85,7 +81,6 @@ public class OtherPermissionManager extends IslandPermissionManager {
     public void onSignOpen(PlayerOpenSignEvent event) {
         Player player = event.getPlayer();
         Block block = event.getSign().getBlock();
-
         if (!checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.SIGN_EDIT)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.SIGN_EDIT);
@@ -99,7 +94,6 @@ public class OtherPermissionManager extends IslandPermissionManager {
     public void onSignChange(SignChangeEvent event) {
         Player player = event.getPlayer();
         Block block = event.getBlock();
-
         if (!checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.SIGN_EDIT)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.SIGN_EDIT);
@@ -113,7 +107,6 @@ public class OtherPermissionManager extends IslandPermissionManager {
     public void onBedEnter(PlayerBedEnterEvent event) {
         Player player = event.getPlayer();
         Block block = event.getBed();
-
         if (!checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.BED_USE)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.BED_USE);
@@ -122,7 +115,6 @@ public class OtherPermissionManager extends IslandPermissionManager {
 
     /**
      * 监听实体受到伤害事件（用于拦截破坏末地水晶）
-     * 末地水晶属于实体而不是方块
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEndCrystalDamage(EntityDamageByEntityEvent event) {
@@ -131,8 +123,6 @@ public class OtherPermissionManager extends IslandPermissionManager {
         }
 
         Player player = null;
-
-        // 判断伤害来源是玩家直接攻击，还是玩家射出的投掷物(如箭)
         if (event.getDamager() instanceof Player) {
             player = (Player) event.getDamager();
         } else if (event.getDamager() instanceof Projectile projectile) {
@@ -155,8 +145,6 @@ public class OtherPermissionManager extends IslandPermissionManager {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onRaidTrigger(RaidTriggerEvent event) {
         Player player = event.getPlayer();
-
-        // 使用玩家当前所在的位置来判断空岛权限
         if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.RAID_TRIGGER)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.RAID_TRIGGER);
@@ -170,7 +158,6 @@ public class OtherPermissionManager extends IslandPermissionManager {
         if (Tag.BEDS.isTagged(material)) {
             return IslandPermission.BED_USE;
         }
-
         return switch (material) {
             case SWEET_BERRY_BUSH, CAVE_VINES, CAVE_VINES_PLANT -> IslandPermission.SWEET_BERRY_HARVEST;
             case CAKE -> IslandPermission.CAKE_EAT;

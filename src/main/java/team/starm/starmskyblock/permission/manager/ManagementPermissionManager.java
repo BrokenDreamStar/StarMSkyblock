@@ -6,7 +6,6 @@ import team.starm.starmskyblock.permission.IslandPermissionManager;
 
 /**
  * 管理权限管理器
- * 处理岛屿管理相关的权限检查
  */
 public class ManagementPermissionManager extends IslandPermissionManager {
 

@@ -25,21 +25,22 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityMountEvent;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerArmorStandManipulateEvent; // 引入盔甲架操作事件
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.EntityEquipment;
 
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
-import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.permission.IslandPermission;
+import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.tag.EntityTags;
 import team.starm.starmskyblock.tag.ItemTags;
 
 /**
  * 生物权限管理器
+ * 处理攻击生物、喂食、装备、骑乘、交易等交互权限
  */
 public class EntityPermissionManager extends IslandPermissionManager {
 
@@ -52,15 +53,7 @@ public class EntityPermissionManager extends IslandPermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageByEntityEvent event) {
-        Entity damagerEntity = event.getDamager();
-        Player player = null;
-
-        if (damagerEntity instanceof Player p) {
-            player = p;
-        } else if (damagerEntity instanceof Projectile projectile && projectile.getShooter() instanceof Player p) {
-            player = p;
-        }
-
+        Player player = getPlayerDamager(event.getDamager());
         if (player == null) {
             return;
         }
@@ -75,7 +68,6 @@ public class EntityPermissionManager extends IslandPermissionManager {
         } else if (targetEntity instanceof AbstractVillager) {
             permission = IslandPermission.VILLAGER_DAMAGE;
         } else if (targetEntity instanceof ArmorStand) {
-            // 新增：判断目标是否为盔甲架，检查攻击权限
             permission = IslandPermission.ARMOR_STAND_DAMAGE;
         }
 
@@ -92,8 +84,6 @@ public class EntityPermissionManager extends IslandPermissionManager {
     public void onArmorStandManipulate(PlayerArmorStandManipulateEvent event) {
         Player player = event.getPlayer();
         ArmorStand armorStand = event.getRightClicked();
-
-        // 检查与盔甲架交互权限
         if (!checkPermission(armorStand.getLocation(), player.getUniqueId(), IslandPermission.ARMOR_STAND_INTERACT)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.ARMOR_STAND_INTERACT);
@@ -105,17 +95,18 @@ public class EntityPermissionManager extends IslandPermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onAnimalFeedInteract(PlayerInteractEntityEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+
         Entity entity = event.getRightClicked();
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItem(event.getHand());
-
         if (item.getType().isAir()) {
             return;
         }
 
-        Material material = item.getType();
-
-        if (isAnimalFeedItem(entity, material)) {
+        if (isAnimalFeedItem(entity, item.getType())) {
             if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.ANIMAL_FEED)) {
                 event.setCancelled(true);
                 sendDenyMessage(player, IslandPermission.ANIMAL_FEED);
@@ -124,42 +115,25 @@ public class EntityPermissionManager extends IslandPermissionManager {
     }
 
     /**
-     * 判断物品是否为指定动物的繁殖/驯服/交互食物
-     */
-    private boolean isAnimalFeedItem(Entity entity, Material material) {
-        if (!(entity instanceof Animals animal)) {
-            return false;
-        }
-
-        if (animal.isBreedItem(material)) {
-            return true;
-        }
-
-        if (animal instanceof Wolf wolf && material == Material.BONE && !wolf.isTamed()) {
-            return true;
-        } else if (animal instanceof Parrot && material == Material.COOKIE) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * 监听玩家给生物装备物品事件
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityEquip(PlayerInteractEntityEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+
         Entity entity = event.getRightClicked();
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItem(event.getHand());
-        Material type = item.getType();
-
-        if (type.isAir() || !(entity instanceof LivingEntity livingEntity)) {
+        if (item.getType().isAir() || !(entity instanceof LivingEntity livingEntity)) {
             return;
         }
 
         EntityEquipment equipment = livingEntity.getEquipment();
-        if (equipment == null) return;
+        if (equipment == null) {
+            return;
+        }
 
         EntityType entityType = entity.getType();
         boolean isTamedCheckPassed = (entity instanceof Tameable tameable && tameable.isTamed())
@@ -168,20 +142,20 @@ public class EntityPermissionManager extends IslandPermissionManager {
         EquipmentSlot targetSlot = null;
         boolean isEquippingChest = false;
 
-        if (type == Material.SADDLE && Tag.ENTITY_TYPES_CAN_EQUIP_SADDLE.isTagged(entityType)) {
+        if (item.getType() == Material.SADDLE && Tag.ENTITY_TYPES_CAN_EQUIP_SADDLE.isTagged(entityType)) {
             if (isTamedCheckPassed || entity instanceof Steerable) {
                 targetSlot = EquipmentSlot.SADDLE;
             }
         } else if (isTamedCheckPassed) {
-            if (ItemTags.HORSE_ARMORS.contains(type) && Tag.ENTITY_TYPES_CAN_WEAR_HORSE_ARMOR.isTagged(entityType)) {
+            if (ItemTags.HORSE_ARMORS.contains(item.getType()) && Tag.ENTITY_TYPES_CAN_WEAR_HORSE_ARMOR.isTagged(entityType)) {
                 targetSlot = EquipmentSlot.BODY;
-            } else if (ItemTags.NAUTILUS_ARMORS.contains(type) && Tag.ENTITY_TYPES_CAN_WEAR_NAUTILUS_ARMOR.isTagged(entityType)) {
+            } else if (ItemTags.NAUTILUS_ARMORS.contains(item.getType()) && Tag.ENTITY_TYPES_CAN_WEAR_NAUTILUS_ARMOR.isTagged(entityType)) {
                 targetSlot = EquipmentSlot.BODY;
-            } else if (Tag.ITEMS_WOOL_CARPETS.isTagged(type) && entity instanceof Llama) {
+            } else if (Tag.ITEMS_WOOL_CARPETS.isTagged(item.getType()) && entity instanceof Llama) {
                 targetSlot = EquipmentSlot.BODY;
-            } else if (Tag.ITEMS_HARNESSES.isTagged(type) && entity instanceof HappyGhast) {
+            } else if (Tag.ITEMS_HARNESSES.isTagged(item.getType()) && entity instanceof HappyGhast) {
                 targetSlot = EquipmentSlot.BODY;
-            } else if (type == Material.CHEST && entity instanceof ChestedHorse chestedHorse && !chestedHorse.isCarryingChest()) {
+            } else if (item.getType() == Material.CHEST && entity instanceof ChestedHorse chestedHorse && !chestedHorse.isCarryingChest()) {
                 isEquippingChest = true;
             }
         }
@@ -202,9 +176,7 @@ public class EntityPermissionManager extends IslandPermissionManager {
         if (!(event.getEntity() instanceof Player player)) {
             return;
         }
-
         Entity mount = event.getMount();
-
         if (EntityTags.RIDEABLE.contains(mount.getType())) {
             if (!checkPermission(mount.getLocation(), player.getUniqueId(), IslandPermission.ENTITY_RIDE)) {
                 event.setCancelled(true);
@@ -218,11 +190,12 @@ public class EntityPermissionManager extends IslandPermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onVillagerTrade(PlayerInteractEntityEvent event) {
-        Player player = event.getPlayer();
-        Entity entity = event.getRightClicked();
-
-        if (entity instanceof AbstractVillager) {
-            if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.VILLAGER_TRADE)) {
+        if (event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+        if (event.getRightClicked() instanceof AbstractVillager) {
+            Player player = event.getPlayer();
+            if (!checkPermission(event.getRightClicked().getLocation(), player.getUniqueId(), IslandPermission.VILLAGER_TRADE)) {
                 event.setCancelled(true);
                 sendDenyMessage(player, IslandPermission.VILLAGER_TRADE);
             }
@@ -234,20 +207,20 @@ public class EntityPermissionManager extends IslandPermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBartering(PlayerInteractEntityEvent event) {
-        Entity entity = event.getRightClicked();
-
-        if (!(entity instanceof Piglin piglin) || !piglin.isAdult()) {
+        if (event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+        if (!(event.getRightClicked() instanceof Piglin piglin) || !piglin.isAdult()) {
             return;
         }
 
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItem(event.getHand());
-
         if (item.getType() != Material.GOLD_INGOT) {
             return;
         }
 
-        if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.BARTERING)) {
+        if (!checkPermission(event.getRightClicked().getLocation(), player.getUniqueId(), IslandPermission.BARTERING)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.BARTERING);
         }
@@ -258,8 +231,10 @@ public class EntityPermissionManager extends IslandPermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onAllayInteract(PlayerInteractEntityEvent event) {
-        Entity entity = event.getRightClicked();
-        if (!(entity instanceof Allay allay)) {
+        if (event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+        if (!(event.getRightClicked() instanceof Allay allay)) {
             return;
         }
 
@@ -271,28 +246,54 @@ public class EntityPermissionManager extends IslandPermissionManager {
             return;
         }
 
-        allay.getEquipment();
         ItemStack allayItem = allay.getEquipment().getItemInMainHand();
         boolean allayHoldingItem = !allayItem.getType().isAir();
-
         boolean shouldCheck = (playerHoldingItem && !allayHoldingItem) || (!playerHoldingItem && allayHoldingItem);
 
         if (shouldCheck) {
-            if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.ALLAY_INTERACT)) {
+            if (!checkPermission(event.getRightClicked().getLocation(), player.getUniqueId(), IslandPermission.ALLAY_INTERACT)) {
                 event.setCancelled(true);
                 boolean isAccidentalOffHand = false;
-
                 if (event.getHand() == EquipmentSlot.OFF_HAND) {
                     ItemStack mainHandItem = player.getInventory().getItemInMainHand();
                     if (!mainHandItem.getType().isAir()) {
                         isAccidentalOffHand = true;
                     }
                 }
-
                 if (!isAccidentalOffHand) {
                     sendDenyMessage(player, IslandPermission.ALLAY_INTERACT);
                 }
             }
         }
+    }
+
+    /**
+     * 从伤害源中提取玩家实例（支持直接攻击与投射物）
+     */
+    private Player getPlayerDamager(Entity damager) {
+        if (damager instanceof Player p) {
+            return p;
+        } else if (damager instanceof Projectile projectile && projectile.getShooter() instanceof Player p) {
+            return p;
+        }
+        return null;
+    }
+
+    /**
+     * 判断物品是否为指定动物的繁殖/驯服/交互食物
+     */
+    private boolean isAnimalFeedItem(Entity entity, Material material) {
+        if (!(entity instanceof Animals animal)) {
+            return false;
+        }
+        if (animal.isBreedItem(material)) {
+            return true;
+        }
+        if (animal instanceof Wolf wolf && material == Material.BONE && !wolf.isTamed()) {
+            return true;
+        } else if (animal instanceof Parrot && material == Material.COOKIE) {
+            return true;
+        }
+        return false;
     }
 }
