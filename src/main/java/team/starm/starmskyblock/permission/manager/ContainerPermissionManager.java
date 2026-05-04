@@ -428,7 +428,6 @@ public class ContainerPermissionManager extends IslandPermissionManager {
                 case CRAFTER -> IslandPermission.CRAFTER_OPEN;
                 case BREWING_STAND -> IslandPermission.BREWING_STAND_OPEN;
                 case DECORATED_POT -> IslandPermission.DECORATED_POT_USE;
-                case RESPAWN_ANCHOR -> IslandPermission.RESPAWN_ANCHOR_USE;
                 default -> null;
             };
         }

@@ -87,4 +87,19 @@ public class EntityTags {
             EntityType.CAMEL_HUSK,
             EntityType.ZOMBIE_HORSE
     );
+
+    /**
+     * 携带背包的可骑乘生物
+     */
+    public static final Set<EntityType> ANIMALS_WITH_INVENTORY = EnumSet.of(
+            EntityType.HORSE,
+            EntityType.DONKEY,
+            EntityType.MULE,
+            EntityType.LLAMA,
+            EntityType.SKELETON_HORSE,
+            EntityType.ZOMBIE_HORSE,
+            EntityType.CAMEL,
+            EntityType.NAUTILUS,
+            EntityType.ZOMBIE_NAUTILUS
+    );
 }

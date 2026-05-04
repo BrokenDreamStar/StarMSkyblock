@@ -124,6 +124,7 @@ MEMBER:
     - BED_USE # 睡觉
     - RESPAWN_ANCHOR_USE # 使用重生锚
     - END_CRYSTAL_DAMAGE # 破坏末地水晶
+    - RAID_TRIGGER # 触发袭击
   excluded: [ ]
 
 # 风纪委员

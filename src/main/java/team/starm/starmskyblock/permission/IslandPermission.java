@@ -133,7 +133,8 @@ public enum IslandPermission {
     SIGN_EDIT("编辑告示牌"),
     BED_USE("睡觉"),
     RESPAWN_ANCHOR_USE("使用重生锚"),
-    END_CRYSTAL_DAMAGE("破坏末地水晶");
+    END_CRYSTAL_DAMAGE("破坏末地水晶"),
+    RAID_TRIGGER("触发袭击");
 
     private final String displayName;
 

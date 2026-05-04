@@ -25,132 +25,34 @@ import java.util.Map;
  */
 public class ConfigManager {
 
-    /**
-     * 单个岛屿结构文件的完整配置信息（内部静态类）
-     * <p>
-     * 每个岛屿类型（default、vip、etc.）都对应一个 SchematicConfig 实例，
-     * 保存结构文件名 + 主世界/下界/末地 三种环境的传送偏移量。
-     */
-    public static class SchematicConfig {
-        private final String fileName; // 结构文件名称（如 default.schem）
-        private final double normalOffsetX; // 主世界传送偏移 X
-        private final double normalOffsetY; // 主世界传送偏移 Y
-        private final double normalOffsetZ; // 主世界传送偏移 Z
-        private final double netherOffsetX; // 下界传送偏移 X
-        private final double netherOffsetY; // 下界传送偏移 Y
-        private final double netherOffsetZ; // 下界传送偏移 Z
-        private final double endOffsetX; // 末地传送偏移 X
-        private final double endOffsetY; // 末地传送偏移 Y
-        private final double endOffsetZ; // 末地传送偏移 Z
-
-        /**
-         * 构造方法
-         * 
-         * @param fileName      结构文件名称
-         * @param normalOffsetX 主世界 X 偏移
-         * @param normalOffsetY 主世界 Y 偏移
-         * @param normalOffsetZ 主世界 Z 偏移
-         * @param netherOffsetX 下界 X 偏移
-         * @param netherOffsetY 下界 Y 偏移
-         * @param netherOffsetZ 下界 Z 偏移
-         * @param endOffsetX    末地 X 偏移
-         * @param endOffsetY    末地 Y 偏移
-         * @param endOffsetZ    末地 Z 偏移
-         */
-        public SchematicConfig(String fileName,
-                double normalOffsetX, double normalOffsetY, double normalOffsetZ,
-                double netherOffsetX, double netherOffsetY, double netherOffsetZ,
-                double endOffsetX, double endOffsetY, double endOffsetZ) {
-            this.fileName = fileName;
-            this.normalOffsetX = normalOffsetX;
-            this.normalOffsetY = normalOffsetY;
-            this.normalOffsetZ = normalOffsetZ;
-            this.netherOffsetX = netherOffsetX;
-            this.netherOffsetY = netherOffsetY;
-            this.netherOffsetZ = netherOffsetZ;
-            this.endOffsetX = endOffsetX;
-            this.endOffsetY = endOffsetY;
-            this.endOffsetZ = endOffsetZ;
-        }
-
-        public String getFileName() {
-            return fileName;
-        }
-
-        public double getNormalOffsetX() {
-            return normalOffsetX;
-        }
-
-        public double getNormalOffsetY() {
-            return normalOffsetY;
-        }
-
-        public double getNormalOffsetZ() {
-            return normalOffsetZ;
-        }
-
-        public double getNetherOffsetX() {
-            return netherOffsetX;
-        }
-
-        public double getNetherOffsetY() {
-            return netherOffsetY;
-        }
-
-        public double getNetherOffsetZ() {
-            return netherOffsetZ;
-        }
-
-        public double getEndOffsetX() {
-            return endOffsetX;
-        }
-
-        public double getEndOffsetY() {
-            return endOffsetY;
-        }
-
-        public double getEndOffsetZ() {
-            return endOffsetZ;
-        }
-    }
-
     private final StarMSkyblock plugin;
-
     // ==================== 基础岛屿配置 ====================
     private int islandRadius; // 岛屿初始半径（区块）
     private int islandSpacing; // 岛屿之间间隔距离（区块）
     private int islandMaxRadius; // 岛屿可扩展的最大半径（区块）
-
     private boolean teleportOnCreate; // 创建岛屿后是否自动传送玩家
     private boolean showBorderDefault; // 岛屿边界是否默认显示
-
     // ==================== 结构文件配置（支持多岛屿类型） ====================
     private Map<String, String> normalSchematics; // 岛屿类型 -> 结构文件名
     private Map<String, SchematicConfig> schematicConfigs; // 岛屿类型 -> 完整配置（含偏移）
     private String defaultNormalSchematicId; // 默认使用的岛屿类型ID
-
     // 下界和末地结构（当前版本自动根据主世界结构文件名生成 _nether / _the_end 后缀）
     private String netherSchematic;
     private String endSchematic;
     private SchematicConfig netherSchematicConfig;
     private SchematicConfig endSchematicConfig;
-
     // ==================== 世界与生物群系配置 ====================
     private String biomeNormal; // 主世界生物群系
     private String biomeNether; // 下界生物群系
     private String biomeEnd; // 末地生物群系
-
     private String worldNameNormal; // 主世界名称
     private String worldNameNether; // 下界世界名称
     private String worldNameEnd; // 末地世界名称
-
     private int islandHeight; // 岛屿生成高度（以基岩方块为中心点的 Y 坐标）
-
     // ==================== 其他功能配置 ====================
     private int maxDeleteTimes; // 玩家最多可删除自己岛屿的次数
     private boolean allowSethomeInNether; // 是否允许在下界使用 /is sethome
     private boolean allowSethomeInEnd; // 是否允许在末地使用 /is sethome
-
     public ConfigManager(StarMSkyblock plugin) {
         this.plugin = plugin;
     }
@@ -262,11 +164,11 @@ public class ConfigManager {
         this.allowSethomeInEnd = config.getBoolean("allow-sethome-in-end", true);
     }
 
-    // ==================== Getter 方法（按功能分类） ====================
-
     public int getIslandRadius() {
         return islandRadius;
     }
+
+    // ==================== Getter 方法（按功能分类） ====================
 
     public int getIslandSpacing() {
         return islandSpacing;
@@ -294,7 +196,7 @@ public class ConfigManager {
 
     /**
      * 根据岛屿类型ID获取对应的主世界结构文件名
-     * 
+     *
      * @param id 岛屿类型ID（可为null）
      * @return 结构文件名，若ID不存在则返回默认类型的文件名
      */
@@ -379,7 +281,7 @@ public class ConfigManager {
 
     /**
      * 根据岛屿类型和世界类型获取对应的传送偏移量
-     * 
+     *
      * @param schematicId 岛屿类型ID
      * @param worldType   世界类型（NORMAL / NETHER / END）
      * @return double[3] = {x, y, z}
@@ -387,16 +289,16 @@ public class ConfigManager {
     public double[] getTeleportOffsetsBySchematicAndWorldType(String schematicId, Island.WorldType worldType) {
         SchematicConfig config = getSchematicConfig(schematicId);
         if (config == null) {
-            return new double[] { 0.5, 5, 2.2 };
+            return new double[]{0.5, 5, 2.2};
         }
 
         switch (worldType) {
             case NETHER:
-                return new double[] { config.getNetherOffsetX(), config.getNetherOffsetY(), config.getNetherOffsetZ() };
+                return new double[]{config.getNetherOffsetX(), config.getNetherOffsetY(), config.getNetherOffsetZ()};
             case END:
-                return new double[] { config.getEndOffsetX(), config.getEndOffsetY(), config.getEndOffsetZ() };
+                return new double[]{config.getEndOffsetX(), config.getEndOffsetY(), config.getEndOffsetZ()};
             default:
-                return new double[] { config.getNormalOffsetX(), config.getNormalOffsetY(), config.getNormalOffsetZ() };
+                return new double[]{config.getNormalOffsetX(), config.getNormalOffsetY(), config.getNormalOffsetZ()};
         }
     }
 
@@ -417,33 +319,119 @@ public class ConfigManager {
 
     public double[] getNetherSchematicOffsetsByWorldType(Island.WorldType worldType) {
         if (netherSchematicConfig == null)
-            return new double[] { 0.5, 5, 2.2 };
+            return new double[]{0.5, 5, 2.2};
         switch (worldType) {
             case NETHER:
-                return new double[] { netherSchematicConfig.getNetherOffsetX(),
-                        netherSchematicConfig.getNetherOffsetY(), netherSchematicConfig.getNetherOffsetZ() };
+                return new double[]{netherSchematicConfig.getNetherOffsetX(),
+                        netherSchematicConfig.getNetherOffsetY(), netherSchematicConfig.getNetherOffsetZ()};
             case END:
-                return new double[] { netherSchematicConfig.getEndOffsetX(), netherSchematicConfig.getEndOffsetY(),
-                        netherSchematicConfig.getEndOffsetZ() };
+                return new double[]{netherSchematicConfig.getEndOffsetX(), netherSchematicConfig.getEndOffsetY(),
+                        netherSchematicConfig.getEndOffsetZ()};
             default:
-                return new double[] { netherSchematicConfig.getNormalOffsetX(),
-                        netherSchematicConfig.getNormalOffsetY(), netherSchematicConfig.getNormalOffsetZ() };
+                return new double[]{netherSchematicConfig.getNormalOffsetX(),
+                        netherSchematicConfig.getNormalOffsetY(), netherSchematicConfig.getNormalOffsetZ()};
         }
     }
 
     public double[] getEndSchematicOffsetsByWorldType(Island.WorldType worldType) {
         if (endSchematicConfig == null)
-            return new double[] { 0.5, 5, 2.2 };
-        switch (worldType) {
-            case NETHER:
-                return new double[] { endSchematicConfig.getNetherOffsetX(), endSchematicConfig.getNetherOffsetY(),
-                        endSchematicConfig.getNetherOffsetZ() };
-            case END:
-                return new double[] { endSchematicConfig.getEndOffsetX(), endSchematicConfig.getEndOffsetY(),
-                        endSchematicConfig.getEndOffsetZ() };
-            default:
-                return new double[] { endSchematicConfig.getNormalOffsetX(), endSchematicConfig.getNormalOffsetY(),
-                        endSchematicConfig.getNormalOffsetZ() };
+            return new double[]{0.5, 5, 2.2};
+        return switch (worldType) {
+            case NETHER -> new double[]{endSchematicConfig.getNetherOffsetX(), endSchematicConfig.getNetherOffsetY(),
+                    endSchematicConfig.getNetherOffsetZ()};
+            case END -> new double[]{endSchematicConfig.getEndOffsetX(), endSchematicConfig.getEndOffsetY(),
+                    endSchematicConfig.getEndOffsetZ()};
+            default -> new double[]{endSchematicConfig.getNormalOffsetX(), endSchematicConfig.getNormalOffsetY(),
+                    endSchematicConfig.getNormalOffsetZ()};
+        };
+    }
+
+    /**
+     * 单个岛屿结构文件的完整配置信息（内部静态类）
+     * <p>
+     * 每个岛屿类型（default、vip、etc.）都对应一个 SchematicConfig 实例，
+     * 保存结构文件名 + 主世界/下界/末地 三种环境的传送偏移量。
+     */
+    public static class SchematicConfig {
+        private final String fileName; // 结构文件名称（如 default.schem）
+        private final double normalOffsetX; // 主世界传送偏移 X
+        private final double normalOffsetY; // 主世界传送偏移 Y
+        private final double normalOffsetZ; // 主世界传送偏移 Z
+        private final double netherOffsetX; // 下界传送偏移 X
+        private final double netherOffsetY; // 下界传送偏移 Y
+        private final double netherOffsetZ; // 下界传送偏移 Z
+        private final double endOffsetX; // 末地传送偏移 X
+        private final double endOffsetY; // 末地传送偏移 Y
+        private final double endOffsetZ; // 末地传送偏移 Z
+
+        /**
+         * 构造方法
+         *
+         * @param fileName      结构文件名称
+         * @param normalOffsetX 主世界 X 偏移
+         * @param normalOffsetY 主世界 Y 偏移
+         * @param normalOffsetZ 主世界 Z 偏移
+         * @param netherOffsetX 下界 X 偏移
+         * @param netherOffsetY 下界 Y 偏移
+         * @param netherOffsetZ 下界 Z 偏移
+         * @param endOffsetX    末地 X 偏移
+         * @param endOffsetY    末地 Y 偏移
+         * @param endOffsetZ    末地 Z 偏移
+         */
+        public SchematicConfig(String fileName,
+                               double normalOffsetX, double normalOffsetY, double normalOffsetZ,
+                               double netherOffsetX, double netherOffsetY, double netherOffsetZ,
+                               double endOffsetX, double endOffsetY, double endOffsetZ) {
+            this.fileName = fileName;
+            this.normalOffsetX = normalOffsetX;
+            this.normalOffsetY = normalOffsetY;
+            this.normalOffsetZ = normalOffsetZ;
+            this.netherOffsetX = netherOffsetX;
+            this.netherOffsetY = netherOffsetY;
+            this.netherOffsetZ = netherOffsetZ;
+            this.endOffsetX = endOffsetX;
+            this.endOffsetY = endOffsetY;
+            this.endOffsetZ = endOffsetZ;
+        }
+
+        public String getFileName() {
+            return fileName;
+        }
+
+        public double getNormalOffsetX() {
+            return normalOffsetX;
+        }
+
+        public double getNormalOffsetY() {
+            return normalOffsetY;
+        }
+
+        public double getNormalOffsetZ() {
+            return normalOffsetZ;
+        }
+
+        public double getNetherOffsetX() {
+            return netherOffsetX;
+        }
+
+        public double getNetherOffsetY() {
+            return netherOffsetY;
+        }
+
+        public double getNetherOffsetZ() {
+            return netherOffsetZ;
+        }
+
+        public double getEndOffsetX() {
+            return endOffsetX;
+        }
+
+        public double getEndOffsetY() {
+            return endOffsetY;
+        }
+
+        public double getEndOffsetZ() {
+            return endOffsetZ;
         }
     }
 }

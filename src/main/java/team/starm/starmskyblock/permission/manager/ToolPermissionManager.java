@@ -19,6 +19,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
@@ -62,20 +63,24 @@ public class ToolPermissionManager extends IslandPermissionManager {
     private boolean requiresShearsOnBlock(Block block) {
         if (block == null)
             return false;
+
         Material type = block.getType();
 
         if (type == Material.PUMPKIN || type == Material.CARVED_PUMPKIN) {
             return true;
         }
+
         if (type == Material.BEEHIVE || type == Material.BEE_NEST) {
             if (block.getBlockData() instanceof Beehive beehive) {
                 return beehive.getHoneyLevel() == 5;
             }
         }
+
         if (type == Material.CAVE_VINES || type == Material.WEEPING_VINES ||
                 type == Material.TWISTING_VINES || type == Material.KELP) {
             return true;
         }
+
         return false;
     }
 
@@ -85,28 +90,33 @@ public class ToolPermissionManager extends IslandPermissionManager {
     private boolean requiresShearsOnEntity(Entity entity) {
         if (entity == null)
             return false;
+
         EntityType entityType = entity.getType();
 
         // 1. 有毛的羊
         if (entity instanceof Sheep sheep && !sheep.isSheared()) {
             return true;
         }
+
         // 2. 哞菇
         if (entityType == EntityType.MOOSHROOM) {
             return true;
         }
+
         // 3. 身上有蘑菇的沼骸
         if (entityType == EntityType.BOGGED) {
             if (entity instanceof Bogged bogged && !bogged.isSheared()) {
                 return true;
             }
         }
+
         // 4. 戴南瓜头的雪傀儡
         if (entityType == EntityType.SNOW_GOLEM) {
             if (entity instanceof Snowman snowman && !snowman.isDerp()) {
                 return true;
             }
         }
+
         // 5. 戴虞美人的铜傀儡
         if (entityType == EntityType.COPPER_GOLEM) {
             if (entity instanceof LivingEntity living) {
@@ -139,7 +149,6 @@ public class ToolPermissionManager extends IslandPermissionManager {
             ItemStack bodyItem = equipment.getItem(EquipmentSlot.BODY);
             if (!bodyItem.isEmpty()) {
                 Material type = bodyItem.getType();
-
                 if (isTamedCheckPassed) {
                     if (ItemTags.HORSE_ARMORS.contains(type) && Tag.ENTITY_TYPES_CAN_WEAR_HORSE_ARMOR.isTagged(entityType)) {
                         return true;
@@ -172,6 +181,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
     private boolean isLeashableEntity(Entity entity) {
         if (entity == null)
             return false;
+
         EntityType type = entity.getType();
         return EntityTags.CAN_BE_LEASHED.contains(type) || EntityTags.CHEST_BOATS.contains(type)
                 || Tag.ENTITY_TYPES_BOAT.isTagged(type);
@@ -183,6 +193,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
     private boolean isPlayerLeadingMob(Player player) {
         if (player == null)
             return false;
+
         for (Entity entity : player.getNearbyEntities(16, 16, 16)) {
             if (entity instanceof LivingEntity livingEntity && livingEntity.isLeashed()
                     && player.equals(livingEntity.getLeashHolder())) {
@@ -201,9 +212,11 @@ public class ToolPermissionManager extends IslandPermissionManager {
         if (event.getHand() != EquipmentSlot.HAND) {
             return;
         }
+
         // 获取触发事件的玩家
         Player player = event.getPlayer();
         Action action = event.getAction();
+
         // 特殊处理：玩家右手牵引着生物/船时右键栅栏（附加拴绳结）
         if (action == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null
                 && isLeashableBlock(event.getClickedBlock()) && isPlayerLeadingMob(player)) {
@@ -215,23 +228,30 @@ public class ToolPermissionManager extends IslandPermissionManager {
                 return;
             }
         }
+
         // 获取玩家手中的物品
         ItemStack item = event.getItem();
+
         // 如果手中没有物品则跳过
         if (item == null) {
             return;
         }
+
         // 获取手中物品类型
         Material toolType = item.getType();
+
         // 获取玩家交互动作
         // 对于弓和弩，只处理右键（拉弓/蓄力）行为，左键点击不拦截
         if ((toolType == Material.BOW || toolType == Material.CROSSBOW) && !action.isRightClick()) {
             return;
         }
+
         // 确定交互位置：如果点击了方块，取该方块的位置；否则取玩家当前位置
         Location loc = (event.getClickedBlock() != null) ? event.getClickedBlock().getLocation() : player.getLocation();
+
         // 初始化权限变量
         IslandPermission permission = null;
+
         // 获取被点击的方块对象
         Block clickedBlock = event.getClickedBlock();
 
@@ -244,8 +264,10 @@ public class ToolPermissionManager extends IslandPermissionManager {
             if (Tag.ITEMS_AXES.isTagged(toolType)) {
                 // 判断方块是否为原木/木头/菌柄/菌核或竹块 用于判断去皮事件
                 boolean isWoodOrLog = Tag.LOGS.isTagged(blockType) || blockType == Material.BAMBOO_BLOCK;
+
                 // 判断方块是否为铜及其变种 判断脱蜡/除锈事件（内联方法逻辑）
                 boolean isCopper = ItemTags.COPPER_VARIANTS.contains(blockType);
+
                 // 权限判断
                 if (isWoodOrLog || isCopper) {
                     permission = IslandPermission.AXE_USE;
@@ -257,8 +279,10 @@ public class ToolPermissionManager extends IslandPermissionManager {
                 boolean isDirtVariant = blockType == Material.GRASS_BLOCK || blockType == Material.DIRT ||
                         blockType == Material.COARSE_DIRT || blockType == Material.MYCELIUM ||
                         blockType == Material.PODZOL || blockType == Material.ROOTED_DIRT;
+
                 // 判断方块是否为营火或灵魂营火 用于判断熄灭营火事件
                 boolean isCampfire = blockType == Material.CAMPFIRE || blockType == Material.SOUL_CAMPFIRE;
+
                 // 权限判断
                 if (isDirtVariant || isCampfire) {
                     permission = IslandPermission.SHOVEL_USE;
@@ -270,6 +294,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
                 boolean isTillable = blockType == Material.DIRT || blockType == Material.GRASS_BLOCK ||
                         blockType == Material.DIRT_PATH || blockType == Material.COARSE_DIRT ||
                         blockType == Material.ROOTED_DIRT;
+
                 // 权限判断
                 if (isTillable) {
                     permission = IslandPermission.HOE_USE;
@@ -338,6 +363,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
                 Tag.ITEMS_HOES.isTagged(toolType) || ItemTags.BUCKETS.contains(toolType) ||
                 toolType == Material.GLASS_BOTTLE || toolType == Material.SHEARS ||
                 toolType == Material.BRUSH || toolType == Material.LEAD;
+
         if (permission == null && !isHandledTool) {
             if (action.isRightClick()) {
                 permission = getToolPermission(toolType);
@@ -408,12 +434,14 @@ public class ToolPermissionManager extends IslandPermissionManager {
         if (!(event.getEntity() instanceof Player player)) {
             return;
         }
-        Location loc = player.getLocation();
 
+        Location loc = player.getLocation();
         if (!checkPermission(loc, player.getUniqueId(), IslandPermission.BOW_USE)) {
             event.setCancelled(true);
+
             ItemStack consumable = event.getConsumable();
             int originalSlot = -1;
+
             if (consumable != null && !consumable.isEmpty()) {
                 originalSlot = findAmmoSlot(player, consumable);
             }
@@ -422,11 +450,13 @@ public class ToolPermissionManager extends IslandPermissionManager {
                 boolean isCreative = player.getGameMode() == GameMode.CREATIVE;
                 ItemStack bow = event.getBow();
                 boolean hasInfinity = bow != null && bow.containsEnchantment(Enchantment.INFINITY);
+
                 if (!isCreative && !hasInfinity) {
                     ItemStack refund = consumable.clone();
                     restoreConsumable(player, originalSlot, refund);
                 }
             }
+
             player.updateInventory();
             sendDenyMessage(player, IslandPermission.BOW_USE);
         }
@@ -438,15 +468,18 @@ public class ToolPermissionManager extends IslandPermissionManager {
     private int findAmmoSlot(Player player, ItemStack ammo) {
         PlayerInventory inv = player.getInventory();
         ItemStack offhand = inv.getItemInOffHand();
+
         if (offhand.isSimilar(ammo)) {
             return 40;
         }
+
         for (int i = 0; i <= 8; i++) {
             ItemStack item = inv.getItem(i);
             if (item != null && item.isSimilar(ammo)) {
                 return i;
             }
         }
+
         for (int i = 9; i <= 35; i++) {
             ItemStack item = inv.getItem(i);
             if (item != null && item.isSimilar(ammo)) {
@@ -471,7 +504,9 @@ public class ToolPermissionManager extends IslandPermissionManager {
         if (itemToRestore == null || itemToRestore.isEmpty()) {
             return;
         }
+
         PlayerInventory inv = player.getInventory();
+
         if (originalSlot >= 0) {
             if (isSlotEmpty(inv, originalSlot)) {
                 inv.setItem(originalSlot, itemToRestore);
@@ -485,7 +520,6 @@ public class ToolPermissionManager extends IslandPermissionManager {
                 }
             }
         }
-
         inv.addItem(itemToRestore);
     }
 
@@ -513,11 +547,11 @@ public class ToolPermissionManager extends IslandPermissionManager {
 
         Material toolType = item.getType();
         IslandPermission permission = getToolPermission(toolType);
-
         EntityType entityType = clickedEntity.getType();
 
+        // 修复：针对碗对哞菇交互触发的 BOWL_USE 权限检查
         if (toolType == Material.BOWL && entityType == EntityType.MOOSHROOM) {
-            permission = IslandPermission.BOW_USE;
+            permission = IslandPermission.BOWL_USE;
         }
 
         // 针对不同种类的桶的精细化实体交互检查（内联方法逻辑）
@@ -600,9 +634,9 @@ public class ToolPermissionManager extends IslandPermissionManager {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerUnleashEntity(PlayerUnleashEntityEvent event) {
         Player player = event.getPlayer();
-
         Location loc = event.getEntity().getLocation();
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
+
         IslandPermission requiredPermission = (itemInHand.getType() == Material.SHEARS)
                 ? IslandPermission.SHEARS_USE
                 : IslandPermission.LEASH_USE;
@@ -610,7 +644,6 @@ public class ToolPermissionManager extends IslandPermissionManager {
         if (!checkPermission(loc, player.getUniqueId(), requiredPermission)) {
             event.setCancelled(true);
             sendDenyMessage(player, requiredPermission);
-
             syncEntityStatusForPlayer(player, event.getEntity());
         }
     }
@@ -623,26 +656,26 @@ public class ToolPermissionManager extends IslandPermissionManager {
             return null;
         }
 
-        // 使用 Bukkit API 提供的 Tag 来判断各类工具
         if (Tag.ITEMS_AXES.isTagged(toolType)) {
             return IslandPermission.AXE_USE;
         }
+
         if (Tag.ITEMS_SHOVELS.isTagged(toolType)) {
             return IslandPermission.SHOVEL_USE;
         }
+
         if (Tag.ITEMS_HOES.isTagged(toolType)) {
             return IslandPermission.HOE_USE;
         }
 
-        // 剩余没有统一 Tag 的单独物品继续使用 switch 判断
         return switch (toolType) {
             case BOW, CROSSBOW -> IslandPermission.BOW_USE;
             case FLINT_AND_STEEL, FIRE_CHARGE -> IslandPermission.FLINT_AND_STEEL_USE;
             case SHEARS -> IslandPermission.SHEARS_USE;
             case BRUSH -> IslandPermission.BRUSH_USE;
             case LEAD -> IslandPermission.LEASH_USE;
+            case BOWL -> IslandPermission.BOWL_USE;
             default -> null;
         };
     }
-
 }
