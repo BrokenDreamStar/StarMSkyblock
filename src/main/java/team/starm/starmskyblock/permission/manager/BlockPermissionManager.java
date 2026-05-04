@@ -1,15 +1,16 @@
 package team.starm.starmskyblock.permission.manager;
 
-import java.util.UUID;
-
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
@@ -18,7 +19,7 @@ import team.starm.starmskyblock.permission.IslandPermission;
 
 /**
  * 方块权限管理器
- * 处理方块破坏、放置和挂饰相关权限
+ * 处理方块破坏、放置、挂饰以及实体方块（盔甲架/水晶）相关权限
  */
 public class BlockPermissionManager extends IslandPermissionManager {
 
@@ -69,10 +70,49 @@ public class BlockPermissionManager extends IslandPermissionManager {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onHangingPlace(HangingPlaceEvent event) {
         Player player = event.getPlayer();
-        if (!checkPermission(event.getEntity().getLocation(), player.getUniqueId(), IslandPermission.BUILD)) {
+        if (player != null && !checkPermission(event.getEntity().getLocation(), player.getUniqueId(), IslandPermission.BUILD)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.BUILD);
         }
     }
+
+    /**
+     * 监听玩家交互事件 (用于拦截末地水晶、盔甲架等实体方块的放置)
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+
+        if (event.getItem() == null) {
+            return;
+        }
+
+        if (event.getClickedBlock() == null) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        Material itemType = event.getItem().getType();
+
+        if (itemType == Material.ARMOR_STAND || itemType == Material.END_CRYSTAL) {
+
+            if (itemType == Material.END_CRYSTAL) {
+                Material clickedType = event.getClickedBlock().getType();
+                if (clickedType != Material.OBSIDIAN && clickedType != Material.BEDROCK) {
+                    return;
+                }
+            }
+
+            Location placeLoc = event.getClickedBlock().getRelative(event.getBlockFace()).getLocation();
+
+            if (!checkPermission(placeLoc, player.getUniqueId(), IslandPermission.BUILD)) {
+                event.setCancelled(true);
+                sendDenyMessage(player, IslandPermission.BUILD);
+            }
+        }
+    }
+
 
 }

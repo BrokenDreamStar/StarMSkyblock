@@ -1,14 +1,12 @@
 package team.starm.starmskyblock.permission.manager;
 
-import java.util.UUID;
-
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -34,6 +32,11 @@ public class DoorPermissionManager extends IslandPermissionManager {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDoorInteract(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND || event.getClickedBlock() == null) {
+            return;
+        }
+
+        // 左键点击方块为破坏行为，由 BlockBreakEvent 处理 BREAK 权限
+        if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
             return;
         }
 
@@ -99,11 +102,11 @@ public class DoorPermissionManager extends IslandPermissionManager {
      */
     private IslandPermission getDoorPermission(Material material) {
         if (Tag.TRAPDOORS.isTagged(material))
-            return IslandPermission.TRAPDOOR;
+            return IslandPermission.TRAPDOOR_OPEN;
 
         if (Tag.FENCE_GATES.isTagged(material))
-            return IslandPermission.FENCE_GATE;
+            return IslandPermission.FENCE_GATE_OPEN;
 
-        return IslandPermission.DOOR;
+        return IslandPermission.DOOR_OPEN;
     }
 }

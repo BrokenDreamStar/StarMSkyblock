@@ -208,10 +208,10 @@ public class ToolPermissionManager extends IslandPermissionManager {
         if (action == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null
                 && isLeashableBlock(event.getClickedBlock()) && isPlayerLeadingMob(player)) {
             Location loc = event.getClickedBlock().getLocation();
-            if (!checkPermission(loc, player.getUniqueId(), IslandPermission.LEASH)) {
+            if (!checkPermission(loc, player.getUniqueId(), IslandPermission.LEASH_USE)) {
                 event.setCancelled(true);
                 event.setUseInteractedBlock(PlayerInteractEvent.Result.DENY);
-                sendDenyMessage(player, IslandPermission.LEASH);
+                sendDenyMessage(player, IslandPermission.LEASH_USE);
                 return;
             }
         }
@@ -248,7 +248,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
                 boolean isCopper = ItemTags.COPPER_VARIANTS.contains(blockType);
                 // 权限判断
                 if (isWoodOrLog || isCopper) {
-                    permission = IslandPermission.AXE;
+                    permission = IslandPermission.AXE_USE;
                 }
             }
             // 判断手持物品是否为锹
@@ -261,7 +261,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
                 boolean isCampfire = blockType == Material.CAMPFIRE || blockType == Material.SOUL_CAMPFIRE;
                 // 权限判断
                 if (isDirtVariant || isCampfire) {
-                    permission = IslandPermission.SHOVEL;
+                    permission = IslandPermission.SHOVEL_USE;
                 }
             }
             // 判断手持物品是否为锄头
@@ -272,7 +272,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
                         blockType == Material.ROOTED_DIRT;
                 // 权限判断
                 if (isTillable) {
-                    permission = IslandPermission.HOE;
+                    permission = IslandPermission.HOE_USE;
                 }
             }
             // 针对不同种类的桶的精细化方块交互检查（内联方法逻辑）
@@ -295,11 +295,11 @@ public class ToolPermissionManager extends IslandPermissionManager {
                     }
 
                     if (isFilledCauldron || isWaterloggedBlock || blockType == Material.POWDER_SNOW) {
-                        permission = IslandPermission.BUCKET;
+                        permission = IslandPermission.BUCKET_USE;
                     }
                 } else {
                     // 水桶、熔岩桶、细雪桶及各种生物桶：对任意方块右键均触发权限检查
-                    permission = IslandPermission.BUCKET;
+                    permission = IslandPermission.BUCKET_USE;
                 }
             }
             // 针对玻璃瓶的权限检查
@@ -307,29 +307,29 @@ public class ToolPermissionManager extends IslandPermissionManager {
                 if (blockType == Material.WATER_CAULDRON ||
                         blockType == Material.BEEHIVE ||
                         blockType == Material.BEE_NEST) {
-                    permission = IslandPermission.GLASS_BOTTLE;
+                    permission = IslandPermission.GLASS_BOTTLE_USE;
                 }
             }
             // 剪刀方块交互（使用辅助方法，代码更清晰）
             else if (toolType == Material.SHEARS && requiresShearsOnBlock(clickedBlock)) {
-                permission = IslandPermission.SHEARS;
+                permission = IslandPermission.SHEARS_USE;
             }
             // 刷子方块交互
             else if (toolType == Material.BRUSH) {
                 if (blockType == Material.SUSPICIOUS_SAND || blockType == Material.SUSPICIOUS_GRAVEL) {
-                    permission = IslandPermission.BRUSH;
+                    permission = IslandPermission.BRUSH_USE;
                 }
             }
             // 新增：拴绳方块交互（严格根据 wiki，仅栅栏方块才会触发拴绳打结）
             else if (toolType == Material.LEAD && isLeashableBlock(clickedBlock)) {
-                permission = IslandPermission.LEASH;
+                permission = IslandPermission.LEASH_USE;
             }
         }
 
         // 如果尚未设置权限，且工具是弓或弩，且作为右键使用（包括对着空气），则赋予射箭权限
         if (permission == null && (toolType == Material.BOW || toolType == Material.CROSSBOW)
                 && action.isRightClick()) {
-            permission = IslandPermission.BOW;
+            permission = IslandPermission.BOW_USE;
         }
 
         // 经过精确判断后仍未分配权限，并且工具不是已精细化处理的工具时，才使用通用方法
@@ -379,9 +379,9 @@ public class ToolPermissionManager extends IslandPermissionManager {
         Block block = event.getBlockClicked();
         Location location = block.getLocation();
 
-        if (!checkPermission(location, player.getUniqueId(), IslandPermission.BUCKET)) {
+        if (!checkPermission(location, player.getUniqueId(), IslandPermission.BUCKET_USE)) {
             event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.BUCKET);
+            sendDenyMessage(player, IslandPermission.BUCKET_USE);
         }
     }
 
@@ -392,9 +392,9 @@ public class ToolPermissionManager extends IslandPermissionManager {
     public void onPlayerFish(PlayerFishEvent event) {
         if (event.getState() == PlayerFishEvent.State.FISHING) {
             Player player = event.getPlayer();
-            if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.FISH)) {
+            if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.FISHING_ROD_USE)) {
                 event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.FISH);
+                sendDenyMessage(player, IslandPermission.FISHING_ROD_USE);
             }
         }
     }
@@ -410,7 +410,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
         }
         Location loc = player.getLocation();
 
-        if (!checkPermission(loc, player.getUniqueId(), IslandPermission.BOW)) {
+        if (!checkPermission(loc, player.getUniqueId(), IslandPermission.BOW_USE)) {
             event.setCancelled(true);
             ItemStack consumable = event.getConsumable();
             int originalSlot = -1;
@@ -428,7 +428,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
                 }
             }
             player.updateInventory();
-            sendDenyMessage(player, IslandPermission.BOW);
+            sendDenyMessage(player, IslandPermission.BOW_USE);
         }
     }
 
@@ -498,9 +498,9 @@ public class ToolPermissionManager extends IslandPermissionManager {
         Entity clickedEntity = event.getRightClicked();
 
         if (clickedEntity instanceof LeashHitch) {
-            if (!checkPermission(clickedEntity.getLocation(), player.getUniqueId(), IslandPermission.LEASH)) {
+            if (!checkPermission(clickedEntity.getLocation(), player.getUniqueId(), IslandPermission.LEASH_USE)) {
                 event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.LEASH);
+                sendDenyMessage(player, IslandPermission.LEASH_USE);
                 syncEntityStatusForPlayer(player, clickedEntity);
                 return;
             }
@@ -517,7 +517,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
         EntityType entityType = clickedEntity.getType();
 
         if (toolType == Material.BOWL && entityType == EntityType.MOOSHROOM) {
-            permission = IslandPermission.BOWL;
+            permission = IslandPermission.BOW_USE;
         }
 
         // 针对不同种类的桶的精细化实体交互检查（内联方法逻辑）
@@ -527,7 +527,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
                 if (entityType == EntityType.COW ||
                         entityType == EntityType.MOOSHROOM ||
                         entityType == EntityType.GOAT) {
-                    permission = IslandPermission.BUCKET;
+                    permission = IslandPermission.BUCKET_USE;
                 }
             } else if (toolType == Material.WATER_BUCKET) {
                 // 水桶：只对 任意鱼/河豚/美西螈/蝌蚪 右键时检查权限
@@ -537,7 +537,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
                         entityType == EntityType.TROPICAL_FISH ||
                         entityType == EntityType.AXOLOTL ||
                         entityType == EntityType.TADPOLE) {
-                    permission = IslandPermission.BUCKET;
+                    permission = IslandPermission.BUCKET_USE;
                 }
             }
         }
@@ -545,7 +545,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
         // 剪刀实体交互（使用辅助方法，大幅简化事件代码）
         if (toolType == Material.SHEARS) {
             if (requiresShearsOnEntity(clickedEntity)) {
-                permission = IslandPermission.SHEARS;
+                permission = IslandPermission.SHEARS_USE;
             } else {
                 permission = null; // 非特殊交互不触发权限检查
             }
@@ -554,7 +554,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
         // 刷子实体交互
         if (toolType == Material.BRUSH) {
             if (entityType == EntityType.ARMADILLO && clickedEntity instanceof Ageable ageable && ageable.isAdult()) {
-                permission = IslandPermission.BRUSH;
+                permission = IslandPermission.BRUSH_USE;
             } else {
                 permission = null; // 非特殊交互不触发权限检查
             }
@@ -563,7 +563,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
         // 拴绳实体交互：手持拴绳右键可以被拴住的生物/船时触发 LEASH 权限检查
         if (toolType == Material.LEAD) {
             if (isLeashableEntity(clickedEntity)) {
-                permission = IslandPermission.LEASH;
+                permission = IslandPermission.LEASH_USE;
             } else {
                 permission = null; // 非可被拴住的实体不触发权限检查
             }
@@ -585,9 +585,9 @@ public class ToolPermissionManager extends IslandPermissionManager {
         Entity entity = event.getEntity();
 
         if (requiresShearsOnEntity(entity)) {
-            if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.SHEARS)) {
+            if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.SHEARS_USE)) {
                 event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.SHEARS);
+                sendDenyMessage(player, IslandPermission.SHEARS_USE);
                 syncEntityStatusForPlayer(player, entity);
             }
         }
@@ -604,8 +604,8 @@ public class ToolPermissionManager extends IslandPermissionManager {
         Location loc = event.getEntity().getLocation();
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
         IslandPermission requiredPermission = (itemInHand.getType() == Material.SHEARS)
-                ? IslandPermission.SHEARS
-                : IslandPermission.LEASH;
+                ? IslandPermission.SHEARS_USE
+                : IslandPermission.LEASH_USE;
 
         if (!checkPermission(loc, player.getUniqueId(), requiredPermission)) {
             event.setCancelled(true);
@@ -625,22 +625,22 @@ public class ToolPermissionManager extends IslandPermissionManager {
 
         // 使用 Bukkit API 提供的 Tag 来判断各类工具
         if (Tag.ITEMS_AXES.isTagged(toolType)) {
-            return IslandPermission.AXE;
+            return IslandPermission.AXE_USE;
         }
         if (Tag.ITEMS_SHOVELS.isTagged(toolType)) {
-            return IslandPermission.SHOVEL;
+            return IslandPermission.SHOVEL_USE;
         }
         if (Tag.ITEMS_HOES.isTagged(toolType)) {
-            return IslandPermission.HOE;
+            return IslandPermission.HOE_USE;
         }
 
         // 剩余没有统一 Tag 的单独物品继续使用 switch 判断
         return switch (toolType) {
-            case BOW, CROSSBOW -> IslandPermission.BOW;
-            case FLINT_AND_STEEL, FIRE_CHARGE -> IslandPermission.FIRE;
-            case SHEARS -> IslandPermission.SHEARS;
-            case BRUSH -> IslandPermission.BRUSH;
-            case LEAD -> IslandPermission.LEASH;
+            case BOW, CROSSBOW -> IslandPermission.BOW_USE;
+            case FLINT_AND_STEEL, FIRE_CHARGE -> IslandPermission.FLINT_AND_STEEL_USE;
+            case SHEARS -> IslandPermission.SHEARS_USE;
+            case BRUSH -> IslandPermission.BRUSH_USE;
+            case LEAD -> IslandPermission.LEASH_USE;
             default -> null;
         };
     }

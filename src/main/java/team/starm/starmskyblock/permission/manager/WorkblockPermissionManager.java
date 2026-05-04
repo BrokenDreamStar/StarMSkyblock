@@ -1,8 +1,5 @@
 package team.starm.starmskyblock.permission.manager;
 
-import java.util.UUID;
-
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -36,13 +33,18 @@ public class WorkblockPermissionManager extends IslandPermissionManager {
             return;
         }
 
+        // 左键点击方块为破坏行为，由 BlockBreakEvent 处理 BREAK 权限
+        if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
+            return;
+        }
+
         Player player = event.getPlayer();
         Block block = event.getClickedBlock();
         Material material = block.getType();
 
         IslandPermission permission = getWorkblockPermission(material);
         if (permission != null
-                && !(permission == IslandPermission.CAMPFIRE && !isCookingAttempt(event))
+                && !(permission == IslandPermission.CAMPFIRE_USE && !isCookingAttempt(event))
                 && !checkPermission(block.getLocation(), player.getUniqueId(), permission)) {
             event.setCancelled(true);
             sendDenyMessage(player, permission);
@@ -54,17 +56,17 @@ public class WorkblockPermissionManager extends IslandPermissionManager {
      */
     private IslandPermission getWorkblockPermission(Material material) {
         return switch (material) {
-            case CRAFTING_TABLE -> IslandPermission.WORKBENCH;
-            case ENCHANTING_TABLE -> IslandPermission.ENCHANTING_TABLES;
-            case BEACON -> IslandPermission.BEACON;
-            case ANVIL, CHIPPED_ANVIL, DAMAGED_ANVIL -> IslandPermission.ANVIL;
-            case GRINDSTONE -> IslandPermission.GRINDSTONE;
-            case CARTOGRAPHY_TABLE -> IslandPermission.CARTOGRAPHY_TABLE;
-            case STONECUTTER -> IslandPermission.STONECUTTER;
-            case LOOM -> IslandPermission.LOOM;
-            case SMITHING_TABLE -> IslandPermission.SMITHING_TABLE;
-            case CAMPFIRE, SOUL_CAMPFIRE -> IslandPermission.CAMPFIRE;
-            case NOTE_BLOCK -> IslandPermission.NOTE_BLOCK;
+            case CRAFTING_TABLE -> IslandPermission.CRAFTING_TABLE_USE;
+            case ENCHANTING_TABLE -> IslandPermission.ENCHANTING_TABLE_USE;
+            case BEACON -> IslandPermission.BEACON_USE;
+            case ANVIL, CHIPPED_ANVIL, DAMAGED_ANVIL -> IslandPermission.ANVIL_USE;
+            case GRINDSTONE -> IslandPermission.GRINDSTONE_USE;
+            case CARTOGRAPHY_TABLE -> IslandPermission.CARTOGRAPHY_TABLE_USE;
+            case STONECUTTER -> IslandPermission.STONECUTTER_USE;
+            case LOOM -> IslandPermission.LOOM_USE;
+            case SMITHING_TABLE -> IslandPermission.SMITHING_TABLE_USE;
+            case CAMPFIRE, SOUL_CAMPFIRE -> IslandPermission.CAMPFIRE_USE;
+            case NOTE_BLOCK -> IslandPermission.NOTE_BLOCK_USE;
             default -> null;
         };
     }

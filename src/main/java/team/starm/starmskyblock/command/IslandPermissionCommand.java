@@ -31,7 +31,7 @@ public class IslandPermissionCommand {
 
         Island island = optionalIsland.get();
 
-        if (!island.hasPermission(player.getUniqueId(), IslandPermission.SET_PERMISSIONS)) {
+        if (!island.hasPermission(player.getUniqueId(), IslandPermission.EDIT_PERMISSIONS)) {
             MessageUtil.sendMessage(player, "&c你没有权限管理岛屿权限！");
             return true;
         }
@@ -165,43 +165,43 @@ public class IslandPermissionCommand {
         MessageUtil.sendMessage(player, "&a=== 所有可用权限列表 ===");
 
         MessageUtil.sendMessage(player, "&e=== 岛屿管理权限 ===");
-        MessageUtil.sendMessage(player, "&7ALL, DELETE_ISLAND, CHANGE_NAME, SET_PERMISSIONS, SET_HOME, SET_BIOME");
+        MessageUtil.sendMessage(player, "&7ALL, DELETE_ISLAND, RENAME_ISLAND, EDIT_PERMISSIONS, SET_HOME, SET_BIOME");
 
         MessageUtil.sendMessage(player, "&e=== 成员管理权限 ===");
         MessageUtil.sendMessage(player, "&7INVITE_MEMBER, REMOVE_MEMBER, SET_ROLE, INVITE_COOP, REMOVE_COOP");
 
         MessageUtil.sendMessage(player, "&e=== 基础交互权限 ===");
-        MessageUtil.sendMessage(player, "&7DROP_ITEMS, PICKUP_DROPS, EXP_BALL, BREAK, BUILD, INTERACT");
+        MessageUtil.sendMessage(player, "&7ITEM_DROP, ITEM_PICKUP, EXP_PICKUP, BREAK, BUILD");
 
         MessageUtil.sendMessage(player, "&e=== 工作方块权限 ===");
         MessageUtil.sendMessage(player,
-                "&7WORKBLOCK_ACCESS, WORKBENCH, ENCHANTING_TABLES, BEACON, ANVIL, GRINDSTONE, CARTOGRAPHY_TABLE, STONECUTTER, LOOM, SMITHING_TABLE, CAMPFIRE, NOTE_BLOCK");
+                "&7CRAFTING_TABLE_USE, ENCHANTING_TABLE_USE, BEACON_USE, ANVIL_USE, GRINDSTONE_USE, CARTOGRAPHY_TABLE_USE, STONECUTTER_USE, LOOM_USE, SMITHING_TABLE_USE, CAMPFIRE_USE, NOTE_BLOCK_USE");
 
         MessageUtil.sendMessage(player, "&e=== 容器权限 ===");
         MessageUtil.sendMessage(player,
-                "&7CONTAINER_ACCESS, FURNACE, CHEST, BUCKET, ENDER_CHEST, SHULKER_BOX, HOPPER, DISPENSER, DROPER, CRAFTING, BREWING_STAND, CAULDRON, SHEIF, ITEM_FRAME, JUKEBOX, LECTERN, CHISELED_BOOKSHELF, DECORATED_POT, COMPOSTER, RESPAWN_ANCHOR");
+                "&7FURNACE_OPEN, CHEST_OPEN, BARREL_OPEN, ENDER_CHEST_OPEN, SHULKER_BOX_OPEN, HOPPER_OPEN, DISPENSER_OPEN, DROPPER_OPEN, CRAFTER_OPEN, BREWING_STAND_OPEN, SHELF_USE, ITEM_FRAME_USE, JUKEBOX_USE, LECTERN_USE, CHISELED_BOOKSHELF_USE, DECORATED_POT_USE, COMPOSTER_USE, FLOWER_POT_USE, ANIMAL_INVENTORY_OPEN");
 
         MessageUtil.sendMessage(player, "&e=== 红石权限 ===");
         MessageUtil.sendMessage(player,
-                "&7REDSTONE_ACCESS, BUTTON, LEVER, PRESSURE_PLATE, REDSTONE_REPEATER, REDSTONE_COMPARATOR, DAYLIGHT_DETECTOR, SCULK_SENSOR, BELL");
+                "&7BUTTON_PRESS, LEVER_USE, PRESSURE_PLATE_TRIGGER, REPEATER_USE, COMPARATOR_USE, DAYLIGHT_DETECTOR_USE, SCULK_SENSOR_TRIGGER, BELL_RING");
 
         MessageUtil.sendMessage(player, "&e=== 门权限 ===");
-        MessageUtil.sendMessage(player, "&7DOOR_ACCESS, DOOR, FENCE_GATE, TRAPDOOR");
+        MessageUtil.sendMessage(player, "&7DOOR_USE, FENCE_GATE_OPEN, TRAPDOOR_OPEN");
 
         MessageUtil.sendMessage(player, "&e=== 交通工具权限 ===");
         MessageUtil.sendMessage(player,
-                "&7MINECART_DAMAGE, MINECART_ENTER, MINECART_PLACE, SHIP_DAMAGE, SHIP_ENTER, SHIP_PLACE");
+                "&7MINECART_DAMAGE, MINECART_ENTER, MINECART_PLACE, BOAT_DAMAGE, BOAT_ENTER, BOAT_PLACE");
 
         MessageUtil.sendMessage(player, "&e=== 物品使用权限 ===");
         MessageUtil.sendMessage(player,
-                "&7FIREWORK, POTION, CHORUS_FRUIT, ENDER_PEARL, BRUSH, LEASH, FISH, PICKUP_FISH, SIGN_INTERACT, NAME, FIRE, WIND_CHARGE, DROP_SNOWBALL, DROP_EGG, SADDLE_ENTITY, ENTITY_RIDE");
+                "&7FIREWORK_USE, POTION_THROW, CHORUS_FRUIT_EAT, ENDER_PEARL_USE, ENDER_EYE_USE, WIND_CHARGE_USE, SNOWBALL_THROW, EGG_THROW, NAME_TAG_USE, BOW_USE, AXE_USE, SHOVEL_USE, HOE_USE, BUCKET_USE, GLASS_BOTTLE_USE, BOWL_USE, FISHING_ROD_USE, FLINT_AND_STEEL_USE, SHEARS_USE, BRUSH_USE, LEASH_USE, BONE_MEAL_USE, DYE_USE, INK_SAC_USE, HONEYCOMB_USE");
 
         MessageUtil.sendMessage(player, "&e=== 农业权限 ===");
-        MessageUtil.sendMessage(player, "&7FARM_TRAMPING, TURTLE_EGG_TRAMPING, FARMING, FERTILIZE");
+        MessageUtil.sendMessage(player, "&7FARMLAND_TRAMPLE, TURTLE_EGG_TRAMPLE, SWEET_BERRY_HARVEST, CAKE_EAT");
 
         MessageUtil.sendMessage(player, "&e=== 生物交互权限 ===");
         MessageUtil.sendMessage(player,
-                "&7ANIMAL_SPAWN, ANIMAL_FEEDING, ANIMAL_DAMAGE, ANIMAL_SHEAR, DYE_SHEEP, MILK, MUSHROOM_BOWL, MUSHROOM_CUT, VILLAGER_TRADING, MONSTER_SPAWN, MONSTER_DAMAGE");
+                "&7ANIMAL_FEED, ENTITY_RIDE, ENTITY_EQUIP, ANIMAL_DAMAGE, MONSTER_DAMAGE, VILLAGER_DAMAGE, VILLAGER_TRADE, BARTERING, ALLAY_INTERACT, ARMOR_STAND_DAMAGE, ARMOR_STAND_INTERACT");
 
         MessageUtil.sendMessage(player, "&a=== 使用示例 ===");
         MessageUtil.sendMessage(player, "&7/is permission ALL 4 → ADMIN(4) 及以上（含岛主）拥有全部权限");

@@ -51,21 +51,18 @@ public class OtherPermissionManager extends IslandPermissionManager {
      */
     private IslandPermission getOtherPermission(Material material) {
         return switch (material) {
-            case FARMLAND -> IslandPermission.FARM_TRAMPING;
-            case TURTLE_EGG -> IslandPermission.TURTLE_EGG_TRAMPING;
-            case SWEET_BERRY_BUSH, GLOW_BERRIES -> IslandPermission.BERRY;
-            case CAKE -> IslandPermission.CAKE;
+            case FARMLAND -> IslandPermission.FARMLAND_TRAMPLE;
+            case TURTLE_EGG -> IslandPermission.TURTLE_EGG_TRAMPLE;
+            case SWEET_BERRY_BUSH, GLOW_BERRIES -> IslandPermission.SWEET_BERRY_HARVEST;
+            case CAKE -> IslandPermission.CAKE_EAT;
             case OAK_SIGN, SPRUCE_SIGN, BIRCH_SIGN, JUNGLE_SIGN, ACACIA_SIGN, DARK_OAK_SIGN,
-                    MANGROVE_SIGN, CHERRY_SIGN, BAMBOO_SIGN, CRIMSON_SIGN, WARPED_SIGN,
-                    OAK_HANGING_SIGN, SPRUCE_HANGING_SIGN, BIRCH_HANGING_SIGN, JUNGLE_HANGING_SIGN,
-                    ACACIA_HANGING_SIGN, DARK_OAK_HANGING_SIGN, MANGROVE_HANGING_SIGN,
-                    CHERRY_HANGING_SIGN, BAMBOO_HANGING_SIGN, CRIMSON_HANGING_SIGN, WARPED_HANGING_SIGN ->
-                IslandPermission.SIGN_INTERACT;
-            case RED_BED, BLACK_BED, BLUE_BED, BROWN_BED, CYAN_BED, GRAY_BED, GREEN_BED, LIGHT_BLUE_BED,
-                    LIGHT_GRAY_BED, LIME_BED, MAGENTA_BED, ORANGE_BED, PINK_BED, PURPLE_BED, WHITE_BED, YELLOW_BED ->
-                IslandPermission.BED;
-            case RESPAWN_ANCHOR -> IslandPermission.RESPAWN_ANCHOR;
-            case END_CRYSTAL -> IslandPermission.END_CRYSTAL;
+                 MANGROVE_SIGN, CHERRY_SIGN, BAMBOO_SIGN, CRIMSON_SIGN, WARPED_SIGN,
+                 OAK_HANGING_SIGN, SPRUCE_HANGING_SIGN, BIRCH_HANGING_SIGN, JUNGLE_HANGING_SIGN,
+                 ACACIA_HANGING_SIGN, DARK_OAK_HANGING_SIGN, MANGROVE_HANGING_SIGN,
+                 CHERRY_HANGING_SIGN, BAMBOO_HANGING_SIGN, CRIMSON_HANGING_SIGN, WARPED_HANGING_SIGN ->
+                    IslandPermission.SIGN_EDIT;
+            case RESPAWN_ANCHOR -> IslandPermission.RESPAWN_ANCHOR_USE;
+            case END_CRYSTAL -> IslandPermission.END_CRYSTAL_DAMAGE;
             default -> null;
         };
     }

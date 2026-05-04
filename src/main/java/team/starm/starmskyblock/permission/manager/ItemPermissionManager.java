@@ -41,7 +41,6 @@ public class ItemPermissionManager extends IslandPermissionManager {
     @EventHandler(priority = EventPriority.HIGH)
     public void onItemUse(PlayerInteractEvent event) {
         Action action = event.getAction();
-
         // 仅处理右键空气和右键方块
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) {
             return;
@@ -53,7 +52,6 @@ public class ItemPermissionManager extends IslandPermissionManager {
         if (item == null || item.getType() == Material.AIR) {
             return;
         }
-
         if (item.getType() == Material.NAME_TAG) {
             return;
         }
@@ -64,11 +62,11 @@ public class ItemPermissionManager extends IslandPermissionManager {
             if (item.hasItemMeta() && item.getItemMeta() instanceof org.bukkit.inventory.meta.PotionMeta potionMeta) {
                 if (potionMeta.getBasePotionType() == org.bukkit.potion.PotionType.WATER) {
                     Location loc = event.getClickedBlock().getLocation();
-                    if (!checkPermission(loc, player.getUniqueId(), IslandPermission.WATER_POTION)) {
+                    if (!checkPermission(loc, player.getUniqueId(), IslandPermission.WATER_BOTTLE_USE)) {
                         event.setCancelled(true);
                         event.setUseItemInHand(Result.DENY);
                         event.setUseInteractedBlock(Result.DENY);
-                        sendDenyMessage(player, IslandPermission.WATER_POTION);
+                        sendDenyMessage(player, IslandPermission.WATER_BOTTLE_USE);
                         Bukkit.getScheduler().runTask(
                                 JavaPlugin.getProvidingPlugin(getClass()),
                                 player::updateInventory
@@ -88,8 +86,7 @@ public class ItemPermissionManager extends IslandPermissionManager {
             if (isInk || isDye) {
                 Location loc = event.getClickedBlock().getLocation();
                 // 墨囊使用 INK_SAC 权限，染料使用 DYE 权限
-                IslandPermission targetPerm = isInk ? IslandPermission.INK_SAC : IslandPermission.DYE;
-
+                IslandPermission targetPerm = isInk ? IslandPermission.INK_SAC_USE : IslandPermission.DYE_USE;
                 if (!checkPermission(loc, player.getUniqueId(), targetPerm)) {
                     event.setCancelled(true);
                     event.setUseItemInHand(Result.DENY);
@@ -108,18 +105,25 @@ public class ItemPermissionManager extends IslandPermissionManager {
         if (item.getType() == Material.HONEYCOMB && event.getClickedBlock() != null) {
             Material clickedType = event.getClickedBlock().getType();
             if (ItemTags.WAXABLE_BLOCKS.contains(clickedType) || Tag.ALL_SIGNS.isTagged(clickedType)) {
-                Location loc = event.getClickedBlock().getLocation();
-                if (!checkPermission(loc, player.getUniqueId(), IslandPermission.HONEYCOMB)) {
-                    event.setCancelled(true);
-                    event.setUseItemInHand(Result.DENY);
-                    event.setUseInteractedBlock(Result.DENY);
-                    sendDenyMessage(player, IslandPermission.HONEYCOMB);
-                    Bukkit.getScheduler().runTask(
-                            JavaPlugin.getProvidingPlugin(getClass()),
-                            player::updateInventory
-                    );
+
+                // 修复：判断是否为门或活板门
+                boolean isDoorOrTrapdoor = Tag.DOORS.isTagged(clickedType) || Tag.TRAPDOORS.isTagged(clickedType);
+
+                // 如果是门或活板门，且玩家没有潜行，则这只是普通的开关门操作，不属于涂蜡，直接跳过拦截
+                if (!isDoorOrTrapdoor || player.isSneaking()) {
+                    Location loc = event.getClickedBlock().getLocation();
+                    if (!checkPermission(loc, player.getUniqueId(), IslandPermission.HONEYCOMB_USE)) {
+                        event.setCancelled(true);
+                        event.setUseItemInHand(Result.DENY);
+                        event.setUseInteractedBlock(Result.DENY);
+                        sendDenyMessage(player, IslandPermission.HONEYCOMB_USE);
+                        Bukkit.getScheduler().runTask(
+                                JavaPlugin.getProvidingPlugin(getClass()),
+                                player::updateInventory
+                        );
+                    }
+                    return;
                 }
-                return;
             }
         }
 
@@ -160,14 +164,16 @@ public class ItemPermissionManager extends IslandPermissionManager {
             if (!(clickedEntity instanceof Mob)) {
                 return;
             }
+
             ItemMeta meta = item.getItemMeta();
             if (meta == null || !meta.hasDisplayName()) {
                 return;
             }
+
             Location loc = clickedEntity.getLocation();
-            if (!checkPermission(loc, player.getUniqueId(), IslandPermission.NAME)) {
+            if (!checkPermission(loc, player.getUniqueId(), IslandPermission.NAME_TAG_USE)) {
                 event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.NAME);
+                sendDenyMessage(player, IslandPermission.NAME_TAG_USE);
                 player.updateInventory();
             }
             return;
@@ -176,9 +182,9 @@ public class ItemPermissionManager extends IslandPermissionManager {
         if (clickedEntity instanceof Sheep sheep) {
             if (ItemTags.DYES.contains(itemType)) {
                 Location loc = sheep.getLocation();
-                if (!checkPermission(loc, player.getUniqueId(), IslandPermission.DYE)) {
+                if (!checkPermission(loc, player.getUniqueId(), IslandPermission.DYE_USE)) {
                     event.setCancelled(true);
-                    sendDenyMessage(player, IslandPermission.DYE);
+                    sendDenyMessage(player, IslandPermission.DYE_USE);
                     player.updateInventory();
                 }
             }
@@ -196,9 +202,9 @@ public class ItemPermissionManager extends IslandPermissionManager {
 
         if (item.getType() == Material.CHORUS_FRUIT) {
             Location loc = player.getLocation();
-            if (!checkPermission(loc, player.getUniqueId(), IslandPermission.CHORUS_FRUIT)) {
+            if (!checkPermission(loc, player.getUniqueId(), IslandPermission.CHORUS_FRUIT_EAT)) {
                 event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.CHORUS_FRUIT);
+                sendDenyMessage(player, IslandPermission.CHORUS_FRUIT_EAT);
                 Bukkit.getScheduler().runTask(
                         JavaPlugin.getProvidingPlugin(getClass()),
                         player::updateInventory
@@ -215,9 +221,9 @@ public class ItemPermissionManager extends IslandPermissionManager {
         }
 
         Location loc = event.getBlock().getLocation();
-        if (!checkPermission(loc, player.getUniqueId(), IslandPermission.FERTILIZE)) {
+        if (!checkPermission(loc, player.getUniqueId(), IslandPermission.BONE_MEAL_USE)) {
             event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.FERTILIZE);
+            sendDenyMessage(player, IslandPermission.BONE_MEAL_USE);
             Bukkit.getScheduler().runTask(
                     JavaPlugin.getProvidingPlugin(getClass()),
                     player::updateInventory
@@ -230,17 +236,17 @@ public class ItemPermissionManager extends IslandPermissionManager {
      */
     private IslandPermission getItemUsePermission(Material itemMat) {
         if (Tag.ITEMS_EGGS.isTagged(itemMat)) {
-            return IslandPermission.DROP_EGG;
+            return IslandPermission.EGG_THROW;
         }
 
         return switch (itemMat) {
-            case FIREWORK_ROCKET -> IslandPermission.FIREWORK;
-            case SPLASH_POTION, LINGERING_POTION, EXPERIENCE_BOTTLE -> IslandPermission.POTION;
-            case CHORUS_FRUIT -> IslandPermission.CHORUS_FRUIT;
-            case ENDER_PEARL -> IslandPermission.ENDER_PEARL;
-            case ENDER_EYE -> IslandPermission.ENDER_EYE;
-            case WIND_CHARGE -> IslandPermission.WIND_CHARGE;
-            case SNOWBALL -> IslandPermission.DROP_SNOWBALL;
+            case FIREWORK_ROCKET -> IslandPermission.FIREWORK_USE;
+            case SPLASH_POTION, LINGERING_POTION, EXPERIENCE_BOTTLE -> IslandPermission.POTION_THROW;
+            case CHORUS_FRUIT -> IslandPermission.CHORUS_FRUIT_EAT;
+            case ENDER_PEARL -> IslandPermission.ENDER_PEARL_USE;
+            case ENDER_EYE -> IslandPermission.ENDER_EYE_USE;
+            case WIND_CHARGE -> IslandPermission.WIND_CHARGE_USE;
+            case SNOWBALL -> IslandPermission.SNOWBALL_THROW;
             default -> null;
         };
     }

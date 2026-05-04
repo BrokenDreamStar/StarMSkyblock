@@ -65,13 +65,13 @@ public class RedstonePermissionManager extends IslandPermissionManager {
             return;
         }
 
-        if (permission == IslandPermission.SCULK_SENSOR && action == Action.RIGHT_CLICK_BLOCK) {
+        if (permission == IslandPermission.SCULK_SENSOR_TRIGGER && action == Action.RIGHT_CLICK_BLOCK) {
             return;
         }
 
-        boolean isPhysicalOnlyPermission = (permission == IslandPermission.PRESSURE_PLATE ||
-                permission == IslandPermission.TRIPWIRE_HOOK ||
-                permission == IslandPermission.SCULK_SENSOR);
+        boolean isPhysicalOnlyPermission = (permission == IslandPermission.PRESSURE_PLATE_TRIGGER ||
+                permission == IslandPermission.TRIPWIRE_HOOK_TRIGGER ||
+                permission == IslandPermission.SCULK_SENSOR_TRIGGER);
 
         if (isPhysicalOnlyPermission && action != Action.PHYSICAL) {
             return;
@@ -107,12 +107,12 @@ public class RedstonePermissionManager extends IslandPermissionManager {
             return;
         }
 
-        if (!checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.SCULK_SENSOR)) {
+        if (!checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.SCULK_SENSOR_TRIGGER)) {
             event.setCancelled(true);
 
             // 修复：传入当前的 block 供防抖判断使用
-            if (shouldSendDenyMessage(player, IslandPermission.SCULK_SENSOR, block)) {
-                sendDenyMessage(player, IslandPermission.SCULK_SENSOR);
+            if (shouldSendDenyMessage(player, IslandPermission.SCULK_SENSOR_TRIGGER, block)) {
+                sendDenyMessage(player, IslandPermission.SCULK_SENSOR_TRIGGER);
             }
 
             if (block.getBlockData() instanceof SculkSensor sensorData) {
@@ -126,7 +126,7 @@ public class RedstonePermissionManager extends IslandPermissionManager {
      * 防止提示信息刷屏
      */
     private boolean shouldSendDenyMessage(Player player, IslandPermission permission, Block block) {
-        if (permission != IslandPermission.PRESSURE_PLATE && permission != IslandPermission.TRIPWIRE_HOOK && permission != IslandPermission.SCULK_SENSOR) {
+        if (permission != IslandPermission.PRESSURE_PLATE_TRIGGER && permission != IslandPermission.TRIPWIRE_HOOK_TRIGGER && permission != IslandPermission.SCULK_SENSOR_TRIGGER) {
             return true;
         }
 
@@ -159,21 +159,21 @@ public class RedstonePermissionManager extends IslandPermissionManager {
         String matName = material.name();
 
         if (matName.endsWith("_BUTTON")) {
-            return IslandPermission.BUTTON;
+            return IslandPermission.BUTTON_PRESS;
         }
 
         if (matName.endsWith("_PRESSURE_PLATE")) {
-            return IslandPermission.PRESSURE_PLATE;
+            return IslandPermission.PRESSURE_PLATE_TRIGGER;
         }
 
         return switch (material) {
-            case LEVER -> IslandPermission.LEVER;
-            case REPEATER -> IslandPermission.REDSTONE_REPEATER;
-            case COMPARATOR -> IslandPermission.REDSTONE_COMPARATOR;
-            case DAYLIGHT_DETECTOR -> IslandPermission.DAYLIGHT_DETECTOR;
-            case BELL -> IslandPermission.BELL;
-            case SCULK_SENSOR, CALIBRATED_SCULK_SENSOR -> IslandPermission.SCULK_SENSOR;
-            case TRIPWIRE_HOOK, TRIPWIRE -> IslandPermission.TRIPWIRE_HOOK;
+            case LEVER -> IslandPermission.LEVER_USE;
+            case REPEATER -> IslandPermission.REPEATER_USE;
+            case COMPARATOR -> IslandPermission.COMPARATOR_USE;
+            case DAYLIGHT_DETECTOR -> IslandPermission.DAYLIGHT_DETECTOR_USE;
+            case BELL -> IslandPermission.BELL_RING;
+            case SCULK_SENSOR, CALIBRATED_SCULK_SENSOR -> IslandPermission.SCULK_SENSOR_TRIGGER;
+            case TRIPWIRE_HOOK, TRIPWIRE -> IslandPermission.TRIPWIRE_HOOK_TRIGGER;
             default -> null;
         };
     }

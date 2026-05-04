@@ -1,8 +1,5 @@
 package team.starm.starmskyblock.permission.manager;
 
-import java.util.UUID;
-
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.entity.*;
@@ -11,10 +8,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityMountEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent; // 引入盔甲架操作事件
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.EntityEquipment;
-
 
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
@@ -32,13 +29,11 @@ public class EntityPermissionManager extends IslandPermissionManager {
         super(islandManager, configManager);
     }
 
-
     /**
-     * 监听攻击动物/怪物/村民事件
+     * 监听攻击动物/怪物/村民/盔甲架事件
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageByEntityEvent event) {
-
         Entity damagerEntity = event.getDamager();
         Player player = null;
 
@@ -61,6 +56,9 @@ public class EntityPermissionManager extends IslandPermissionManager {
             permission = IslandPermission.MONSTER_DAMAGE;
         } else if (targetEntity instanceof AbstractVillager) {
             permission = IslandPermission.VILLAGER_DAMAGE;
+        } else if (targetEntity instanceof ArmorStand) {
+            // 新增：判断目标是否为盔甲架，检查攻击权限
+            permission = IslandPermission.ARMOR_STAND_DAMAGE;
         }
 
         if (permission != null && !checkPermission(targetEntity.getLocation(), player.getUniqueId(), permission)) {
@@ -69,6 +67,20 @@ public class EntityPermissionManager extends IslandPermissionManager {
         }
     }
 
+    /**
+     * 监听操作盔甲架事件（放置/取下盔甲）
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onArmorStandManipulate(PlayerArmorStandManipulateEvent event) {
+        Player player = event.getPlayer();
+        ArmorStand armorStand = event.getRightClicked();
+
+        // 检查与盔甲架交互权限
+        if (!checkPermission(armorStand.getLocation(), player.getUniqueId(), IslandPermission.ARMOR_STAND_INTERACT)) {
+            event.setCancelled(true);
+            sendDenyMessage(player, IslandPermission.ARMOR_STAND_INTERACT);
+        }
+    }
 
     /**
      * 监听喂食动物事件
@@ -86,9 +98,9 @@ public class EntityPermissionManager extends IslandPermissionManager {
         Material material = item.getType();
 
         if (isAnimalFeedItem(entity, material)) {
-            if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.ANIMAL_FEEDING)) {
+            if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.ANIMAL_FEED)) {
                 event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.ANIMAL_FEEDING);
+                sendDenyMessage(player, IslandPermission.ANIMAL_FEED);
             }
         }
     }
@@ -192,9 +204,9 @@ public class EntityPermissionManager extends IslandPermissionManager {
         Entity entity = event.getRightClicked();
 
         if (entity instanceof AbstractVillager) {
-            if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.VILLAGER_TRADING)) {
+            if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.VILLAGER_TRADE)) {
                 event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.VILLAGER_TRADING);
+                sendDenyMessage(player, IslandPermission.VILLAGER_TRADE);
             }
         }
     }
@@ -205,6 +217,7 @@ public class EntityPermissionManager extends IslandPermissionManager {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBartering(PlayerInteractEntityEvent event) {
         Entity entity = event.getRightClicked();
+
         if (!(entity instanceof Piglin piglin) || !piglin.isAdult()) {
             return;
         }
@@ -234,7 +247,6 @@ public class EntityPermissionManager extends IslandPermissionManager {
 
         Player player = event.getPlayer();
         ItemStack interactItem = player.getInventory().getItem(event.getHand());
-
         boolean playerHoldingItem = !interactItem.getType().isAir();
 
         if (playerHoldingItem && interactItem.getType() == Material.LEAD) {
@@ -248,10 +260,10 @@ public class EntityPermissionManager extends IslandPermissionManager {
         boolean shouldCheck = (playerHoldingItem && !allayHoldingItem) || (!playerHoldingItem && allayHoldingItem);
 
         if (shouldCheck) {
-            if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.ALLAY)) {
+            if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.ALLAY_INTERACT)) {
                 event.setCancelled(true);
-
                 boolean isAccidentalOffHand = false;
+
                 if (event.getHand() == EquipmentSlot.OFF_HAND) {
                     ItemStack mainHandItem = player.getInventory().getItemInMainHand();
                     if (!mainHandItem.getType().isAir()) {
@@ -260,10 +272,9 @@ public class EntityPermissionManager extends IslandPermissionManager {
                 }
 
                 if (!isAccidentalOffHand) {
-                    sendDenyMessage(player, IslandPermission.ALLAY);
+                    sendDenyMessage(player, IslandPermission.ALLAY_INTERACT);
                 }
             }
         }
     }
-    
 }

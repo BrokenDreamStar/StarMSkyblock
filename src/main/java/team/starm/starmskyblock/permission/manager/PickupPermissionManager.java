@@ -28,9 +28,9 @@ public class PickupPermissionManager extends IslandPermissionManager {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         Player player = event.getPlayer();
-        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.DROP_ITEMS)) {
+        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)) {
             event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.DROP_ITEMS);
+            sendDenyMessage(player, IslandPermission.ITEM_DROP);
         }
     }
 
@@ -41,9 +41,9 @@ public class PickupPermissionManager extends IslandPermissionManager {
     public void onEntityPickupItem(EntityPickupItemEvent event) {
         if (!(event.getEntity() instanceof Player player))
             return;
-        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.PICKUP_DROPS)) {
+        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_PICKUP)) {
             event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.PICKUP_DROPS);
+            sendDenyMessage(player, IslandPermission.ITEM_PICKUP);
         }
     }
 
@@ -54,10 +54,10 @@ public class PickupPermissionManager extends IslandPermissionManager {
     public void onPlayerPickupExp(PlayerPickupExperienceEvent event) {
         Player player = event.getPlayer();
 
-        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.EXP_BALL)) {
+        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.EXP_PICKUP)) {
             event.setCancelled(true);
             
-            sendDenyMessage(player, IslandPermission.EXP_BALL);
+            sendDenyMessage(player, IslandPermission.EXP_PICKUP);
         }
     }
 
