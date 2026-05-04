@@ -92,13 +92,6 @@ public class IslandPermissionManager implements Listener {
     }
 
     /**
-     * 判断玩家是否是岛屿的拥有者或成员
-     */
-    public static boolean hasPermission(Island island, UUID uuid) {
-        return island.getOwnerId().equals(uuid) || island.getMembers().containsKey(uuid);
-    }
-
-    /**
      * 静态权限检查方法
      */
     public static boolean hasPermission(Island island, UUID uuid, IslandPermission permission) {
@@ -106,13 +99,6 @@ public class IslandPermissionManager implements Listener {
             return true;
         }
         return island.hasPermission(uuid, permission);
-    }
-
-    /**
-     * 检查某个位置是否在受保护的岛屿内（静态方法）
-     */
-    public static boolean isPlayerOnProtectedIsland(IslandManager islandManager, Location location) {
-        return getPlayerCurrentIsland(islandManager, location).isPresent();
     }
 
     /**
@@ -141,17 +127,39 @@ public class IslandPermissionManager implements Listener {
         PluginManager pluginManager = plugin.getServer().getPluginManager();
 
         // 注册所有包含事件处理器的权限管理器
-        pluginManager.registerEvents(pickupManager, plugin);
-        pluginManager.registerEvents(blockManager, plugin);
-        pluginManager.registerEvents(workblockManager, plugin);
-        pluginManager.registerEvents(containerManager, plugin);
-        pluginManager.registerEvents(redstoneManager, plugin);
-        pluginManager.registerEvents(doorManager, plugin);
-        pluginManager.registerEvents(vehicleManager, plugin);
-        pluginManager.registerEvents(toolManager, plugin);
-        pluginManager.registerEvents(itemManager, plugin);
-        pluginManager.registerEvents(entityManager, plugin);
-        pluginManager.registerEvents(otherManager, plugin);
+        if (pickupManager != null) {
+            pluginManager.registerEvents(pickupManager, plugin);
+        }
+        if (blockManager != null) {
+            pluginManager.registerEvents(blockManager, plugin);
+        }
+        if (workblockManager != null) {
+            pluginManager.registerEvents(workblockManager, plugin);
+        }
+        if (containerManager != null) {
+            pluginManager.registerEvents(containerManager, plugin);
+        }
+        if (redstoneManager != null) {
+            pluginManager.registerEvents(redstoneManager, plugin);
+        }
+        if (doorManager != null) {
+            pluginManager.registerEvents(doorManager, plugin);
+        }
+        if (vehicleManager != null) {
+            pluginManager.registerEvents(vehicleManager, plugin);
+        }
+        if (toolManager != null) {
+            pluginManager.registerEvents(toolManager, plugin);
+        }
+        if (itemManager != null) {
+            pluginManager.registerEvents(itemManager, plugin);
+        }
+        if (entityManager != null) {
+            pluginManager.registerEvents(entityManager, plugin);
+        }
+        if (otherManager != null) {
+            pluginManager.registerEvents(otherManager, plugin);
+        }
 
         // 注册协调器本身的事件监听器（如果有的话）
         pluginManager.registerEvents(this, plugin);
@@ -177,90 +185,6 @@ public class IslandPermissionManager implements Listener {
      */
     public Optional<Island> getPlayerCurrentIsland(Location location) {
         return getPlayerCurrentIsland(islandManager, location);
-    }
-
-    /**
-     * 获取管理权限管理器
-     */
-    public ManagementPermissionManager getManagementManager() {
-        return managementManager;
-    }
-
-    /**
-     * 获取拾取权限管理器
-     */
-    public PickupPermissionManager getPickupManager() {
-        return pickupManager;
-    }
-
-    /**
-     * 获取方块权限管理器
-     */
-    public BlockPermissionManager getBlockManager() {
-        return blockManager;
-    }
-
-    /**
-     * 获取工作方块权限管理器
-     */
-    public WorkblockPermissionManager getWorkblockManager() {
-        return workblockManager;
-    }
-
-    /**
-     * 获取容器权限管理器
-     */
-    public ContainerPermissionManager getContainerManager() {
-        return containerManager;
-    }
-
-    /**
-     * 获取红石权限管理器
-     */
-    public RedstonePermissionManager getRedstoneManager() {
-        return redstoneManager;
-    }
-
-    /**
-     * 获取门权限管理器
-     */
-    public DoorPermissionManager getDoorManager() {
-        return doorManager;
-    }
-
-    /**
-     * 获取载具权限管理器
-     */
-    public VehiclePermissionManager getVehicleManager() {
-        return vehicleManager;
-    }
-
-    /**
-     * 获取工具权限管理器
-     */
-    public ToolPermissionManager getToolManager() {
-        return toolManager;
-    }
-
-    /**
-     * 获取物品权限管理器
-     */
-    public ItemPermissionManager getItemManager() {
-        return itemManager;
-    }
-
-    /**
-     * 获取生物权限管理器
-     */
-    public EntityPermissionManager getEntityManager() {
-        return entityManager;
-    }
-
-    /**
-     * 获取其它权限管理器
-     */
-    public OtherPermissionManager getOtherManager() {
-        return otherManager;
     }
 
     /**

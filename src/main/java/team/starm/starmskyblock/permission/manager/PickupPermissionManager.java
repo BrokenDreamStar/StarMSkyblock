@@ -1,8 +1,6 @@
 package team.starm.starmskyblock.permission.manager;
 
-import java.util.UUID;
-
-import org.bukkit.Location;
+import com.destroystokyo.paper.event.player.PlayerPickupExperienceEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -16,8 +14,7 @@ import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 
 /**
- * 拾取物品权限管理器
- * 处理物品丢弃、拾取和经验球吸取等权限
+ * 放置/破坏/拾取权限管理器
  */
 public class PickupPermissionManager extends IslandPermissionManager {
 
@@ -51,14 +48,15 @@ public class PickupPermissionManager extends IslandPermissionManager {
     }
 
     /**
-     * 监听玩家经验变动事件（防止未授权拾取经验球）
+     * 监听拾取经验球事件
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onPlayerExpChange(PlayerExpChangeEvent event) {
+    public void onPlayerPickupExp(PlayerPickupExperienceEvent event) {
         Player player = event.getPlayer();
-        if (event.getAmount() > 0
-                && !checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.EXP_BALL)) {
-            event.setAmount(0);
+
+        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.EXP_BALL)) {
+            event.setCancelled(true);
+            
             sendDenyMessage(player, IslandPermission.EXP_BALL);
         }
     }

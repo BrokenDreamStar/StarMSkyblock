@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
@@ -41,7 +42,34 @@ public class DoorPermissionManager extends IslandPermissionManager {
         Material material = block.getType();
 
         if (isDoorMaterial(material)) {
+            ItemStack item = event.getItem();
+
+            // 检查是否为铜门/铜活板门相关的涂蜡与除锈操作
+            if (item != null && isCopperDoorOrTrapdoor(material)) {
+                Material itemType = item.getType();
+
+                // 对可交互方块进行修改，都必须处于潜行(Shift)状态
+                boolean isSneakAxe = player.isSneaking() && Tag.ITEMS_AXES.isTagged(itemType);
+                boolean isSneakHoneycomb = player.isSneaking() && itemType == Material.HONEYCOMB;
+
+                // 原版中，未氧化且未涂蜡的普通铜门/活板门无法使用斧头操作
+                if (isSneakAxe && (material == Material.COPPER_DOOR || material == Material.COPPER_TRAPDOOR)) {
+                    isSneakAxe = false;
+                }
+
+                // 原版中，已经涂蜡的门无法再次使用蜜脾涂蜡
+                if (isSneakHoneycomb && material.name().contains("WAXED_")) {
+                    isSneakHoneycomb = false;
+                }
+
+                // 如果是对铜门/铜活板门进行有效的涂蜡或除锈/脱蜡操作，直接跳过门开关的权限检查
+                if (isSneakAxe || isSneakHoneycomb) {
+                    return;
+                }
+            }
+
             IslandPermission permission = getDoorPermission(material);
+
             if (!checkPermission(block.getLocation(), player.getUniqueId(), permission)) {
                 event.setCancelled(true);
                 sendDenyMessage(player, permission);
@@ -59,14 +87,23 @@ public class DoorPermissionManager extends IslandPermissionManager {
     }
 
     /**
+     * 判断方块是否为铜门或铜活板门（涵盖所有氧化及涂蜡状态）
+     */
+    private boolean isCopperDoorOrTrapdoor(Material material) {
+        String name = material.name();
+        return name.contains("COPPER_DOOR") || name.contains("COPPER_TRAPDOOR");
+    }
+
+    /**
      * 根据门类型获取对应的权限
      */
     private IslandPermission getDoorPermission(Material material) {
         if (Tag.TRAPDOORS.isTagged(material))
             return IslandPermission.TRAPDOOR;
+
         if (Tag.FENCE_GATES.isTagged(material))
             return IslandPermission.FENCE_GATE;
+
         return IslandPermission.DOOR;
     }
-
 }

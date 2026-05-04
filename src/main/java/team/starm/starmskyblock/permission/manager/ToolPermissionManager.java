@@ -34,24 +34,6 @@ public class ToolPermissionManager extends IslandPermissionManager {
     /**
      * 预先缓存所有需要处理的铜变种方块，避免在高频的事件中进行字符串匹配。
      */
-    private static final Set<Material> COPPER_VARIANTS = EnumSet.noneOf(Material.class);
-
-    static {
-        for (Material type : Material.values()) {
-            String blockName = type.name();
-            boolean isBaseCopper = blockName.contains("COPPER");
-            boolean isRustedOrWaxed = blockName.contains("WAXED_") ||
-                    blockName.contains("EXPOSED_") ||
-                    blockName.contains("WEATHERED_") ||
-                    blockName.contains("OXIDIZED_");
-            boolean isCopperGolem = Tag.COPPER_GOLEM_STATUES.isTagged(type);
-
-            if (isBaseCopper && (isRustedOrWaxed || isCopperGolem)) {
-                COPPER_VARIANTS.add(type);
-            }
-        }
-    }
-
     public ToolPermissionManager(IslandManager islandManager, ConfigManager configManager) {
         super(islandManager, configManager);
     }
@@ -263,7 +245,7 @@ public class ToolPermissionManager extends IslandPermissionManager {
                 // 判断方块是否为原木/木头/菌柄/菌核或竹块 用于判断去皮事件
                 boolean isWoodOrLog = Tag.LOGS.isTagged(blockType) || blockType == Material.BAMBOO_BLOCK;
                 // 判断方块是否为铜及其变种 判断脱蜡/除锈事件（内联方法逻辑）
-                boolean isCopper = COPPER_VARIANTS.contains(blockType);
+                boolean isCopper = ItemTags.COPPER_VARIANTS.contains(blockType);
                 // 权限判断
                 if (isWoodOrLog || isCopper) {
                     permission = IslandPermission.AXE;
@@ -634,19 +616,27 @@ public class ToolPermissionManager extends IslandPermissionManager {
     }
 
     /**
-     * 根据工具类型返回对应的岛屿权限枚举，若无特殊工具权限则返回null
-     * 注意：由于桶、玻璃瓶、拴绳的权限需要对环境进行精细化判断（方块/实体），
-     * 此类请求已在上游独立处理。
+     * 根据工具类型获取对应的权限
      */
     private IslandPermission getToolPermission(Material toolType) {
+        if (toolType == null) {
+            return null;
+        }
+
+        // 使用 Bukkit API 提供的 Tag 来判断各类工具
+        if (Tag.ITEMS_AXES.isTagged(toolType)) {
+            return IslandPermission.AXE;
+        }
+        if (Tag.ITEMS_SHOVELS.isTagged(toolType)) {
+            return IslandPermission.SHOVEL;
+        }
+        if (Tag.ITEMS_HOES.isTagged(toolType)) {
+            return IslandPermission.HOE;
+        }
+
+        // 剩余没有统一 Tag 的单独物品继续使用 switch 判断
         return switch (toolType) {
             case BOW, CROSSBOW -> IslandPermission.BOW;
-            case WOODEN_AXE, STONE_AXE, COPPER_AXE, IRON_AXE, GOLDEN_AXE, DIAMOND_AXE, NETHERITE_AXE ->
-                    IslandPermission.AXE;
-            case WOODEN_SHOVEL, STONE_SHOVEL, COPPER_SHOVEL, IRON_SHOVEL, GOLDEN_SHOVEL, DIAMOND_SHOVEL,
-                 NETHERITE_SHOVEL -> IslandPermission.SHOVEL;
-            case WOODEN_HOE, STONE_HOE, IRON_HOE, COPPER_HOE, GOLDEN_HOE, DIAMOND_HOE, NETHERITE_HOE ->
-                    IslandPermission.HOE;
             case FLINT_AND_STEEL, FIRE_CHARGE -> IslandPermission.FIRE;
             case SHEARS -> IslandPermission.SHEARS;
             case BRUSH -> IslandPermission.BRUSH;

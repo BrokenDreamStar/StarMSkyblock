@@ -99,8 +99,10 @@ public enum IslandPermission {
     FIREWORK("使用烟花"),
     NAME("使用命名牌"),
     POTION("投掷药水"),
+    WATER_POTION("使用水瓶"),
     FERTILIZE("使用骨粉"),
     DYE("使用染料"),
+    INK_SAC("使用墨囊"),
     HONEYCOMB("涂蜡(使用蜜脾)"),
     CHORUS_FRUIT("食用紫颂果"),
     ENDER_PEARL("使用末影珍珠"),
@@ -123,10 +125,10 @@ public enum IslandPermission {
     // ====================== 其它 ======================
 
     FARM_TRAMPING("踩踏耕地"),
-    TURTLE_EGG_TRAMPING("踩坏海龟蛋"),
+    TURTLE_EGG_TRAMPING("踩踏海龟蛋"),
     BERRY("采摘浆果"),
     CAKE("食用蛋糕"),
-    SIGN_INTERACT("与告示牌交互"),
+    SIGN_INTERACT("编辑告示牌"),
     BED("使用床"),
     RESPAWN_ANCHOR("使用重生锚"),
     END_CRYSTAL("使用末地水晶");

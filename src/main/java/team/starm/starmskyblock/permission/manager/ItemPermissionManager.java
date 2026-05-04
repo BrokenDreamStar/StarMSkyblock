@@ -24,6 +24,7 @@ import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.permission.IslandPermission;
+import team.starm.starmskyblock.tag.ItemTags;
 
 /**
  * 物品权限管理器
@@ -57,16 +58,79 @@ public class ItemPermissionManager extends IslandPermissionManager {
             return;
         }
 
+        // 检查水瓶右键泥土转换
+        if (item.getType() == Material.POTION && event.getClickedBlock() != null
+                && Tag.CONVERTABLE_TO_MUD.isTagged(event.getClickedBlock().getType())) {
+            if (item.hasItemMeta() && item.getItemMeta() instanceof org.bukkit.inventory.meta.PotionMeta potionMeta) {
+                if (potionMeta.getBasePotionType() == org.bukkit.potion.PotionType.WATER) {
+                    Location loc = event.getClickedBlock().getLocation();
+                    if (!checkPermission(loc, player.getUniqueId(), IslandPermission.WATER_POTION)) {
+                        event.setCancelled(true);
+                        event.setUseItemInHand(Result.DENY);
+                        event.setUseInteractedBlock(Result.DENY);
+                        sendDenyMessage(player, IslandPermission.WATER_POTION);
+                        Bukkit.getScheduler().runTask(
+                                JavaPlugin.getProvidingPlugin(getClass()),
+                                player::updateInventory
+                        );
+                    }
+                    return;
+                }
+            }
+        }
+
+        // 检查墨囊/发光墨囊/染料右键告示牌
+        if (event.getClickedBlock() != null && Tag.ALL_SIGNS.isTagged(event.getClickedBlock().getType())) {
+            Material type = item.getType();
+            boolean isInk = (type == Material.INK_SAC || type == Material.GLOW_INK_SAC);
+            boolean isDye = ItemTags.DYES.contains(type);
+
+            if (isInk || isDye) {
+                Location loc = event.getClickedBlock().getLocation();
+                // 墨囊使用 INK_SAC 权限，染料使用 DYE 权限
+                IslandPermission targetPerm = isInk ? IslandPermission.INK_SAC : IslandPermission.DYE;
+
+                if (!checkPermission(loc, player.getUniqueId(), targetPerm)) {
+                    event.setCancelled(true);
+                    event.setUseItemInHand(Result.DENY);
+                    event.setUseInteractedBlock(Result.DENY);
+                    sendDenyMessage(player, targetPerm);
+                    Bukkit.getScheduler().runTask(
+                            JavaPlugin.getProvidingPlugin(getClass()),
+                            player::updateInventory
+                    );
+                }
+                return;
+            }
+        }
+
+        // 检查蜜脾右键涂蜡 (铜方块系列、告示牌系列)
+        if (item.getType() == Material.HONEYCOMB && event.getClickedBlock() != null) {
+            Material clickedType = event.getClickedBlock().getType();
+            if (ItemTags.WAXABLE_BLOCKS.contains(clickedType) || Tag.ALL_SIGNS.isTagged(clickedType)) {
+                Location loc = event.getClickedBlock().getLocation();
+                if (!checkPermission(loc, player.getUniqueId(), IslandPermission.HONEYCOMB)) {
+                    event.setCancelled(true);
+                    event.setUseItemInHand(Result.DENY);
+                    event.setUseInteractedBlock(Result.DENY);
+                    sendDenyMessage(player, IslandPermission.HONEYCOMB);
+                    Bukkit.getScheduler().runTask(
+                            JavaPlugin.getProvidingPlugin(getClass()),
+                            player::updateInventory
+                    );
+                }
+                return;
+            }
+        }
+
         Location loc = (event.getClickedBlock() != null) ? event.getClickedBlock().getLocation() : player.getLocation();
         IslandPermission permission = getItemUsePermission(item.getType());
 
         if (permission != null && !checkPermission(loc, player.getUniqueId(), permission)) {
             event.setCancelled(true);
-
             // 明确拒绝物品在手中的使用以及与方块的交互
             event.setUseItemInHand(Result.DENY);
             event.setUseInteractedBlock(Result.DENY);
-
             sendDenyMessage(player, permission);
 
             // 延迟 1 tick 更新背包，解决客户端物品假象问题，自动获取插件实例
@@ -96,28 +160,22 @@ public class ItemPermissionManager extends IslandPermissionManager {
             if (!(clickedEntity instanceof Mob)) {
                 return;
             }
-
             ItemMeta meta = item.getItemMeta();
-
             if (meta == null || !meta.hasDisplayName()) {
                 return;
             }
-
             Location loc = clickedEntity.getLocation();
-
             if (!checkPermission(loc, player.getUniqueId(), IslandPermission.NAME)) {
                 event.setCancelled(true);
                 sendDenyMessage(player, IslandPermission.NAME);
                 player.updateInventory();
             }
-
             return;
         }
 
         if (clickedEntity instanceof Sheep sheep) {
-            if (Tag.ITEMS_DYEABLE.isTagged(itemType)) {
+            if (ItemTags.DYES.contains(itemType)) {
                 Location loc = sheep.getLocation();
-
                 if (!checkPermission(loc, player.getUniqueId(), IslandPermission.DYE)) {
                     event.setCancelled(true);
                     sendDenyMessage(player, IslandPermission.DYE);
@@ -138,11 +196,9 @@ public class ItemPermissionManager extends IslandPermissionManager {
 
         if (item.getType() == Material.CHORUS_FRUIT) {
             Location loc = player.getLocation();
-
             if (!checkPermission(loc, player.getUniqueId(), IslandPermission.CHORUS_FRUIT)) {
                 event.setCancelled(true);
                 sendDenyMessage(player, IslandPermission.CHORUS_FRUIT);
-
                 Bukkit.getScheduler().runTask(
                         JavaPlugin.getProvidingPlugin(getClass()),
                         player::updateInventory
@@ -154,17 +210,14 @@ public class ItemPermissionManager extends IslandPermissionManager {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBlockFertilize(BlockFertilizeEvent event) {
         Player player = event.getPlayer();
-
         if (player == null) {
             return;
         }
 
         Location loc = event.getBlock().getLocation();
-
         if (!checkPermission(loc, player.getUniqueId(), IslandPermission.FERTILIZE)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.FERTILIZE);
-
             Bukkit.getScheduler().runTask(
                     JavaPlugin.getProvidingPlugin(getClass()),
                     player::updateInventory
