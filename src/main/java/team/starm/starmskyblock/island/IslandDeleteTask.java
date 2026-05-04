@@ -10,15 +10,15 @@ import team.starm.starmskyblock.util.ColorUtil;
 import java.util.UUID;
 
 public class IslandDeleteTask extends BukkitRunnable {
-    
+
     private final StarMSkyblock plugin;
     private final IslandManager islandManager;
     private final Island island;
     private final UUID playerUuid;
     private final int deleteCount;
     private final int maxDeleteTimes;
-    
-    public IslandDeleteTask(StarMSkyblock plugin, IslandManager islandManager, 
+
+    public IslandDeleteTask(StarMSkyblock plugin, IslandManager islandManager,
                            Island island, UUID playerUuid, int deleteCount, int maxDeleteTimes) {
         this.plugin = plugin;
         this.islandManager = islandManager;
@@ -27,7 +27,7 @@ public class IslandDeleteTask extends BukkitRunnable {
         this.deleteCount = deleteCount;
         this.maxDeleteTimes = maxDeleteTimes;
     }
-    
+
     @Override
     public void run() {
         // 异步执行耗时的清理操作
@@ -36,18 +36,18 @@ public class IslandDeleteTask extends BukkitRunnable {
             World world = plugin.getWorldManager().getSkyblockWorld();
             World netherWorld = plugin.getWorldManager().getSkyblockNether();
             World endWorld = plugin.getWorldManager().getSkyblockEnd();
-            
+
             int radius = island.getRadius();
             int minChunkX = island.getCenterChunkX() - radius;
             int maxChunkX = island.getCenterChunkX() + radius;
             int minChunkZ = island.getCenterChunkZ() - radius;
             int maxChunkZ = island.getCenterChunkZ() + radius;
-            
+
             int minX = minChunkX * 16;
             int maxX = maxChunkX * 16 + 15;
             int minZ = minChunkZ * 16;
             int maxZ = maxChunkZ * 16 + 15;
-            
+
             // 异步清理方块
             if (world != null) {
                 plugin.getSchematicManager().clearArea(world, minX, world.getMinHeight(), minZ, maxX,
@@ -61,7 +61,7 @@ public class IslandDeleteTask extends BukkitRunnable {
                 plugin.getSchematicManager().clearArea(endWorld, minX, endWorld.getMinHeight(), minZ, maxX,
                         endWorld.getMaxHeight(), maxZ);
             }
-            
+
             // 2. 在主线程中清理实体（必须在主线程执行）
             new BukkitRunnable() {
                 @Override
@@ -94,19 +94,19 @@ public class IslandDeleteTask extends BukkitRunnable {
                                 }
                             });
                         }
-                        
+
                         // 3. 数据库操作（可以在异步线程中执行）
                         boolean success = islandManager.deleteIslandFromDatabase(island);
                         if (success) {
                             // 增加玩家删除次数
                             islandManager.incrementDeleteCount(playerUuid);
-                            
+
                             // 发送完成消息
                             Player player = Bukkit.getPlayer(playerUuid);
                             if (player != null && player.isOnline()) {
                                 player.sendMessage("§a岛屿已成功删除！你已删除 " + (deleteCount + 1) + "/" + maxDeleteTimes + " 次岛屿。");
                             }
-                            
+
                             // 广播给其他在线的管理员
                             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                                 if (onlinePlayer.hasPermission("skyblock.admin") && !onlinePlayer.getUniqueId().equals(playerUuid)) {
@@ -123,7 +123,7 @@ public class IslandDeleteTask extends BukkitRunnable {
                     } catch (Exception e) {
                         ColorUtil.consoleError("&c在主线程中清理实体时发生错误！");
                         e.printStackTrace();
-                        
+
                         // 发送错误消息
                         Player player = Bukkit.getPlayer(playerUuid);
                         if (player != null && player.isOnline()) {
@@ -132,11 +132,11 @@ public class IslandDeleteTask extends BukkitRunnable {
                     }
                 }
             }.runTask(plugin);
-            
+
         } catch (Exception e) {
             ColorUtil.consoleError("&c异步删除岛屿时发生错误！");
             e.printStackTrace();
-            
+
             // 在主线程中发送错误消息
             new BukkitRunnable() {
                 @Override

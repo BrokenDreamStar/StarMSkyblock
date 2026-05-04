@@ -31,7 +31,7 @@ public class BorderTask extends BukkitRunnable {
         for (Player player : Bukkit.getOnlinePlayers()) {
             World playerWorld = player.getWorld();
             boolean isInSkyblockWorld = skyblockWorlds.stream().anyMatch(w -> w != null && w.equals(playerWorld));
-            
+
             if (!isInSkyblockWorld) {
                 // 如果玩家不在空岛世界，清除个人边界，使用世界默认边界
                 player.setWorldBorder(null);
@@ -59,7 +59,7 @@ public class BorderTask extends BukkitRunnable {
                 WorldBorder border = Bukkit.createWorldBorder();
                 border.setCenter(centerX, centerZ);
                 border.setSize(sideLength);
-                
+
                 // 为了只显示视觉效果而不会立刻造成伤害，可以设置较大的警告距离
                 border.setWarningDistance(0);
 

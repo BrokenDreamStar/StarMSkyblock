@@ -25,7 +25,7 @@ public class ColorUtil {
      */
     public static @NotNull Component parse(@Nullable String text) {
         if (text == null || text.isEmpty()) return Component.empty();
-        
+
         // 直接解析 & 代码。不要再进行二次序列化，否则会导致渲染失效
         return LEGACY_SERIALIZER.deserialize(text);
     }
@@ -62,7 +62,7 @@ public class ColorUtil {
         if (text == null) return;
         Bukkit.getConsoleSender().sendMessage(parse(text));
     }
-    
+
     /**
      * 向控制台打印彩色错误日志
      */

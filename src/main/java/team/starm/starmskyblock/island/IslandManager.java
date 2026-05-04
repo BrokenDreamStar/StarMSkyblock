@@ -124,7 +124,7 @@ public class IslandManager {
 
     /**
      * 创建一个新岛屿
-     * 
+     *
      * @param ownerId     岛主 UUID
      * @param schematicId 结构文件ID
      * @param name        岛屿名称（可为null或空，则使用默认名称）
@@ -186,7 +186,7 @@ public class IslandManager {
 
     /**
      * 根据玩家名获取岛屿
-     * 
+     *
      * @param playerName 玩家名
      * @return 岛屿实例（如果存在）
      */
@@ -200,7 +200,7 @@ public class IslandManager {
 
     /**
      * 获取所有岛屿的集合
-     * 
+     *
      * @return 所有岛屿的集合
      */
     public java.util.Collection<Island> getAllIslands() {
@@ -209,7 +209,7 @@ public class IslandManager {
 
     /**
      * 检查玩家是否在自己的岛屿范围内
-     * 
+     *
      * @param player 玩家实例
      * @return 如果玩家在自己的岛屿范围内返回true，否则返回false
      */
@@ -227,7 +227,7 @@ public class IslandManager {
 
     /**
      * 检查玩家是否在指定岛屿范围内
-     * 
+     *
      * @param player 玩家实例
      * @param island 要检查的岛屿
      * @return 如果玩家在指定岛屿范围内返回true，否则返回false
@@ -240,7 +240,7 @@ public class IslandManager {
 
     /**
      * 更新岛屿的半径
-     * 
+     *
      * @param id        岛屿ID
      * @param newRadius 新的半径（区块单位）
      * @return 是否更新成功
@@ -273,7 +273,7 @@ public class IslandManager {
 
     /**
      * 更新岛屿名称
-     * 
+     *
      * @param id      岛屿ID
      * @param newName 新的岛屿名称
      * @return 是否更新成功
@@ -300,7 +300,7 @@ public class IslandManager {
 
     /**
      * 更新岛屿的自定义传送点
-     * 
+     *
      * @param id        岛屿ID
      * @param worldType 世界类型
      * @param x         传送点X坐标
@@ -333,7 +333,7 @@ public class IslandManager {
 
     /**
      * 清除岛屿的自定义传送点
-     * 
+     *
      * @param id 岛屿ID
      * @return 是否清除成功
      */

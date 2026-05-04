@@ -1,22 +1,43 @@
 package team.starm.starmskyblock.permission.manager;
 
-import java.util.*;
-
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.block.data.type.Beehive;
-import org.bukkit.entity.*;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Ageable;
+import org.bukkit.entity.Bogged;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.HappyGhast;
+import org.bukkit.entity.LeashHitch;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Llama;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Sheep;
+import org.bukkit.entity.Snowman;
+import org.bukkit.entity.Steerable;
+import org.bukkit.entity.Tameable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityShootBowEvent;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerShearEntityEvent;
+import org.bukkit.event.player.PlayerUnleashEntityEvent;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -26,6 +47,8 @@ import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.tag.EntityTags;
 import team.starm.starmskyblock.tag.ItemTags;
+
+import java.util.Objects;
 
 /**
  * 工具权限管理器

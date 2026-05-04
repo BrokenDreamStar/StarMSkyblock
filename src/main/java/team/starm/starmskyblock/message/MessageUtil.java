@@ -31,7 +31,7 @@ public class MessageUtil {
     public static void consolePrint(@Nullable String text) {
         ColorUtil.consolePrint(text);
     }
-    
+
     /**
      * 向控制台打印彩色错误日志
      */

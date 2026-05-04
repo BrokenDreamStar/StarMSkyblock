@@ -86,7 +86,7 @@ public class PortalListener implements Listener {
 
     /**
      * 根据岛屿中心坐标 + 配置的偏移量生成传送目标位置
-     * 
+     *
      * 注意：传送门传送时始终使用“岛屿中心 + 结构偏移量”，不读取玩家自定义的 /is sethome 位置。
      * 只有 /is home 命令才会使用玩家自行设置的传送点。
      *
