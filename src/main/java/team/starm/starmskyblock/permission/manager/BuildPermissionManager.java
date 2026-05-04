@@ -14,12 +14,11 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
-import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.permission.IslandPermission;
+import team.starm.starmskyblock.permission.IslandPermissionManager;
 
 /**
  * 方块权限管理器
- * 处理方块破坏、放置、挂饰以及实体方块（盔甲架/水晶）相关权限
  */
 public class BlockPermissionManager extends IslandPermissionManager {
 
@@ -28,7 +27,7 @@ public class BlockPermissionManager extends IslandPermissionManager {
     }
 
     /**
-     * 监听方块破坏事件
+     * 监听破坏事件
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
@@ -40,7 +39,7 @@ public class BlockPermissionManager extends IslandPermissionManager {
     }
 
     /**
-     * 监听方块放置事件
+     * 监听放置事件
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
@@ -57,7 +56,7 @@ public class BlockPermissionManager extends IslandPermissionManager {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onHangingBreak(HangingBreakByEntityEvent event) {
         if (event.getRemover() instanceof Player player) {
-            if (!checkPermission(event.getEntity().getLocation(), player.getUniqueId(), IslandPermission.BUILD)) {
+            if (!checkPermission(event.getEntity().getLocation(), player.getUniqueId(), IslandPermission.BREAK)) {
                 event.setCancelled(true);
                 sendDenyMessage(player, IslandPermission.BREAK);
             }
@@ -77,18 +76,16 @@ public class BlockPermissionManager extends IslandPermissionManager {
     }
 
     /**
-     * 监听玩家交互事件 (用于拦截末地水晶、盔甲架等实体方块的放置)
+     * 监听 末地水晶/盔甲架 放置事件
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
             return;
         }
-
         if (event.getItem() == null) {
             return;
         }
-
         if (event.getClickedBlock() == null) {
             return;
         }
@@ -97,7 +94,6 @@ public class BlockPermissionManager extends IslandPermissionManager {
         Material itemType = event.getItem().getType();
 
         if (itemType == Material.ARMOR_STAND || itemType == Material.END_CRYSTAL) {
-
             if (itemType == Material.END_CRYSTAL) {
                 Material clickedType = event.getClickedBlock().getType();
                 if (clickedType != Material.OBSIDIAN && clickedType != Material.BEDROCK) {
@@ -106,13 +102,10 @@ public class BlockPermissionManager extends IslandPermissionManager {
             }
 
             Location placeLoc = event.getClickedBlock().getRelative(event.getBlockFace()).getLocation();
-
             if (!checkPermission(placeLoc, player.getUniqueId(), IslandPermission.BUILD)) {
                 event.setCancelled(true);
                 sendDenyMessage(player, IslandPermission.BUILD);
             }
         }
     }
-
-
 }

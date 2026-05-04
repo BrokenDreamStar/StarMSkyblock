@@ -1,5 +1,7 @@
 package team.starm.starmskyblock.permission;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,14 +14,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
-import team.starm.starmskyblock.permission.manager.BlockPermissionManager;
+import team.starm.starmskyblock.permission.manager.BuildPermissionManager;
 import team.starm.starmskyblock.permission.manager.ContainerPermissionManager;
 import team.starm.starmskyblock.permission.manager.DoorPermissionManager;
 import team.starm.starmskyblock.permission.manager.EntityPermissionManager;
 import team.starm.starmskyblock.permission.manager.ItemPermissionManager;
 import team.starm.starmskyblock.permission.manager.ManagementPermissionManager;
 import team.starm.starmskyblock.permission.manager.OtherPermissionManager;
-import team.starm.starmskyblock.permission.manager.PickupPermissionManager;
+import team.starm.starmskyblock.permission.manager.DropPickupPermissionManager;
 import team.starm.starmskyblock.permission.manager.RedstonePermissionManager;
 import team.starm.starmskyblock.permission.manager.ToolPermissionManager;
 import team.starm.starmskyblock.permission.manager.VehiclePermissionManager;
@@ -35,11 +37,12 @@ public class IslandPermissionManager implements Listener {
 
     protected final IslandManager islandManager;
     protected final ConfigManager configManager;
+    private final Map<UUID, Long> lastDenyMessageTime = new HashMap<>();
 
     // 专门的权限管理器实例
     private final ManagementPermissionManager managementManager;
-    private final PickupPermissionManager pickupManager;
-    private final BlockPermissionManager blockManager;
+    private final DropPickupPermissionManager pickupManager;
+    private final BuildPermissionManager blockManager;
     private final WorkblockPermissionManager workblockManager;
     private final ContainerPermissionManager containerManager;
     private final RedstonePermissionManager redstoneManager;
@@ -56,8 +59,8 @@ public class IslandPermissionManager implements Listener {
 
         // 初始化所有专门的权限管理器
         this.managementManager = new ManagementPermissionManager(islandManager, configManager);
-        this.pickupManager = new PickupPermissionManager(islandManager, configManager);
-        this.blockManager = new BlockPermissionManager(islandManager, configManager);
+        this.pickupManager = new DropPickupPermissionManager(islandManager, configManager);
+        this.blockManager = new BuildPermissionManager(islandManager, configManager);
         this.workblockManager = new WorkblockPermissionManager(islandManager, configManager);
         this.containerManager = new ContainerPermissionManager(islandManager, configManager);
         this.redstoneManager = new RedstonePermissionManager(islandManager, configManager);
@@ -188,9 +191,15 @@ public class IslandPermissionManager implements Listener {
     }
 
     /**
-     * 权限消息提示
+     * 权限消息提示（带冷却控制，防止刷屏）
      */
     protected void sendDenyMessage(Player player, IslandPermission permission) {
+        long now = System.currentTimeMillis();
+        long lastTime = lastDenyMessageTime.getOrDefault(player.getUniqueId(), 0L);
+        if (now - lastTime < configManager.getPermissionMessageCooldown()) {
+            return;
+        }
+        lastDenyMessageTime.put(player.getUniqueId(), now);
         MessageUtil.sendMessage(player, String.format("&e岛屿保护 &f|&c 你没有&e %s &c权限！", permission.getDisplayName()));
     }
 }

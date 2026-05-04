@@ -53,6 +53,7 @@ public class ConfigManager {
     private int maxDeleteTimes; // 玩家最多可删除自己岛屿的次数
     private boolean allowSethomeInNether; // 是否允许在下界使用 /is sethome
     private boolean allowSethomeInEnd; // 是否允许在末地使用 /is sethome
+    private long permissionMessageCooldown; // 权限提示消息冷却时间（毫秒）
     public ConfigManager(StarMSkyblock plugin) {
         this.plugin = plugin;
     }
@@ -162,6 +163,8 @@ public class ConfigManager {
 
         this.allowSethomeInNether = config.getBoolean("allow-sethome-in-nether", true);
         this.allowSethomeInEnd = config.getBoolean("allow-sethome-in-end", true);
+
+        this.permissionMessageCooldown = config.getLong("permission-message-cooldown", 1000);
     }
 
     public int getIslandRadius() {
@@ -277,6 +280,10 @@ public class ConfigManager {
 
     public boolean isAllowSethomeInEnd() {
         return allowSethomeInEnd;
+    }
+
+    public long getPermissionMessageCooldown() {
+        return permissionMessageCooldown;
     }
 
     /**
