@@ -19,9 +19,9 @@ public class Island {
     private final UUID ownerId;
     private String name;
     private int radius;
+    private int maxRadius;
     private int centerChunkX;
     private int centerChunkZ;
-    private boolean showBorder;
 
     private double customHomeX;
     private double customHomeY;
@@ -41,7 +41,6 @@ public class Island {
         this.ownerId = ownerId;
         this.name = "";
         this.radius = radius;
-        this.showBorder = true;
         this.customHomeWorldType = WorldType.NORMAL;
         this.schematicId = "default";
     }
@@ -84,6 +83,18 @@ public class Island {
         this.radius = radius;
     }
 
+    public int getMaxRadius() {
+        return maxRadius;
+    }
+
+    public void setMaxRadius(int maxRadius) {
+        this.maxRadius = maxRadius;
+    }
+
+    public int getEffectiveMaxRadius() {
+        return maxRadius > 0 ? maxRadius : radius;
+    }
+
     public int getCenterChunkX() {
         return centerChunkX;
     }
@@ -98,14 +109,6 @@ public class Island {
 
     public void setCenterChunkZ(int centerChunkZ) {
         this.centerChunkZ = centerChunkZ;
-    }
-
-    public boolean isShowBorder() {
-        return showBorder;
-    }
-
-    public void setShowBorder(boolean showBorder) {
-        this.showBorder = showBorder;
     }
 
     public Map<UUID, IslandPermissionLevel> getMembers() {
@@ -135,6 +138,11 @@ public class Island {
 
     public boolean isChunkWithinIsland(int chunkX, int chunkZ) {
         return Math.abs(chunkX - centerChunkX) <= radius && Math.abs(chunkZ - centerChunkZ) <= radius;
+    }
+
+    public boolean isChunkWithinMaxRange(int chunkX, int chunkZ) {
+        int effectiveMax = getEffectiveMaxRadius();
+        return Math.abs(chunkX - centerChunkX) <= effectiveMax && Math.abs(chunkZ - centerChunkZ) <= effectiveMax;
     }
 
     public boolean hasCustomHome() {

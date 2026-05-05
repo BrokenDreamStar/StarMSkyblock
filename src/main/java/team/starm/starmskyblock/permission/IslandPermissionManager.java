@@ -38,8 +38,10 @@ public class IslandPermissionManager implements Listener {
     protected final IslandManager islandManager;
     protected final ConfigManager configManager;
     private final Map<UUID, Long> lastDenyMessageTime = new HashMap<>();
-
-    // 专门的权限管理器实例
+    private boolean lastCheckWasAreaLocked = false;
+    private boolean lastCheckWasPublicArea = false;
+    private Island lastAreaLockedIsland = null;
+    // 专门的权限管理器实例!
     private final ManagementPermissionManager managementManager;
     private final DropPickupPermissionManager pickupManager;
     private final BuildPermissionManager blockManager;
@@ -117,6 +119,18 @@ public class IslandPermissionManager implements Listener {
     }
 
     /**
+     * 根据坐标获取当前所属岛屿（使用最大范围，用于权限判断）
+     */
+    public static Optional<Island> getPlayerCurrentIslandMaxRange(IslandManager islandManager, Location location) {
+        for (Island island : islandManager.getAllIslands()) {
+            if (island.isChunkWithinMaxRange(location.getChunk().getX(), location.getChunk().getZ())) {
+                return Optional.of(island);
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
      * 初始化事件监听器（在对象完全构造后调用）
      */
     public void initializeEventListeners(JavaPlugin plugin) {
@@ -169,7 +183,7 @@ public class IslandPermissionManager implements Listener {
     }
 
     /**
-     * 统一的权限检查方法
+     * 统一的权限检查方法（使用最大岛屿范围）
      */
     public boolean checkPermission(Location location, UUID uuid, IslandPermission permission) {
         String worldName = location.getWorld().getName();
@@ -179,15 +193,42 @@ public class IslandPermissionManager implements Listener {
             return true;
         }
 
-        Optional<Island> optIsland = getPlayerCurrentIsland(location);
-        return optIsland.map(island -> hasPermission(island, uuid, permission)).orElse(true);
+        Optional<Island> optIsland = getPlayerCurrentIslandMaxRange(location);
+
+        lastCheckWasAreaLocked = false;
+        lastCheckWasPublicArea = false;
+
+        if (optIsland.isEmpty()) {
+            lastCheckWasPublicArea = true;
+            return false;
+        }
+
+        Island island = optIsland.get();
+        int chunkX = location.getChunk().getX();
+        int chunkZ = location.getChunk().getZ();
+
+        // 在最大范围内但超出已解锁区域 → 阻止并提示区域未解锁
+        if (!island.isChunkWithinIsland(chunkX, chunkZ)) {
+            lastCheckWasAreaLocked = true;
+            lastAreaLockedIsland = island;
+            return false;
+        }
+
+        return hasPermission(island, uuid, permission);
     }
 
     /**
-     * 根据坐标获取当前位置所属的岛屿对象
+     * 根据坐标获取当前位置所属的岛屿对象（使用当前岛屿范围）
      */
     public Optional<Island> getPlayerCurrentIsland(Location location) {
         return getPlayerCurrentIsland(islandManager, location);
+    }
+
+    /**
+     * 根据坐标获取当前位置所属的岛屿对象（使用最大岛屿范围，用于权限判断）
+     */
+    public Optional<Island> getPlayerCurrentIslandMaxRange(Location location) {
+        return getPlayerCurrentIslandMaxRange(islandManager, location);
     }
 
     /**
@@ -200,6 +241,25 @@ public class IslandPermissionManager implements Listener {
             return;
         }
         lastDenyMessageTime.put(player.getUniqueId(), now);
+
+        if (lastCheckWasAreaLocked) {
+            if (lastAreaLockedIsland != null && lastAreaLockedIsland.getOwnerId().equals(player.getUniqueId())) {
+                MessageUtil.sendMessage(player, "&e岛屿保护 &f|&c 当前区域未解锁，请升级岛屿！");
+            } else if (lastAreaLockedIsland != null) {
+                String islandName = lastAreaLockedIsland.getName().isEmpty()
+                        ? "岛屿 #" + lastAreaLockedIsland.getId()
+                        : lastAreaLockedIsland.getName();
+                MessageUtil.sendMessage(player, String.format(
+                        "&e岛屿保护 &f|&c 当前区域为 %s 的未解锁区域，没有权限进行操作！", islandName));
+            }
+            return;
+        }
+
+        if (lastCheckWasPublicArea) {
+            MessageUtil.sendMessage(player, "&e岛屿保护 &f|&c 公共区域不允许进行操作！");
+            return;
+        }
+
         MessageUtil.sendMessage(player, String.format("&e岛屿保护 &f|&c 你没有&e %s &c权限！", permission.getDisplayName()));
     }
 

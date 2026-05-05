@@ -5,6 +5,9 @@ import io.papermc.paper.event.player.PlayerOpenSignEvent;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.Ageable;
+import org.bukkit.block.data.type.CaveVines;
+import org.bukkit.block.data.type.CaveVinesPlant;
 import org.bukkit.entity.EnderCrystal;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -66,7 +69,7 @@ public class OtherPermissionManager extends IslandPermissionManager {
             if (event.getHand() != EquipmentSlot.HAND) {
                 return;
             }
-            IslandPermission permission = getRightClickPermission(material);
+            IslandPermission permission = getRightClickPermission(block);
             if (permission != null && !checkPermission(block.getLocation(), player.getUniqueId(), permission)) {
                 event.setCancelled(true);
                 sendDenyMessage(player, permission);
@@ -152,14 +155,38 @@ public class OtherPermissionManager extends IslandPermissionManager {
     }
 
     /**
-     * 辅助方法：根据方块类型获取对应的右键操作权限
+     * 辅助方法：根据方块类型和状态获取对应的右键操作权限
      */
-    private IslandPermission getRightClickPermission(Material material) {
+    @SuppressWarnings("deprecation")
+    private IslandPermission getRightClickPermission(Block block) {
+        Material material = block.getType();
         if (Tag.BEDS.isTagged(material)) {
             return IslandPermission.BED_USE;
         }
+
+        // 浆果/发光浆果：只对已结果的状态进行权限检查
+        if (material == Material.SWEET_BERRY_BUSH) {
+            if (block.getBlockData() instanceof Ageable ageable && ageable.getAge() < ageable.getMaximumAge()) {
+                return null; // 未成熟，不触发采摘事件
+            }
+            return IslandPermission.SWEET_BERRY_HARVEST;
+        }
+        if (material == Material.CAVE_VINES || material == Material.CAVE_VINES_PLANT) {
+            boolean hasBerries;
+            if (block.getBlockData() instanceof CaveVines vines) {
+                hasBerries = vines.isBerries();
+            } else if (block.getBlockData() instanceof CaveVinesPlant plant) {
+                hasBerries = plant.isBerries();
+            } else {
+                return IslandPermission.SWEET_BERRY_HARVEST;
+            }
+            if (!hasBerries) {
+                return null; // 未结果，不触发采摘事件
+            }
+            return IslandPermission.SWEET_BERRY_HARVEST;
+        }
+
         return switch (material) {
-            case SWEET_BERRY_BUSH, CAVE_VINES, CAVE_VINES_PLANT -> IslandPermission.SWEET_BERRY_HARVEST;
             case CAKE -> IslandPermission.CAKE_EAT;
             case RESPAWN_ANCHOR -> IslandPermission.RESPAWN_ANCHOR_USE;
             default -> null;

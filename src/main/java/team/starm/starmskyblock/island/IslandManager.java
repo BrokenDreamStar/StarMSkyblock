@@ -66,7 +66,7 @@ public class IslandManager {
                 island.setName(name);
                 island.setCenterChunkX(centerX);
                 island.setCenterChunkZ(centerZ);
-                island.setShowBorder(configManager.isShowBorderDefault());
+                island.setMaxRadius(configManager.getIslandMaxRadius());
 
                 // ==================== 新增：注入权限配置管理器 ====================
                 island.setPermissionConfigManager(plugin.getPermissionConfigManager());
@@ -140,11 +140,8 @@ public class IslandManager {
 
         Island island = new Island(islandId, ownerId, defaultRadius, schematicId, name);
 
-        // 读取配置中关于边界显示的默认设置
-        island.setShowBorder(configManager.isShowBorderDefault());
-
-        // ==================== 新增：注入权限配置管理器 ====================
         island.setPermissionConfigManager(plugin.getPermissionConfigManager());
+        island.setMaxRadius(configManager.getIslandMaxRadius());
 
         // 获取该岛屿对应的中心区块坐标
         GridManager.GridLocation location = gridManager.getChunkLocation(islandId);
