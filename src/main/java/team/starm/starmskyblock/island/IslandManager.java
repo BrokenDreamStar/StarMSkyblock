@@ -148,6 +148,12 @@ public class IslandManager {
         island.setCenterChunkX(location.getChunkX());
         island.setCenterChunkZ(location.getChunkZ());
 
+        // 保存岛主名称
+        org.bukkit.entity.Player owner = org.bukkit.Bukkit.getPlayer(ownerId);
+        if (owner != null) {
+            sqliteManager.savePlayerName(ownerId, owner.getName());
+        }
+
         // 保存到数据库
         String insertSql = "INSERT INTO islands (id, owner_uuid, name, radius, center_x, center_z) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = sqliteManager.getConnection();
@@ -179,6 +185,24 @@ public class IslandManager {
 
     public Optional<Island> getIsland(UUID ownerId) {
         return Optional.ofNullable(islandsByOwner.get(ownerId));
+    }
+
+    /**
+     * 根据玩家 UUID 获取其所属的岛屿（包括作为成员的情况）
+     *
+     * @param playerUuid 玩家 UUID
+     * @return 岛屿实例（如果存在）
+     */
+    public Optional<Island> getIslandByPlayer(UUID playerUuid) {
+        // 先检查是否为岛主
+        Island island = islandsByOwner.get(playerUuid);
+        if (island != null) {
+            return Optional.of(island);
+        }
+        // 再检查是否为成员
+        return islandsById.values().stream()
+                .filter(i -> i.getMembers().containsKey(playerUuid))
+                .findFirst();
     }
 
     /**
@@ -403,6 +427,12 @@ public class IslandManager {
                 pstmt.setString(2, memberUuid.toString());
                 pstmt.setString(3, role.name());
                 pstmt.executeUpdate();
+
+                // 保存成员名称
+                org.bukkit.entity.Player member = org.bukkit.Bukkit.getPlayer(memberUuid);
+                if (member != null) {
+                    sqliteManager.savePlayerName(memberUuid, member.getName());
+                }
 
                 island.addMember(memberUuid, role);
                 return true;

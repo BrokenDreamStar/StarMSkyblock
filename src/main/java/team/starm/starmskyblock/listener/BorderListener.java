@@ -45,7 +45,9 @@ public class BorderListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        updatePlayerBorder(event.getPlayer());
+        Player player = event.getPlayer();
+        plugin.getSqliteManager().savePlayerName(player.getUniqueId(), player.getName());
+        updatePlayerBorder(player);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

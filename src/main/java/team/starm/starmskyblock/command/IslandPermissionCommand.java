@@ -23,7 +23,7 @@ public class IslandPermissionCommand {
     }
 
     public boolean handlePermissionCommand(Player player, String[] args) {
-        Optional<Island> optionalIsland = plugin.getIslandManager().getIsland(player.getUniqueId());
+        Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
             MessageUtil.sendMessage(player, "&c你还没有岛屿！");
             return true;
