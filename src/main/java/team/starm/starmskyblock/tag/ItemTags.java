@@ -78,8 +78,7 @@ public class ItemTags {
             Material.RED_DYE,
             Material.BLACK_DYE
     );
-
-
+    
     /**
      * 所有可涂蜡的方块
      */
@@ -104,7 +103,7 @@ public class ItemTags {
     }
 
     /**
-     * 所有铜制品变种（含涂蜡/氧化铜方块 和 铜傀儡雕像）
+     * 所有可以被脱蜡/除锈的铜及其变种
      */
     public static final Set<Material> COPPER_VARIANTS = EnumSet.noneOf(Material.class);
 

@@ -15,6 +15,7 @@ import team.starm.starmskyblock.generator.SchematicManager;
 import team.starm.starmskyblock.grid.GridManager;
 import team.starm.starmskyblock.island.InvitationManager;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.listener.BorderListener;
 import team.starm.starmskyblock.listener.EntityPortalListener;
 import team.starm.starmskyblock.listener.PlayerNetherListener;
 import team.starm.starmskyblock.listener.PortalListener;
@@ -34,6 +35,7 @@ public class StarMSkyblock extends JavaPlugin {
     private InvitationManager invitationManager;
     private SkyblockWorldManager worldManager;
     private IslandPermissionManager permissionCoordinator;
+    private BorderListener borderListener;
 
     @Override
     public void onEnable() {
@@ -76,6 +78,8 @@ public class StarMSkyblock extends JavaPlugin {
         worldManager.getOrCreateSkyblockEnd();
 
         // 注册事件监听器
+        borderListener = new BorderListener(this);
+        getServer().getPluginManager().registerEvents(borderListener, this);
         getServer().getPluginManager().registerEvents(new PortalListener(this), this);
         getServer().getPluginManager().registerEvents(new EntityPortalListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerNetherListener(this), this);
@@ -93,9 +97,6 @@ public class StarMSkyblock extends JavaPlugin {
             getCommand("is").setExecutor(islandCmd);
             getCommand("is").setTabCompleter(islandCmd);
         }
-
-        // 启动边界显示任务
-        new team.starm.starmskyblock.island.BorderTask(this, islandManager).runTaskTimer(this, 20L, 10L);
 
         ColorUtil.consolePrint("&a[StarMSkyblock] 插件已启用！虚空世界已准备就绪。");
     }
@@ -146,6 +147,10 @@ public class StarMSkyblock extends JavaPlugin {
 
     public IslandPermissionManager getPermissionCoordinator() {
         return permissionCoordinator;
+    }
+
+    public BorderListener getBorderListener() {
+        return borderListener;
     }
 
     private void extractSchematics() {

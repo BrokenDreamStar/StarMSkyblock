@@ -29,6 +29,9 @@ public class Island {
     private WorldType customHomeWorldType;
     private boolean hasCustomHome;
 
+    private int level;
+    private String settings;
+
     private String schematicId;
 
     private final Map<UUID, IslandPermissionLevel> members = new HashMap<>();
@@ -93,6 +96,22 @@ public class Island {
 
     public int getEffectiveMaxRadius() {
         return maxRadius > 0 ? maxRadius : radius;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    public String getSettings() {
+        return settings != null ? settings : "{}";
+    }
+
+    public void setSettings(String settings) {
+        this.settings = settings != null ? settings : "{}";
     }
 
     public int getCenterChunkX() {

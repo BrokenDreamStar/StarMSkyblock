@@ -28,7 +28,7 @@ public class BorderListener implements Listener {
 
     private final StarMSkyblock plugin;
     private final IslandManager islandManager;
-    private final Map<UUID, Boolean> playerBorderSettings = new HashMap<>();
+    private final Map<UUID, Boolean> borderCache = new HashMap<>();
 
     public BorderListener(StarMSkyblock plugin) {
         this.plugin = plugin;
@@ -36,17 +36,20 @@ public class BorderListener implements Listener {
     }
 
     public boolean isPlayerShowBorder(UUID playerUuid) {
-        return playerBorderSettings.getOrDefault(playerUuid, true);
+        return borderCache.getOrDefault(playerUuid, true);
     }
 
     public void setPlayerShowBorder(UUID playerUuid, boolean show) {
-        playerBorderSettings.put(playerUuid, show);
+        borderCache.put(playerUuid, show);
+        plugin.getSqliteManager().setBorderEnabled(playerUuid, show);
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         plugin.getSqliteManager().savePlayerName(player.getUniqueId(), player.getName());
+        // 从数据库加载边界开关状态到缓存
+        borderCache.put(player.getUniqueId(), plugin.getSqliteManager().isBorderEnabled(player.getUniqueId()));
         updatePlayerBorder(player);
     }
 
@@ -117,7 +120,7 @@ public class BorderListener implements Listener {
     }
 
     public static WorldBorder createIslandBorder(Island island) {
-        int radiusChunks = island.getEffectiveMaxRadius();
+        int radiusChunks = island.getRadius();
         double sideLength = (radiusChunks * 2 + 1) * 16.0;
 
         int centerChunkX = island.getCenterChunkX();

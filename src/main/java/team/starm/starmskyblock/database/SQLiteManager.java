@@ -23,7 +23,6 @@ public class SQLiteManager {
     }
 
     public void init() {
-        // 确保插件数据文件夹存在
         if (!plugin.getDataFolder().exists()) {
             plugin.getDataFolder().mkdirs();
         }
@@ -36,6 +35,7 @@ public class SQLiteManager {
             connection = DriverManager.getConnection(url);
             MessageUtil.consolePrint("&aSQLite 数据库连接成功！");
             createTables();
+            migrate();
         } catch (ClassNotFoundException | SQLException e) {
             MessageUtil.consoleError("&c无法连接到 SQLite 数据库！");
             e.printStackTrace();
@@ -45,8 +45,9 @@ public class SQLiteManager {
     private void createTables() {
         String createIslandsTable = "CREATE TABLE IF NOT EXISTS islands (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "owner_uuid VARCHAR(36) NOT NULL," +
                 "name VARCHAR(64) DEFAULT ''," +
+                "owner_uuid VARCHAR(36) NOT NULL," +
+                "level INTEGER DEFAULT 1," +
                 "radius INTEGER NOT NULL," +
                 "center_x INTEGER NOT NULL," +
                 "center_z INTEGER NOT NULL," +
@@ -66,10 +67,10 @@ public class SQLiteManager {
                 "end_home_y REAL DEFAULT 0," +
                 "end_home_z REAL DEFAULT 0," +
                 "has_end_home BOOLEAN DEFAULT 0," +
+                "settings TEXT DEFAULT '{}'," +
                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                 ");";
 
-        // 成员表，关联岛屿ID和玩家UUID，并带上权限级别
         String createMembersTable = "CREATE TABLE IF NOT EXISTS island_members (" +
                 "island_id INTEGER," +
                 "player_uuid VARCHAR(36)," +
@@ -78,13 +79,17 @@ public class SQLiteManager {
                 "FOREIGN KEY (island_id) REFERENCES islands(id) ON DELETE CASCADE" +
                 ");";
 
-        // 玩家数据表，记录玩家的岛屿删除次数等信息
+        String createPlayersTable = "CREATE TABLE IF NOT EXISTS players (" +
+                "player_uuid VARCHAR(36) PRIMARY KEY," +
+                "player_name VARCHAR(16) NOT NULL," +
+                "border_enabled BOOLEAN DEFAULT 1" +
+                ");";
+
         String createPlayerStatsTable = "CREATE TABLE IF NOT EXISTS player_stats (" +
                 "player_uuid VARCHAR(36) PRIMARY KEY," +
                 "delete_count INTEGER DEFAULT 0" +
                 ");";
 
-        // 岛屿权限表，存储自定义权限配置
         String createPermissionsTable = "CREATE TABLE IF NOT EXISTS island_permissions (" +
                 "island_id INTEGER," +
                 "role VARCHAR(16)," +
@@ -93,20 +98,12 @@ public class SQLiteManager {
                 "FOREIGN KEY (island_id) REFERENCES islands(id) ON DELETE CASCADE" +
                 ");";
 
-        // 玩家名称表，存储 UUID → 玩家名映射（用于显示和改名同步）
-        String createPlayerNamesTable = "CREATE TABLE IF NOT EXISTS player_names (" +
-                "player_uuid VARCHAR(36) PRIMARY KEY," +
-                "player_name VARCHAR(16) NOT NULL," +
-                "last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
-                ");";
-
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createIslandsTable);
             stmt.execute(createMembersTable);
+            stmt.execute(createPlayersTable);
             stmt.execute(createPlayerStatsTable);
             stmt.execute(createPermissionsTable);
-            stmt.execute(createPlayerNamesTable);
-            migrateAddNameColumn();
             MessageUtil.consolePrint("&a数据库表结构检查/创建完毕。");
         } catch (SQLException e) {
             MessageUtil.consoleError("&c创建数据库表失败！");
@@ -114,39 +111,42 @@ public class SQLiteManager {
         }
     }
 
-    private void migrateAddNameColumn() {
+    private void migrate() {
+        migrateAddIslandColumns();
+    }
+
+    private void migrateAddIslandColumns() {
         try (Statement stmt = connection.createStatement()) {
             var rs = stmt.executeQuery("PRAGMA table_info(islands)");
-            boolean hasNameColumn = false;
+            boolean hasLevel = false;
+            boolean hasSettings = false;
             while (rs.next()) {
-                if ("name".equalsIgnoreCase(rs.getString("name"))) {
-                    hasNameColumn = true;
-                    break;
-                }
+                String colName = rs.getString("name");
+                if ("level".equalsIgnoreCase(colName)) hasLevel = true;
+                if ("settings".equalsIgnoreCase(colName)) hasSettings = true;
             }
             rs.close();
-            if (!hasNameColumn) {
-                stmt.execute("ALTER TABLE islands ADD COLUMN name VARCHAR(64) DEFAULT ''");
-                MessageUtil.consolePrint("&a数据库迁移：已添加 name 列到 islands 表。");
+            if (!hasLevel) {
+                stmt.execute("ALTER TABLE islands ADD COLUMN level INTEGER DEFAULT 1");
+                MessageUtil.consolePrint("&a数据库迁移：已添加 level 列到 islands 表。");
+            }
+            if (!hasSettings) {
+                stmt.execute("ALTER TABLE islands ADD COLUMN settings TEXT DEFAULT '{}'");
+                MessageUtil.consolePrint("&a数据库迁移：已添加 settings 列到 islands 表。");
             }
         } catch (SQLException e) {
-            MessageUtil.consoleError("&c数据库迁移检查 name 列失败！");
+            MessageUtil.consoleError("&c数据库迁移检查 islands 列失败！");
             e.printStackTrace();
         }
     }
 
-    public void savePlayerName(UUID uuid, String playerName) {
-        savePlayerName(uuid.toString(), playerName);
-    }
+    // ==================== 玩家名称操作 ====================
 
-    /**
-     * 保存或更新玩家名称
-     */
-    public void savePlayerName(String uuid, String playerName) {
-        String sql = "INSERT OR REPLACE INTO player_names (player_uuid, player_name, last_updated) VALUES (?, ?, CURRENT_TIMESTAMP)";
+    public void savePlayerName(UUID uuid, String playerName) {
+        String sql = "INSERT OR REPLACE INTO players (player_uuid, player_name) VALUES (?, ?)";
         try (Connection conn = getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, uuid);
+            pstmt.setString(1, uuid.toString());
             pstmt.setString(2, playerName);
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -155,20 +155,11 @@ public class SQLiteManager {
         }
     }
 
-    /**
-     * 获取玩家名称
-     *
-     * @return 玩家名称，如果不存在则返回 Optional.empty()
-     */
     public Optional<String> getPlayerName(UUID uuid) {
-        return getPlayerName(uuid.toString());
-    }
-
-    public Optional<String> getPlayerName(String uuid) {
-        String sql = "SELECT player_name FROM player_names WHERE player_uuid = ?";
+        String sql = "SELECT player_name FROM players WHERE player_uuid = ?";
         try (Connection conn = getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, uuid);
+            pstmt.setString(1, uuid.toString());
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(rs.getString("player_name"));
@@ -180,6 +171,52 @@ public class SQLiteManager {
         }
         return Optional.empty();
     }
+
+    // ==================== 边界开关操作 ====================
+
+    public boolean isBorderEnabled(UUID playerUuid) {
+        String sql = "SELECT border_enabled FROM players WHERE player_uuid = ?";
+        try (Connection conn = getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, playerUuid.toString());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBoolean("border_enabled");
+                }
+            }
+        } catch (SQLException e) {
+            MessageUtil.consoleError("&c获取边界开关状态失败！UUID: " + playerUuid);
+            e.printStackTrace();
+        }
+        return true; // 默认开启
+    }
+
+    public void setBorderEnabled(UUID playerUuid, boolean enabled) {
+        String sql = "INSERT OR REPLACE INTO players (player_uuid, border_enabled) "
+                + "SELECT ?, ? WHERE EXISTS (SELECT 1 FROM players WHERE player_uuid = ?)";
+        // 使用 UPDATE 和 INSERT 分开处理，避免覆盖 player_name
+        String updateSql = "UPDATE players SET border_enabled = ? WHERE player_uuid = ?";
+        try (Connection conn = getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
+            pstmt.setBoolean(1, enabled);
+            pstmt.setString(2, playerUuid.toString());
+            int affected = pstmt.executeUpdate();
+            if (affected == 0) {
+                // 玩家记录不存在，插入新行（只设 border_enabled，name 为空等待 join 时更新）
+                String insertSql = "INSERT INTO players (player_uuid, player_name, border_enabled) VALUES (?, '', ?)";
+                try (PreparedStatement insertPstmt = conn.prepareStatement(insertSql)) {
+                    insertPstmt.setString(1, playerUuid.toString());
+                    insertPstmt.setBoolean(2, enabled);
+                    insertPstmt.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            MessageUtil.consoleError("&c保存边界开关状态失败！UUID: " + playerUuid);
+            e.printStackTrace();
+        }
+    }
+
+    // ==================== 连接管理 ====================
 
     public Connection getConnection() {
         try {

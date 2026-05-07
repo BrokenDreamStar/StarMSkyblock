@@ -1,6 +1,7 @@
 package team.starm.starmskyblock.permission.manager;
 
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.SculkSensor;
 import org.bukkit.entity.Entity;
@@ -103,12 +104,15 @@ public class RedstonePermissionManager extends IslandPermissionManager {
      * 获取对应的红石元件权限
      */
     private IslandPermission getRedstonePermission(Material material) {
-        String matName = material.name();
-
-        if (matName.endsWith("_BUTTON")) {
+        if (Tag.BUTTONS.isTagged(material)) {
             return IslandPermission.BUTTON_PRESS;
         }
-        if (matName.endsWith("_PRESSURE_PLATE")) {
+
+        if (Tag.WOODEN_PRESSURE_PLATES.isTagged(material) ||
+                material == Material.STONE_PRESSURE_PLATE ||
+                material == Material.POLISHED_BLACKSTONE_PRESSURE_PLATE ||
+                material == Material.LIGHT_WEIGHTED_PRESSURE_PLATE ||
+                material == Material.HEAVY_WEIGHTED_PRESSURE_PLATE) {
             return IslandPermission.PRESSURE_PLATE_TRIGGER;
         }
 

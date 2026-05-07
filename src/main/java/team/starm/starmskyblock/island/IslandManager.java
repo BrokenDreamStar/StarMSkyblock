@@ -44,7 +44,7 @@ public class IslandManager {
      * 从数据库加载所有岛屿信息
      */
     private void loadIslandsFromDatabase() {
-        String selectIslands = "SELECT id, owner_uuid, name, radius, center_x, center_z, custom_home_x, custom_home_y, custom_home_z, has_custom_home FROM islands";
+        String selectIslands = "SELECT id, owner_uuid, name, level, radius, center_x, center_z, custom_home_x, custom_home_y, custom_home_z, has_custom_home, settings FROM islands";
         String selectMembers = "SELECT player_uuid, role FROM island_members WHERE island_id = ?";
         String selectPermissions = "SELECT role, permission FROM island_permissions WHERE island_id = ?";
 
@@ -67,6 +67,8 @@ public class IslandManager {
                 island.setCenterChunkX(centerX);
                 island.setCenterChunkZ(centerZ);
                 island.setMaxRadius(configManager.getIslandMaxRadius());
+                island.setLevel(rs.getInt("level"));
+                island.setSettings(rs.getString("settings"));
 
                 // ==================== 新增：注入权限配置管理器 ====================
                 island.setPermissionConfigManager(plugin.getPermissionConfigManager());
@@ -155,15 +157,17 @@ public class IslandManager {
         }
 
         // 保存到数据库
-        String insertSql = "INSERT INTO islands (id, owner_uuid, name, radius, center_x, center_z) VALUES (?, ?, ?, ?, ?, ?)";
+        String insertSql = "INSERT INTO islands (id, name, owner_uuid, level, radius, center_x, center_z, settings) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = sqliteManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
             pstmt.setInt(1, islandId);
-            pstmt.setString(2, ownerId.toString());
-            pstmt.setString(3, island.getName());
-            pstmt.setInt(4, defaultRadius);
-            pstmt.setInt(5, island.getCenterChunkX());
-            pstmt.setInt(6, island.getCenterChunkZ());
+            pstmt.setString(2, island.getName());
+            pstmt.setString(3, ownerId.toString());
+            pstmt.setInt(4, island.getLevel());
+            pstmt.setInt(5, defaultRadius);
+            pstmt.setInt(6, island.getCenterChunkX());
+            pstmt.setInt(7, island.getCenterChunkZ());
+            pstmt.setString(8, island.getSettings());
             pstmt.executeUpdate();
 
             islandsById.put(islandId, island);
