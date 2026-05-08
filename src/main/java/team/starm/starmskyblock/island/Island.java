@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
+import team.starm.starmskyblock.setting.IslandSettings;
 
 public class Island {
 

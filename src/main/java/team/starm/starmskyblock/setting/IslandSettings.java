@@ -1,18 +1,21 @@
-package team.starm.starmskyblock.island;
+package team.starm.starmskyblock.setting;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public class IslandSettings {
 
     private static final Gson GSON = new GsonBuilder().create();
 
     private static final Map<String, String> SETTING_KEYS = new LinkedHashMap<>();
-    private static final Map<String, java.util.function.BiConsumer<IslandSettings, Boolean>> SETTING_SETTERS = new LinkedHashMap<>();
-    private static final Map<String, java.util.function.Function<IslandSettings, Boolean>> SETTING_GETTERS = new LinkedHashMap<>();
+    private static final Map<String, BiConsumer<IslandSettings, Boolean>> SETTING_SETTERS = new LinkedHashMap<>();
+    private static final Map<String, Function<IslandSettings, Boolean>> SETTING_GETTERS = new LinkedHashMap<>();
 
     static {
         registerSetting("pvp", IslandSettings::setPvp, IslandSettings::isPvp);
@@ -28,8 +31,8 @@ public class IslandSettings {
     }
 
     private static void registerSetting(String key,
-                                          java.util.function.BiConsumer<IslandSettings, Boolean> setter,
-                                          java.util.function.Function<IslandSettings, Boolean> getter) {
+                                          BiConsumer<IslandSettings, Boolean> setter,
+                                          Function<IslandSettings, Boolean> getter) {
         SETTING_KEYS.put(key, key);
         SETTING_SETTERS.put(key, setter);
         SETTING_GETTERS.put(key, getter);
@@ -91,19 +94,19 @@ public class IslandSettings {
         }
     }
 
-    public static java.util.Set<String> getSettingKeys() {
+    public static Set<String> getSettingKeys() {
         return SETTING_KEYS.keySet();
     }
 
     public boolean setByKey(String key, boolean value) {
-        java.util.function.BiConsumer<IslandSettings, Boolean> setter = SETTING_SETTERS.get(key);
+        BiConsumer<IslandSettings, Boolean> setter = SETTING_SETTERS.get(key);
         if (setter == null) return false;
         setter.accept(this, value);
         return true;
     }
 
     public Boolean getByKey(String key) {
-        java.util.function.Function<IslandSettings, Boolean> getter = SETTING_GETTERS.get(key);
+        Function<IslandSettings, Boolean> getter = SETTING_GETTERS.get(key);
         if (getter == null) return null;
         return getter.apply(this);
     }

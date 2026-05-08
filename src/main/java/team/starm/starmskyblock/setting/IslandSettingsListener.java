@@ -1,4 +1,4 @@
-package team.starm.starmskyblock.listener;
+package team.starm.starmskyblock.setting;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,7 +29,6 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
-import team.starm.starmskyblock.island.IslandSettings;
 import team.starm.starmskyblock.message.MessageUtil;
 
 public class IslandSettingsListener implements Listener {

@@ -87,7 +87,7 @@ public enum IslandPermission {
     BOW_USE("使用弓/弩"),
     AXE_USE("使用斧"),
     SHOVEL_USE("使用锹"),
-    HOE_USE("使用锄头"),
+    HOE_USE("使用锄"),
     BUCKET_USE("使用桶"),
     GLASS_BOTTLE_USE("使用玻璃瓶"),
     BOWL_USE("使用碗"),

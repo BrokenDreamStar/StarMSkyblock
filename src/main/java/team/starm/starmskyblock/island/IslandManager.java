@@ -7,6 +7,7 @@ import team.starm.starmskyblock.database.SQLiteManager;
 import team.starm.starmskyblock.grid.GridManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
+import team.starm.starmskyblock.setting.IslandSettings;
 import team.starm.starmskyblock.util.ColorUtil;
 
 import java.sql.Connection;

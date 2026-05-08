@@ -16,9 +16,9 @@ MEMBER:
     - ITEM_PICKUP # 捡起物品
     - EXP_PICKUP # 吸取经验球
 
-    # 方块
-    - BREAK # 破坏方块
-    - BUILD # 放置方块
+    # 方块破坏/建造
+    - BREAK # 破坏
+    - BUILD # 建造
 
     # 工作方块
     - CRAFTING_TABLE_USE # 使用工作台
@@ -45,7 +45,7 @@ MEMBER:
     - CRAFTER_OPEN # 打开自动合成器
     - BREWING_STAND_OPEN # 打开酿造台
     - SHELF_USE # 使用展示架
-    - ITEM_FRAME_USE # 使用物品展示框
+    - ITEM_FRAME_USE # 使用物品展示框/发光物品展示框
     - JUKEBOX_USE # 使用唱片机
     - LECTERN_USE # 使用讲台
     - CHISELED_BOOKSHELF_USE # 使用雕纹书架
@@ -80,24 +80,26 @@ MEMBER:
 
     # 工具
     - BOW_USE # 使用弓/弩
-    - AXE_USE # 使用斧头
+    - AXE_USE # 使用斧
     - SHOVEL_USE # 使用锹
-    - HOE_USE # 使用锄头
+    - HOE_USE # 使用锄
     - BUCKET_USE # 使用桶
+    - GLASS_BOTTLE_USE # 使用玻璃瓶
     - BOWL_USE # 使用碗
     - FISHING_ROD_USE # 钓鱼
     - FLINT_AND_STEEL_USE # 点火(使用打火石/火焰弹)
     - SHEARS_USE # 使用剪刀
     - BRUSH_USE # 使用刷子
-    - NAME_TAG_USE # 使用命名牌
     - LEASH_USE # 使用拴绳
+
     # 物品
     - FIREWORK_USE # 使用烟花
+    - NAME_TAG_USE # 使用命名牌
     - POTION_THROW # 投掷药水
     - WATER_BOTTLE_USE # 使用水瓶
     - BONE_MEAL_USE # 使用骨粉
     - DYE_USE # 使用染料
-    - INK_SAC_USE # 使用墨囊
+    - INK_SAC_USE # 使用墨囊/发光墨囊
     - HONEYCOMB_USE # 涂蜡(使用蜜脾)
     - CHORUS_FRUIT_EAT # 食用紫颂果
     - ENDER_PEARL_USE # 使用末影珍珠
@@ -105,6 +107,7 @@ MEMBER:
     - WIND_CHARGE_USE # 使用风弹
     - SNOWBALL_THROW # 丢雪球
     - EGG_THROW # 丢鸡蛋
+
     # 生物
     - ANIMAL_FEED # 喂食动物
     - ENTITY_RIDE # 骑乘生物
@@ -115,9 +118,12 @@ MEMBER:
     - VILLAGER_TRADE # 村民交易
     - BARTERING # 以物易物
     - ALLAY_INTERACT # 与悦灵交互
+    - ARMOR_STAND_DAMAGE # 攻击盔甲架
+    - ARMOR_STAND_INTERACT # 与盔甲架交互
+
     # 其它
     - FARMLAND_TRAMPLE # 踩踏耕地
-    - TURTLE_EGG_TRAMPLE # 踩坏海龟蛋
+    - TURTLE_EGG_TRAMPLE # 踩踏海龟蛋
     - SWEET_BERRY_HARVEST # 采摘浆果
     - CAKE_EAT # 食用蛋糕
     - SIGN_EDIT # 编辑告示牌
@@ -142,6 +148,9 @@ ADMIN:
   inherits-from: MOD
   additional:
     - SET_BIOME # 设置岛屿生物群系
+    - SET_ROLE # 设置成员角色
+    - EDIT_PERMISSIONS # 修改岛屿权限
+    - EDIT_SETTINGS # 修改岛屿设置
   excluded: [ ]
 
 # 合作者
@@ -149,11 +158,13 @@ COOP:
   inherits-from: MEMBER
   additional: [ ]
   excluded: [ ]
+
 # 访客
 VISITOR:
   inherits-from: none
   additional: [ ]
   excluded: [ ]
+
 # 岛主
 OWNER:
   inherits-from: none

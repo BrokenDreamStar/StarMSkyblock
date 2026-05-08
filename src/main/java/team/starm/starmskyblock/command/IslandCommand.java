@@ -14,7 +14,7 @@ import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandCreateTask;
 import team.starm.starmskyblock.island.IslandDeleteTask;
 import team.starm.starmskyblock.island.IslandManager;
-import team.starm.starmskyblock.island.IslandSettings;
+import team.starm.starmskyblock.setting.IslandSettings;
 import team.starm.starmskyblock.island.InvitationManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
@@ -340,7 +340,6 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
 
             InvitationManager invitationManager = plugin.getInvitationManager();
             if (invitationManager.sendInvitation(player.getUniqueId(), targetPlayer.getUniqueId(), island.getId())) {
-                MessageUtil.sendMessage(player, "&a已向 &e" + targetPlayer.getName() + " &a发送岛屿邀请！");
                 MessageUtil.sendMessage(player, "&7等待对方确认...");
             } else {
                 MessageUtil.sendMessage(player, "&c邀请失败！该玩家可能已有岛屿或已有待处理的邀请。");
@@ -909,14 +908,17 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             String prefix = args[1].toLowerCase();
 
             if (args[0].equalsIgnoreCase("invite")) {
-
                 Optional<Island> optionalIsland = plugin.getIslandManager().getIsland(player.getUniqueId());
                 if (optionalIsland.isPresent()) {
-                    return optionalIsland.get().getMembers().entrySet().stream()
-                            .filter(e -> e.getValue() == IslandPermissionLevel.COOP)
-                            .map(e -> Bukkit.getPlayer(e.getKey()))
-                            .filter(Objects::nonNull)
+                    Island island = optionalIsland.get();
+                    return Bukkit.getOnlinePlayers().stream()
                             .map(Player::getName)
+                            .filter(name -> {
+                                Player p = Bukkit.getPlayer(name);
+                                if (p == null) return false;
+                                if (p.getUniqueId().equals(player.getUniqueId())) return false;
+                                return island.getMemberRole(p.getUniqueId()) == IslandPermissionLevel.VISITOR;
+                            })
                             .filter(name -> name.toLowerCase().startsWith(prefix))
                             .collect(Collectors.toList());
                 }
