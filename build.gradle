@@ -23,6 +23,9 @@ repositories {
 dependencies {
     compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
     
+    // Gson（运行时服务器自带，编译时需要）
+    compileOnly 'com.google.code.gson:gson:2.11.0'
+
     // SQLite JDBC 驱动（编译时需要，运行时服务器自带）
     compileOnly 'org.xerial:sqlite-jdbc:3.46.1.0'
     

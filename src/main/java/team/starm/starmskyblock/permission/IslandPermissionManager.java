@@ -19,13 +19,13 @@ import team.starm.starmskyblock.permission.manager.ContainerPermissionManager;
 import team.starm.starmskyblock.permission.manager.DoorPermissionManager;
 import team.starm.starmskyblock.permission.manager.EntityPermissionManager;
 import team.starm.starmskyblock.permission.manager.ItemPermissionManager;
-import team.starm.starmskyblock.permission.manager.ManagementPermissionManager;
 import team.starm.starmskyblock.permission.manager.OtherPermissionManager;
 import team.starm.starmskyblock.permission.manager.DropPickupPermissionManager;
 import team.starm.starmskyblock.permission.manager.RedstonePermissionManager;
 import team.starm.starmskyblock.permission.manager.ToolPermissionManager;
 import team.starm.starmskyblock.permission.manager.VehiclePermissionManager;
 import team.starm.starmskyblock.permission.manager.WorkblockPermissionManager;
+import team.starm.starmskyblock.permission.manager.ManagementPermissionManager;
 import team.starm.starmskyblock.message.MessageUtil;
 import org.bukkit.entity.Player;
 

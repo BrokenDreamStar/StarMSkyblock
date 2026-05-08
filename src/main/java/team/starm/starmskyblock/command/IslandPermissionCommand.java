@@ -6,6 +6,7 @@ import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
+import team.starm.starmskyblock.permission.manager.ManagementPermissionManager;
 import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public class IslandPermissionCommand {
 
         Island island = optionalIsland.get();
 
-        if (!island.hasPermission(player.getUniqueId(), IslandPermission.EDIT_PERMISSIONS)) {
+        if (ManagementPermissionManager.check(island, player.getUniqueId(), IslandPermission.EDIT_PERMISSIONS)) {
             MessageUtil.sendMessage(player, "&c你没有权限管理岛屿权限！");
             return true;
         }
@@ -58,7 +59,7 @@ public class IslandPermissionCommand {
             permission = IslandPermission.valueOf(permissionName);
         } catch (IllegalArgumentException e) {
             MessageUtil.sendMessage(player, "&c无效的权限: " + permissionName);
-            MessageUtil.sendMessage(player, "&c使用 /is permissions 查看所有可用权限");
+            MessageUtil.sendMessage(player, "&c输入 /is permission 按空格+TAB 查看所有可用权限");
             return true;
         }
 
@@ -66,14 +67,14 @@ public class IslandPermissionCommand {
 
         boolean hasCustom = false;
         for (IslandPermissionLevel role : IslandPermissionLevel.values()) {
+            String status;
             if (island.hasPermission(role, permission)) {
-                MessageUtil.sendMessage(player,
-                        "&e" + role.getDisplayName() + "(&6" + role.getPermissionLevel() + "&e): &a拥有");
-                hasCustom = true;
+                status = "&a拥有";
+            } else {
+                status = "&c无";
             }
-        }
-        if (!hasCustom) {
-            MessageUtil.sendMessage(player, "&7该权限使用默认配置（permissions.yml）");
+            MessageUtil.sendMessage(player,
+                    "&e" + role.getDisplayName() + "(&6" + role.getPermissionLevel() + "&e): " + status);
         }
         return true;
     }
@@ -100,7 +101,6 @@ public class IslandPermissionCommand {
         IslandPermissionLevel playerRole = island.getMemberRole(player.getUniqueId());
 
         // 检查玩家是否有权限管理目标角色的权限
-        // 由 SET_PERMISSIONS 权限控制，而不是硬编码限制
         if (!IslandPermissionLevel.getManageableRoles(playerRole).contains(targetRole)) {
             MessageUtil.sendMessage(player, "&c你不能管理 " + targetRole.getDisplayName() + " 角色的权限！");
             return true;
@@ -109,15 +109,7 @@ public class IslandPermissionCommand {
         int targetLevel = targetRole.getPermissionLevel();
         IslandManager islandManager = plugin.getIslandManager();
 
-        for (IslandPermissionLevel role : IslandPermissionLevel.values()) {
-            islandManager.removePermission(island.getId(), role, permission);
-        }
-
-        for (IslandPermissionLevel role : IslandPermissionLevel.values()) {
-            if (role.getPermissionLevel() >= targetLevel) {
-                islandManager.addPermission(island.getId(), role, permission);
-            }
-        }
+        islandManager.setPermissionMinLevel(island.getId(), permission, targetLevel);
 
         sendPermissionUpdateMessage(player, permission, permissionName, targetRole, targetLevel);
         return true;
@@ -165,7 +157,7 @@ public class IslandPermissionCommand {
         MessageUtil.sendMessage(player, "&a=== 所有可用权限列表 ===");
 
         MessageUtil.sendMessage(player, "&e=== 岛屿管理权限 ===");
-        MessageUtil.sendMessage(player, "&7ALL, DELETE_ISLAND, RENAME_ISLAND, EDIT_PERMISSIONS, SET_HOME, SET_BIOME");
+        MessageUtil.sendMessage(player, "&7ALL, DELETE_ISLAND, RENAME_ISLAND, EDIT_PERMISSIONS, EDIT_SETTINGS, SET_HOME, SET_BIOME");
 
         MessageUtil.sendMessage(player, "&e=== 成员管理权限 ===");
         MessageUtil.sendMessage(player, "&7INVITE_MEMBER, REMOVE_MEMBER, SET_ROLE, INVITE_COOP, REMOVE_COOP");

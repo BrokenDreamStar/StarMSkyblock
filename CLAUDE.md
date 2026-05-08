@@ -35,6 +35,8 @@ Islands are generated from `.schem` schematic files using FastAsyncWorldEdit (FA
 - `SchematicManager` — handles FAWE schematic operations
 
 ### Permission System
+Permissions are stored as a JSON object in the `permissions` column of the `islands` table (e.g., `{"BUILD":3,"CHEST_OPEN":2}`). Each key is an `IslandPermission` enum name, and the value is the minimum role level required. When a permission has no entry (empty/null), the system falls back to `permissions.yml` defaults. The `ALL` permission acts as a catch-all minimum level for permissions not individually configured.
+
 `IslandPermissionManager` delegates to specialized managers in `permission/manager/`:
 - `BlockPermissionManager`, `ContainerPermissionManager`, `DoorPermissionManager`, `EntityPermissionManager`, `ItemPermissionManager`, `ManagementPermissionManager`, `OtherPermissionManager`, `PickupPermissionManager`, `RedstonePermissionManager`, `ToolPermissionManager`, `VehiclePermissionManager`, `WorkblockPermissionManager`
 
@@ -42,9 +44,8 @@ Each handles events for its category (block place/break, container interaction, 
 
 ### Database Schema
 SQLite at `{plugin_data_folder}/islands.db`:
-- `islands` — island metadata (id, owner_uuid, name, radius, center coords, home positions)
+- `islands` — island metadata (id, owner_uuid, name, radius, center coords, home positions, permissions JSON, settings JSON)
 - `island_members` — player island assignments with roles
-- `island_permissions` — per-island custom permission overrides
 - `player_stats` — deletion counts for delete-limit enforcement
 
 ### Async Task Pattern

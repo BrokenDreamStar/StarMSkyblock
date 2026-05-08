@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -142,6 +143,37 @@ public class PermissionConfigManager {
         if (perms.contains(IslandPermission.ALL))
             return true;
         return perms.contains(permission);
+    }
+
+    /**
+     * 计算每个权限的初始最低等级（岛屿创建时使用）
+     * 遍历角色从低到高，找到能拥有该权限的最低角色等级
+     */
+    public Map<IslandPermission, Integer> getDefaultMinLevels() {
+        Map<IslandPermission, Integer> levels = new HashMap<>();
+
+        IslandPermissionLevel[] ascending = {
+                IslandPermissionLevel.VISITOR,
+                IslandPermissionLevel.COOP,
+                IslandPermissionLevel.MEMBER,
+                IslandPermissionLevel.MOD,
+                IslandPermissionLevel.ADMIN,
+                IslandPermissionLevel.OWNER
+        };
+
+        for (IslandPermission permission : IslandPermission.values()) {
+            if (permission == IslandPermission.ALL) continue;
+            for (IslandPermissionLevel role : ascending) {
+                if (hasDefaultPermission(role, permission)) {
+                    levels.put(permission, role.getPermissionLevel());
+                    break;
+                }
+            }
+        }
+
+        // ALL 默认仅岛主
+        levels.put(IslandPermission.ALL, IslandPermissionLevel.OWNER.getPermissionLevel());
+        return levels;
     }
 
     public void savePermissionsConfig() {

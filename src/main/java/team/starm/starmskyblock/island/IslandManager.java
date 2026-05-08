@@ -44,9 +44,8 @@ public class IslandManager {
      * 从数据库加载所有岛屿信息
      */
     private void loadIslandsFromDatabase() {
-        String selectIslands = "SELECT id, owner_uuid, name, level, radius, center_x, center_z, custom_home_x, custom_home_y, custom_home_z, has_custom_home, settings FROM islands";
+        String selectIslands = "SELECT id, owner_uuid, name, level, radius, center_x, center_z, custom_home_x, custom_home_y, custom_home_z, has_custom_home, permissions, settings FROM islands";
         String selectMembers = "SELECT player_uuid, role FROM island_members WHERE island_id = ?";
-        String selectPermissions = "SELECT role, permission FROM island_permissions WHERE island_id = ?";
 
         try (Connection conn = sqliteManager.getConnection();
                 Statement stmt = conn.createStatement();
@@ -70,8 +69,16 @@ public class IslandManager {
                 island.setLevel(rs.getInt("level"));
                 island.setSettings(rs.getString("settings"));
 
-                // ==================== 新增：注入权限配置管理器 ====================
-                island.setPermissionConfigManager(plugin.getPermissionConfigManager());
+                // 加载自定义权限最低等级（JSON）
+                String permissionsJson = rs.getString("permissions");
+                island.setPermissionsFromJson(permissionsJson);
+
+                // 旧数据迁移：空 JSON 则从 config 初始化
+                if (permissionsJson == null || permissionsJson.isEmpty() || permissionsJson.equals("{}")) {
+                    plugin.getPermissionConfigManager().getDefaultMinLevels()
+                            .forEach(island::setPermissionMinLevel);
+                    savePermissionsToDb(island);
+                }
 
                 // 加载传送点（默认主世界）
                 double customHomeX = rs.getDouble("custom_home_x");
@@ -90,18 +97,6 @@ public class IslandManager {
                             UUID memberUuid = UUID.fromString(memberRs.getString("player_uuid"));
                             IslandPermissionLevel role = IslandPermissionLevel.fromString(memberRs.getString("role"));
                             island.addMember(memberUuid, role);
-                        }
-                    }
-                }
-
-                // 加载自定义权限
-                try (PreparedStatement pstmt = conn.prepareStatement(selectPermissions)) {
-                    pstmt.setInt(1, id);
-                    try (ResultSet permRs = pstmt.executeQuery()) {
-                        while (permRs.next()) {
-                            IslandPermissionLevel role = IslandPermissionLevel.fromString(permRs.getString("role"));
-                            IslandPermission permission = IslandPermission.valueOf(permRs.getString("permission"));
-                            island.addPermission(role, permission);
                         }
                     }
                 }
@@ -142,7 +137,13 @@ public class IslandManager {
 
         Island island = new Island(islandId, ownerId, defaultRadius, schematicId, name);
 
-        island.setPermissionConfigManager(plugin.getPermissionConfigManager());
+        // 从 permissions.yml 初始化权限最低等级
+        plugin.getPermissionConfigManager().getDefaultMinLevels()
+                .forEach(island::setPermissionMinLevel);
+
+        // 从 settings.yml 初始化岛屿默认设置
+        island.applySettings(plugin.getSettingsConfigManager().getDefaultSettings());
+
         island.setMaxRadius(configManager.getIslandMaxRadius());
 
         // 获取该岛屿对应的中心区块坐标
@@ -157,7 +158,7 @@ public class IslandManager {
         }
 
         // 保存到数据库
-        String insertSql = "INSERT INTO islands (id, name, owner_uuid, level, radius, center_x, center_z, settings) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String insertSql = "INSERT INTO islands (id, name, owner_uuid, level, radius, center_x, center_z, permissions, settings) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = sqliteManager.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
             pstmt.setInt(1, islandId);
@@ -167,7 +168,8 @@ public class IslandManager {
             pstmt.setInt(5, defaultRadius);
             pstmt.setInt(6, island.getCenterChunkX());
             pstmt.setInt(7, island.getCenterChunkZ());
-            pstmt.setString(8, island.getSettings());
+            pstmt.setString(8, island.getPermissionsJson());
+            pstmt.setString(9, island.getSettings());
             pstmt.executeUpdate();
 
             islandsById.put(islandId, island);
@@ -383,6 +385,30 @@ public class IslandManager {
     }
 
     /**
+     * 更新岛屿设置（JSON格式）
+     */
+    public boolean updateIslandSettings(int islandId, IslandSettings islandSettings) {
+        Island island = islandsById.get(islandId);
+        if (island != null) {
+            String json = islandSettings.toJson();
+            String sql = "UPDATE islands SET settings = ? WHERE id = ?";
+            try (Connection conn = sqliteManager.getConnection();
+                    PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, json);
+                pstmt.setInt(2, islandId);
+                pstmt.executeUpdate();
+
+                island.setSettings(json);
+                return true;
+            } catch (SQLException e) {
+                ColorUtil.consoleError("&c更新岛屿设置到数据库失败！ID: " + islandId);
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    /**
      * 获取玩家已删除岛屿的次数
      */
     public int getDeleteCount(UUID playerUuid) {
@@ -496,74 +522,56 @@ public class IslandManager {
     }
 
     /**
-     * 为角色添加权限
+     * 设置权限的最低等级（JSON 持久化）
      */
-    public boolean addPermission(int islandId, IslandPermissionLevel role, IslandPermission permission) {
+    public boolean setPermissionMinLevel(int islandId, IslandPermission permission, int minLevel) {
         Island island = islandsById.get(islandId);
         if (island != null) {
-            String sql = "INSERT INTO island_permissions (island_id, role, permission) VALUES (?, ?, ?)";
-            try (Connection conn = sqliteManager.getConnection();
-                    PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setInt(1, islandId);
-                pstmt.setString(2, role.name());
-                pstmt.setString(3, permission.name());
-                pstmt.executeUpdate();
-
-                island.addPermission(role, permission);
-                return true;
-            } catch (SQLException e) {
-                ColorUtil.consoleError("&c添加权限失败！岛屿ID: " + islandId + ", 角色: " + role + ", 权限: " + permission);
-                e.printStackTrace();
-            }
+            island.setPermissionMinLevel(permission, minLevel);
+            savePermissionsToDb(island);
+            return true;
         }
         return false;
     }
 
     /**
-     * 为角色移除权限
+     * 移除权限的最低等级设置（恢复为默认配置）
      */
-    public boolean removePermission(int islandId, IslandPermissionLevel role, IslandPermission permission) {
+    public boolean removePermissionMinLevel(int islandId, IslandPermission permission) {
         Island island = islandsById.get(islandId);
         if (island != null) {
-            String sql = "DELETE FROM island_permissions WHERE island_id = ? AND role = ? AND permission = ?";
-            try (Connection conn = sqliteManager.getConnection();
-                    PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setInt(1, islandId);
-                pstmt.setString(2, role.name());
-                pstmt.setString(3, permission.name());
-                pstmt.executeUpdate();
-
-                island.removePermission(role, permission);
-                return true;
-            } catch (SQLException e) {
-                ColorUtil.consoleError("&c移除权限失败！岛屿ID: " + islandId + ", 角色: " + role + ", 权限: " + permission);
-                e.printStackTrace();
-            }
+            island.removePermissionMinLevel(permission);
+            savePermissionsToDb(island);
+            return true;
         }
         return false;
     }
 
     /**
-     * 重置角色的所有权限
+     * 获取权限的最低等级
      */
-    public boolean resetPermissions(int islandId, IslandPermissionLevel role) {
+    public Integer getPermissionMinLevel(int islandId, IslandPermission permission) {
         Island island = islandsById.get(islandId);
         if (island != null) {
-            String sql = "DELETE FROM island_permissions WHERE island_id = ? AND role = ?";
-            try (Connection conn = sqliteManager.getConnection();
-                    PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setInt(1, islandId);
-                pstmt.setString(2, role.name());
-                pstmt.executeUpdate();
-
-                island.resetPermissions(role);
-                return true;
-            } catch (SQLException e) {
-                ColorUtil.consoleError("&c重置权限失败！岛屿ID: " + islandId + ", 角色: " + role);
-                e.printStackTrace();
-            }
+            return island.getPermissionMinLevel(permission);
         }
-        return false;
+        return null;
+    }
+
+    /**
+     * 将岛屿的权限 JSON 保存到数据库
+     */
+    private void savePermissionsToDb(Island island) {
+        String sql = "UPDATE islands SET permissions = ? WHERE id = ?";
+        try (Connection conn = sqliteManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, island.getPermissionsJson());
+            pstmt.setInt(2, island.getId());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            ColorUtil.consoleError("&c保存权限数据失败！岛屿ID: " + island.getId());
+            e.printStackTrace();
+        }
     }
 
     /**

@@ -3,10 +3,11 @@ package team.starm.starmskyblock.permission;
 public enum IslandPermission {
 
     // ====================== 管理权限 ======================
-    ALL("所有操作"),
+    ALL("所有权限"),
     DELETE_ISLAND("删除岛屿"),
     RENAME_ISLAND("修改岛屿名称"),
     EDIT_PERMISSIONS("修改岛屿权限"),
+    EDIT_SETTINGS("修改岛屿设置"),
     INVITE_MEMBER("邀请成员"),
     REMOVE_MEMBER("移除成员"),
     SET_ROLE("设置成员角色"),

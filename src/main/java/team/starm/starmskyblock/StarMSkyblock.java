@@ -10,6 +10,7 @@ import java.nio.file.StandardCopyOption;
 import team.starm.starmskyblock.command.AdminCommand;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.config.PermissionConfigManager;
+import team.starm.starmskyblock.config.SettingsConfigManager;
 import team.starm.starmskyblock.database.SQLiteManager;
 import team.starm.starmskyblock.generator.SchematicManager;
 import team.starm.starmskyblock.grid.GridManager;
@@ -17,6 +18,7 @@ import team.starm.starmskyblock.island.InvitationManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.listener.BorderListener;
 import team.starm.starmskyblock.listener.EntityPortalListener;
+import team.starm.starmskyblock.listener.IslandSettingsListener;
 import team.starm.starmskyblock.listener.PlayerNetherListener;
 import team.starm.starmskyblock.listener.PortalListener;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
@@ -28,6 +30,7 @@ public class StarMSkyblock extends JavaPlugin {
     private static StarMSkyblock instance;
     private ConfigManager configManager;
     private PermissionConfigManager permissionConfigManager;
+    private SettingsConfigManager settingsConfigManager;
     private SQLiteManager sqliteManager;
     private SchematicManager schematicManager;
     private GridManager gridManager;
@@ -48,6 +51,10 @@ public class StarMSkyblock extends JavaPlugin {
         // 初始化权限配置
         permissionConfigManager = new PermissionConfigManager(this);
         permissionConfigManager.initialize();
+
+        // 初始化岛屿默认设置配置
+        settingsConfigManager = new SettingsConfigManager(this);
+        settingsConfigManager.initialize();
 
         // 释放内置的schematics文件
         extractSchematics();
@@ -83,6 +90,8 @@ public class StarMSkyblock extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PortalListener(this), this);
         getServer().getPluginManager().registerEvents(new EntityPortalListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerNetherListener(this), this);
+        getServer().getPluginManager().registerEvents(
+                new IslandSettingsListener(islandManager, configManager), this);
 
         // 注册命令
         if (getCommand("isadmin") != null) {
@@ -119,6 +128,10 @@ public class StarMSkyblock extends JavaPlugin {
 
     public PermissionConfigManager getPermissionConfigManager() {
         return permissionConfigManager;
+    }
+
+    public SettingsConfigManager getSettingsConfigManager() {
+        return settingsConfigManager;
     }
 
     public SQLiteManager getSqliteManager() {

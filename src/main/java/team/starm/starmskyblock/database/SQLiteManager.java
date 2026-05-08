@@ -67,6 +67,7 @@ public class SQLiteManager {
                 "end_home_y REAL DEFAULT 0," +
                 "end_home_z REAL DEFAULT 0," +
                 "has_end_home BOOLEAN DEFAULT 0," +
+                "permissions TEXT DEFAULT '{}'," +
                 "settings TEXT DEFAULT '{}'," +
                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                 ");";
@@ -90,20 +91,11 @@ public class SQLiteManager {
                 "delete_count INTEGER DEFAULT 0" +
                 ");";
 
-        String createPermissionsTable = "CREATE TABLE IF NOT EXISTS island_permissions (" +
-                "island_id INTEGER," +
-                "role VARCHAR(16)," +
-                "permission VARCHAR(64)," +
-                "PRIMARY KEY (island_id, role, permission)," +
-                "FOREIGN KEY (island_id) REFERENCES islands(id) ON DELETE CASCADE" +
-                ");";
-
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createIslandsTable);
             stmt.execute(createMembersTable);
             stmt.execute(createPlayersTable);
             stmt.execute(createPlayerStatsTable);
-            stmt.execute(createPermissionsTable);
             MessageUtil.consolePrint("&a数据库表结构检查/创建完毕。");
         } catch (SQLException e) {
             MessageUtil.consoleError("&c创建数据库表失败！");
@@ -120,10 +112,12 @@ public class SQLiteManager {
             var rs = stmt.executeQuery("PRAGMA table_info(islands)");
             boolean hasLevel = false;
             boolean hasSettings = false;
+            boolean hasPermissions = false;
             while (rs.next()) {
                 String colName = rs.getString("name");
                 if ("level".equalsIgnoreCase(colName)) hasLevel = true;
                 if ("settings".equalsIgnoreCase(colName)) hasSettings = true;
+                if ("permissions".equalsIgnoreCase(colName)) hasPermissions = true;
             }
             rs.close();
             if (!hasLevel) {
@@ -134,6 +128,13 @@ public class SQLiteManager {
                 stmt.execute("ALTER TABLE islands ADD COLUMN settings TEXT DEFAULT '{}'");
                 MessageUtil.consolePrint("&a数据库迁移：已添加 settings 列到 islands 表。");
             }
+            if (!hasPermissions) {
+                stmt.execute("ALTER TABLE islands ADD COLUMN permissions TEXT DEFAULT '{}'");
+                MessageUtil.consolePrint("&a数据库迁移：已添加 permissions 列到 islands 表。");
+            }
+
+            // 移除旧的 island_permissions 表
+            stmt.execute("DROP TABLE IF EXISTS island_permissions");
         } catch (SQLException e) {
             MessageUtil.consoleError("&c数据库迁移检查 islands 列失败！");
             e.printStackTrace();
