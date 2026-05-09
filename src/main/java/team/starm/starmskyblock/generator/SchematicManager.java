@@ -16,32 +16,29 @@ import com.sk89q.worldedit.world.block.BlockTypes;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import org.bukkit.World;
-import team.starm.starmskyblock.StarMSkyblock;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class SchematicManager {
 
-    private final StarMSkyblock plugin;
     private final File schematicFolder;
+    private final Logger logger;
     private final Map<String, Clipboard> schematicCache = new HashMap<>();
 
-    public SchematicManager(StarMSkyblock plugin) {
-        this.plugin = plugin;
-        this.schematicFolder = new File(plugin.getDataFolder(), "schematics");
+    public SchematicManager(File schematicFolder, Logger logger) {
+        this.schematicFolder = schematicFolder;
+        this.logger = logger;
 
         if (!schematicFolder.exists()) {
             schematicFolder.mkdirs();
         }
     }
 
-    /**
-     * 预加载或者获取缓存的 Schematic，并将原点(Origin)设置在基岩方块的位置
-     */
     public Clipboard getSchematic(String fileName) {
         if (schematicCache.containsKey(fileName)) {
             return schematicCache.get(fileName);
@@ -49,13 +46,13 @@ public class SchematicManager {
 
         File file = new File(schematicFolder, fileName);
         if (!file.exists()) {
-            plugin.getLogger().warning("§c找不到岛屿结构文件: " + file.getAbsolutePath());
+            logger.warning("找不到岛屿结构文件: " + file.getAbsolutePath());
             return null;
         }
 
         ClipboardFormat format = ClipboardFormats.findByFile(file);
         if (format == null) {
-            plugin.getLogger().warning("§c无法识别的结构文件格式: " + fileName);
+            logger.warning("无法识别的结构文件格式: " + fileName);
             return null;
         }
 
@@ -72,24 +69,20 @@ public class SchematicManager {
             }
 
             if (bedrockLoc != null) {
-                // 设置结构的粘贴原点为基岩方块位置
                 clipboard.setOrigin(bedrockLoc);
             } else {
-                plugin.getLogger().warning("§e在结构文件 " + fileName + " 中未找到基岩方块！将使用默认原点进行粘贴。");
+                logger.warning("在结构文件 " + fileName + " 中未找到基岩方块！将使用默认原点进行粘贴。");
             }
 
             schematicCache.put(fileName, clipboard);
             return clipboard;
         } catch (IOException e) {
-            plugin.getLogger().severe("§c读取结构文件时发生错误: " + fileName);
+            logger.severe("读取结构文件时发生错误: " + fileName);
             e.printStackTrace();
             return null;
         }
     }
 
-    /**
-     * 将结构文件粘贴到指定世界的坐标点
-     */
     public boolean pasteSchematic(String fileName, World world, int x, int y, int z) {
         Clipboard clipboard = getSchematic(fileName);
         if (clipboard == null) {
@@ -103,21 +96,18 @@ public class SchematicManager {
             Operation operation = new ClipboardHolder(clipboard)
                     .createPaste(editSession)
                     .to(BlockVector3.at(x, y, z))
-                    .ignoreAirBlocks(false) // 是否忽略空气（覆盖虚空时一般不忽略空气，但虚空本身是空气所以无所谓）
+                    .ignoreAirBlocks(false)
                     .build();
 
             Operations.complete(operation);
             return true;
         } catch (WorldEditException e) {
-            plugin.getLogger().severe("§c粘贴岛屿结构时发生 FAWE 错误！");
+            logger.severe("粘贴岛屿结构时发生 FAWE 错误！");
             e.printStackTrace();
             return false;
         }
     }
 
-    /**
-     * 使用 FAWE 快速清空指定区域的方块
-     */
     @SuppressWarnings("null")
     public boolean clearArea(World world, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         com.sk89q.worldedit.world.World weWorld = BukkitAdapter.adapt(world);
@@ -127,7 +117,7 @@ public class SchematicManager {
             editSession.setBlocks((Region) region, BlockTypes.AIR.getDefaultState());
             return true;
         } catch (Exception e) {
-            plugin.getLogger().severe("§c清空区域方块时发生 FAWE 错误！");
+            logger.severe("清空区域方块时发生 FAWE 错误！");
             e.printStackTrace();
             return false;
         }

@@ -34,7 +34,7 @@ import org.bukkit.inventory.ItemStack;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
-import team.starm.starmskyblock.permission.IslandPermissionManager;
+import team.starm.starmskyblock.permission.BasePermissionManager;
 import team.starm.starmskyblock.tag.EntityTags;
 import team.starm.starmskyblock.tag.ItemTags;
 
@@ -42,7 +42,7 @@ import team.starm.starmskyblock.tag.ItemTags;
  * 生物权限管理器
  * 处理攻击生物、喂食、装备、骑乘、交易等交互权限
  */
-public class EntityPermissionManager extends IslandPermissionManager {
+public class EntityPermissionManager extends BasePermissionManager {
 
     public EntityPermissionManager(IslandManager islandManager, ConfigManager configManager) {
         super(islandManager, configManager);

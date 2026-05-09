@@ -6,12 +6,16 @@ import team.starm.starmskyblock.StarMSkyblock;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.EnumMap;
+import java.util.Map;
 
 public class SettingsConfigManager {
 
     private final StarMSkyblock plugin;
     private FileConfiguration settingsConfig;
     private File settingsFile;
+
+    private final Map<IslandSetting, Boolean> defaultSettings = new EnumMap<>(IslandSetting.class);
 
     public SettingsConfigManager(StarMSkyblock plugin) {
         this.plugin = plugin;
@@ -33,21 +37,26 @@ public class SettingsConfigManager {
         }
 
         settingsConfig = YamlConfiguration.loadConfiguration(settingsFile);
+        loadDefaultSettings();
+
         plugin.getLogger().info("§a[设置系统] 已加载岛屿默认设置配置");
     }
 
-    /**
-     * 从 settings.yml 读取默认值并返回 IslandSettings 实例
-     */
-    public IslandSettings getDefaultSettings() {
-        IslandSettings settings = new IslandSettings();
-
-        for (String key : IslandSettings.getSettingKeys()) {
+    private void loadDefaultSettings() {
+        defaultSettings.clear();
+        for (IslandSetting setting : IslandSetting.values()) {
+            String key = setting.getConfigKey();
             boolean defaultValue = settingsConfig.getBoolean(key, true);
-            settings.setByKey(key, defaultValue);
+            defaultSettings.put(setting, defaultValue);
         }
+    }
 
-        return settings;
+    public Map<IslandSetting, Boolean> getDefaultSettings() {
+        return new EnumMap<>(defaultSettings);
+    }
+
+    public boolean getDefaultSetting(IslandSetting setting) {
+        return defaultSettings.getOrDefault(setting, true);
     }
 
     public void saveSettingsConfig() {

@@ -15,12 +15,12 @@ import org.bukkit.inventory.ItemStack;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
-import team.starm.starmskyblock.permission.IslandPermissionManager;
+import team.starm.starmskyblock.permission.BasePermissionManager;
 
 /**
  * 门权限管理器
  */
-public class DoorPermissionManager extends IslandPermissionManager {
+public class DoorPermissionManager extends BasePermissionManager {
 
     public DoorPermissionManager(IslandManager islandManager, ConfigManager configManager) {
         super(islandManager, configManager);

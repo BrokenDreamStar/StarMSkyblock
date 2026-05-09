@@ -14,7 +14,7 @@ import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandCreateTask;
 import team.starm.starmskyblock.island.IslandDeleteTask;
 import team.starm.starmskyblock.island.IslandManager;
-import team.starm.starmskyblock.setting.IslandSettings;
+import team.starm.starmskyblock.setting.IslandSetting;
 import team.starm.starmskyblock.island.InvitationManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
@@ -228,7 +228,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            if (ManagementPermissionManager.check(island, player.getUniqueId(), IslandPermission.SET_HOME)) {
+            if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.SET_HOME)) {
                 MessageUtil.sendMessage(player, "&c你没有权限设置传送点！");
                 return true;
             }
@@ -273,7 +273,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             }
 
             Island island = optionalIsland.get();
-            if (ManagementPermissionManager.check(island, player.getUniqueId(), IslandPermission.DELETE_ISLAND)) {
+            if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.DELETE_ISLAND)) {
                 MessageUtil.sendMessage(player, "&c你没有权限删除岛屿！");
                 return true;
             }
@@ -317,7 +317,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             }
 
             Island island = optionalIsland.get();
-            if (ManagementPermissionManager.check(island, player.getUniqueId(), IslandPermission.INVITE_MEMBER)) {
+            if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.INVITE_MEMBER)) {
                 MessageUtil.sendMessage(player, "&c你没有权限邀请成员！");
                 return true;
             }
@@ -356,7 +356,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             }
 
             Island island = optionalIsland.get();
-            if (ManagementPermissionManager.check(island, player.getUniqueId(), IslandPermission.REMOVE_MEMBER)) {
+            if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.REMOVE_MEMBER)) {
                 MessageUtil.sendMessage(player, "&c你没有权限踢出成员！");
                 return true;
             }
@@ -395,7 +395,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             }
 
             Island island = optionalIsland.get();
-            if (ManagementPermissionManager.check(island, player.getUniqueId(), IslandPermission.SET_ROLE)) {
+            if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.SET_ROLE)) {
                 MessageUtil.sendMessage(player, "&c你没有权限管理成员角色！");
                 return true;
             }
@@ -507,7 +507,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             }
 
             Island island = optionalIsland.get();
-            if (ManagementPermissionManager.check(island, player.getUniqueId(), IslandPermission.RENAME_ISLAND)) {
+            if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.RENAME_ISLAND)) {
                 MessageUtil.sendMessage(player, "&c你没有权限修改岛屿名称！");
                 return true;
             }
@@ -615,7 +615,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         Island island = optionalIsland.get();
 
         // 权限检查
-        if (ManagementPermissionManager.check(island, player.getUniqueId(), IslandPermission.EDIT_SETTINGS)) {
+        if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.EDIT_SETTINGS)) {
             MessageUtil.sendMessage(player, "&c你没有权限修改岛屿设置！");
             return true;
         }
@@ -629,25 +629,26 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         String settingKey = args[1].toLowerCase();
 
         // 先验证设置项是否存在
-        IslandSettings current = island.getSettingsObject();
-        Boolean checkVal = current.getByKey(settingKey);
-        if (checkVal == null) {
+        IslandSetting setting = IslandSetting.fromKey(settingKey);
+        if (setting == null) {
             MessageUtil.sendMessage(player, "&c未知的设置项: &e" + settingKey);
-            MessageUtil.sendMessage(player, "&c可用设置项: " + String.join("&7, &e", IslandSettings.getSettingKeys()));
+            MessageUtil.sendMessage(player, "&c可用设置项: &e/is settings &7查看所有设置");
             return true;
         }
 
+        boolean currentVal = island.getSetting(setting);
+
         if (args.length < 3) {
             // 无参数时显示当前状态
-            String status = checkVal ? "&a已启用" : "&c已禁用";
-            MessageUtil.sendMessage(player, "&e" + getSettingsDisplayName(settingKey) + " &f| " + status);
+            String status = currentVal ? "&a已启用" : "&c已禁用";
+            MessageUtil.sendMessage(player, "&e" + setting.getDisplayName() + " &f| " + status);
             MessageUtil.sendMessage(player, "&7使用 &e/is settings " + settingKey + " toggle &7切换，或 &e/is settings " + settingKey + " <true|false> &7直接设置。");
             return true;
         }
 
         boolean value;
         if (args[2].equalsIgnoreCase("toggle")) {
-            value = !checkVal;
+            value = !currentVal;
         } else if (args[2].equalsIgnoreCase("true")) {
             value = true;
         } else if (args[2].equalsIgnoreCase("false")) {
@@ -657,16 +658,11 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        // 获取当前设置并修改
-        IslandSettings settings = island.getSettingsObject();
-        if (!settings.setByKey(settingKey, value)) {
-            MessageUtil.sendMessage(player, "&c未知的设置项: &e" + settingKey);
-            MessageUtil.sendMessage(player, "&c可用设置项: " + String.join("&7, &e", IslandSettings.getSettingKeys()));
-            return true;
-        }
+        // 修改设置
+        island.setSetting(setting, value);
 
-        if (islandManager.updateIslandSettings(island.getId(), settings)) {
-            MessageUtil.sendMessage(player, "&a设置项 &e" + getSettingsDisplayName(settingKey) + " &a已" + (value ? "&a启用" : "&c禁用"));
+        if (islandManager.updateIslandSettings(island.getId(), island)) {
+            MessageUtil.sendMessage(player, "&a设置项 &e" + setting.getDisplayName() + " &a已" + (value ? "&a启用" : "&c禁用"));
         } else {
             MessageUtil.sendMessage(player, "&c设置保存失败，请稍后重试。");
         }
@@ -675,32 +671,14 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
 
     private boolean displaySettings(Player player, Island island) {
         MessageUtil.sendMessage(player, "&a=== 岛屿设置 ===");
-        IslandSettings settings = island.getSettingsObject();
 
-        for (String key : IslandSettings.getSettingKeys()) {
-            Boolean val = settings.getByKey(key);
-            String status = val != null && val ? "&a✔ 启用" : "&c✘ 禁用";
-            String displayName = getSettingsDisplayName(key);
-            MessageUtil.sendMessage(player, "&e" + displayName + " &7(" + key + ")" + " &f| " + status);
+        for (IslandSetting setting : IslandSetting.values()) {
+            boolean val = island.getSetting(setting);
+            String status = val ? "&a✔ 启用" : "&c✘ 禁用";
+            MessageUtil.sendMessage(player, "&e" + setting.getDisplayName() + " &7(" + setting.getConfigKey() + ")" + " &f| " + status);
         }
         MessageUtil.sendMessage(player, "&7使用 &e/is settings <设置项> <true|false> &7来修改设置。");
         return true;
-    }
-
-    private String getSettingsDisplayName(String key) {
-        return switch (key) {
-            case "pvp" -> "PVP";
-            case "animal_spawn" -> "自然生成动物";
-            case "monster_spawn" -> "自然生成怪物";
-            case "spawner_spawn" -> "刷怪笼生成生物";
-            case "fire_spread" -> "火势蔓延";
-            case "enderman_grief" -> "末影人搬运方块";
-            case "ghast_fireball_grief" -> "恶魂火球破坏方块";
-            case "creeper_explosion" -> "苦力怕爆炸";
-            case "tnt_explosion" -> "TNT爆炸";
-            case "wither_grief" -> "凋灵破坏方块";
-            default -> key;
-        };
     }
 
     private boolean handleCoopInvite(Player player, String[] args, IslandManager islandManager) {
@@ -711,7 +689,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         }
 
         Island island = optionalIsland.get();
-        if (ManagementPermissionManager.check(island, player.getUniqueId(), IslandPermission.INVITE_COOP)) {
+        if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.INVITE_COOP)) {
             MessageUtil.sendMessage(player, "&c你没有权限邀请合作者！");
             return true;
         }
@@ -760,7 +738,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         }
 
         Island island = optionalIsland.get();
-        if (ManagementPermissionManager.check(island, player.getUniqueId(), IslandPermission.REMOVE_COOP)) {
+        if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.REMOVE_COOP)) {
             MessageUtil.sendMessage(player, "&c你没有权限移除合作者！");
             return true;
         }
@@ -863,7 +841,8 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 2 && args[0].equalsIgnoreCase("settings")) {
             String prefix = args[1].toLowerCase();
-            return IslandSettings.getSettingKeys().stream()
+            return Arrays.stream(IslandSetting.values())
+                    .map(IslandSetting::getConfigKey)
                     .filter(key -> key.startsWith(prefix))
                     .collect(Collectors.toList());
         }
@@ -884,10 +863,20 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 3 && args[0].equalsIgnoreCase("coop") && args[1].equalsIgnoreCase("invite")) {
             String prefix = args[2].toLowerCase();
-            return Bukkit.getOnlinePlayers().stream()
-                    .map(Player::getName)
-                    .filter(name -> name.toLowerCase().startsWith(prefix))
-                    .collect(Collectors.toList());
+            Optional<Island> optionalIsland = plugin.getIslandManager().getIsland(player.getUniqueId());
+            if (optionalIsland.isPresent()) {
+                Island island = optionalIsland.get();
+                return Bukkit.getOnlinePlayers().stream()
+                        .map(Player::getName)
+                        .filter(name -> {
+                            Player p = Bukkit.getPlayer(name);
+                            if (p == null) return false;
+                            if (p.getUniqueId().equals(player.getUniqueId())) return false;
+                            return island.getMemberRole(p.getUniqueId()) == IslandPermissionLevel.VISITOR;
+                        })
+                        .filter(name -> name.toLowerCase().startsWith(prefix))
+                        .collect(Collectors.toList());
+            }
         }
 
         if (args.length == 3 && args[0].equalsIgnoreCase("coop") && args[1].equalsIgnoreCase("remove")) {

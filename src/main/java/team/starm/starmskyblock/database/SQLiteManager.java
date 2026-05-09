@@ -1,6 +1,5 @@
 package team.starm.starmskyblock.database;
 
-import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.message.MessageUtil;
 
 import java.io.File;
@@ -15,19 +14,19 @@ import java.util.UUID;
 
 public class SQLiteManager {
 
-    private final StarMSkyblock plugin;
+    private final File dataFolder;
     private Connection connection;
 
-    public SQLiteManager(StarMSkyblock plugin) {
-        this.plugin = plugin;
+    public SQLiteManager(File dataFolder) {
+        this.dataFolder = dataFolder;
     }
 
     public void init() {
-        if (!plugin.getDataFolder().exists()) {
-            plugin.getDataFolder().mkdirs();
+        if (!dataFolder.exists()) {
+            dataFolder.mkdirs();
         }
 
-        File dbFile = new File(plugin.getDataFolder(), "islands.db");
+        File dbFile = new File(dataFolder, "islands.db");
         String url = "jdbc:sqlite:" + dbFile.getAbsolutePath();
 
         try {
@@ -133,7 +132,6 @@ public class SQLiteManager {
                 MessageUtil.consolePrint("&a数据库迁移：已添加 permissions 列到 islands 表。");
             }
 
-            // 移除旧的 island_permissions 表
             stmt.execute("DROP TABLE IF EXISTS island_permissions");
         } catch (SQLException e) {
             MessageUtil.consoleError("&c数据库迁移检查 islands 列失败！");
@@ -189,13 +187,10 @@ public class SQLiteManager {
             MessageUtil.consoleError("&c获取边界开关状态失败！UUID: " + playerUuid);
             e.printStackTrace();
         }
-        return true; // 默认开启
+        return true;
     }
 
     public void setBorderEnabled(UUID playerUuid, boolean enabled) {
-        String sql = "INSERT OR REPLACE INTO players (player_uuid, border_enabled) "
-                + "SELECT ?, ? WHERE EXISTS (SELECT 1 FROM players WHERE player_uuid = ?)";
-        // 使用 UPDATE 和 INSERT 分开处理，避免覆盖 player_name
         String updateSql = "UPDATE players SET border_enabled = ? WHERE player_uuid = ?";
         try (Connection conn = getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
@@ -203,7 +198,6 @@ public class SQLiteManager {
             pstmt.setString(2, playerUuid.toString());
             int affected = pstmt.executeUpdate();
             if (affected == 0) {
-                // 玩家记录不存在，插入新行（只设 border_enabled，name 为空等待 join 时更新）
                 String insertSql = "INSERT INTO players (player_uuid, player_name, border_enabled) VALUES (?, '', ?)";
                 try (PreparedStatement insertPstmt = conn.prepareStatement(insertSql)) {
                     insertPstmt.setString(1, playerUuid.toString());

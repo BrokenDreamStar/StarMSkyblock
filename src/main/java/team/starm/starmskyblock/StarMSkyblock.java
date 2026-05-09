@@ -16,10 +16,8 @@ import team.starm.starmskyblock.grid.GridManager;
 import team.starm.starmskyblock.island.InvitationManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.listener.BorderListener;
-import team.starm.starmskyblock.listener.EntityPortalListener;
-import team.starm.starmskyblock.listener.PlayerNetherListener;
 import team.starm.starmskyblock.listener.PortalListener;
-import team.starm.starmskyblock.setting.IslandSettingsListener;
+import team.starm.starmskyblock.setting.IslandSettingManager;
 import team.starm.starmskyblock.setting.SettingsConfigManager;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.util.ColorUtil;
@@ -60,24 +58,25 @@ public class StarMSkyblock extends JavaPlugin {
         extractSchematics();
 
         // 初始化数据库
-        sqliteManager = new SQLiteManager(this);
+        sqliteManager = new SQLiteManager(getDataFolder());
         sqliteManager.init();
 
         // 初始化 FAWE 结构管理器
-        schematicManager = new SchematicManager(this);
+        schematicManager = new SchematicManager(new File(getDataFolder(), "schematics"), getLogger());
 
         // 初始化网格系统和岛屿管理器
         gridManager = new GridManager(configManager);
-        islandManager = new IslandManager(this, configManager, gridManager, sqliteManager);
-        invitationManager = new InvitationManager(this, islandManager);
+        islandManager = new IslandManager(configManager, permissionConfigManager, settingsConfigManager,
+                gridManager, sqliteManager, getLogger());
+
+        // 初始化世界管理器
+        worldManager = new SkyblockWorldManager(configManager);
+
+        invitationManager = new InvitationManager(islandManager, configManager, worldManager);
 
         // 初始化权限协调器
         permissionCoordinator = new IslandPermissionManager(
                 islandManager, configManager, this);
-        permissionCoordinator.initializeEventListeners(this);
-
-        // 初始化世界管理器
-        worldManager = new SkyblockWorldManager(this);
 
         // 提前创建或加载空岛世界
         worldManager.getOrCreateSkyblockWorld();
@@ -85,13 +84,11 @@ public class StarMSkyblock extends JavaPlugin {
         worldManager.getOrCreateSkyblockEnd();
 
         // 注册事件监听器
-        borderListener = new BorderListener(this);
+        borderListener = new BorderListener(islandManager, worldManager, sqliteManager);
         getServer().getPluginManager().registerEvents(borderListener, this);
-        getServer().getPluginManager().registerEvents(new PortalListener(this), this);
-        getServer().getPluginManager().registerEvents(new EntityPortalListener(this), this);
-        getServer().getPluginManager().registerEvents(new PlayerNetherListener(this), this);
-        getServer().getPluginManager().registerEvents(
-                new IslandSettingsListener(islandManager, configManager), this);
+        getServer().getPluginManager().registerEvents(new PortalListener(configManager, worldManager, islandManager), this);
+        // 初始化设置管理器（会自动注册所有子监听器）
+        new IslandSettingManager(islandManager, configManager, this);
 
         // 注册命令
         if (getCommand("isadmin") != null) {

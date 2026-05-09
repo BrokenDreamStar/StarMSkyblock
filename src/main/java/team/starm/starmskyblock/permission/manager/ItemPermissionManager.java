@@ -22,14 +22,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
-import team.starm.starmskyblock.permission.IslandPermissionManager;
+import team.starm.starmskyblock.permission.BasePermissionManager;
 import team.starm.starmskyblock.tag.ItemTags;
 
 /**
  * 物品权限管理器
  * 处理各类物品使用的权限检查（药水、染料、食物、投掷物等）
  */
-public class ItemPermissionManager extends IslandPermissionManager {
+public class ItemPermissionManager extends BasePermissionManager {
 
     public ItemPermissionManager(IslandManager islandManager, ConfigManager configManager) {
         super(islandManager, configManager);

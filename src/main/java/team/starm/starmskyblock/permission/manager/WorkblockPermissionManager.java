@@ -12,12 +12,12 @@ import org.bukkit.inventory.EquipmentSlot;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
-import team.starm.starmskyblock.permission.IslandPermissionManager;
+import team.starm.starmskyblock.permission.BasePermissionManager;
 
 /**
  * 工作方块权限管理器
  */
-public class WorkblockPermissionManager extends IslandPermissionManager {
+public class WorkblockPermissionManager extends BasePermissionManager {
 
     public WorkblockPermissionManager(IslandManager islandManager, ConfigManager configManager) {
         super(islandManager, configManager);

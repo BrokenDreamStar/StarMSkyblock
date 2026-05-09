@@ -18,13 +18,13 @@ import org.bukkit.inventory.ItemStack;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
-import team.starm.starmskyblock.permission.IslandPermissionManager;
+import team.starm.starmskyblock.permission.BasePermissionManager;
 import team.starm.starmskyblock.tag.ItemTags;
 
 /**
  * 载具权限管理器
  */
-public class VehiclePermissionManager extends IslandPermissionManager {
+public class VehiclePermissionManager extends BasePermissionManager {
 
     public VehiclePermissionManager(IslandManager islandManager, ConfigManager configManager) {
         super(islandManager, configManager);

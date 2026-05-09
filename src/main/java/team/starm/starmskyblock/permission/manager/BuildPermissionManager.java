@@ -14,13 +14,13 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.permission.BasePermissionManager;
 import team.starm.starmskyblock.permission.IslandPermission;
-import team.starm.starmskyblock.permission.IslandPermissionManager;
 
 /**
  * 方块权限管理器
  */
-public class BuildPermissionManager extends IslandPermissionManager {
+public class BuildPermissionManager extends BasePermissionManager {
 
     public BuildPermissionManager(IslandManager islandManager, ConfigManager configManager) {
         super(islandManager, configManager);

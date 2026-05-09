@@ -7,105 +7,140 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
-import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.world.SkyblockWorldManager;
 
 import java.util.Optional;
 
 public class PortalListener implements Listener {
 
-    private final StarMSkyblock plugin;
+    private final ConfigManager configManager;
+    private final SkyblockWorldManager worldManager;
+    private final IslandManager islandManager;
 
-    public PortalListener(StarMSkyblock plugin) {
-        this.plugin = plugin;
+    public PortalListener(ConfigManager configManager, SkyblockWorldManager worldManager, IslandManager islandManager) {
+        this.configManager = configManager;
+        this.worldManager = worldManager;
+        this.islandManager = islandManager;
     }
 
     @EventHandler
     public void onPlayerPortal(PlayerPortalEvent event) {
+        Player player = event.getPlayer();
         Location from = event.getFrom();
         World fromWorld = from.getWorld();
-        if (fromWorld == null)
-            return;
-
-        Player player = event.getPlayer();
-        IslandManager islandManager = plugin.getIslandManager();
-        Optional<Island> optionalIsland = islandManager.getIsland(player.getUniqueId());
-
-        // 获取配置文件中定义的世界名称
-        ConfigManager config = plugin.getConfigManager();
-        String normalName = config.getWorldNameNormal();
-        String netherName = config.getWorldNameNether();
-        String endName = config.getWorldNameEnd();
+        if (fromWorld == null) return;
 
         TeleportCause cause = event.getCause();
 
-        // ==================== 下界传送门已由 PlayerNetherListener 接管 ====================
         if (cause == TeleportCause.NETHER_PORTAL) {
-            return;
-        }
-
-        // ==================== 末地传送门（END_PORTAL）处理 ====================
-        if (cause == TeleportCause.END_PORTAL) {
-
-            World targetWorld = null;
-            Location targetLoc;
-
-            // 情况1：从主世界 → 末地
-            if (fromWorld.getName().equals(normalName)) {
-                targetWorld = plugin.getWorldManager().getOrCreateSkyblockEnd();
-            }
-            // 情况2：从下界 → 末地
-            else if (fromWorld.getName().equals(netherName)) {
-                targetWorld = plugin.getWorldManager().getOrCreateSkyblockEnd();
-            }
-            // 情况3：从末地 → 主世界
-            else if (fromWorld.getName().equals(endName)) {
-                targetWorld = plugin.getWorldManager().getOrCreateSkyblockWorld();
-            }
-
-            if (targetWorld != null) {
-                if (optionalIsland.isPresent()) {
-                    // 玩家有岛屿 → 使用岛屿中心 + 该岛屿类型对应的偏移量
-                    targetLoc = getIslandLocation(optionalIsland.get(), targetWorld);
-                } else {
-                    // 玩家没有岛屿 → 使用安全默认位置
-                    if (fromWorld.getName().equals(endName)) {
-                        // 从末地返回主世界 → 使用世界出生点
-                        targetLoc = targetWorld.getSpawnLocation();
-                    } else {
-                        // 前往末地 → 使用固定安全坐标
-                        targetLoc = new Location(targetWorld, 100, 50, 0);
-                    }
-                }
-                event.setTo(targetLoc);
-            }
+            handleNetherPortal(event, player, fromWorld);
+        } else if (cause == TeleportCause.END_PORTAL) {
+            handleEndPortal(event, player, fromWorld);
         }
     }
 
-    /**
-     * 根据岛屿中心坐标 + 配置的偏移量生成传送目标位置
-     *
-     * 注意：传送门传送时始终使用“岛屿中心 + 结构偏移量”，不读取玩家自定义的 /is sethome 位置。
-     * 只有 /is home 命令才会使用玩家自行设置的传送点。
-     *
-     * @param island 玩家岛屿实例
-     * @param world  目标世界
-     * @return 最终传送坐标
-     */
-    private Location getIslandLocation(Island island, World world) {
-        ConfigManager config = plugin.getConfigManager();
+    // ==================== 下界传送门 ====================
 
-        // 岛屿中心区块坐标 → 实际方块坐标（区块中心）
+    private void handleNetherPortal(PlayerPortalEvent event, Player player, World fromWorld) {
+        String normalName = configManager.getWorldNameNormal();
+        String netherName = configManager.getWorldNameNether();
+
+        Optional<Island> optionalIsland = islandManager.getIsland(player.getUniqueId());
+        if (optionalIsland.isEmpty()) return;
+
+        Island island = optionalIsland.get();
+
+        if (fromWorld.getName().equals(normalName)) {
+            handleToNether(event, player, island);
+        } else if (fromWorld.getName().equals(netherName)) {
+            handleFromNether(event, player, island);
+        }
+    }
+
+    private void handleToNether(PlayerPortalEvent event, Player player, Island island) {
+        World targetWorld = worldManager.getOrCreateSkyblockNether();
+        if (targetWorld == null) return;
+
+        Location targetLoc = calculateNetherPortalLocation(event.getFrom(), targetWorld);
+        if (!isLocationWithinIsland(targetLoc, island)) {
+            player.sendMessage("§c无法创建传送门：目标位置超出你的岛屿范围！");
+            event.setCancelled(true);
+            return;
+        }
+        event.setTo(targetLoc);
+    }
+
+    private void handleFromNether(PlayerPortalEvent event, Player player, Island island) {
+        World targetWorld = worldManager.getOrCreateSkyblockWorld();
+        if (targetWorld == null) return;
+
+        Location targetLoc = calculateOverworldPortalLocation(event.getFrom(), targetWorld);
+        if (!isLocationWithinIsland(targetLoc, island)) {
+            player.sendMessage("§c无法创建传送门：目标位置超出你的岛屿范围！");
+            event.setCancelled(true);
+            return;
+        }
+        event.setTo(targetLoc);
+    }
+
+    private Location calculateNetherPortalLocation(Location from, World targetWorld) {
+        return new Location(targetWorld, from.getX() / 8.0, from.getY(), from.getZ() / 8.0,
+                from.getYaw(), from.getPitch());
+    }
+
+    private Location calculateOverworldPortalLocation(Location from, World targetWorld) {
+        return new Location(targetWorld, from.getX() * 8.0, from.getY(), from.getZ() * 8.0,
+                from.getYaw(), from.getPitch());
+    }
+
+    private boolean isLocationWithinIsland(Location location, Island island) {
+        int chunkX = location.getChunk().getX();
+        int chunkZ = location.getChunk().getZ();
+        return island.isChunkWithinIsland(chunkX, chunkZ);
+    }
+
+    // ==================== 末地传送门 ====================
+
+    private void handleEndPortal(PlayerPortalEvent event, Player player, World fromWorld) {
+        String normalName = configManager.getWorldNameNormal();
+        String netherName = configManager.getWorldNameNether();
+        String endName = configManager.getWorldNameEnd();
+
+        Optional<Island> optionalIsland = islandManager.getIsland(player.getUniqueId());
+
+        World targetWorld = null;
+        Location targetLoc;
+
+        if (fromWorld.getName().equals(normalName) || fromWorld.getName().equals(netherName)) {
+            targetWorld = worldManager.getOrCreateSkyblockEnd();
+        } else if (fromWorld.getName().equals(endName)) {
+            targetWorld = worldManager.getOrCreateSkyblockWorld();
+        }
+
+        if (targetWorld != null) {
+            if (optionalIsland.isPresent()) {
+                targetLoc = getIslandLocation(optionalIsland.get(), targetWorld);
+            } else {
+                if (fromWorld.getName().equals(endName)) {
+                    targetLoc = targetWorld.getSpawnLocation();
+                } else {
+                    targetLoc = new Location(targetWorld, 100, 50, 0);
+                }
+            }
+            event.setTo(targetLoc);
+        }
+    }
+
+    private Location getIslandLocation(Island island, World world) {
         int startX = island.getCenterChunkX() * 16;
         int startZ = island.getCenterChunkZ() * 16;
-        int islandHeight = config.getIslandHeight();
+        int islandHeight = configManager.getIslandHeight();
 
-        // 获取当前目标世界对应的偏移量
-        double[] offsets = getTeleportOffsetsByWorldType(config, world, island);
+        double[] offsets = getTeleportOffsetsByWorldType(world, island);
 
-        // 计算最终传送坐标：中心 + 8（区块正中心） + 配置偏移量
         double teleportX = startX + 8 + offsets[0];
         double teleportY = islandHeight + offsets[1];
         double teleportZ = startZ + 8 + offsets[2];
@@ -113,20 +148,10 @@ public class PortalListener implements Listener {
         return new Location(world, teleportX, teleportY, teleportZ);
     }
 
-    /**
-     * 根据目标世界类型获取对应结构的传送偏移量
-     *
-     * @param config 配置管理器
-     * @param world  目标世界
-     * @param island 岛屿实例（用于获取具体结构ID）
-     * @return double[3] = {x偏移, y偏移, z偏移}
-     */
-    private double[] getTeleportOffsetsByWorldType(ConfigManager config, World world, Island island) {
+    private double[] getTeleportOffsetsByWorldType(World world, Island island) {
         String worldName = world.getName();
-
-        // 获取下界和末地世界的名称（用于判断世界类型）
-        String netherName = plugin.getWorldManager().getSkyblockNether().getName();
-        String endName = plugin.getWorldManager().getSkyblockEnd().getName();
+        String netherName = worldManager.getSkyblockNether().getName();
+        String endName = worldManager.getSkyblockEnd().getName();
 
         Island.WorldType worldType;
         if (worldName.equals(netherName)) {
@@ -137,8 +162,7 @@ public class PortalListener implements Listener {
             worldType = Island.WorldType.NORMAL;
         }
 
-        // island 为 null 则使用默认结构
         String schematicId = (island != null) ? island.getSchematicId() : null;
-        return config.getTeleportOffsetsBySchematicAndWorldType(schematicId, worldType);
+        return configManager.getTeleportOffsetsBySchematicAndWorldType(schematicId, worldType);
     }
 }

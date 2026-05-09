@@ -5,41 +5,41 @@ import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.WorldType;
 import org.bukkit.block.Biome;
-import team.starm.starmskyblock.StarMSkyblock;
+import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.generator.VoidChunkGenerator;
 import team.starm.starmskyblock.util.ColorUtil;
 
 public class SkyblockWorldManager {
 
-    private final StarMSkyblock plugin;
+    private final ConfigManager configManager;
     private World skyblockWorld;
     private World skyblockNether;
     private World skyblockEnd;
 
-    public SkyblockWorldManager(StarMSkyblock plugin) {
-        this.plugin = plugin;
+    public SkyblockWorldManager(ConfigManager configManager) {
+        this.configManager = configManager;
     }
 
     public World getOrCreateSkyblockWorld() {
         if (skyblockWorld == null) {
-            skyblockWorld = createWorld(plugin.getConfigManager().getWorldNameNormal(), World.Environment.NORMAL,
-                    plugin.getConfigManager().getBiomeNormal(), Biome.PLAINS);
+            skyblockWorld = createWorld(configManager.getWorldNameNormal(), World.Environment.NORMAL,
+                    configManager.getBiomeNormal(), Biome.PLAINS);
         }
         return skyblockWorld;
     }
 
     public World getOrCreateSkyblockNether() {
         if (skyblockNether == null) {
-            skyblockNether = createWorld(plugin.getConfigManager().getWorldNameNether(), World.Environment.NETHER,
-                    plugin.getConfigManager().getBiomeNether(), Biome.NETHER_WASTES);
+            skyblockNether = createWorld(configManager.getWorldNameNether(), World.Environment.NETHER,
+                    configManager.getBiomeNether(), Biome.NETHER_WASTES);
         }
         return skyblockNether;
     }
 
     public World getOrCreateSkyblockEnd() {
         if (skyblockEnd == null) {
-            skyblockEnd = createWorld(plugin.getConfigManager().getWorldNameEnd(), World.Environment.THE_END,
-                    plugin.getConfigManager().getBiomeEnd(), Biome.THE_END);
+            skyblockEnd = createWorld(configManager.getWorldNameEnd(), World.Environment.THE_END,
+                    configManager.getBiomeEnd(), Biome.THE_END);
         }
         return skyblockEnd;
     }

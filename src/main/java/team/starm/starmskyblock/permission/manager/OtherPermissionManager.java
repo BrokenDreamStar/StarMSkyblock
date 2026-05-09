@@ -24,13 +24,13 @@ import org.bukkit.inventory.EquipmentSlot;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
-import team.starm.starmskyblock.permission.IslandPermissionManager;
+import team.starm.starmskyblock.permission.BasePermissionManager;
 
 /**
  * 其它权限管理器
  * 处理踩踏耕地、采摘浆果、使用床等杂项权限
  */
-public class OtherPermissionManager extends IslandPermissionManager {
+public class OtherPermissionManager extends BasePermissionManager {
 
     public OtherPermissionManager(IslandManager islandManager, ConfigManager configManager) {
         super(islandManager, configManager);

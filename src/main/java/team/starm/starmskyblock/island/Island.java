@@ -2,12 +2,14 @@ package team.starm.starmskyblock.island;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
-import team.starm.starmskyblock.setting.IslandSettings;
+import team.starm.starmskyblock.setting.IslandSetting;
 
 public class Island {
 
@@ -30,7 +32,8 @@ public class Island {
     private boolean hasCustomHome;
 
     private int level;
-    private String settings;
+
+    private final Map<IslandSetting, Boolean> settingValues = new EnumMap<>(IslandSetting.class);
 
     private String schematicId;
 
@@ -46,7 +49,10 @@ public class Island {
         this.radius = radius;
         this.customHomeWorldType = WorldType.NORMAL;
         this.schematicId = "default";
-        this.settings = new IslandSettings().toJson();
+        // 默认所有设置启用
+        for (IslandSetting setting : IslandSetting.values()) {
+            this.settingValues.put(setting, true);
+        }
         // 兜底初始化：所有权限默认仅岛主，之后会被 getDefaultMinLevels() 覆盖
         for (IslandPermission perm : IslandPermission.values()) {
             this.permissionMinLevels.put(perm, IslandPermissionLevel.OWNER.getPermissionLevel());
@@ -107,20 +113,66 @@ public class Island {
         this.level = level;
     }
 
-    public String getSettings() {
-        return settings != null ? settings : "{}";
+    public boolean getSetting(IslandSetting setting) {
+        return settingValues.getOrDefault(setting, true);
     }
 
-    public void setSettings(String settings) {
-        this.settings = settings != null ? settings : "{}";
+    public void setSetting(IslandSetting setting, boolean value) {
+        settingValues.put(setting, value);
     }
 
-    public IslandSettings getSettingsObject() {
-        return IslandSettings.fromJson(getSettings());
+    public void applySettings(Map<IslandSetting, Boolean> defaults) {
+        defaults.forEach(settingValues::put);
     }
 
-    public void applySettings(IslandSettings islandSettings) {
-        this.settings = islandSettings.toJson();
+    public String getSettingsJson() {
+        Map<String, Boolean> map = new LinkedHashMap<>();
+        for (IslandSetting setting : IslandSetting.values()) {
+            map.put(setting.name(), settingValues.get(setting));
+        }
+        return GSON.toJson(map);
+    }
+
+    /**
+     * 从 JSON 加载设置。支持新格式 (枚举名大写) 和旧格式 (camelCase字段名)。
+     */
+    public void setSettingsFromJson(String json) {
+        if (json == null || json.isEmpty() || json.equals("{}")) return;
+        try {
+            Map<String, Object> raw = GSON.fromJson(json, Map.class);
+            if (raw == null) return;
+            for (Map.Entry<String, Object> entry : raw.entrySet()) {
+                if (!(entry.getValue() instanceof Boolean)) continue;
+                String key = entry.getKey();
+                IslandSetting setting = null;
+                // 尝试枚举名匹配（大小写不敏感）
+                try {
+                    setting = IslandSetting.valueOf(key.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    // 尝试旧格式 camelCase → 枚举名
+                    setting = legacyKeyToSetting(key);
+                }
+                if (setting != null) {
+                    settingValues.put(setting, (Boolean) entry.getValue());
+                }
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private static IslandSetting legacyKeyToSetting(String key) {
+        return switch (key) {
+            case "pvp" -> IslandSetting.PVP;
+            case "animalSpawn" -> IslandSetting.ANIMAL_SPAWN;
+            case "monsterSpawn" -> IslandSetting.MONSTER_SPAWN;
+            case "spawnerSpawn" -> IslandSetting.SPAWNER_SPAWN;
+            case "fireSpread" -> IslandSetting.FIRE_SPREAD;
+            case "endermanGrief" -> IslandSetting.ENDERMAN_GRIEF;
+            case "ghastFireballGrief" -> IslandSetting.GHAST_FIREBALL_GRIEF;
+            case "creeperExplosion" -> IslandSetting.CREEPER_EXPLOSION;
+            case "tntExplosion" -> IslandSetting.TNT_EXPLOSION;
+            case "witherGrief" -> IslandSetting.WITHER_GRIEF;
+            default -> null;
+        };
     }
 
     public int getCenterChunkX() {

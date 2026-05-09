@@ -32,7 +32,7 @@ public class IslandPermissionCommand {
 
         Island island = optionalIsland.get();
 
-        if (ManagementPermissionManager.check(island, player.getUniqueId(), IslandPermission.EDIT_PERMISSIONS)) {
+        if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.EDIT_PERMISSIONS)) {
             MessageUtil.sendMessage(player, "&c你没有权限管理岛屿权限！");
             return true;
         }
@@ -155,45 +155,16 @@ public class IslandPermissionCommand {
 
     public boolean handlePermissionsListCommand(Player player) {
         MessageUtil.sendMessage(player, "&a=== 所有可用权限列表 ===");
+        MessageUtil.sendMessage(player, "&7（使用 Tab 补全查看 /is permission <权限名>）");
 
-        MessageUtil.sendMessage(player, "&e=== 岛屿管理权限 ===");
-        MessageUtil.sendMessage(player, "&7ALL, DELETE_ISLAND, RENAME_ISLAND, EDIT_PERMISSIONS, EDIT_SETTINGS, SET_HOME, SET_BIOME");
+        // 动态按类别分组显示权限
+        for (PermissionCategory category : PermissionCategory.values()) {
+            var perms = category.getPermissions();
+            if (perms.isEmpty()) continue;
 
-        MessageUtil.sendMessage(player, "&e=== 成员管理权限 ===");
-        MessageUtil.sendMessage(player, "&7INVITE_MEMBER, REMOVE_MEMBER, SET_ROLE, INVITE_COOP, REMOVE_COOP");
-
-        MessageUtil.sendMessage(player, "&e=== 基础交互权限 ===");
-        MessageUtil.sendMessage(player, "&7ITEM_DROP, ITEM_PICKUP, EXP_PICKUP, BREAK, BUILD");
-
-        MessageUtil.sendMessage(player, "&e=== 工作方块权限 ===");
-        MessageUtil.sendMessage(player,
-                "&7CRAFTING_TABLE_USE, ENCHANTING_TABLE_USE, BEACON_USE, ANVIL_USE, GRINDSTONE_USE, CARTOGRAPHY_TABLE_USE, STONECUTTER_USE, LOOM_USE, SMITHING_TABLE_USE, CAMPFIRE_USE, NOTE_BLOCK_USE");
-
-        MessageUtil.sendMessage(player, "&e=== 容器权限 ===");
-        MessageUtil.sendMessage(player,
-                "&7FURNACE_OPEN, CHEST_OPEN, BARREL_OPEN, ENDER_CHEST_OPEN, SHULKER_BOX_OPEN, HOPPER_OPEN, DISPENSER_OPEN, DROPPER_OPEN, CRAFTER_OPEN, BREWING_STAND_OPEN, SHELF_USE, ITEM_FRAME_USE, JUKEBOX_USE, LECTERN_USE, CHISELED_BOOKSHELF_USE, DECORATED_POT_USE, COMPOSTER_USE, FLOWER_POT_USE, ANIMAL_INVENTORY_OPEN");
-
-        MessageUtil.sendMessage(player, "&e=== 红石权限 ===");
-        MessageUtil.sendMessage(player,
-                "&7BUTTON_PRESS, LEVER_USE, PRESSURE_PLATE_TRIGGER, REPEATER_USE, COMPARATOR_USE, DAYLIGHT_DETECTOR_USE, SCULK_SENSOR_TRIGGER, BELL_RING");
-
-        MessageUtil.sendMessage(player, "&e=== 门权限 ===");
-        MessageUtil.sendMessage(player, "&7DOOR_USE, FENCE_GATE_OPEN, TRAPDOOR_OPEN");
-
-        MessageUtil.sendMessage(player, "&e=== 交通工具权限 ===");
-        MessageUtil.sendMessage(player,
-                "&7MINECART_DAMAGE, MINECART_ENTER, MINECART_PLACE, BOAT_DAMAGE, BOAT_ENTER, BOAT_PLACE");
-
-        MessageUtil.sendMessage(player, "&e=== 物品使用权限 ===");
-        MessageUtil.sendMessage(player,
-                "&7FIREWORK_USE, POTION_THROW, CHORUS_FRUIT_EAT, ENDER_PEARL_USE, ENDER_EYE_USE, WIND_CHARGE_USE, SNOWBALL_THROW, EGG_THROW, NAME_TAG_USE, BOW_USE, AXE_USE, SHOVEL_USE, HOE_USE, BUCKET_USE, GLASS_BOTTLE_USE, BOWL_USE, FISHING_ROD_USE, FLINT_AND_STEEL_USE, SHEARS_USE, BRUSH_USE, LEASH_USE, BONE_MEAL_USE, DYE_USE, INK_SAC_USE, HONEYCOMB_USE");
-
-        MessageUtil.sendMessage(player, "&e=== 农业权限 ===");
-        MessageUtil.sendMessage(player, "&7FARMLAND_TRAMPLE, TURTLE_EGG_TRAMPLE, SWEET_BERRY_HARVEST, CAKE_EAT");
-
-        MessageUtil.sendMessage(player, "&e=== 生物交互权限 ===");
-        MessageUtil.sendMessage(player,
-                "&7ANIMAL_FEED, ENTITY_RIDE, ENTITY_EQUIP, ANIMAL_DAMAGE, MONSTER_DAMAGE, VILLAGER_DAMAGE, VILLAGER_TRADE, BARTERING, ALLAY_INTERACT, ARMOR_STAND_DAMAGE, ARMOR_STAND_INTERACT");
+            MessageUtil.sendMessage(player, "&e=== " + category.displayName + " ===");
+            MessageUtil.sendMessage(player, "&7" + String.join(", ", perms));
+        }
 
         MessageUtil.sendMessage(player, "&a=== 使用示例 ===");
         MessageUtil.sendMessage(player, "&7/is permission ALL 4 → ADMIN(4) 及以上（含岛主）拥有全部权限");
@@ -201,6 +172,95 @@ public class IslandPermissionCommand {
         MessageUtil.sendMessage(player, "&7/is permission BUILD 2 → MEMBER(2) 及以上拥有建造权限");
 
         return true;
+    }
+
+    private enum PermissionCategory {
+        MANAGEMENT("管理权限", "ALL", s -> s.startsWith("DELETE_") || s.startsWith("RENAME_") || s.startsWith("EDIT_")
+                || s.startsWith("INVITE_") || s.startsWith("REMOVE_") || s.startsWith("SET_")),
+        ITEM_DROP_PICKUP("丢弃/拾取", s -> s.equals("ITEM_DROP") || s.equals("ITEM_PICKUP") || s.equals("EXP_PICKUP")),
+        BLOCK("方块破坏/建造", s -> s.equals("BREAK") || s.equals("BUILD")),
+        WORKBLOCK("工作方块", s -> s.endsWith("_USE") && !isToolOrItem(s)),
+        CONTAINER("容器", s -> s.endsWith("_OPEN") || s.equals("SHELF_USE") || s.equals("ITEM_FRAME_USE") || s.equals("JUKEBOX_USE")
+                || s.equals("LECTERN_USE") || s.equals("CHISELED_BOOKSHELF_USE") || s.equals("DECORATED_POT_USE")
+                || s.equals("COMPOSTER_USE") || s.equals("FLOWER_POT_USE") || s.equals("ANIMAL_INVENTORY_OPEN")),
+        REDSTONE("红石", s -> s.equals("BUTTON_PRESS") || s.equals("LEVER_USE") || s.startsWith("REPEATER_")
+                || s.startsWith("COMPARATOR_") || s.startsWith("DAYLIGHT_") || s.startsWith("PRESSURE_")
+                || s.startsWith("TRIPWIRE_") || s.startsWith("SCULK_") || s.equals("BELL_RING")),
+        DOOR("门", s -> s.equals("DOOR_OPEN") || s.equals("FENCE_GATE_OPEN") || s.equals("TRAPDOOR_OPEN")),
+        VEHICLE("载具", s -> s.startsWith("MINECART_") || s.startsWith("BOAT_")),
+        TOOL("工具", s -> isTool(s)),
+        ITEM("物品", s -> isItem(s)),
+        ENTITY("生物", s -> isEntityPermission(s)),
+        OTHER("其它", s -> !MANAGEMENT.matches(s) && !ITEM_DROP_PICKUP.matches(s) && !BLOCK.matches(s)
+                && !WORKBLOCK.matches(s) && !CONTAINER.matches(s) && !REDSTONE.matches(s)
+                && !DOOR.matches(s) && !VEHICLE.matches(s) && !TOOL.matches(s) && !ITEM.matches(s)
+                && !ENTITY.matches(s));
+
+        private final String displayName;
+        private final java.util.function.Predicate<String> matcher;
+        private final String[] extra;
+
+        PermissionCategory(String displayName, java.util.function.Predicate<String> matcher) {
+            this(displayName, null, matcher);
+        }
+
+        PermissionCategory(String displayName, String extra, java.util.function.Predicate<String> matcher) {
+            this.displayName = displayName;
+            this.extra = extra != null ? new String[]{extra} : new String[0];
+            this.matcher = matcher;
+        }
+
+        boolean matches(String name) {
+            return matcher.test(name);
+        }
+
+        List<String> getPermissions() {
+            List<String> result = new ArrayList<>();
+            for (String extra : extra) {
+                result.add(extra);
+            }
+            for (IslandPermission perm : IslandPermission.values()) {
+                String name = perm.name();
+                if (name.equals("ALL")) continue;
+                if (matches(name) && !result.contains(name)) {
+                    result.add(name);
+                }
+            }
+            return result;
+        }
+
+        private static boolean isToolOrItem(String name) {
+            return isTool(name) || isItem(name);
+        }
+
+        private static boolean isTool(String name) {
+            return switch (name) {
+                case "BOW_USE", "AXE_USE", "SHOVEL_USE", "HOE_USE", "BUCKET_USE",
+                     "GLASS_BOTTLE_USE", "BOWL_USE", "FISHING_ROD_USE",
+                     "FLINT_AND_STEEL_USE", "SHEARS_USE", "BRUSH_USE", "LEASH_USE" -> true;
+                default -> false;
+            };
+        }
+
+        private static boolean isItem(String name) {
+            return switch (name) {
+                case "FIREWORK_USE", "NAME_TAG_USE", "POTION_THROW", "WATER_BOTTLE_USE",
+                     "BONE_MEAL_USE", "DYE_USE", "INK_SAC_USE", "HONEYCOMB_USE",
+                     "CHORUS_FRUIT_EAT", "ENDER_PEARL_USE", "ENDER_EYE_USE",
+                     "WIND_CHARGE_USE", "SNOWBALL_THROW", "EGG_THROW" -> true;
+                default -> false;
+            };
+        }
+
+        private static boolean isEntityPermission(String name) {
+            return switch (name) {
+                case "ANIMAL_FEED", "ENTITY_RIDE", "ENTITY_EQUIP", "ANIMAL_DAMAGE",
+                     "MONSTER_DAMAGE", "VILLAGER_DAMAGE", "VILLAGER_TRADE",
+                     "BARTERING", "ALLAY_INTERACT", "ARMOR_STAND_DAMAGE",
+                     "ARMOR_STAND_INTERACT" -> true;
+                default -> false;
+            };
+        }
     }
 
     public List<String> onTabComplete(String[] args) {

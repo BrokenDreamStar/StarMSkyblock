@@ -3,8 +3,8 @@ package team.starm.starmskyblock.permission.manager;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.permission.BasePermissionManager;
 import team.starm.starmskyblock.permission.IslandPermission;
-import team.starm.starmskyblock.permission.IslandPermissionManager;
 
 import java.util.UUID;
 
@@ -14,16 +14,16 @@ import java.util.UUID;
  * INVITE_MEMBER、REMOVE_MEMBER、SET_ROLE、INVITE_COOP、REMOVE_COOP、SET_HOME、SET_BIOME
  * 等管理类权限的统一检查
  */
-public class ManagementPermissionManager extends IslandPermissionManager {
+public class ManagementPermissionManager extends BasePermissionManager {
 
     public ManagementPermissionManager(IslandManager islandManager, ConfigManager configManager) {
         super(islandManager, configManager);
     }
 
     /**
-     * 检查玩家是否拥有指定的管理权限
+     * 检查玩家是否缺少指定的管理权限（返回 true 表示没有权限）
      */
-    public static boolean check(Island island, UUID playerUuid, IslandPermission permission) {
-        return !IslandPermissionManager.hasPermission(island, playerUuid, permission);
+    public static boolean lacksPermission(Island island, UUID playerUuid, IslandPermission permission) {
+        return !BasePermissionManager.hasPermission(island, playerUuid, permission);
     }
 }

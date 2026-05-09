@@ -11,12 +11,12 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
-import team.starm.starmskyblock.permission.IslandPermissionManager;
+import team.starm.starmskyblock.permission.BasePermissionManager;
 
 /**
  * 拾取权限管理器
  */
-public class DropPickupPermissionManager extends IslandPermissionManager {
+public class DropPickupPermissionManager extends BasePermissionManager {
 
     public DropPickupPermissionManager(IslandManager islandManager, ConfigManager configManager) {
         super(islandManager, configManager);

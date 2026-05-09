@@ -12,10 +12,10 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import team.starm.starmskyblock.StarMSkyblock;
+import team.starm.starmskyblock.database.SQLiteManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
-import team.starm.starmskyblock.permission.IslandPermissionManager;
+import team.starm.starmskyblock.world.SkyblockWorldManager;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,13 +26,15 @@ import java.util.UUID;
 
 public class BorderListener implements Listener {
 
-    private final StarMSkyblock plugin;
     private final IslandManager islandManager;
+    private final SkyblockWorldManager worldManager;
+    private final SQLiteManager sqliteManager;
     private final Map<UUID, Boolean> borderCache = new HashMap<>();
 
-    public BorderListener(StarMSkyblock plugin) {
-        this.plugin = plugin;
-        this.islandManager = plugin.getIslandManager();
+    public BorderListener(IslandManager islandManager, SkyblockWorldManager worldManager, SQLiteManager sqliteManager) {
+        this.islandManager = islandManager;
+        this.worldManager = worldManager;
+        this.sqliteManager = sqliteManager;
     }
 
     public boolean isPlayerShowBorder(UUID playerUuid) {
@@ -41,15 +43,14 @@ public class BorderListener implements Listener {
 
     public void setPlayerShowBorder(UUID playerUuid, boolean show) {
         borderCache.put(playerUuid, show);
-        plugin.getSqliteManager().setBorderEnabled(playerUuid, show);
+        sqliteManager.setBorderEnabled(playerUuid, show);
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        plugin.getSqliteManager().savePlayerName(player.getUniqueId(), player.getName());
-        // 从数据库加载边界开关状态到缓存
-        borderCache.put(player.getUniqueId(), plugin.getSqliteManager().isBorderEnabled(player.getUniqueId()));
+        sqliteManager.savePlayerName(player.getUniqueId(), player.getName());
+        borderCache.put(player.getUniqueId(), sqliteManager.isBorderEnabled(player.getUniqueId()));
         updatePlayerBorder(player);
     }
 
@@ -98,9 +99,9 @@ public class BorderListener implements Listener {
         }
 
         List<World> skyblockWorlds = Arrays.asList(
-                plugin.getWorldManager().getSkyblockWorld(),
-                plugin.getWorldManager().getSkyblockNether(),
-                plugin.getWorldManager().getSkyblockEnd());
+                worldManager.getSkyblockWorld(),
+                worldManager.getSkyblockNether(),
+                worldManager.getSkyblockEnd());
 
         boolean isInSkyblockWorld = skyblockWorlds.stream().anyMatch(w -> w != null && w.equals(playerWorld));
         if (!isInSkyblockWorld) {
@@ -113,7 +114,8 @@ public class BorderListener implements Listener {
             return;
         }
 
-        Optional<Island> currentIsland = IslandPermissionManager.getPlayerCurrentIslandMaxRange(islandManager, location);
+        Optional<Island> currentIsland = islandManager.getIslandAtMaxRange(
+                location.getChunk().getX(), location.getChunk().getZ());
         currentIsland.ifPresentOrElse(
                 island -> player.setWorldBorder(createIslandBorder(island)),
                 () -> player.setWorldBorder(null));

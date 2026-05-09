@@ -1,13 +1,13 @@
 package team.starm.starmskyblock.island;
 
 import org.bukkit.entity.Player;
-import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.config.ConfigManager;
+import team.starm.starmskyblock.config.PermissionConfigManager;
 import team.starm.starmskyblock.database.SQLiteManager;
 import team.starm.starmskyblock.grid.GridManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
-import team.starm.starmskyblock.setting.IslandSettings;
+import team.starm.starmskyblock.setting.SettingsConfigManager;
 import team.starm.starmskyblock.util.ColorUtil;
 
 import java.sql.Connection;
@@ -19,24 +19,30 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class IslandManager {
 
-    private final StarMSkyblock plugin;
     private final ConfigManager configManager;
+    private final PermissionConfigManager permissionConfigManager;
+    private final SettingsConfigManager settingsConfigManager;
     private final GridManager gridManager;
     private final SQLiteManager sqliteManager;
+    private final Logger logger;
 
     private final Map<Integer, Island> islandsById = new HashMap<>();
     private final Map<UUID, Island> islandsByOwner = new HashMap<>();
     private int nextIslandId = 0; // 新建岛屿时分配的下一个螺旋网格ID
 
-    public IslandManager(StarMSkyblock plugin, ConfigManager configManager, GridManager gridManager,
-            SQLiteManager sqliteManager) {
-        this.plugin = plugin;
+    public IslandManager(ConfigManager configManager, PermissionConfigManager permissionConfigManager,
+            SettingsConfigManager settingsConfigManager, GridManager gridManager,
+            SQLiteManager sqliteManager, Logger logger) {
         this.configManager = configManager;
+        this.permissionConfigManager = permissionConfigManager;
+        this.settingsConfigManager = settingsConfigManager;
         this.gridManager = gridManager;
         this.sqliteManager = sqliteManager;
+        this.logger = logger;
 
         loadIslandsFromDatabase();
     }
@@ -68,7 +74,7 @@ public class IslandManager {
                 island.setCenterChunkZ(centerZ);
                 island.setMaxRadius(configManager.getIslandMaxRadius());
                 island.setLevel(rs.getInt("level"));
-                island.setSettings(rs.getString("settings"));
+                island.setSettingsFromJson(rs.getString("settings"));
 
                 // 加载自定义权限最低等级（JSON）
                 String permissionsJson = rs.getString("permissions");
@@ -76,7 +82,7 @@ public class IslandManager {
 
                 // 旧数据迁移：空 JSON 则从 config 初始化
                 if (permissionsJson == null || permissionsJson.isEmpty() || permissionsJson.equals("{}")) {
-                    plugin.getPermissionConfigManager().getDefaultMinLevels()
+                    permissionConfigManager.getDefaultMinLevels()
                             .forEach(island::setPermissionMinLevel);
                     savePermissionsToDb(island);
                 }
@@ -139,11 +145,11 @@ public class IslandManager {
         Island island = new Island(islandId, ownerId, defaultRadius, schematicId, name);
 
         // 从 permissions.yml 初始化权限最低等级
-        plugin.getPermissionConfigManager().getDefaultMinLevels()
+        permissionConfigManager.getDefaultMinLevels()
                 .forEach(island::setPermissionMinLevel);
 
         // 从 settings.yml 初始化岛屿默认设置
-        island.applySettings(plugin.getSettingsConfigManager().getDefaultSettings());
+        island.applySettings(settingsConfigManager.getDefaultSettings());
 
         island.setMaxRadius(configManager.getIslandMaxRadius());
 
@@ -170,13 +176,13 @@ public class IslandManager {
             pstmt.setInt(6, island.getCenterChunkX());
             pstmt.setInt(7, island.getCenterChunkZ());
             pstmt.setString(8, island.getPermissionsJson());
-            pstmt.setString(9, island.getSettings());
+            pstmt.setString(9, island.getSettingsJson());
             pstmt.executeUpdate();
 
             islandsById.put(islandId, island);
             islandsByOwner.put(ownerId, island);
 
-            plugin.getLogger().info("岛屿已创建并保存至数据库！ID: " + islandId + "，中心区块坐标: " + location);
+            logger.info("岛屿已创建并保存至数据库！ID: " + islandId + "，中心区块坐标: " + location);
         } catch (SQLException e) {
             ColorUtil.consoleError("&c保存新岛屿到数据库失败！");
             e.printStackTrace();
@@ -388,18 +394,16 @@ public class IslandManager {
     /**
      * 更新岛屿设置（JSON格式）
      */
-    public boolean updateIslandSettings(int islandId, IslandSettings islandSettings) {
-        Island island = islandsById.get(islandId);
-        if (island != null) {
-            String json = islandSettings.toJson();
+    public boolean updateIslandSettings(int islandId, Island island) {
+        Island stored = islandsById.get(islandId);
+        if (stored != null) {
+            String json = stored.getSettingsJson();
             String sql = "UPDATE islands SET settings = ? WHERE id = ?";
             try (Connection conn = sqliteManager.getConnection();
                     PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, json);
                 pstmt.setInt(2, islandId);
                 pstmt.executeUpdate();
-
-                island.setSettings(json);
                 return true;
             } catch (SQLException e) {
                 ColorUtil.consoleError("&c更新岛屿设置到数据库失败！ID: " + islandId);
@@ -584,6 +588,32 @@ public class IslandManager {
             return island.getMemberRole(playerUuid);
         }
         return IslandPermissionLevel.VISITOR;
+    }
+
+    // ==================== 岛屿区块查询 ====================
+
+    /**
+     * 根据区块坐标获取该位置所属的岛屿（使用岛屿当前半径）
+     */
+    public Optional<Island> getIslandAt(int chunkX, int chunkZ) {
+        for (Island island : islandsById.values()) {
+            if (island.isChunkWithinIsland(chunkX, chunkZ)) {
+                return Optional.of(island);
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * 根据区块坐标获取该位置所属的岛屿（使用岛屿最大半径）
+     */
+    public Optional<Island> getIslandAtMaxRange(int chunkX, int chunkZ) {
+        for (Island island : islandsById.values()) {
+            if (island.isChunkWithinMaxRange(chunkX, chunkZ)) {
+                return Optional.of(island);
+            }
+        }
+        return Optional.empty();
     }
 
     /**

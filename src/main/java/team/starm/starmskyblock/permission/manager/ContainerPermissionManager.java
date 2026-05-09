@@ -28,13 +28,13 @@ import org.bukkit.inventory.ItemStack;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
-import team.starm.starmskyblock.permission.IslandPermissionManager;
+import team.starm.starmskyblock.permission.BasePermissionManager;
 import team.starm.starmskyblock.tag.EntityTags;
 
 /**
  * 容器权限管理器
  */
-public class ContainerPermissionManager extends IslandPermissionManager {
+public class ContainerPermissionManager extends BasePermissionManager {
 
     public ContainerPermissionManager(IslandManager islandManager, ConfigManager configManager) {
         super(islandManager, configManager);
