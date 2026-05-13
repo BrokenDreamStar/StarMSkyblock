@@ -710,14 +710,14 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (targetPlayer.getUniqueId().equals(island.getOwnerId())) {
-            MessageUtil.sendMessage(player, "&c岛主已经是岛屿成员！");
+        if (islandManager.getIslandByPlayer(targetPlayer.getUniqueId()).isEmpty()) {
+            MessageUtil.sendMessage(player, "&c该玩家没有岛屿，无法添加为合作者！");
             return true;
         }
 
         IslandPermissionLevel existingRole = island.getMemberRole(targetPlayer.getUniqueId());
-        if (existingRole != IslandPermissionLevel.VISITOR) {
-            MessageUtil.sendMessage(player, "&c该玩家已经是岛屿成员（" + existingRole.getDisplayName() + "）！");
+        if (existingRole == IslandPermissionLevel.COOP) {
+            MessageUtil.sendMessage(player, "&c该玩家已经是合作者！");
             return true;
         }
 
@@ -866,13 +866,15 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             Optional<Island> optionalIsland = plugin.getIslandManager().getIsland(player.getUniqueId());
             if (optionalIsland.isPresent()) {
                 Island island = optionalIsland.get();
+                IslandManager im = plugin.getIslandManager();
                 return Bukkit.getOnlinePlayers().stream()
                         .map(Player::getName)
                         .filter(name -> {
                             Player p = Bukkit.getPlayer(name);
                             if (p == null) return false;
                             if (p.getUniqueId().equals(player.getUniqueId())) return false;
-                            return island.getMemberRole(p.getUniqueId()) == IslandPermissionLevel.VISITOR;
+                            if (island.getMemberRole(p.getUniqueId()) == IslandPermissionLevel.COOP) return false;
+                            return im.getIslandByPlayer(p.getUniqueId()).isPresent();
                         })
                         .filter(name -> name.toLowerCase().startsWith(prefix))
                         .collect(Collectors.toList());
