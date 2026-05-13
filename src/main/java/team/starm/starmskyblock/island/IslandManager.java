@@ -7,7 +7,7 @@ import team.starm.starmskyblock.database.SQLiteManager;
 import team.starm.starmskyblock.grid.GridManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
-import team.starm.starmskyblock.setting.SettingsConfigManager;
+import team.starm.starmskyblock.config.SettingsConfigManager;
 import team.starm.starmskyblock.util.ColorUtil;
 
 import java.sql.Connection;
@@ -51,8 +51,9 @@ public class IslandManager {
      * 从数据库加载所有岛屿信息
      */
     private void loadIslandsFromDatabase() {
-        String selectIslands = "SELECT id, owner_uuid, name, level, radius, center_x, center_z, custom_home_x, custom_home_y, custom_home_z, has_custom_home, permissions, settings FROM islands";
+        String selectIslands = "SELECT id, owner_uuid, name, level, radius, center_x, center_z, home_data, permissions, settings FROM islands";
         String selectMembers = "SELECT player_uuid, role FROM island_members WHERE island_id = ?";
+        String selectCoops = "SELECT player_uuid FROM island_coops WHERE island_id = ?";
 
         try (Connection conn = sqliteManager.getConnection();
                 Statement stmt = conn.createStatement();
@@ -87,13 +88,20 @@ public class IslandManager {
                     savePermissionsToDb(island);
                 }
 
-                // 加载传送点（默认主世界）
-                double customHomeX = rs.getDouble("custom_home_x");
-                double customHomeY = rs.getDouble("custom_home_y");
-                double customHomeZ = rs.getDouble("custom_home_z");
-                boolean hasCustomHome = rs.getBoolean("has_custom_home");
-                if (hasCustomHome) {
-                    island.setCustomHome(Island.WorldType.NORMAL, customHomeX, customHomeY, customHomeZ);
+                // 从 JSON 加载传送点
+                String homeData = rs.getString("home_data");
+                island.setHomeFromJson(homeData);
+                if (homeData != null && !homeData.isEmpty() && !homeData.equals("{}")) {
+                    try {
+                        var homeMap = new com.google.gson.Gson().fromJson(homeData, java.util.Map.class);
+                        if (homeMap != null && homeMap.containsKey("world")) {
+                            Island.WorldType worldType = Island.WorldType.valueOf((String) homeMap.get("world"));
+                            double hx = ((Number) homeMap.get("x")).doubleValue();
+                            double hy = ((Number) homeMap.get("y")).doubleValue();
+                            double hz = ((Number) homeMap.get("z")).doubleValue();
+                            island.setCustomHome(worldType, hx, hy, hz);
+                        }
+                    } catch (Exception ignored) {}
                 }
 
                 // 加载成员
@@ -104,6 +112,17 @@ public class IslandManager {
                             UUID memberUuid = UUID.fromString(memberRs.getString("player_uuid"));
                             IslandPermissionLevel role = IslandPermissionLevel.fromString(memberRs.getString("role"));
                             island.addMember(memberUuid, role);
+                        }
+                    }
+                }
+
+                // 加载合作者
+                try (PreparedStatement pstmt = conn.prepareStatement(selectCoops)) {
+                    pstmt.setInt(1, id);
+                    try (ResultSet coopRs = pstmt.executeQuery()) {
+                        while (coopRs.next()) {
+                            UUID coopUuid = UUID.fromString(coopRs.getString("player_uuid"));
+                            island.addCoop(coopUuid);
                         }
                     }
                 }
@@ -219,6 +238,15 @@ public class IslandManager {
     }
 
     /**
+     * 获取玩家作为合作者的所有岛屿
+     */
+    public java.util.List<Island> getIslandsByCoop(UUID playerUuid) {
+        return islandsById.values().stream()
+                .filter(i -> i.isCoop(playerUuid))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
      * 根据玩家名获取岛屿
      *
      * @param playerName 玩家名
@@ -228,6 +256,18 @@ public class IslandManager {
         org.bukkit.OfflinePlayer offlinePlayer = org.bukkit.Bukkit.getOfflinePlayer(playerName);
         if (offlinePlayer.hasPlayedBefore() || offlinePlayer.isOnline()) {
             return getIsland(offlinePlayer.getUniqueId());
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * 根据岛屿名称获取岛屿
+     */
+    public Optional<Island> getIslandByName(String islandName) {
+        for (Island island : islandsById.values()) {
+            if (island.getName() != null && island.getName().equalsIgnoreCase(islandName)) {
+                return Optional.of(island);
+            }
         }
         return Optional.empty();
     }
@@ -345,14 +385,12 @@ public class IslandManager {
     public boolean updateIslandCustomHome(int id, Island.WorldType worldType, double x, double y, double z) {
         Island island = islandsById.get(id);
         if (island != null) {
-            String sql = "UPDATE islands SET custom_home_x = ?, custom_home_y = ?, custom_home_z = ?, has_custom_home = ? WHERE id = ?";
+            String json = "{\"world\":\"" + worldType.name() + "\",\"x\":" + x + ",\"y\":" + y + ",\"z\":" + z + "}";
+            String sql = "UPDATE islands SET home_data = ? WHERE id = ?";
             try (Connection conn = sqliteManager.getConnection();
                     PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setDouble(1, x);
-                pstmt.setDouble(2, y);
-                pstmt.setDouble(3, z);
-                pstmt.setBoolean(4, true);
-                pstmt.setInt(5, id);
+                pstmt.setString(1, json);
+                pstmt.setInt(2, id);
                 pstmt.executeUpdate();
 
                 island.setCustomHome(worldType, x, y, z);
@@ -374,11 +412,10 @@ public class IslandManager {
     public boolean clearIslandCustomHome(int id) {
         Island island = islandsById.get(id);
         if (island != null) {
-            String sql = "UPDATE islands SET has_custom_home = ? WHERE id = ?";
+            String sql = "UPDATE islands SET home_data = '{}' WHERE id = ?";
             try (Connection conn = sqliteManager.getConnection();
                     PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setBoolean(1, false);
-                pstmt.setInt(2, id);
+                pstmt.setInt(1, id);
                 pstmt.executeUpdate();
 
                 island.clearCustomHome();
@@ -455,6 +492,18 @@ public class IslandManager {
     public boolean addMemberToIsland(int islandId, UUID memberUuid, IslandPermissionLevel role) {
         Island island = islandsById.get(islandId);
         if (island != null) {
+            // 如果该玩家此前是合作者，自动清理合作者状态
+            if (island.isCoop(memberUuid)) {
+                String deleteCoopSql = "DELETE FROM island_coops WHERE island_id = ? AND player_uuid = ?";
+                try (Connection conn = sqliteManager.getConnection();
+                        PreparedStatement pstmt = conn.prepareStatement(deleteCoopSql)) {
+                    pstmt.setInt(1, islandId);
+                    pstmt.setString(2, memberUuid.toString());
+                    pstmt.executeUpdate();
+                } catch (SQLException ignored) {}
+                island.removeCoop(memberUuid);
+            }
+
             String sql = "INSERT INTO island_members (island_id, player_uuid, role) VALUES (?, ?, ?)";
             try (Connection conn = sqliteManager.getConnection();
                     PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -496,6 +545,57 @@ public class IslandManager {
                 return true;
             } catch (SQLException e) {
                 ColorUtil.consoleError("&c从岛屿移除成员失败！岛屿ID: " + islandId + ", 成员UUID: " + memberUuid);
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 添加合作者到岛屿
+     */
+    public boolean addCoopToIsland(int islandId, UUID playerUuid) {
+        Island island = islandsById.get(islandId);
+        if (island != null) {
+            String sql = "INSERT INTO island_coops (island_id, player_uuid) VALUES (?, ?)";
+            try (Connection conn = sqliteManager.getConnection();
+                    PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, islandId);
+                pstmt.setString(2, playerUuid.toString());
+                pstmt.executeUpdate();
+
+                org.bukkit.entity.Player player = org.bukkit.Bukkit.getPlayer(playerUuid);
+                if (player != null) {
+                    sqliteManager.savePlayerName(playerUuid, player.getName());
+                }
+
+                island.addCoop(playerUuid);
+                return true;
+            } catch (SQLException e) {
+                ColorUtil.consoleError("&c添加合作者到岛屿失败！岛屿ID: " + islandId + ", 玩家UUID: " + playerUuid);
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 从岛屿移除合作者
+     */
+    public boolean removeCoopFromIsland(int islandId, UUID playerUuid) {
+        Island island = islandsById.get(islandId);
+        if (island != null) {
+            String sql = "DELETE FROM island_coops WHERE island_id = ? AND player_uuid = ?";
+            try (Connection conn = sqliteManager.getConnection();
+                    PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, islandId);
+                pstmt.setString(2, playerUuid.toString());
+                pstmt.executeUpdate();
+
+                island.removeCoop(playerUuid);
+                return true;
+            } catch (SQLException e) {
+                ColorUtil.consoleError("&c从岛屿移除合作者失败！岛屿ID: " + islandId + ", 玩家UUID: " + playerUuid);
                 e.printStackTrace();
             }
         }
@@ -630,9 +730,16 @@ public class IslandManager {
      * 用于异步删除操作中，内存数据已提前移除的情况
      */
     public boolean deleteIslandFromDatabase(Island island) {
+        String deleteCoopsSql = "DELETE FROM island_coops WHERE island_id = ?";
         String deleteMembersSql = "DELETE FROM island_members WHERE island_id = ?";
         String deleteIslandSql = "DELETE FROM islands WHERE id = ?";
         try (Connection conn = sqliteManager.getConnection()) {
+            // 删除合作者记录
+            try (PreparedStatement pstmt = conn.prepareStatement(deleteCoopsSql)) {
+                pstmt.setInt(1, island.getId());
+                pstmt.executeUpdate();
+            }
+
             // 删除成员记录
             try (PreparedStatement pstmt = conn.prepareStatement(deleteMembersSql)) {
                 pstmt.setInt(1, island.getId());
@@ -657,9 +764,16 @@ public class IslandManager {
      * 删除岛屿数据及内存记录
      */
     public boolean deleteIsland(Island island) {
+        String deleteCoopsSql = "DELETE FROM island_coops WHERE island_id = ?";
         String deleteMembersSql = "DELETE FROM island_members WHERE island_id = ?";
         String deleteIslandSql = "DELETE FROM islands WHERE id = ?";
         try (Connection conn = sqliteManager.getConnection()) {
+            // 删除合作者记录
+            try (PreparedStatement pstmt = conn.prepareStatement(deleteCoopsSql)) {
+                pstmt.setInt(1, island.getId());
+                pstmt.executeUpdate();
+            }
+
             // 删除成员记录
             try (PreparedStatement pstmt = conn.prepareStatement(deleteMembersSql)) {
                 pstmt.setInt(1, island.getId());

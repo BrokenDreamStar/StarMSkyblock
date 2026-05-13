@@ -18,7 +18,7 @@ import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.listener.BorderListener;
 import team.starm.starmskyblock.listener.PortalListener;
 import team.starm.starmskyblock.setting.IslandSettingManager;
-import team.starm.starmskyblock.setting.SettingsConfigManager;
+import team.starm.starmskyblock.config.SettingsConfigManager;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.util.ColorUtil;
 import team.starm.starmskyblock.world.SkyblockWorldManager;

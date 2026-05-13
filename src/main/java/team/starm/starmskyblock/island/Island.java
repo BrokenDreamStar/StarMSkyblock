@@ -4,8 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
@@ -30,6 +32,7 @@ public class Island {
     private double customHomeZ;
     private WorldType customHomeWorldType;
     private boolean hasCustomHome;
+    private String homeJson = "{}";
 
     private int level;
 
@@ -38,6 +41,7 @@ public class Island {
     private String schematicId;
 
     private final Map<UUID, IslandPermissionLevel> members = new HashMap<>();
+    private final Set<UUID> coops = new HashSet<>();
     private final Map<IslandPermission, Integer> permissionMinLevels = new HashMap<>();
 
     private static final Gson GSON = new GsonBuilder().create();
@@ -209,6 +213,22 @@ public class Island {
         }
     }
 
+    public boolean isCoop(UUID uuid) {
+        return coops.contains(uuid);
+    }
+
+    public Set<UUID> getCoops() {
+        return new HashSet<>(coops);
+    }
+
+    public void addCoop(UUID uuid) {
+        coops.add(uuid);
+    }
+
+    public void removeCoop(UUID uuid) {
+        coops.remove(uuid);
+    }
+
     public IslandPermissionLevel getMemberRole(UUID uuid) {
         if (ownerId.equals(uuid)) {
             return IslandPermissionLevel.OWNER;
@@ -235,10 +255,20 @@ public class Island {
         this.customHomeZ = z;
         this.customHomeWorldType = worldType;
         this.hasCustomHome = true;
+        this.homeJson = GSON.toJson(java.util.Map.of("world", worldType.name(), "x", x, "y", y, "z", z));
     }
 
     public void clearCustomHome() {
         this.hasCustomHome = false;
+        this.homeJson = "{}";
+    }
+
+    public String getHomeJson() {
+        return homeJson;
+    }
+
+    public void setHomeFromJson(String json) {
+        this.homeJson = (json != null && !json.isEmpty()) ? json : "{}";
     }
 
     public double getCustomHomeX() {
@@ -267,8 +297,11 @@ public class Island {
 
     // ==================== 权限核心方法（最低等级模式） ====================
     public boolean hasPermission(UUID playerUuid, IslandPermission permission) {
-        IslandPermissionLevel playerRole = getMemberRole(playerUuid);
-        return hasPermission(playerRole, permission);
+        if (ownerId.equals(playerUuid)) return true;
+        IslandPermissionLevel role = members.get(playerUuid);
+        if (role != null) return hasPermission(role, permission);
+        if (coops.contains(playerUuid)) return hasPermission(IslandPermissionLevel.COOP, permission);
+        return hasPermission(IslandPermissionLevel.VISITOR, permission);
     }
 
     public boolean hasPermission(IslandPermissionLevel role, IslandPermission permission) {

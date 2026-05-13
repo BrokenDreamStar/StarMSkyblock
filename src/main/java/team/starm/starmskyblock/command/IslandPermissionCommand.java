@@ -39,31 +39,38 @@ public class IslandPermissionCommand {
 
         if (args.length < 2) {
             MessageUtil.sendMessage(player, "&c用法: /is permission <权限> [角色/等级]");
-            MessageUtil.sendMessage(player, "&c示例: /is permission BUILD 2");
-            MessageUtil.sendMessage(player, "&c查询当前配置: /is permission BUILD");
+            MessageUtil.sendMessage(player, "&c示例: /is permission build 2");
+            MessageUtil.sendMessage(player, "&c查询当前配置: /is permission build");
             return true;
         }
 
-        String permissionName = args[1].toUpperCase();
+        String permissionInput = args[1].toLowerCase();
 
         if (args.length == 2) {
-            return showPermissionConfig(player, island, permissionName);
+            return showPermissionConfig(player, island, permissionInput);
         }
 
-        return setPermissionLevel(player, island, args, permissionName);
+        return setPermissionLevel(player, island, args, permissionInput);
     }
 
-    private boolean showPermissionConfig(Player player, Island island, String permissionName) {
-        IslandPermission permission;
-        try {
-            permission = IslandPermission.valueOf(permissionName);
-        } catch (IllegalArgumentException e) {
-            MessageUtil.sendMessage(player, "&c无效的权限: " + permissionName);
+    private IslandPermission resolvePermission(String input) {
+        for (IslandPermission perm : IslandPermission.values()) {
+            if (perm.name().equalsIgnoreCase(input)) {
+                return perm;
+            }
+        }
+        return null;
+    }
+
+    private boolean showPermissionConfig(Player player, Island island, String permissionInput) {
+        IslandPermission permission = resolvePermission(permissionInput);
+        if (permission == null) {
+            MessageUtil.sendMessage(player, "&c无效的权限: " + permissionInput);
             MessageUtil.sendMessage(player, "&c输入 /is permission 按空格+TAB 查看所有可用权限");
             return true;
         }
 
-        MessageUtil.sendMessage(player, "&a=== 权限 " + permissionName + " 当前配置 ===");
+        MessageUtil.sendMessage(player, "&a=== 权限 " + permission.name().toLowerCase() + " 当前配置 ===");
 
         boolean hasCustom = false;
         for (IslandPermissionLevel role : IslandPermissionLevel.values()) {
@@ -79,14 +86,12 @@ public class IslandPermissionCommand {
         return true;
     }
 
-    private boolean setPermissionLevel(Player player, Island island, String[] args, String permissionName) {
+    private boolean setPermissionLevel(Player player, Island island, String[] args, String permissionInput) {
         String roleInput = args[2];
 
-        IslandPermission permission;
-        try {
-            permission = IslandPermission.valueOf(permissionName);
-        } catch (IllegalArgumentException e) {
-            MessageUtil.sendMessage(player, "&c无效的权限: " + permissionName);
+        IslandPermission permission = resolvePermission(permissionInput);
+        if (permission == null) {
+            MessageUtil.sendMessage(player, "&c无效的权限: " + permissionInput);
             return true;
         }
 
@@ -111,7 +116,7 @@ public class IslandPermissionCommand {
 
         islandManager.setPermissionMinLevel(island.getId(), permission, targetLevel);
 
-        sendPermissionUpdateMessage(player, permission, permissionName, targetRole, targetLevel);
+        sendPermissionUpdateMessage(player, permission, permissionInput, targetRole, targetLevel);
         return true;
     }
 
@@ -136,18 +141,18 @@ public class IslandPermissionCommand {
     }
 
     private void sendPermissionUpdateMessage(Player player, IslandPermission permission,
-                                             String permissionName, IslandPermissionLevel targetRole, int targetLevel) {
+                                             String permissionInput, IslandPermissionLevel targetRole, int targetLevel) {
         if (permission == IslandPermission.ALL) {
             if (targetLevel == 5) {
-                MessageUtil.sendMessage(player, "&a已将 &bALL &a权限设置为 &e仅岛主 &a拥有");
+                MessageUtil.sendMessage(player, "&a已将 &ball &a权限设置为 &e仅岛主 &a拥有");
             } else {
                 MessageUtil.sendMessage(player,
-                        "&a已将 &bALL &a权限的最低等级设置为 &e" + targetRole.getDisplayName() +
+                        "&a已将 &ball &a权限的最低等级设置为 &e" + targetRole.getDisplayName() +
                                 " &a(&6" + targetLevel + "&e) 及以上角色拥有（包括岛主）");
             }
         } else {
             MessageUtil.sendMessage(player,
-                    "&a已将权限 &b" + permissionName +
+                    "&a已将权限 &b" + permissionInput +
                             " &a的最低等级设置为 &e" + targetRole.getDisplayName() +
                             " &a(&6" + targetLevel + "&e) 及以上角色拥有");
         }
@@ -163,13 +168,13 @@ public class IslandPermissionCommand {
             if (perms.isEmpty()) continue;
 
             MessageUtil.sendMessage(player, "&e=== " + category.displayName + " ===");
-            MessageUtil.sendMessage(player, "&7" + String.join(", ", perms));
+            MessageUtil.sendMessage(player, "&7" + String.join(", ", perms.stream().map(String::toLowerCase).toList()));
         }
 
         MessageUtil.sendMessage(player, "&a=== 使用示例 ===");
-        MessageUtil.sendMessage(player, "&7/is permission ALL 4 → ADMIN(4) 及以上（含岛主）拥有全部权限");
-        MessageUtil.sendMessage(player, "&7/is permission ALL 5 → 仅岛主拥有全部权限");
-        MessageUtil.sendMessage(player, "&7/is permission BUILD 2 → MEMBER(2) 及以上拥有建造权限");
+        MessageUtil.sendMessage(player, "&7/is permission all 4 → admin(4) 及以上（含岛主）拥有全部权限");
+        MessageUtil.sendMessage(player, "&7/is permission all 5 → 仅岛主拥有全部权限");
+        MessageUtil.sendMessage(player, "&7/is permission build 2 → member(2) 及以上拥有建造权限");
 
         return true;
     }
@@ -265,19 +270,19 @@ public class IslandPermissionCommand {
 
     public List<String> onTabComplete(String[] args) {
         if (args.length == 2 && args[0].equalsIgnoreCase("permission")) {
-            String prefix = args[1].toUpperCase();
+            String prefix = args[1].toLowerCase();
             return Arrays.stream(IslandPermission.values())
-                    .map(Enum::name)
+                    .map(perm -> perm.name().toLowerCase())
                     .filter(name -> name.startsWith(prefix))
                     .collect(Collectors.toList());
         }
 
         if (args.length == 3 && args[0].equalsIgnoreCase("permission")) {
-            String prefix = args[2].toUpperCase();
+            String prefix = args[2].toLowerCase();
             List<String> completions = new ArrayList<>();
 
             for (IslandPermissionLevel role : IslandPermissionLevel.values()) {
-                if (role.name().startsWith(prefix)) {
+                if (role.name().toLowerCase().startsWith(prefix)) {
                     completions.add(role.name());
                 }
             }

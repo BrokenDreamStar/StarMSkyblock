@@ -7,6 +7,9 @@
 # 是否允许PVP
 pvp: true
 
+# 是否允许其他玩家传送到该岛屿
+tp: true
+
 # 是否允许动物自然生成
 animal_spawn: true
 
@@ -20,16 +23,16 @@ spawner_spawn: true
 fire_spread: true
 
 # 是否允许末影人搬运方块
-enderman_grief: true
+enderman_grief: false
 
 # 是否允许恶魂火球破坏方块
-ghast_fireball_grief: true
+ghast_fireball_grief: false
 
 # 是否允许爬行者爆炸破坏
-creeper_explosion: true
+creeper_explosion: false
 
 # 是否允许TNT爆炸破坏
 tnt_explosion: true
 
 # 是否允许凋灵破坏方块
-wither_grief: true
+wither_grief: false

@@ -1,8 +1,9 @@
-package team.starm.starmskyblock.setting;
+package team.starm.starmskyblock.config;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import team.starm.starmskyblock.StarMSkyblock;
+import team.starm.starmskyblock.setting.IslandSetting;
 
 import java.io.File;
 import java.io.IOException;

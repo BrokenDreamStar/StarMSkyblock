@@ -3,6 +3,7 @@ package team.starm.starmskyblock.setting;
 public enum IslandSetting {
 
     PVP("PVP"),
+    TP("传送到该岛屿"),
     ANIMAL_SPAWN("自然生成动物"),
     MONSTER_SPAWN("自然生成怪物"),
     SPAWNER_SPAWN("刷怪笼生成生物"),

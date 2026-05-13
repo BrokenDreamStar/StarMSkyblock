@@ -42,8 +42,8 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
 
     private final List<String> subCommands = Arrays.asList(
             "create", "home", "sethome", "border", "delete", "help",
-            "invite", "kick", "promote", "demote", "rename", "coop",
-            "members", "role",
+            "invite", "remove", "promote", "demote", "rename", "coop",
+            "members", "coops", "mycoops", "myperms", "role", "tp",
             "accept", "decline", "permission", "settings");
 
     public IslandCommand(StarMSkyblock plugin) {
@@ -168,6 +168,61 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        // ====================== 传送到指定岛屿 ======================
+        if (args[0].equalsIgnoreCase("tp")) {
+            if (args.length < 2) {
+                MessageUtil.sendMessage(player, "&c用法: /is tp <岛屿名称> [confirm]");
+                return true;
+            }
+
+            Optional<Island> targetIsland = islandManager.getIslandByName(args[1]);
+            if (targetIsland.isEmpty()) {
+                MessageUtil.sendMessage(player, "&c未找到名称为 &e" + args[1] + " &c的岛屿！");
+                return true;
+            }
+
+            Island island = targetIsland.get();
+            if (!island.getSetting(IslandSetting.TP)) {
+                MessageUtil.sendMessage(player, "&c该岛屿未开放传送！");
+                return true;
+            }
+
+            ConfigManager config = plugin.getConfigManager();
+            Location spawnLocation;
+            World targetWorld;
+
+            if (island.hasCustomHome()) {
+                Island.WorldType worldType = island.getCustomHomeWorldType();
+                targetWorld = switch (worldType) {
+                    case NETHER -> worldManager.getSkyblockNether();
+                    case END -> worldManager.getSkyblockEnd();
+                    default -> worldManager.getSkyblockWorld();
+                };
+                spawnLocation = new Location(targetWorld,
+                        island.getCustomHomeX(),
+                        island.getCustomHomeY(),
+                        island.getCustomHomeZ());
+            } else {
+                targetWorld = worldManager.getSkyblockWorld();
+                double[] offsets = config.getTeleportOffsetsBySchematicAndWorldType(
+                        island.getSchematicId(), Island.WorldType.NORMAL);
+                double teleportX = (island.getCenterChunkX() * 16) + 8 + offsets[0];
+                double teleportY = config.getIslandHeight() + offsets[1];
+                double teleportZ = (island.getCenterChunkZ() * 16) + 8 + offsets[2];
+                spawnLocation = new Location(targetWorld, teleportX, teleportY, teleportZ);
+            }
+
+            if (!isLocationSafe(spawnLocation) && (args.length < 3 || !args[2].equalsIgnoreCase("confirm"))) {
+                MessageUtil.sendMessage(player, "&c警告：该岛屿传送点不安全！脚下可能是空气。");
+                MessageUtil.sendMessage(player, "&c使用 &e/is tp " + island.getName() + " confirm &c强制传送（可能摔落）。");
+                return true;
+            }
+
+            player.teleport(spawnLocation);
+            MessageUtil.sendMessage(player, "&a已传送到岛屿 &e" + island.getName() + "&a！");
+            return true;
+        }
+
         // ====================== 切换岛屿边界显示 ======================
         if (args[0].equalsIgnoreCase("border")) {
             if (args.length < 2) {
@@ -257,7 +312,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
                     playerLocation.getX(), playerLocation.getY(), playerLocation.getZ())) {
                 String worldName = worldType == Island.WorldType.NORMAL ? "主世界"
                         : worldType == Island.WorldType.NETHER ? "下界" : "末地";
-                MessageUtil.sendMessage(player, "&a传送点已设置在 &e" + worldName + "&a！");
+                MessageUtil.sendMessage(player, "&a已成功设置传送点！");
             } else {
                 MessageUtil.sendMessage(player, "&c设置失败，请稍后重试。");
             }
@@ -294,13 +349,13 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 if (islandManager.isPlayerOnIsland(p, island)) {
                     p.teleport(mainWorld.getSpawnLocation());
-                    MessageUtil.sendMessage(p, "&c由于岛屿被删除，你已被传送到出生点。");
+                    MessageUtil.sendMessage(p, "&c由于当前所在岛屿被删除，你已被传送到出生点。");
                 }
             }
 
             islandManager.removeIslandFromMemory(island);
-            MessageUtil.sendMessage(player, "&a岛屿删除操作已开始异步执行，请稍候...");
-            MessageUtil.sendMessage(player, "&e清理过程将在后台进行，不会影响服务器性能。");
+            MessageUtil.sendMessage(player, "&a岛屿删除操作已开始执行，请稍候...");
+            MessageUtil.sendMessage(player, "&e岛屿已删除");
 
             IslandDeleteTask deleteTask = new IslandDeleteTask(plugin, islandManager, island, player.getUniqueId(),
                     deleteCount, maxDeleteTimes);
@@ -348,7 +403,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         }
 
         // ====================== 踢出成员 ======================
-        if (args[0].equalsIgnoreCase("kick")) {
+        if (args[0].equalsIgnoreCase("remove")) {
             Optional<Island> optionalIsland = islandManager.getIslandByPlayer(player.getUniqueId());
             if (optionalIsland.isEmpty()) {
                 MessageUtil.sendMessage(player, "&c你还没有岛屿！");
@@ -362,24 +417,39 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             }
 
             if (args.length < 2) {
-                MessageUtil.sendMessage(player, "&c用法: /is kick <玩家名>");
+                MessageUtil.sendMessage(player, "&c用法: /is remove <玩家名> [confirm]");
                 return true;
             }
 
-            Player targetPlayer = Bukkit.getPlayer(args[1]);
-            if (targetPlayer == null) {
-                MessageUtil.sendMessage(player, "&c玩家不存在或不在线！");
+            UUID targetUuid = island.getMembers().keySet().stream()
+                    .filter(uuid -> {
+                        String name = getPlayerName(uuid);
+                        return name != null && name.equalsIgnoreCase(args[1]);
+                    })
+                    .findFirst().orElse(null);
+            if (targetUuid == null) {
+                MessageUtil.sendMessage(player, "&c该玩家不是岛屿成员！");
                 return true;
             }
 
-            if (targetPlayer.getUniqueId().equals(island.getOwnerId())) {
+            String targetName = getPlayerName(targetUuid);
+
+            if (targetUuid.equals(island.getOwnerId())) {
                 MessageUtil.sendMessage(player, "&c你不能踢出岛主！");
                 return true;
             }
 
-            if (islandManager.removeMemberFromIsland(island.getId(), targetPlayer.getUniqueId())) {
-                MessageUtil.sendMessage(player, "&a成功踢出 &e" + targetPlayer.getName() + " &a从岛屿");
-                MessageUtil.sendMessage(targetPlayer, "&c你已被 &e" + player.getName() + " &c从岛屿踢出");
+            if (args.length < 3 || !args[2].equalsIgnoreCase("confirm")) {
+                MessageUtil.sendMessage(player, "&c警告：将踢出 &e" + targetName + " &c，使用 &e/is remove " + targetName + " confirm &c确认。");
+                return true;
+            }
+
+            if (islandManager.removeMemberFromIsland(island.getId(), targetUuid)) {
+                MessageUtil.sendMessage(player, "&a成功踢出 &e" + targetName + " &a从岛屿");
+                Player targetPlayer = Bukkit.getPlayer(targetUuid);
+                if (targetPlayer != null) {
+                    MessageUtil.sendMessage(targetPlayer, "&c你已被 &e" + player.getName() + " &c从岛屿踢出");
+                }
             } else {
                 MessageUtil.sendMessage(player, "&c踢出失败，该玩家可能不是岛屿成员。");
             }
@@ -405,45 +475,71 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            Player targetPlayer = Bukkit.getPlayer(args[1]);
-            if (targetPlayer == null) {
-                MessageUtil.sendMessage(player, "&c玩家不存在或不在线！");
+            UUID targetUuid = island.getMembers().keySet().stream()
+                    .filter(uuid -> {
+                        String name = getPlayerName(uuid);
+                        return name != null && name.equalsIgnoreCase(args[1]);
+                    })
+                    .findFirst().orElse(null);
+            if (targetUuid == null) {
+                MessageUtil.sendMessage(player, "&c该玩家不是岛屿成员！");
                 return true;
             }
 
-            IslandPermissionLevel currentRole = island.getMemberRole(targetPlayer.getUniqueId());
+            String targetName = getPlayerName(targetUuid);
+
+            if (targetUuid.equals(player.getUniqueId())) {
+                MessageUtil.sendMessage(player, "&c你不能对自己使用此命令！");
+                return true;
+            }
+
+            IslandPermissionLevel executorRole = island.getMemberRole(player.getUniqueId());
+            IslandPermissionLevel targetRole = island.getMemberRole(targetUuid);
+
+            if (executorRole.getPermissionLevel() <= targetRole.getPermissionLevel()) {
+                MessageUtil.sendMessage(player, "&c你无法管理同权限或更高权限的成员！");
+                return true;
+            }
+
             IslandPermissionLevel newRole;
 
             if (args[0].equalsIgnoreCase("promote")) {
-                switch (currentRole) {
-                    case VISITOR -> newRole = IslandPermissionLevel.COOP;
-                    case COOP -> newRole = IslandPermissionLevel.MEMBER;
+                switch (targetRole) {
                     case MEMBER -> newRole = IslandPermissionLevel.MOD;
                     case MOD -> newRole = IslandPermissionLevel.ADMIN;
-                    default -> {
+                    case ADMIN -> {
                         MessageUtil.sendMessage(player, "&c该玩家已经是最高角色！");
+                        return true;
+                    }
+                    default -> {
+                        MessageUtil.sendMessage(player, "&c只能晋升岛员、风纪委员、管理员！");
                         return true;
                     }
                 }
             } else {
-                switch (currentRole) {
+                switch (targetRole) {
                     case ADMIN -> newRole = IslandPermissionLevel.MOD;
                     case MOD -> newRole = IslandPermissionLevel.MEMBER;
-                    case MEMBER -> newRole = IslandPermissionLevel.COOP;
-                    case COOP -> newRole = IslandPermissionLevel.VISITOR;
-                    default -> {
+                    case MEMBER -> {
                         MessageUtil.sendMessage(player, "&c该玩家已经是最低角色！");
+                        return true;
+                    }
+                    default -> {
+                        MessageUtil.sendMessage(player, "&c只能降级岛员、风纪委员、管理员！");
                         return true;
                     }
                 }
             }
 
-            if (islandManager.updateMemberRole(island.getId(), targetPlayer.getUniqueId(), newRole)) {
+            if (islandManager.updateMemberRole(island.getId(), targetUuid, newRole)) {
                 String action = args[0].equalsIgnoreCase("promote") ? "晋升" : "降级";
                 MessageUtil.sendMessage(player,
-                        "&a成功" + action + " &e" + targetPlayer.getName() + " &a为 &e" + newRole.getDisplayName());
-                MessageUtil.sendMessage(targetPlayer,
-                        "&a你的岛屿角色已被 &e" + player.getName() + " &a" + action + "为 &e" + newRole.getDisplayName());
+                        "&a成功" + action + " &e" + targetName + " &a为 &e" + newRole.getDisplayName());
+                Player targetPlayer = Bukkit.getPlayer(targetUuid);
+                if (targetPlayer != null) {
+                    MessageUtil.sendMessage(targetPlayer,
+                            "&a你的岛屿角色已被 &e" + player.getName() + " &a" + action + "为 &e" + newRole.getDisplayName());
+                }
             } else {
                 MessageUtil.sendMessage(player, "&c操作失败，请稍后重试。");
             }
@@ -479,6 +575,74 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
 
             if (island.getMembers().isEmpty()) {
                 MessageUtil.sendMessage(player, "&7暂无其他成员");
+            }
+            return true;
+        }
+
+        // ====================== 查看合作者列表 ======================
+        if (args[0].equalsIgnoreCase("coops")) {
+            Optional<Island> optionalIsland = islandManager.getIslandByPlayer(player.getUniqueId());
+            if (optionalIsland.isEmpty()) {
+                MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+                return true;
+            }
+
+            Island island = optionalIsland.get();
+            MessageUtil.sendMessage(player, "&a=== 合作者列表 ===");
+
+            if (island.getCoops().isEmpty()) {
+                MessageUtil.sendMessage(player, "&7暂无合作者");
+                return true;
+            }
+
+            for (UUID coopUuid : island.getCoops()) {
+                String coopName = getPlayerName(coopUuid);
+                boolean coopOnline = Bukkit.getPlayer(coopUuid) != null;
+                String status = coopOnline ? "" : " &7(离线)";
+                MessageUtil.sendMessage(player, "&b合作者: &e" + coopName + status);
+            }
+            return true;
+        }
+
+        // ====================== 查看自己的合作者身份 ======================
+        if (args[0].equalsIgnoreCase("mycoops")) {
+            java.util.List<Island> coopIslands = islandManager.getIslandsByCoop(player.getUniqueId());
+            if (coopIslands.isEmpty()) {
+                MessageUtil.sendMessage(player, "&c你不是任何岛屿的合作者！");
+                return true;
+            }
+
+            MessageUtil.sendMessage(player, "&a=== 我的合作者身份 ===");
+            for (Island coopIsland : coopIslands) {
+                String ownerName = getPlayerName(coopIsland.getOwnerId());
+                boolean ownerOnline = Bukkit.getPlayer(coopIsland.getOwnerId()) != null;
+                String status = ownerOnline ? "" : " &7(离线)";
+                MessageUtil.sendMessage(player, "&b岛屿 #" + coopIsland.getId() + " &e(岛主: " + ownerName + ")" + status);
+            }
+            return true;
+        }
+
+        // ====================== 查看自己拥有的权限 ======================
+        if (args[0].equalsIgnoreCase("myperms")) {
+            Optional<Island> optionalIsland = islandManager.getIslandByPlayer(player.getUniqueId());
+            if (optionalIsland.isEmpty()) {
+                MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+                return true;
+            }
+
+            Island island = optionalIsland.get();
+            IslandPermissionLevel playerRole = island.getMemberRole(player.getUniqueId());
+            MessageUtil.sendMessage(player, "&a=== 我的岛屿权限 ===");
+            MessageUtil.sendMessage(player, "&7当前角色: &e" + playerRole.getDisplayName() + " &7(等级 " + playerRole.getPermissionLevel() + ")");
+            MessageUtil.sendMessage(player, "");
+
+            IslandPermission[] permissions = IslandPermission.values();
+            for (int i = 0; i < permissions.length; i++) {
+                IslandPermission perm = permissions[i];
+                if (perm == IslandPermission.ALL) continue;
+                boolean hasPerm = island.hasPermission(player.getUniqueId(), perm);
+                String icon = hasPerm ? "&a✔" : "&c✘";
+                MessageUtil.sendMessage(player, icon + " &7" + perm.getDisplayName());
             }
             return true;
         }
@@ -541,18 +705,18 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         if (args[0].equalsIgnoreCase("coop")) {
             if (args.length < 2) {
                 MessageUtil.sendMessage(player, "&c用法:");
-                MessageUtil.sendMessage(player, "&b/is coop invite <玩家> &f- 邀请合作者");
+                MessageUtil.sendMessage(player, "&b/is coop add <玩家> &f- 添加合作者");
                 MessageUtil.sendMessage(player, "&b/is coop remove <玩家> &f- 移除合作者");
                 return true;
             }
 
-            if (args[1].equalsIgnoreCase("invite")) {
-                return handleCoopInvite(player, args, islandManager);
+            if (args[1].equalsIgnoreCase("add")) {
+                return handleCoopAdd(player, args, islandManager);
             } else if (args[1].equalsIgnoreCase("remove")) {
                 return handleCoopRemove(player, args, islandManager);
             } else {
                 MessageUtil.sendMessage(player, "&c未知的子命令: &e" + args[1]);
-                MessageUtil.sendMessage(player, "&c用法: /is coop invite|remove <玩家名>");
+                MessageUtil.sendMessage(player, "&c用法: /is coop add|remove <玩家名>");
                 return true;
             }
         }
@@ -681,7 +845,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    private boolean handleCoopInvite(Player player, String[] args, IslandManager islandManager) {
+    private boolean handleCoopAdd(Player player, String[] args, IslandManager islandManager) {
         Optional<Island> optionalIsland = islandManager.getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
             MessageUtil.sendMessage(player, "&c你还没有岛屿！");
@@ -695,7 +859,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length < 3) {
-            MessageUtil.sendMessage(player, "&c用法: /is coop invite <玩家名>");
+            MessageUtil.sendMessage(player, "&c用法: /is coop add <玩家名>");
             return true;
         }
 
@@ -715,13 +879,17 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        IslandPermissionLevel existingRole = island.getMemberRole(targetPlayer.getUniqueId());
-        if (existingRole == IslandPermissionLevel.COOP) {
+        if (island.isCoop(targetPlayer.getUniqueId())) {
             MessageUtil.sendMessage(player, "&c该玩家已经是合作者！");
             return true;
         }
 
-        if (islandManager.addMemberToIsland(island.getId(), targetPlayer.getUniqueId(), IslandPermissionLevel.COOP)) {
+        if (island.getMembers().containsKey(targetPlayer.getUniqueId())) {
+            MessageUtil.sendMessage(player, "&c该玩家已经是岛屿成员，无法添加为合作者！");
+            return true;
+        }
+
+        if (islandManager.addCoopToIsland(island.getId(), targetPlayer.getUniqueId())) {
             MessageUtil.sendMessage(player, "&a已将 &e" + targetPlayer.getName() + " &a添加为合作者！");
             MessageUtil.sendMessage(targetPlayer, "&a你已被 &e" + player.getName() + " &a添加为岛屿合作者！");
         } else {
@@ -748,26 +916,30 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        Player targetPlayer = Bukkit.getPlayer(args[2]);
-        if (targetPlayer == null) {
-            MessageUtil.sendMessage(player, "&c玩家不存在或不在线！");
+        UUID targetUuid = island.getCoops().stream()
+                .filter(uuid -> {
+                    String name = getPlayerName(uuid);
+                    return name != null && name.equalsIgnoreCase(args[2]);
+                })
+                .findFirst().orElse(null);
+        if (targetUuid == null) {
+            MessageUtil.sendMessage(player, "&c该玩家不是合作者！");
             return true;
         }
 
-        if (targetPlayer.getUniqueId().equals(island.getOwnerId())) {
+        String targetName = getPlayerName(targetUuid);
+
+        if (targetUuid.equals(island.getOwnerId())) {
             MessageUtil.sendMessage(player, "&c你不能移除岛主！");
             return true;
         }
 
-        IslandPermissionLevel currentRole = island.getMemberRole(targetPlayer.getUniqueId());
-        if (currentRole != IslandPermissionLevel.COOP) {
-            MessageUtil.sendMessage(player, "&c该玩家不是合作者（当前角色: " + currentRole.getDisplayName() + "）！");
-            return true;
-        }
-
-        if (islandManager.removeMemberFromIsland(island.getId(), targetPlayer.getUniqueId())) {
-            MessageUtil.sendMessage(player, "&a已移除合作者 &e" + targetPlayer.getName());
-            MessageUtil.sendMessage(targetPlayer, "&c你已被 &e" + player.getName() + " &c移出岛屿合作者队伍");
+        if (islandManager.removeCoopFromIsland(island.getId(), targetUuid)) {
+            MessageUtil.sendMessage(player, "&a已移除合作者 &e" + targetName);
+            Player targetPlayer = Bukkit.getPlayer(targetUuid);
+            if (targetPlayer != null) {
+                MessageUtil.sendMessage(targetPlayer, "&c你已被 &e" + player.getName() + " &c移出岛屿合作者队伍");
+            }
         } else {
             MessageUtil.sendMessage(player, "&c操作失败，请稍后重试。");
         }
@@ -778,20 +950,24 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         MessageUtil.sendMessage(player, "&a=== StarMSkyblock 帮助 ===");
         MessageUtil.sendMessage(player, "&b/is create [类型] [名称] &f- 创建你的空岛");
         MessageUtil.sendMessage(player, "&b/is home [confirm] &f- 传送到你的空岛（confirm强制传送）");
+        MessageUtil.sendMessage(player, "&b/is tp <岛屿名称> [confirm] &f- 传送到指定岛屿");
         MessageUtil.sendMessage(player, "&b/is sethome &f- 设置岛屿传送点（脚下不能是空气）");
-        MessageUtil.sendMessage(player, "&b/is border <true|false> &f- 开启/关闭岛屿边界显示");
+        MessageUtil.sendMessage(player, "&b/is border [true|false|toggle] &f- 开启/关闭/切换岛屿边界显示");
         MessageUtil.sendMessage(player, "&b/is delete [confirm] &f- 删除你的空岛");
         MessageUtil.sendMessage(player, "&b/is invite <玩家> &f- 邀请玩家加入岛屿");
         MessageUtil.sendMessage(player, "&b/is accept &f- 接受岛屿邀请");
         MessageUtil.sendMessage(player, "&b/is decline &f- 拒绝岛屿邀请");
-        MessageUtil.sendMessage(player, "&b/is kick <玩家> &f- 踢出岛屿成员");
+        MessageUtil.sendMessage(player, "&b/is remove <玩家> [confirm] &f- 踢出岛屿成员");
         MessageUtil.sendMessage(player, "&b/is promote <玩家> &f- 晋升成员角色");
         MessageUtil.sendMessage(player, "&b/is demote <玩家> &f- 降级成员角色");
         MessageUtil.sendMessage(player, "&b/is members &f- 查看岛屿成员列表");
+        MessageUtil.sendMessage(player, "&b/is coops &f- 查看合作者列表");
+        MessageUtil.sendMessage(player, "&b/is mycoops &f- 查看自己是哪些岛屿的合作者");
         MessageUtil.sendMessage(player, "&b/is role &f- 查看自己的岛屿角色");
         MessageUtil.sendMessage(player, "&b/is rename <名称> &f- 修改岛屿名称");
-        MessageUtil.sendMessage(player, "&b/is coop invite <玩家> &f- 邀请合作者");
+        MessageUtil.sendMessage(player, "&b/is coop add <玩家> &f- 添加合作者");
         MessageUtil.sendMessage(player, "&b/is coop remove <玩家> &f- 移除合作者");
+        MessageUtil.sendMessage(player, "&b/is myperms &f- 查看自己拥有的权限");
         MessageUtil.sendMessage(player, "&b/is permission <权限> <等级> &f- 设置权限最低等级");
         MessageUtil.sendMessage(player, "&b/is settings &f- 查看岛屿设置");
         MessageUtil.sendMessage(player, "&b/is settings <设置项> <true|false> &f- 修改岛屿设置");
@@ -834,7 +1010,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 2 && args[0].equalsIgnoreCase("border")) {
             String prefix = args[1].toLowerCase();
-            return Arrays.asList("true", "false").stream()
+            return Arrays.asList("true", "false", "toggle").stream()
                     .filter(s -> s.startsWith(prefix))
                     .collect(Collectors.toList());
         }
@@ -856,12 +1032,12 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 2 && args[0].equalsIgnoreCase("coop")) {
             String prefix = args[1].toLowerCase();
-            return Arrays.asList("invite", "remove").stream()
+            return Arrays.asList("add", "remove").stream()
                     .filter(s -> s.startsWith(prefix))
                     .collect(Collectors.toList());
         }
 
-        if (args.length == 3 && args[0].equalsIgnoreCase("coop") && args[1].equalsIgnoreCase("invite")) {
+        if (args.length == 3 && args[0].equalsIgnoreCase("coop") && args[1].equalsIgnoreCase("add")) {
             String prefix = args[2].toLowerCase();
             Optional<Island> optionalIsland = plugin.getIslandManager().getIsland(player.getUniqueId());
             if (optionalIsland.isPresent()) {
@@ -873,7 +1049,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
                             Player p = Bukkit.getPlayer(name);
                             if (p == null) return false;
                             if (p.getUniqueId().equals(player.getUniqueId())) return false;
-                            if (island.getMemberRole(p.getUniqueId()) == IslandPermissionLevel.COOP) return false;
+                            if (island.isCoop(p.getUniqueId())) return false;
                             return im.getIslandByPlayer(p.getUniqueId()).isPresent();
                         })
                         .filter(name -> name.toLowerCase().startsWith(prefix))
@@ -885,9 +1061,8 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             String prefix = args[2].toLowerCase();
             Optional<Island> optionalIsland = plugin.getIslandManager().getIsland(player.getUniqueId());
             if (optionalIsland.isPresent()) {
-                return optionalIsland.get().getMembers().entrySet().stream()
-                        .filter(e -> e.getValue() == IslandPermissionLevel.COOP)
-                        .map(e -> Bukkit.getPlayer(e.getKey()))
+                return optionalIsland.get().getCoops().stream()
+                        .map(Bukkit::getPlayer)
                         .filter(Objects::nonNull)
                         .map(Player::getName)
                         .filter(name -> name.toLowerCase().startsWith(prefix))
@@ -915,14 +1090,24 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
                 }
             }
 
-            if (args[0].equalsIgnoreCase("kick") || args[0].equalsIgnoreCase("promote")
-                    || args[0].equalsIgnoreCase("demote")) {
+            if (args[0].equalsIgnoreCase("tp")) {
+                return plugin.getIslandManager().getAllIslands().stream()
+                        .map(Island::getName)
+                        .filter(name -> name != null && !name.isEmpty())
+                        .filter(name -> name.toLowerCase().startsWith(prefix))
+                        .collect(Collectors.toList());
+            }
+
+            if (args[0].equalsIgnoreCase("remove")
+                    || args[0].equalsIgnoreCase("promote") || args[0].equalsIgnoreCase("demote")) {
                 Optional<Island> optionalIsland = plugin.getIslandManager().getIsland(player.getUniqueId());
                 if (optionalIsland.isPresent()) {
-                    return optionalIsland.get().getMembers().keySet().stream()
-                            .map(Bukkit::getPlayer)
+                    Island island = optionalIsland.get();
+                    IslandPermissionLevel executorRole = island.getMemberRole(player.getUniqueId());
+                    return island.getMembers().entrySet().stream()
+                            .filter(e -> e.getValue().getPermissionLevel() < executorRole.getPermissionLevel())
+                            .map(e -> getPlayerName(e.getKey()))
                             .filter(Objects::nonNull)
-                            .map(Player::getName)
                             .filter(name -> name.toLowerCase().startsWith(prefix))
                             .collect(Collectors.toList());
                 }

@@ -9,13 +9,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SQLiteManager {
 
     private final File dataFolder;
     private Connection connection;
+    private final Map<UUID, String> playerNameCache = new ConcurrentHashMap<>();
 
     public SQLiteManager(File dataFolder) {
         this.dataFolder = dataFolder;
@@ -50,24 +53,9 @@ public class SQLiteManager {
                 "radius INTEGER NOT NULL," +
                 "center_x INTEGER NOT NULL," +
                 "center_z INTEGER NOT NULL," +
-                "custom_home_x REAL DEFAULT 0," +
-                "custom_home_y REAL DEFAULT 0," +
-                "custom_home_z REAL DEFAULT 0," +
-                "has_custom_home BOOLEAN DEFAULT 0," +
-                "normal_home_x REAL DEFAULT 0," +
-                "normal_home_y REAL DEFAULT 0," +
-                "normal_home_z REAL DEFAULT 0," +
-                "has_normal_home BOOLEAN DEFAULT 0," +
-                "nether_home_x REAL DEFAULT 0," +
-                "nether_home_y REAL DEFAULT 0," +
-                "nether_home_z REAL DEFAULT 0," +
-                "has_nether_home BOOLEAN DEFAULT 0," +
-                "end_home_x REAL DEFAULT 0," +
-                "end_home_y REAL DEFAULT 0," +
-                "end_home_z REAL DEFAULT 0," +
-                "has_end_home BOOLEAN DEFAULT 0," +
                 "permissions TEXT DEFAULT '{}'," +
                 "settings TEXT DEFAULT '{}'," +
+                "home_data TEXT DEFAULT '{}'," +
                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                 ");";
 
@@ -85,6 +73,13 @@ public class SQLiteManager {
                 "border_enabled BOOLEAN DEFAULT 1" +
                 ");";
 
+        String createCoopsTable = "CREATE TABLE IF NOT EXISTS island_coops (" +
+                "island_id INTEGER," +
+                "player_uuid VARCHAR(36)," +
+                "PRIMARY KEY (island_id, player_uuid)," +
+                "FOREIGN KEY (island_id) REFERENCES islands(id) ON DELETE CASCADE" +
+                ");";
+
         String createPlayerStatsTable = "CREATE TABLE IF NOT EXISTS player_stats (" +
                 "player_uuid VARCHAR(36) PRIMARY KEY," +
                 "delete_count INTEGER DEFAULT 0" +
@@ -93,6 +88,7 @@ public class SQLiteManager {
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createIslandsTable);
             stmt.execute(createMembersTable);
+            stmt.execute(createCoopsTable);
             stmt.execute(createPlayersTable);
             stmt.execute(createPlayerStatsTable);
             MessageUtil.consolePrint("&a数据库表结构检查/创建完毕。");
@@ -142,6 +138,7 @@ public class SQLiteManager {
     // ==================== 玩家名称操作 ====================
 
     public void savePlayerName(UUID uuid, String playerName) {
+        playerNameCache.put(uuid, playerName);
         String sql = "INSERT OR REPLACE INTO players (player_uuid, player_name) VALUES (?, ?)";
         try (Connection conn = getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -155,13 +152,21 @@ public class SQLiteManager {
     }
 
     public Optional<String> getPlayerName(UUID uuid) {
+        // 优先从缓存获取
+        String cached = playerNameCache.get(uuid);
+        if (cached != null) {
+            return Optional.of(cached);
+        }
+        // 缓存未命中，从数据库加载
         String sql = "SELECT player_name FROM players WHERE player_uuid = ?";
         try (Connection conn = getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, uuid.toString());
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(rs.getString("player_name"));
+                    String name = rs.getString("player_name");
+                    playerNameCache.put(uuid, name);
+                    return Optional.of(name);
                 }
             }
         } catch (SQLException e) {
