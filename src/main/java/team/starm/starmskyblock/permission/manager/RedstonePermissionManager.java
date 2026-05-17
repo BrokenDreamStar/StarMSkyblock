@@ -3,7 +3,6 @@ package team.starm.starmskyblock.permission.manager;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.type.SculkSensor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -93,10 +92,7 @@ public class RedstonePermissionManager extends BasePermissionManager {
         if (!checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.SCULK_SENSOR_TRIGGER)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.SCULK_SENSOR_TRIGGER);
-            if (block.getBlockData() instanceof SculkSensor sensorData) {
-                sensorData.setSculkSensorPhase(SculkSensor.Phase.INACTIVE);
-                block.setBlockData(sensorData);
-            }
+            block.setBlockData(block.getBlockData(), true);
         }
     }
 

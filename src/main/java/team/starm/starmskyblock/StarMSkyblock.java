@@ -61,7 +61,7 @@ public class StarMSkyblock extends JavaPlugin {
         sqliteManager = new SQLiteManager(getDataFolder());
         sqliteManager.init();
 
-        // 初始化 FAWE 结构管理器
+        // 初始化 FAWE/WorldEdit 结构管理器
         schematicManager = new SchematicManager(new File(getDataFolder(), "schematics"), getLogger());
 
         // 初始化网格系统和岛屿管理器
@@ -77,6 +77,12 @@ public class StarMSkyblock extends JavaPlugin {
         // 初始化权限协调器
         permissionCoordinator = new IslandPermissionManager(
                 islandManager, configManager, this);
+
+        // 注册 PlaceholderAPI 扩展
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new team.starm.starmskyblock.placeholder.SkyblockExpansion(this).register();
+            getLogger().info("已注册 PlaceholderAPI 扩展");
+        }
 
         // 提前创建或加载空岛世界
         worldManager.getOrCreateSkyblockWorld();

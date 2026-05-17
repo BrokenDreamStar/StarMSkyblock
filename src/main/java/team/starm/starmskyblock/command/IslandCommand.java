@@ -20,6 +20,7 @@ import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.permission.manager.ManagementPermissionManager;
 import team.starm.starmskyblock.message.MessageUtil;
+import team.starm.starmskyblock.util.ColorUtil;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
 import java.util.ArrayList;
@@ -63,6 +64,23 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        // 提取 -s 静默标记
+        boolean silent = args.length > 0 && (args[args.length - 1].equals("-s"));
+        if (silent) {
+            args = java.util.Arrays.copyOf(args, args.length - 1);
+            ColorUtil.setSilent(player.getUniqueId(), true);
+        }
+
+        try {
+            return handleCommand(player, args);
+        } finally {
+            if (silent) {
+                ColorUtil.setSilent(player.getUniqueId(), false);
+            }
+        }
+    }
+
+    private boolean handleCommand(Player player, String[] args) {
         IslandManager islandManager = plugin.getIslandManager();
         SkyblockWorldManager worldManager = plugin.getWorldManager();
 
@@ -658,7 +676,6 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             Island island = optionalIsland.get();
             IslandPermissionLevel playerRole = island.getMemberRole(player.getUniqueId());
             MessageUtil.sendMessage(player, "&a你的岛屿角色: &e" + playerRole.getDisplayName());
-            MessageUtil.sendMessage(player, "&a权限描述: &7" + playerRole.getDescription());
             return true;
         }
 

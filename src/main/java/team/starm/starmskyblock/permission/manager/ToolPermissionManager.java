@@ -91,7 +91,7 @@ public class ToolPermissionManager extends BasePermissionManager {
         Material toolType = item.getType();
 
         // 弓/弩只处理右键
-        if ((toolType == Material.BOW || toolType == Material.CROSSBOW) && !action.isRightClick()) {
+        if ((toolType == Material.BOW || toolType == Material.CROSSBOW) && action != Action.RIGHT_CLICK_BLOCK && action != Action.RIGHT_CLICK_AIR) {
             return;
         }
 
@@ -159,7 +159,7 @@ public class ToolPermissionManager extends BasePermissionManager {
             }
         }
 
-        if (permission == null && (toolType == Material.BOW || toolType == Material.CROSSBOW) && action.isRightClick()) {
+        if (permission == null && (toolType == Material.BOW || toolType == Material.CROSSBOW) && (action == Action.RIGHT_CLICK_BLOCK || action == Action.RIGHT_CLICK_AIR)) {
             permission = IslandPermission.BOW_USE;
         }
 
@@ -168,13 +168,13 @@ public class ToolPermissionManager extends BasePermissionManager {
                 || toolType == Material.GLASS_BOTTLE || toolType == Material.SHEARS
                 || toolType == Material.BRUSH || toolType == Material.LEAD;
 
-        if (permission == null && !isHandledTool && action.isRightClick()) {
+        if (permission == null && !isHandledTool && (action == Action.RIGHT_CLICK_BLOCK || action == Action.RIGHT_CLICK_AIR)) {
             permission = getToolPermission(toolType);
         }
 
         if (permission != null && !checkPermission(loc, player.getUniqueId(), permission)) {
             event.setCancelled(true);
-            if (action.isRightClick()) {
+            if (action == Action.RIGHT_CLICK_BLOCK || action == Action.RIGHT_CLICK_AIR) {
                 event.setUseItemInHand(PlayerInteractEvent.Result.DENY);
                 if (action == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null) {
                     event.setUseInteractedBlock(PlayerInteractEvent.Result.DENY);
@@ -242,11 +242,11 @@ public class ToolPermissionManager extends BasePermissionManager {
 
             ItemStack consumable = event.getConsumable();
             int originalSlot = -1;
-            if (consumable != null && !consumable.isEmpty()) {
+            if (consumable != null && consumable.getType() != Material.AIR) {
                 originalSlot = findAmmoSlot(player, consumable);
             }
 
-            if (consumable != null && !consumable.isEmpty()) {
+            if (consumable != null && consumable.getType() != Material.AIR) {
                 boolean isCreative = player.getGameMode() == GameMode.CREATIVE;
                 ItemStack bow = event.getBow();
                 boolean hasInfinity = bow != null && bow.containsEnchantment(Enchantment.INFINITY);
@@ -282,7 +282,7 @@ public class ToolPermissionManager extends BasePermissionManager {
         }
 
         ItemStack item = player.getInventory().getItem(event.getHand());
-        if (item.isEmpty()) {
+        if (item.getType().isAir()) {
             return;
         }
 
@@ -425,7 +425,7 @@ public class ToolPermissionManager extends BasePermissionManager {
      * 在事件取消后将消耗品返还给玩家，优先放回原槽位，若原槽位已满则尝试合并或放入空位
      */
     private void restoreConsumable(Player player, int originalSlot, ItemStack itemToRestore) {
-        if (itemToRestore == null || itemToRestore.isEmpty()) {
+        if (itemToRestore == null || itemToRestore.getType().isAir()) {
             return;
         }
         PlayerInventory inv = player.getInventory();
@@ -508,7 +508,7 @@ public class ToolPermissionManager extends BasePermissionManager {
                     || entityType == EntityType.SKELETON_HORSE || entityType == EntityType.HAPPY_GHAST;
 
             ItemStack saddleItem = equipment.getItem(EquipmentSlot.SADDLE);
-            if (!saddleItem.isEmpty() && saddleItem.getType() == Material.SADDLE) {
+            if (saddleItem.getType() != Material.AIR && saddleItem.getType() == Material.SADDLE) {
                 if (Tag.ENTITY_TYPES_CAN_EQUIP_SADDLE.isTagged(entityType)) {
                     if (isTamedCheckPassed || entity instanceof Steerable) {
                         return true;
@@ -517,14 +517,14 @@ public class ToolPermissionManager extends BasePermissionManager {
             }
 
             ItemStack bodyItem = equipment.getItem(EquipmentSlot.BODY);
-            if (!bodyItem.isEmpty()) {
+            if (bodyItem.getType() != Material.AIR) {
                 Material type = bodyItem.getType();
                 if (isTamedCheckPassed) {
                     if (ItemTags.HORSE_ARMORS.contains(type) && Tag.ENTITY_TYPES_CAN_WEAR_HORSE_ARMOR.isTagged(entityType)) {
                         return true;
                     } else if (ItemTags.NAUTILUS_ARMORS.contains(type) && Tag.ENTITY_TYPES_CAN_WEAR_NAUTILUS_ARMOR.isTagged(entityType)) {
                         return true;
-                    } else if (Tag.ITEMS_WOOL_CARPETS.isTagged(type) && entity instanceof Llama) {
+                    } else if (Tag.WOOL_CARPETS.isTagged(type) && entity instanceof Llama) {
                         return true;
                     } else if (Tag.ITEMS_HARNESSES.isTagged(type) && entity instanceof HappyGhast) {
                         return true;

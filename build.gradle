@@ -21,7 +21,10 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:26.1.2-R0.1-SNAPSHOT'
+
+    // Adventure（部分序列化模块需要显式声明）
+    compileOnly 'net.kyori:adventure-text-serializer-legacy:4.19.0'
     
     // Gson（运行时服务器自带，编译时需要）
     compileOnly 'com.google.code.gson:gson:2.11.0'
@@ -29,9 +32,11 @@ dependencies {
     // SQLite JDBC 驱动（编译时需要，运行时服务器自带）
     compileOnly 'org.xerial:sqlite-jdbc:3.46.1.0'
     
-    // FastAsyncWorldEdit API
-    compileOnly 'com.fastasyncworldedit:FastAsyncWorldEdit-Core:2.12.3'
-    compileOnly 'com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit:2.12.3'
+    // WorldEdit API（可选，运行时需要 WorldEdit 或 FAWE 插件）
+    compileOnly 'com.sk89q.worldedit:worldedit-bukkit:7.4.2'
+
+    // PlaceholderAPI
+    compileOnly 'me.clip:placeholderapi:2.11.6'
 }
 
 tasks.withType(JavaCompile).configureEach {

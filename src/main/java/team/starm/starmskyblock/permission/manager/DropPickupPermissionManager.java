@@ -1,7 +1,5 @@
 package team.starm.starmskyblock.permission.manager;
 
-import com.destroystokyo.paper.event.player.PlayerPickupExperienceEvent;
-
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -48,15 +46,4 @@ public class DropPickupPermissionManager extends BasePermissionManager {
         }
     }
 
-    /**
-     * 监听拾取经验球事件
-     */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onPlayerPickupExp(PlayerPickupExperienceEvent event) {
-        Player player = event.getPlayer();
-        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.EXP_PICKUP)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.EXP_PICKUP);
-        }
-    }
 }

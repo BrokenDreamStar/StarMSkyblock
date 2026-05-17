@@ -11,10 +11,10 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
-import com.sk89q.worldedit.session.ClipboardHolder;
-import com.sk89q.worldedit.world.block.BlockTypes;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldedit.session.ClipboardHolder;
+import com.sk89q.worldedit.world.block.BlockTypes;
 import org.bukkit.World;
 
 import java.io.File;
@@ -59,7 +59,6 @@ public class SchematicManager {
         try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
             Clipboard clipboard = reader.read();
 
-            // 遍历结构寻找基岩方块
             BlockVector3 bedrockLoc = null;
             for (BlockVector3 pos : clipboard.getRegion()) {
                 if (clipboard.getBlock(pos).getBlockType().equals(BlockTypes.BEDROCK)) {
@@ -102,7 +101,7 @@ public class SchematicManager {
             Operations.complete(operation);
             return true;
         } catch (WorldEditException e) {
-            logger.severe("粘贴岛屿结构时发生 FAWE 错误！");
+            logger.severe("粘贴岛屿结构时发生 WorldEdit 错误！");
             e.printStackTrace();
             return false;
         }
@@ -117,7 +116,7 @@ public class SchematicManager {
             editSession.setBlocks((Region) region, BlockTypes.AIR.getDefaultState());
             return true;
         } catch (Exception e) {
-            logger.severe("清空区域方块时发生 FAWE 错误！");
+            logger.severe("清空区域方块时发生 WorldEdit 错误！");
             e.printStackTrace();
             return false;
         }

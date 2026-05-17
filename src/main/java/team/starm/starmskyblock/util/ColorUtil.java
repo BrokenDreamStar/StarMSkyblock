@@ -4,13 +4,20 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * 基于 Adventure API 的高级颜色工具类 (修复版)
  */
 public class ColorUtil {
+
+    private static final Set<UUID> SILENT_PLAYERS = new HashSet<>();
 
     // 支持传统的 & 颜色代码和 Hex 颜色
     private static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.builder()
@@ -39,11 +46,32 @@ public class ColorUtil {
     }
 
     /**
-     * 发送彩色消息给发送者
+     * 发送彩色消息给发送者（静默模式下自动跳过玩家消息）
+     * 注意：Spigot API 的 CommandSender 没有 sendMessage(Component) 方法，
+     * 需转为旧版 § 字符串后发送。
      */
     public static void sendMessage(@NotNull CommandSender sender, @Nullable String message) {
         if (message == null) return;
-        sender.sendMessage(parse(message));
+        if (sender instanceof Player && SILENT_PLAYERS.contains(((Player) sender).getUniqueId())) return;
+        sender.sendMessage(colorize(message));
+    }
+
+    /**
+     * 设置玩家是否进入静默模式（不接收命令反馈消息）
+     */
+    public static void setSilent(@NotNull UUID playerUuid, boolean silent) {
+        if (silent) {
+            SILENT_PLAYERS.add(playerUuid);
+        } else {
+            SILENT_PLAYERS.remove(playerUuid);
+        }
+    }
+
+    /**
+     * 检查玩家是否处于静默模式
+     */
+    public static boolean isSilent(@NotNull UUID playerUuid) {
+        return SILENT_PLAYERS.contains(playerUuid);
     }
 
     /**
@@ -51,16 +79,15 @@ public class ColorUtil {
      */
     public static void broadcast(@Nullable String message) {
         if (message == null) return;
-        Bukkit.broadcast(parse(message));
+        Bukkit.broadcastMessage(colorize(message));
     }
 
     /**
      * 向控制台打印彩色日志
-     * 使用 Bukkit.getConsoleSender().sendMessage 确保 Adventure 自动渲染 ANSI 颜色
      */
     public static void consolePrint(@Nullable String text) {
         if (text == null) return;
-        Bukkit.getConsoleSender().sendMessage(parse(text));
+        Bukkit.getConsoleSender().sendMessage(colorize(text));
     }
 
     /**
@@ -68,7 +95,6 @@ public class ColorUtil {
      */
     public static void consoleError(@Nullable String text) {
         if (text == null) return;
-        // 使用 &c 前缀确保红色显示
-        Bukkit.getConsoleSender().sendMessage(parse("&c[ERROR] " + text));
+        Bukkit.getConsoleSender().sendMessage(colorize("&c[ERROR] " + text));
     }
 }

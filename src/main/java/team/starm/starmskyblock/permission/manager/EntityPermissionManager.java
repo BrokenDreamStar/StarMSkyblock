@@ -151,7 +151,7 @@ public class EntityPermissionManager extends BasePermissionManager {
                 targetSlot = EquipmentSlot.BODY;
             } else if (ItemTags.NAUTILUS_ARMORS.contains(item.getType()) && Tag.ENTITY_TYPES_CAN_WEAR_NAUTILUS_ARMOR.isTagged(entityType)) {
                 targetSlot = EquipmentSlot.BODY;
-            } else if (Tag.ITEMS_WOOL_CARPETS.isTagged(item.getType()) && entity instanceof Llama) {
+            } else if (Tag.WOOL_CARPETS.isTagged(item.getType()) && entity instanceof Llama) {
                 targetSlot = EquipmentSlot.BODY;
             } else if (Tag.ITEMS_HARNESSES.isTagged(item.getType()) && entity instanceof HappyGhast) {
                 targetSlot = EquipmentSlot.BODY;
@@ -160,7 +160,7 @@ public class EntityPermissionManager extends BasePermissionManager {
             }
         }
 
-        if ((targetSlot != null && equipment.getItem(targetSlot).isEmpty()) || isEquippingChest) {
+        if ((targetSlot != null && equipment.getItem(targetSlot).getType().isAir()) || isEquippingChest) {
             if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.ENTITY_EQUIP)) {
                 event.setCancelled(true);
                 sendDenyMessage(player, IslandPermission.ENTITY_EQUIP);

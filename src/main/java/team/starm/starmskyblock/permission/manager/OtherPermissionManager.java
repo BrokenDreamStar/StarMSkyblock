@@ -1,7 +1,5 @@
 package team.starm.starmskyblock.permission.manager;
 
-import io.papermc.paper.event.player.PlayerOpenSignEvent;
-
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
@@ -74,19 +72,6 @@ public class OtherPermissionManager extends BasePermissionManager {
                 event.setCancelled(true);
                 sendDenyMessage(player, permission);
             }
-        }
-    }
-
-    /**
-     * 监听打开告示牌编辑GUI行为
-     */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onSignOpen(PlayerOpenSignEvent event) {
-        Player player = event.getPlayer();
-        Block block = event.getSign().getBlock();
-        if (!checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.SIGN_EDIT)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.SIGN_EDIT);
         }
     }
 

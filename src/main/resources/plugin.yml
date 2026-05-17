@@ -2,8 +2,9 @@ name: StarMSkyblock
 version: '1.0.0'
 
 main: team.starm.starmskyblock.StarMSkyblock
-api-version: '1.21.11'
+api-version: '26.1.2'
 load: POSTWORLD
+softdepend: [PlaceholderAPI, WorldEdit]
 
 authors: [BrokenDream_Star,Gemini,Grok,DeepSeek]
 website: https://starm.team/

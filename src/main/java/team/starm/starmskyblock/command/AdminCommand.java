@@ -6,10 +6,12 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.message.MessageUtil;
+import team.starm.starmskyblock.util.ColorUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +33,25 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        // 提取 -s 静默标记
+        boolean silent = args.length > 0 && (args[args.length - 1].equals("-s"));
+        if (silent) {
+            args = java.util.Arrays.copyOf(args, args.length - 1);
+            if (sender instanceof Player) {
+                ColorUtil.setSilent(((Player) sender).getUniqueId(), true);
+            }
+        }
+
+        try {
+            return handleCommand(sender, args);
+        } finally {
+            if (silent && sender instanceof Player) {
+                ColorUtil.setSilent(((Player) sender).getUniqueId(), false);
+            }
+        }
+    }
+
+    private boolean handleCommand(CommandSender sender, String[] args) {
         if (args.length < 3) {
             MessageUtil.sendMessage(sender, "&c用法: /isadmin setradius <岛主ID> <新半径>");
             return true;

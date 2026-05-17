@@ -38,8 +38,10 @@ public class IslandPermissionCommand {
         }
 
         if (args.length < 2) {
-            MessageUtil.sendMessage(player, "&c用法: /is permission <权限> [角色/等级]");
+            MessageUtil.sendMessage(player, "&c用法: /is permission <权限> [角色/等级/cycle/rcycle]");
             MessageUtil.sendMessage(player, "&c示例: /is permission build 2");
+            MessageUtil.sendMessage(player, "&c示例: /is permission build cycle — 0→1→2→3→4→5→0 循环");
+            MessageUtil.sendMessage(player, "&c示例: /is permission build rcycle — 5→4→3→2→1→0→5 循环");
             MessageUtil.sendMessage(player, "&c查询当前配置: /is permission build");
             return true;
         }
@@ -95,6 +97,14 @@ public class IslandPermissionCommand {
             return true;
         }
 
+        // 循环模式
+        if (roleInput.equalsIgnoreCase("cycle")) {
+            return cyclePermissionLevel(player, island, permission, permissionInput, true);
+        }
+        if (roleInput.equalsIgnoreCase("rcycle")) {
+            return cyclePermissionLevel(player, island, permission, permissionInput, false);
+        }
+
         IslandPermissionLevel targetRole = parseTargetRole(roleInput);
         if (targetRole == null) {
             MessageUtil.sendMessage(player, "&c无效的角色: " + roleInput);
@@ -117,6 +127,34 @@ public class IslandPermissionCommand {
         islandManager.setPermissionMinLevel(island.getId(), permission, targetLevel);
 
         sendPermissionUpdateMessage(player, permission, permissionInput, targetRole, targetLevel);
+        return true;
+    }
+
+    private boolean cyclePermissionLevel(Player player, Island island, IslandPermission permission,
+                                          String permissionInput, boolean forward) {
+        IslandManager islandManager = plugin.getIslandManager();
+
+        Integer currentLevel = island.getPermissionMinLevel(permission);
+        if (currentLevel == null) {
+            currentLevel = island.getPermissionMinLevel(IslandPermission.ALL);
+        }
+        if (currentLevel == null) {
+            currentLevel = IslandPermissionLevel.OWNER.getPermissionLevel();
+        }
+
+        int nextLevel = forward ? (currentLevel + 1) % 6 : (currentLevel + 5) % 6;
+
+        IslandPermissionLevel targetRole = null;
+        for (IslandPermissionLevel r : IslandPermissionLevel.values()) {
+            if (r.getPermissionLevel() == nextLevel) {
+                targetRole = r;
+                break;
+            }
+        }
+
+        islandManager.setPermissionMinLevel(island.getId(), permission, nextLevel);
+
+        sendPermissionUpdateMessage(player, permission, permissionInput, targetRole, nextLevel);
         return true;
     }
 
@@ -280,6 +318,13 @@ public class IslandPermissionCommand {
         if (args.length == 3 && args[0].equalsIgnoreCase("permission")) {
             String prefix = args[2].toLowerCase();
             List<String> completions = new ArrayList<>();
+
+            if ("cycle".startsWith(prefix)) {
+                completions.add("CYCLE");
+            }
+            if ("rcycle".startsWith(prefix)) {
+                completions.add("RCYCLE");
+            }
 
             for (IslandPermissionLevel role : IslandPermissionLevel.values()) {
                 if (role.name().toLowerCase().startsWith(prefix)) {

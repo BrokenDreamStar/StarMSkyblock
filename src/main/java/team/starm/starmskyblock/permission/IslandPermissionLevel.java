@@ -4,21 +4,19 @@ import java.util.EnumSet;
 import java.util.Set;
 
 public enum IslandPermissionLevel {
-    OWNER("岛主", 5, "拥有岛屿的完全控制权"),
-    ADMIN("管理员", 4, "可以管理成员和大部分岛屿设置"),
-    MOD("风纪委员", 3, "可以管理部分岛屿设置"),
-    MEMBER("岛员", 2, "普通成员，拥有基本权限"),
-    COOP("合作者", 1, "临时合作者，权限有限"),
-    VISITOR("访客", 0, "只读访问权限");
+    OWNER("岛主", 5),
+    ADMIN("管理员", 4),
+    MOD("风纪委员", 3),
+    MEMBER("岛员", 2),
+    COOP("合作者", 1),
+    VISITOR("访客", 0);
 
     private final String displayName;
     private final int permissionLevel;
-    private final String description;
 
-    IslandPermissionLevel(String displayName, int permissionLevel, String description) {
+    IslandPermissionLevel(String displayName, int permissionLevel) {
         this.displayName = displayName;
         this.permissionLevel = permissionLevel;
-        this.description = description;
     }
 
     public String getDisplayName() {
@@ -27,10 +25,6 @@ public enum IslandPermissionLevel {
 
     public int getPermissionLevel() {
         return permissionLevel;
-    }
-
-    public String getDescription() {
-        return description;
     }
 
     // 保留：用于从配置文件(YAML)解析等级字符串
