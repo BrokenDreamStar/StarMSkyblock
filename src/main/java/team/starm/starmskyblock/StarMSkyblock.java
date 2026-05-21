@@ -98,7 +98,7 @@ public class StarMSkyblock extends JavaPlugin {
         // 注册事件监听器
         borderListener = new BorderListener(islandManager, worldManager, sqliteManager);
         getServer().getPluginManager().registerEvents(borderListener, this);
-        getServer().getPluginManager().registerEvents(new PortalListener(configManager, worldManager, islandManager), this);
+        getServer().getPluginManager().registerEvents(new PortalListener(configManager, worldManager, islandManager, sqliteManager), this);
         // 初始化设置管理器（会自动注册所有子监听器）
         new IslandSettingManager(islandManager, configManager, this);
 

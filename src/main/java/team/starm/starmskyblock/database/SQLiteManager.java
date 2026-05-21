@@ -19,6 +19,7 @@ public class SQLiteManager {
     private final File dataFolder;
     private Connection connection;
     private final Map<UUID, String> playerNameCache = new ConcurrentHashMap<>();
+    private final Map<UUID, Boolean> firstNetherJoinCache = new ConcurrentHashMap<>();
 
     public SQLiteManager(File dataFolder) {
         this.dataFolder = dataFolder;
@@ -70,7 +71,8 @@ public class SQLiteManager {
         String createPlayersTable = "CREATE TABLE IF NOT EXISTS players (" +
                 "player_uuid VARCHAR(36) PRIMARY KEY," +
                 "player_name VARCHAR(16) NOT NULL," +
-                "border_enabled BOOLEAN DEFAULT 1" +
+                "border_enabled BOOLEAN DEFAULT 1," +
+                "first_nether_join BOOLEAN DEFAULT 1" +
                 ");";
 
         String createCoopsTable = "CREATE TABLE IF NOT EXISTS island_coops (" +
@@ -100,6 +102,7 @@ public class SQLiteManager {
 
     private void migrate() {
         migrateAddIslandColumns();
+        migrateAddPlayerColumns();
     }
 
     private void migrateAddIslandColumns() {
@@ -135,11 +138,31 @@ public class SQLiteManager {
         }
     }
 
+    private void migrateAddPlayerColumns() {
+        try (Statement stmt = connection.createStatement()) {
+            var rs = stmt.executeQuery("PRAGMA table_info(players)");
+            boolean hasFirstNetherJoin = false;
+            while (rs.next()) {
+                String colName = rs.getString("name");
+                if ("first_nether_join".equalsIgnoreCase(colName)) hasFirstNetherJoin = true;
+            }
+            rs.close();
+            if (!hasFirstNetherJoin) {
+                stmt.execute("ALTER TABLE players ADD COLUMN first_nether_join BOOLEAN DEFAULT 1");
+                MessageUtil.consolePrint("&a数据库迁移：已添加 first_nether_join 列到 players 表。");
+            }
+        } catch (SQLException e) {
+            MessageUtil.consoleError("&c数据库迁移检查 players 列失败！");
+            e.printStackTrace();
+        }
+    }
+
     // ==================== 玩家名称操作 ====================
 
     public void savePlayerName(UUID uuid, String playerName) {
         playerNameCache.put(uuid, playerName);
-        String sql = "INSERT OR REPLACE INTO players (player_uuid, player_name) VALUES (?, ?)";
+        String sql = "INSERT INTO players (player_uuid, player_name) VALUES (?, ?) " +
+                "ON CONFLICT(player_uuid) DO UPDATE SET player_name = excluded.player_name";
         try (Connection conn = getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, uuid.toString());
@@ -212,6 +235,54 @@ public class SQLiteManager {
             }
         } catch (SQLException e) {
             MessageUtil.consoleError("&c保存边界开关状态失败！UUID: " + playerUuid);
+            e.printStackTrace();
+        }
+    }
+
+    // ==================== 首次进入下界操作 ====================
+
+    public boolean isFirstNetherJoin(UUID playerUuid) {
+        Boolean cached = firstNetherJoinCache.get(playerUuid);
+        if (cached != null) {
+            return cached;
+        }
+        String sql = "SELECT first_nether_join FROM players WHERE player_uuid = ?";
+        try (Connection conn = getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, playerUuid.toString());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    boolean value = rs.getBoolean("first_nether_join");
+                    firstNetherJoinCache.put(playerUuid, value);
+                    return value;
+                }
+            }
+        } catch (SQLException e) {
+            MessageUtil.consoleError("&c获取首次进入下界状态失败！UUID: " + playerUuid);
+            e.printStackTrace();
+        }
+        firstNetherJoinCache.put(playerUuid, true);
+        return true;
+    }
+
+    public void setFirstNetherJoin(UUID playerUuid, boolean firstJoin) {
+        firstNetherJoinCache.put(playerUuid, firstJoin);
+        String updateSql = "UPDATE players SET first_nether_join = ? WHERE player_uuid = ?";
+        try (Connection conn = getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
+            pstmt.setBoolean(1, firstJoin);
+            pstmt.setString(2, playerUuid.toString());
+            int affected = pstmt.executeUpdate();
+            if (affected == 0) {
+                String insertSql = "INSERT INTO players (player_uuid, player_name, first_nether_join) VALUES (?, '', ?)";
+                try (PreparedStatement insertPstmt = conn.prepareStatement(insertSql)) {
+                    insertPstmt.setString(1, playerUuid.toString());
+                    insertPstmt.setBoolean(2, firstJoin);
+                    insertPstmt.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            MessageUtil.consoleError("&c保存首次进入下界状态失败！UUID: " + playerUuid);
             e.printStackTrace();
         }
     }

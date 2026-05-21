@@ -1,13 +1,17 @@
 package team.starm.starmskyblock.listener;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import team.starm.starmskyblock.config.ConfigManager;
+import team.starm.starmskyblock.database.SQLiteManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
@@ -19,11 +23,13 @@ public class PortalListener implements Listener {
     private final ConfigManager configManager;
     private final SkyblockWorldManager worldManager;
     private final IslandManager islandManager;
+    private final SQLiteManager sqliteManager;
 
-    public PortalListener(ConfigManager configManager, SkyblockWorldManager worldManager, IslandManager islandManager) {
+    public PortalListener(ConfigManager configManager, SkyblockWorldManager worldManager, IslandManager islandManager, SQLiteManager sqliteManager) {
         this.configManager = configManager;
         this.worldManager = worldManager;
         this.islandManager = islandManager;
+        this.sqliteManager = sqliteManager;
     }
 
     @EventHandler
@@ -39,6 +45,81 @@ public class PortalListener implements Listener {
             handleNetherPortal(event, player, fromWorld);
         } else if (cause == TeleportCause.END_PORTAL) {
             handleEndPortal(event, player, fromWorld);
+        }
+    }
+
+    @EventHandler
+    public void onEntityPortal(EntityPortalEvent event) {
+        Entity entity = event.getEntity();
+        if (entity instanceof Player) return;
+        Location from = event.getFrom();
+        World fromWorld = from.getWorld();
+        if (fromWorld == null) return;
+
+        String normalName = configManager.getWorldNameNormal();
+        String netherName = configManager.getWorldNameNether();
+        String worldName = fromWorld.getName();
+
+        boolean fromNormal = worldName.equals(normalName);
+        boolean fromNether = worldName.equals(netherName);
+
+        if (!fromNormal && !fromNether) return;
+
+        // 查找实体所在区块属于哪个岛屿
+        int chunkX = from.getChunk().getX();
+        int chunkZ = from.getChunk().getZ();
+        Optional<Island> optionalIsland = islandManager.getIslandAt(chunkX, chunkZ);
+        if (optionalIsland.isEmpty()) {
+            optionalIsland = islandManager.getIslandAtMaxRange(chunkX, chunkZ);
+        }
+        if (optionalIsland.isEmpty()) {
+            event.setCancelled(true);
+            return;
+        }
+
+        Island island = optionalIsland.get();
+        World targetWorld = fromNormal
+                ? worldManager.getOrCreateSkyblockNether()
+                : worldManager.getOrCreateSkyblockWorld();
+        if (targetWorld == null) {
+            event.setCancelled(true);
+            return;
+        }
+
+        Location targetLoc = event.getTo();
+        if (targetLoc == null) {
+            targetLoc = fromNormal
+                    ? calculateNetherPortalLocation(from, targetWorld)
+                    : calculateOverworldPortalLocation(from, targetWorld);
+        } else {
+            targetLoc = new Location(targetWorld, targetLoc.getX(), targetLoc.getY(), targetLoc.getZ(),
+                    targetLoc.getYaw(), targetLoc.getPitch());
+        }
+
+        String boundsMsg = checkIslandBounds(targetLoc, island);
+        if (boundsMsg != null) {
+            event.setCancelled(true);
+            notifyIslandMembers(island, from, targetLoc);
+            return;
+        }
+
+        event.setTo(targetLoc);
+    }
+
+    private void notifyIslandMembers(Island island, Location portalLoc, Location targetLoc) {
+        int chunkX = targetLoc.getBlockX() >> 4;
+        int chunkZ = targetLoc.getBlockZ() >> 4;
+        String reason = island.isChunkWithinMaxRange(chunkX, chunkZ) ? "区域未解锁" : "超出岛屿范围";
+        String msg = "§c[岛屿] 有实体在 (" + portalLoc.getBlockX() + ", " + portalLoc.getBlockY() + ", " + portalLoc.getBlockZ() + ") 尝试创建下界传送门但" + reason + "！";
+        island.getMembers().keySet().forEach(uuid -> {
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null && p.isOnline()) {
+                p.sendMessage(msg);
+            }
+        });
+        Player owner = Bukkit.getPlayer(island.getOwnerId());
+        if (owner != null && owner.isOnline()) {
+            owner.sendMessage(msg);
         }
     }
 
@@ -64,9 +145,25 @@ public class PortalListener implements Listener {
         World targetWorld = worldManager.getOrCreateSkyblockNether();
         if (targetWorld == null) return;
 
-        Location targetLoc = calculateNetherPortalLocation(event.getFrom(), targetWorld);
-        if (!isLocationWithinIsland(targetLoc, island)) {
-            player.sendMessage("§c无法创建传送门：目标位置超出你的岛屿范围！");
+        // 首次进入下界：传送到岛屿下界出生点
+        if (sqliteManager.isFirstNetherJoin(player.getUniqueId())) {
+            Location spawnLoc = getIslandLocation(island, targetWorld);
+            event.setTo(spawnLoc);
+            sqliteManager.setFirstNetherJoin(player.getUniqueId(), false);
+            player.sendMessage("§a欢迎来到下界！这是你第一次进入，已将你传送到岛屿下界出生点。");
+            return;
+        }
+
+        Location targetLoc = event.getTo();
+        if (targetLoc == null) {
+            targetLoc = calculateNetherPortalLocation(event.getFrom(), targetWorld);
+        } else {
+            targetLoc = new Location(targetWorld, targetLoc.getX(), targetLoc.getY(), targetLoc.getZ(),
+                    targetLoc.getYaw(), targetLoc.getPitch());
+        }
+        String msg = checkIslandBounds(targetLoc, island);
+        if (msg != null) {
+            player.sendMessage(msg);
             event.setCancelled(true);
             return;
         }
@@ -77,9 +174,16 @@ public class PortalListener implements Listener {
         World targetWorld = worldManager.getOrCreateSkyblockWorld();
         if (targetWorld == null) return;
 
-        Location targetLoc = calculateOverworldPortalLocation(event.getFrom(), targetWorld);
-        if (!isLocationWithinIsland(targetLoc, island)) {
-            player.sendMessage("§c无法创建传送门：目标位置超出你的岛屿范围！");
+        Location targetLoc = event.getTo();
+        if (targetLoc == null) {
+            targetLoc = calculateOverworldPortalLocation(event.getFrom(), targetWorld);
+        } else {
+            targetLoc = new Location(targetWorld, targetLoc.getX(), targetLoc.getY(), targetLoc.getZ(),
+                    targetLoc.getYaw(), targetLoc.getPitch());
+        }
+        String msg = checkIslandBounds(targetLoc, island);
+        if (msg != null) {
+            player.sendMessage(msg);
             event.setCancelled(true);
             return;
         }
@@ -96,10 +200,19 @@ public class PortalListener implements Listener {
                 from.getYaw(), from.getPitch());
     }
 
-    private boolean isLocationWithinIsland(Location location, Island island) {
-        int chunkX = location.getChunk().getX();
-        int chunkZ = location.getChunk().getZ();
-        return island.isChunkWithinIsland(chunkX, chunkZ);
+    /**
+     * @return null 如果目标在岛屿已解锁区域内，否则返回提示消息
+     */
+    private String checkIslandBounds(Location location, Island island) {
+        int chunkX = location.getBlockX() >> 4;
+        int chunkZ = location.getBlockZ() >> 4;
+        if (island.isChunkWithinIsland(chunkX, chunkZ)) {
+            return null;
+        }
+        if (island.isChunkWithinMaxRange(chunkX, chunkZ)) {
+            return "§c无法创建传送门：目标位置岛屿区域未解锁！";
+        }
+        return "§c无法创建传送门：目标位置超出你的岛屿范围！";
     }
 
     // ==================== 末地传送门 ====================

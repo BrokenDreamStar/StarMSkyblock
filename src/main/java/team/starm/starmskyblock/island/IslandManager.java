@@ -32,6 +32,8 @@ public class IslandManager {
 
     private final Map<Integer, Island> islandsById = new HashMap<>();
     private final Map<UUID, Island> islandsByOwner = new HashMap<>();
+    // 网格空间索引：grid cell key → island id，实现 O(1) 区块→岛屿查询
+    private final Map<Long, Integer> islandGridIndex = new HashMap<>();
     private int nextIslandId = 0; // 新建岛屿时分配的下一个螺旋网格ID
 
     public IslandManager(ConfigManager configManager, PermissionConfigManager permissionConfigManager,
@@ -129,6 +131,7 @@ public class IslandManager {
 
                 islandsById.put(id, island);
                 islandsByOwner.put(ownerId, island);
+                addToGridIndex(island);
 
                 if (id > maxId) {
                     maxId = id;
@@ -200,6 +203,7 @@ public class IslandManager {
 
             islandsById.put(islandId, island);
             islandsByOwner.put(ownerId, island);
+            addToGridIndex(island);
 
             logger.info("岛屿已创建并保存至数据库！ID: " + islandId + "，中心区块坐标: " + location);
         } catch (SQLException e) {
@@ -705,12 +709,33 @@ public class IslandManager {
 
     // ==================== 岛屿区块查询 ====================
 
+    private void addToGridIndex(Island island) {
+        int gx = island.getCenterChunkX() / gridManager.getGridCellSize();
+        int gz = island.getCenterChunkZ() / gridManager.getGridCellSize();
+        long key = (((long) gx) << 32) | (gz & 0xffffffffL);
+        islandGridIndex.put(key, island.getId());
+    }
+
+    private void removeFromGridIndex(Island island) {
+        int gx = island.getCenterChunkX() / gridManager.getGridCellSize();
+        int gz = island.getCenterChunkZ() / gridManager.getGridCellSize();
+        long key = (((long) gx) << 32) | (gz & 0xffffffffL);
+        islandGridIndex.remove(key);
+    }
+
     /**
      * 根据区块坐标获取该位置所属的岛屿（使用岛屿当前半径）
+     * O(1) 网格空间索引查找，不遍历所有岛屿。
      */
     public Optional<Island> getIslandAt(int chunkX, int chunkZ) {
-        for (Island island : islandsById.values()) {
-            if (island.isChunkWithinIsland(chunkX, chunkZ)) {
+        int cellSize = gridManager.getGridCellSize();
+        int gx = (int) Math.round((double) chunkX / cellSize);
+        int gz = (int) Math.round((double) chunkZ / cellSize);
+        long key = (((long) gx) << 32) | (gz & 0xffffffffL);
+        Integer id = islandGridIndex.get(key);
+        if (id != null) {
+            Island island = islandsById.get(id);
+            if (island != null && island.isChunkWithinIsland(chunkX, chunkZ)) {
                 return Optional.of(island);
             }
         }
@@ -719,10 +744,17 @@ public class IslandManager {
 
     /**
      * 根据区块坐标获取该位置所属的岛屿（使用岛屿最大半径）
+     * O(1) 网格空间索引查找，不遍历所有岛屿。
      */
     public Optional<Island> getIslandAtMaxRange(int chunkX, int chunkZ) {
-        for (Island island : islandsById.values()) {
-            if (island.isChunkWithinMaxRange(chunkX, chunkZ)) {
+        int cellSize = gridManager.getGridCellSize();
+        int gx = (int) Math.round((double) chunkX / cellSize);
+        int gz = (int) Math.round((double) chunkZ / cellSize);
+        long key = (((long) gx) << 32) | (gz & 0xffffffffL);
+        Integer id = islandGridIndex.get(key);
+        if (id != null) {
+            Island island = islandsById.get(id);
+            if (island != null && island.isChunkWithinMaxRange(chunkX, chunkZ)) {
                 return Optional.of(island);
             }
         }
@@ -736,6 +768,7 @@ public class IslandManager {
     public void removeIslandFromMemory(Island island) {
         islandsById.remove(island.getId());
         islandsByOwner.remove(island.getOwnerId());
+        removeFromGridIndex(island);
     }
 
     /**
@@ -802,6 +835,7 @@ public class IslandManager {
             // 从内存中移除
             islandsById.remove(island.getId());
             islandsByOwner.remove(island.getOwnerId());
+            removeFromGridIndex(island);
 
             return true;
         } catch (SQLException e) {

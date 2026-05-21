@@ -6,6 +6,6 @@ enabled: true
 # 告示牌正面文字 (最多4行，空行请使用 "")
 lines:
   - "欢迎"
-  - "%player%"
+  - "%player_name%"
   - "祝你游戏愉快"
   - "--- ★ ---"
