@@ -63,7 +63,6 @@ public class WorkblockPermissionManager extends BasePermissionManager {
             case LOOM -> IslandPermission.LOOM_USE;
             case SMITHING_TABLE -> IslandPermission.SMITHING_TABLE_USE;
             case CAMPFIRE, SOUL_CAMPFIRE -> IslandPermission.CAMPFIRE_USE;
-            case NOTE_BLOCK -> IslandPermission.NOTE_BLOCK_USE;
             default -> null;
         };
     }

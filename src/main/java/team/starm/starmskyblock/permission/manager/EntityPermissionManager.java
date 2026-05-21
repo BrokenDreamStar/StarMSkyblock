@@ -293,6 +293,8 @@ public class EntityPermissionManager extends BasePermissionManager {
             return true;
         } else if (animal instanceof Parrot && material == Material.COOKIE) {
             return true;
+        } else if (material == Material.GOLDEN_DANDELION && !animal.isAdult()) {
+            return true;
         }
         return false;
     }

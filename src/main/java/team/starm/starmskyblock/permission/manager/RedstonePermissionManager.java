@@ -120,6 +120,7 @@ public class RedstonePermissionManager extends BasePermissionManager {
             case BELL -> IslandPermission.BELL_RING;
             case SCULK_SENSOR, CALIBRATED_SCULK_SENSOR -> IslandPermission.SCULK_SENSOR_TRIGGER;
             case TRIPWIRE_HOOK, TRIPWIRE -> IslandPermission.TRIPWIRE_HOOK_TRIGGER;
+            case NOTE_BLOCK -> IslandPermission.NOTE_BLOCK_USE;
             default -> null;
         };
     }

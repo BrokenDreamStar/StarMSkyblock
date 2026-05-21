@@ -3,12 +3,17 @@ package team.starm.starmskyblock.island;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
+import org.bukkit.block.sign.Side;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.config.ConfigManager;
+import team.starm.starmskyblock.config.SignConfigManager;
 import team.starm.starmskyblock.util.ColorUtil;
 
+import java.util.List;
 import java.util.UUID;
 
 public class IslandCreateTask extends BukkitRunnable {
@@ -88,10 +93,65 @@ public class IslandCreateTask extends BukkitRunnable {
         String endSchematicName = plugin.getConfigManager().getEndSchematicFileName(schematicId);
         plugin.getSchematicManager().pasteSchematic(endSchematicName, endWorld, pasteX, y, pasteZ);
 
+        // 更新主世界告示牌文字
+        updateSigns(world, pasteX, y, pasteZ, schematicName);
+
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
 
         sendCompletionMessage(createdIsland, world, startX, startZ, y, duration, pasteSuccess);
+    }
+
+    private void updateSigns(World world, int pasteX, int pasteY, int pasteZ, String schematicName) {
+        SignConfigManager signConfig = plugin.getSignConfigManager();
+        if (signConfig == null || !signConfig.isEnabled()) {
+            return;
+        }
+
+        List<String> lines = signConfig.getLines();
+        if (lines.isEmpty()) {
+            return;
+        }
+
+        int[] bounds = plugin.getSchematicManager().getSchematicBounds(schematicName, pasteX, pasteY, pasteZ);
+        if (bounds == null) {
+            return;
+        }
+
+        int minX = bounds[0];
+        int minY = bounds[1];
+        int minZ = bounds[2];
+        int maxX = bounds[3];
+        int maxY = bounds[4];
+        int maxZ = bounds[5];
+
+        Player player = Bukkit.getPlayer(playerUuid);
+        boolean papiAvailable = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null;
+
+        for (int bx = minX; bx <= maxX; bx++) {
+            for (int by = minY; by <= maxY; by++) {
+                for (int bz = minZ; bz <= maxZ; bz++) {
+                    Block block = world.getBlockAt(bx, by, bz);
+                    if (block.getState() instanceof Sign sign) {
+                        for (int i = 0; i < 4; i++) {
+                            if (i < lines.size()) {
+                                String line = lines.get(i);
+                                if (line == null) {
+                                    line = "";
+                                }
+                                if (papiAvailable && player != null) {
+                                    line = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, line);
+                                }
+                                sign.getSide(Side.FRONT).setLine(i, ColorUtil.colorize(line));
+                            } else {
+                                sign.getSide(Side.FRONT).setLine(i, "");
+                            }
+                        }
+                        sign.update();
+                    }
+                }
+            }
+        }
     }
 
     private void sendMessage(String message) {

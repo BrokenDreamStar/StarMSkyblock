@@ -123,4 +123,17 @@ public class ItemTags {
             }
         }
     }
+
+    /**
+     * 所有种类的刷怪蛋
+     */
+    public static final Set<Material> SPAWN_EGGS = EnumSet.noneOf(Material.class);
+
+    static {
+        for (Material material : Material.values()) {
+            if (material.name().endsWith("_SPAWN_EGG")) {
+                SPAWN_EGGS.add(material);
+            }
+        }
+    }
 }

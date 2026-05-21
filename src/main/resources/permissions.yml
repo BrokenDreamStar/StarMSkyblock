@@ -31,7 +31,6 @@ MEMBER:
     - LOOM_USE # 使用织布机
     - SMITHING_TABLE_USE # 使用锻造台
     - CAMPFIRE_USE # 使用营火/灵魂营火
-    - NOTE_BLOCK_USE # 使用音符盒
 
     # 容器
     - FURNACE_OPEN # 使用熔炉
@@ -64,6 +63,7 @@ MEMBER:
     - TRIPWIRE_HOOK_TRIGGER # 触发绊线钩
     - SCULK_SENSOR_TRIGGER # 触发幽匿感测体
     - BELL_RING # 敲击钟
+    - NOTE_BLOCK_USE # 使用音符盒
 
     # 门
     - DOOR_OPEN # 开关门
@@ -94,6 +94,7 @@ MEMBER:
 
     # 物品
     - FIREWORK_USE # 使用烟花
+    - SPAWN_EGG_USE # 使用刷怪蛋
     - NAME_TAG_USE # 使用命名牌
     - POTION_THROW # 投掷药水
     - WATER_BOTTLE_USE # 使用水瓶

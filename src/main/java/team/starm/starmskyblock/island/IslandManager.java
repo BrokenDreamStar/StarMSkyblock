@@ -273,6 +273,19 @@ public class IslandManager {
     }
 
     /**
+     * 根据岛屿名称获取所有匹配的岛屿（可能重名）
+     */
+    public java.util.List<Island> getIslandsByName(String islandName) {
+        java.util.List<Island> result = new java.util.ArrayList<>();
+        for (Island island : islandsById.values()) {
+            if (island.getName() != null && island.getName().equalsIgnoreCase(islandName)) {
+                result.add(island);
+            }
+        }
+        return result;
+    }
+
+    /**
      * 获取所有岛屿的集合
      *
      * @return 所有岛屿的集合

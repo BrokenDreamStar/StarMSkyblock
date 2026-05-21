@@ -107,6 +107,35 @@ public class SchematicManager {
         }
     }
 
+    /**
+     * 获取结构文件粘贴后在世界的边界坐标
+     *
+     * @param fileName 结构文件名
+     * @param pasteX   粘贴中心 X
+     * @param pasteY   粘贴中心 Y
+     * @param pasteZ   粘贴中心 Z
+     * @return int[6] = {minX, minY, minZ, maxX, maxY, maxZ}，若结构不存在则返回 null
+     */
+    public int[] getSchematicBounds(String fileName, int pasteX, int pasteY, int pasteZ) {
+        Clipboard clipboard = getSchematic(fileName);
+        if (clipboard == null) {
+            return null;
+        }
+
+        BlockVector3 origin = clipboard.getOrigin();
+        BlockVector3 min = clipboard.getRegion().getMinimumPoint();
+        BlockVector3 max = clipboard.getRegion().getMaximumPoint();
+
+        int minX = min.x() - origin.x() + pasteX;
+        int minY = min.y() - origin.y() + pasteY;
+        int minZ = min.z() - origin.z() + pasteZ;
+        int maxX = max.x() - origin.x() + pasteX;
+        int maxY = max.y() - origin.y() + pasteY;
+        int maxZ = max.z() - origin.z() + pasteZ;
+
+        return new int[]{minX, minY, minZ, maxX, maxY, maxZ};
+    }
+
     @SuppressWarnings("null")
     public boolean clearArea(World world, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         com.sk89q.worldedit.world.World weWorld = BukkitAdapter.adapt(world);

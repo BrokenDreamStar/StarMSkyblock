@@ -255,7 +255,6 @@ public class ToolPermissionManager extends BasePermissionManager {
                     restoreConsumable(player, originalSlot, refund);
                 }
             }
-            player.updateInventory();
             sendDenyMessage(player, IslandPermission.BOW_USE);
         }
     }
@@ -385,7 +384,6 @@ public class ToolPermissionManager extends BasePermissionManager {
             if (player.isOnline() && entity.isValid()) {
                 player.hideEntity(plugin, entity);
                 player.showEntity(plugin, entity);
-                player.updateInventory();
             }
         }, 1L);
     }

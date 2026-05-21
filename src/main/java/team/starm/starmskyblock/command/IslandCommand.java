@@ -189,18 +189,48 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         // ====================== 传送到指定岛屿 ======================
         if (args[0].equalsIgnoreCase("tp")) {
             if (args.length < 2) {
-                MessageUtil.sendMessage(player, "&c用法: /is tp <岛屿名称> [confirm]");
+                MessageUtil.sendMessage(player, "&c用法: /is tp <岛屿名称> [岛屿ID] [confirm]");
                 return true;
             }
 
-            Optional<Island> targetIsland = islandManager.getIslandByName(args[1]);
-            if (targetIsland.isEmpty()) {
-                MessageUtil.sendMessage(player, "&c未找到名称为 &e" + args[1] + " &c的岛屿！");
+            String islandName = args[1];
+            java.util.List<Island> matchingIslands = islandManager.getIslandsByName(islandName);
+
+            if (matchingIslands.isEmpty()) {
+                MessageUtil.sendMessage(player, "&c未找到名称为 &e" + islandName + " &c的岛屿！");
                 return true;
             }
 
-            Island island = targetIsland.get();
-            if (!island.getSetting(IslandSetting.TP)) {
+            Island targetIsland;
+            int confirmArgIndex;
+
+            if (matchingIslands.size() > 1) {
+                if (args.length < 3 || args[2].equalsIgnoreCase("confirm")) {
+                    showIslandList(player, matchingIslands);
+                    return true;
+                }
+                try {
+                    int islandId = Integer.parseInt(args[2]);
+                    java.util.Optional<Island> matched = matchingIslands.stream()
+                            .filter(i -> i.getId() == islandId)
+                            .findFirst();
+                    if (matched.isEmpty()) {
+                        MessageUtil.sendMessage(player, "&c未找到ID为 &e" + islandId + " &c的匹配岛屿！");
+                        showIslandList(player, matchingIslands);
+                        return true;
+                    }
+                    targetIsland = matched.get();
+                    confirmArgIndex = 3;
+                } catch (NumberFormatException e) {
+                    showIslandList(player, matchingIslands);
+                    return true;
+                }
+            } else {
+                targetIsland = matchingIslands.get(0);
+                confirmArgIndex = 2;
+            }
+
+            if (!targetIsland.getSetting(IslandSetting.TP)) {
                 MessageUtil.sendMessage(player, "&c该岛屿未开放传送！");
                 return true;
             }
@@ -209,35 +239,36 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             Location spawnLocation;
             World targetWorld;
 
-            if (island.hasCustomHome()) {
-                Island.WorldType worldType = island.getCustomHomeWorldType();
+            if (targetIsland.hasCustomHome()) {
+                Island.WorldType worldType = targetIsland.getCustomHomeWorldType();
                 targetWorld = switch (worldType) {
                     case NETHER -> worldManager.getSkyblockNether();
                     case END -> worldManager.getSkyblockEnd();
                     default -> worldManager.getSkyblockWorld();
                 };
                 spawnLocation = new Location(targetWorld,
-                        island.getCustomHomeX(),
-                        island.getCustomHomeY(),
-                        island.getCustomHomeZ());
+                        targetIsland.getCustomHomeX(),
+                        targetIsland.getCustomHomeY(),
+                        targetIsland.getCustomHomeZ());
             } else {
                 targetWorld = worldManager.getSkyblockWorld();
                 double[] offsets = config.getTeleportOffsetsBySchematicAndWorldType(
-                        island.getSchematicId(), Island.WorldType.NORMAL);
-                double teleportX = (island.getCenterChunkX() * 16) + 8 + offsets[0];
+                        targetIsland.getSchematicId(), Island.WorldType.NORMAL);
+                double teleportX = (targetIsland.getCenterChunkX() * 16) + 8 + offsets[0];
                 double teleportY = config.getIslandHeight() + offsets[1];
-                double teleportZ = (island.getCenterChunkZ() * 16) + 8 + offsets[2];
+                double teleportZ = (targetIsland.getCenterChunkZ() * 16) + 8 + offsets[2];
                 spawnLocation = new Location(targetWorld, teleportX, teleportY, teleportZ);
             }
 
-            if (!isLocationSafe(spawnLocation) && (args.length < 3 || !args[2].equalsIgnoreCase("confirm"))) {
+            boolean confirmed = args.length > confirmArgIndex && args[confirmArgIndex].equalsIgnoreCase("confirm");
+            if (!isLocationSafe(spawnLocation) && !confirmed) {
                 MessageUtil.sendMessage(player, "&c警告：该岛屿传送点不安全！脚下可能是空气。");
-                MessageUtil.sendMessage(player, "&c使用 &e/is tp " + island.getName() + " confirm &c强制传送（可能摔落）。");
+                MessageUtil.sendMessage(player, "&c使用 &e/is tp " + islandName + " confirm &c强制传送（可能摔落）。");
                 return true;
             }
 
             player.teleport(spawnLocation);
-            MessageUtil.sendMessage(player, "&a已传送到岛屿 &e" + island.getName() + "&a！");
+            MessageUtil.sendMessage(player, "&a已传送到岛屿 &e" + targetIsland.getName() + "&a！");
             return true;
         }
 
@@ -963,11 +994,20 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private void showIslandList(Player player, java.util.List<Island> islands) {
+        MessageUtil.sendMessage(player, "&a找到多个同名岛屿：");
+        for (Island island : islands) {
+            String ownerName = getPlayerName(island.getOwnerId());
+            MessageUtil.sendMessage(player, "  &e#" + island.getId() + " &7- &f" + ownerName);
+        }
+        MessageUtil.sendMessage(player, "&7使用 &e/is tp <名称> <ID> &7指定具体岛屿");
+    }
+
     private void sendHelpMessage(Player player) {
         MessageUtil.sendMessage(player, "&a=== StarMSkyblock 帮助 ===");
         MessageUtil.sendMessage(player, "&b/is create [类型] [名称] &f- 创建你的空岛");
         MessageUtil.sendMessage(player, "&b/is home [confirm] &f- 传送到你的空岛（confirm强制传送）");
-        MessageUtil.sendMessage(player, "&b/is tp <岛屿名称> [confirm] &f- 传送到指定岛屿");
+        MessageUtil.sendMessage(player, "&b/is tp <岛屿名称> [岛屿ID] [confirm] &f- 传送到指定岛屿");
         MessageUtil.sendMessage(player, "&b/is sethome &f- 设置岛屿传送点（脚下不能是空气）");
         MessageUtil.sendMessage(player, "&b/is border [true|false|toggle] &f- 开启/关闭/切换岛屿边界显示");
         MessageUtil.sendMessage(player, "&b/is delete [confirm] &f- 删除你的空岛");
@@ -1108,11 +1148,25 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             }
 
             if (args[0].equalsIgnoreCase("tp")) {
-                return plugin.getIslandManager().getAllIslands().stream()
-                        .map(Island::getName)
-                        .filter(name -> name != null && !name.isEmpty())
-                        .filter(name -> name.toLowerCase().startsWith(prefix))
-                        .collect(Collectors.toList());
+                if (args.length == 2) {
+                    return plugin.getIslandManager().getAllIslands().stream()
+                            .map(Island::getName)
+                            .filter(name -> name != null && !name.isEmpty())
+                            .filter(name -> name.toLowerCase().startsWith(prefix))
+                            .distinct()
+                            .collect(Collectors.toList());
+                }
+                if (args.length == 3) {
+                    String name = args[1];
+                    java.util.List<Island> matches = plugin.getIslandManager().getIslandsByName(name);
+                    if (matches.size() > 1) {
+                        String idPrefix = args[2];
+                        return matches.stream()
+                                .map(i -> String.valueOf(i.getId()))
+                                .filter(id -> id.startsWith(idPrefix))
+                                .collect(Collectors.toList());
+                    }
+                }
             }
 
             if (args[0].equalsIgnoreCase("remove")

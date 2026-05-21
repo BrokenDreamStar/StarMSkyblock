@@ -1,6 +1,5 @@
 package team.starm.starmskyblock.permission.manager;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -17,7 +16,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
@@ -65,10 +63,6 @@ public class ItemPermissionManager extends BasePermissionManager {
                         event.setUseItemInHand(Result.DENY);
                         event.setUseInteractedBlock(Result.DENY);
                         sendDenyMessage(player, IslandPermission.WATER_BOTTLE_USE);
-                        Bukkit.getScheduler().runTask(
-                                JavaPlugin.getProvidingPlugin(getClass()),
-                                player::updateInventory
-                        );
                     }
                     return;
                 }
@@ -89,10 +83,6 @@ public class ItemPermissionManager extends BasePermissionManager {
                     event.setUseItemInHand(Result.DENY);
                     event.setUseInteractedBlock(Result.DENY);
                     sendDenyMessage(player, targetPerm);
-                    Bukkit.getScheduler().runTask(
-                            JavaPlugin.getProvidingPlugin(getClass()),
-                            player::updateInventory
-                    );
                 }
                 return;
             }
@@ -110,10 +100,6 @@ public class ItemPermissionManager extends BasePermissionManager {
                         event.setUseItemInHand(Result.DENY);
                         event.setUseInteractedBlock(Result.DENY);
                         sendDenyMessage(player, IslandPermission.HONEYCOMB_USE);
-                        Bukkit.getScheduler().runTask(
-                                JavaPlugin.getProvidingPlugin(getClass()),
-                                player::updateInventory
-                        );
                     }
                     return;
                 }
@@ -128,10 +114,6 @@ public class ItemPermissionManager extends BasePermissionManager {
             event.setUseItemInHand(Result.DENY);
             event.setUseInteractedBlock(Result.DENY);
             sendDenyMessage(player, permission);
-            Bukkit.getScheduler().runTask(
-                    JavaPlugin.getProvidingPlugin(getClass()),
-                    player::updateInventory
-            );
         }
     }
 
@@ -156,7 +138,6 @@ public class ItemPermissionManager extends BasePermissionManager {
             if (!checkPermission(loc, player.getUniqueId(), IslandPermission.NAME_TAG_USE)) {
                 event.setCancelled(true);
                 sendDenyMessage(player, IslandPermission.NAME_TAG_USE);
-                player.updateInventory();
             }
             return;
         }
@@ -167,7 +148,6 @@ public class ItemPermissionManager extends BasePermissionManager {
                 if (!checkPermission(loc, player.getUniqueId(), IslandPermission.DYE_USE)) {
                     event.setCancelled(true);
                     sendDenyMessage(player, IslandPermission.DYE_USE);
-                    player.updateInventory();
                 }
             }
         }
@@ -188,10 +168,6 @@ public class ItemPermissionManager extends BasePermissionManager {
             if (!checkPermission(loc, player.getUniqueId(), IslandPermission.CHORUS_FRUIT_EAT)) {
                 event.setCancelled(true);
                 sendDenyMessage(player, IslandPermission.CHORUS_FRUIT_EAT);
-                Bukkit.getScheduler().runTask(
-                        JavaPlugin.getProvidingPlugin(getClass()),
-                        player::updateInventory
-                );
             }
         }
     }
@@ -209,10 +185,6 @@ public class ItemPermissionManager extends BasePermissionManager {
         if (!checkPermission(loc, player.getUniqueId(), IslandPermission.BONE_MEAL_USE)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.BONE_MEAL_USE);
-            Bukkit.getScheduler().runTask(
-                    JavaPlugin.getProvidingPlugin(getClass()),
-                    player::updateInventory
-            );
         }
     }
 

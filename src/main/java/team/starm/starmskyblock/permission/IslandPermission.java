@@ -18,7 +18,7 @@ public enum IslandPermission {
 
     // ====================== 物品丢弃/拾取 ======================
     ITEM_DROP("丢弃物品"),
-    ITEM_PICKUP("捡起物品"),
+    ITEM_PICKUP("拾取物品"),
     EXP_PICKUP("吸取经验球"),
 
     // ====================== 方块破坏/建造 ======================
@@ -36,7 +36,6 @@ public enum IslandPermission {
     LOOM_USE("使用织布机"),
     SMITHING_TABLE_USE("使用锻造台"),
     CAMPFIRE_USE("使用营火"),
-    NOTE_BLOCK_USE("使用音符盒"),
 
     // ====================== 容器======================
     FURNACE_OPEN("使用熔炉"),
@@ -44,7 +43,7 @@ public enum IslandPermission {
     BARREL_OPEN("打开木桶"),
     ENDER_CHEST_OPEN("打开末影箱"),
     SHULKER_BOX_OPEN("打开潜影盒"),
-    HOPPER_OPEN("使用漏斗"),
+    HOPPER_OPEN("打开漏斗"),
     DISPENSER_OPEN("打开发射器"),
     DROPPER_OPEN("打开投掷器"),
     CRAFTER_OPEN("打开自动合成器"),
@@ -69,6 +68,7 @@ public enum IslandPermission {
     TRIPWIRE_HOOK_TRIGGER("触发绊线钩"),
     SCULK_SENSOR_TRIGGER("触发幽匿感测体"),
     BELL_RING("敲击钟"),
+    NOTE_BLOCK_USE("使用音符盒"),
 
     // ====================== 门 ======================
     DOOR_OPEN("开关门"),
@@ -92,7 +92,7 @@ public enum IslandPermission {
     GLASS_BOTTLE_USE("使用玻璃瓶"),
     BOWL_USE("使用碗"),
     FISHING_ROD_USE("钓鱼"),
-    FLINT_AND_STEEL_USE("点火(使用打火石/火焰弹)"),
+    FLINT_AND_STEEL_USE("点火"),
     SHEARS_USE("使用剪刀"),
     BRUSH_USE("使用刷子"),
     LEASH_USE("使用拴绳"),
@@ -105,7 +105,7 @@ public enum IslandPermission {
     BONE_MEAL_USE("使用骨粉"),
     DYE_USE("使用染料"),
     INK_SAC_USE("使用墨囊"),
-    HONEYCOMB_USE("涂蜡(使用蜜脾)"),
+    HONEYCOMB_USE("涂蜡"),
     CHORUS_FRUIT_EAT("食用紫颂果"),
     ENDER_PEARL_USE("使用末影珍珠"),
     ENDER_EYE_USE("使用末影之眼"),
@@ -127,6 +127,7 @@ public enum IslandPermission {
     ARMOR_STAND_INTERACT("与盔甲架交互"),
 
     // ====================== 其它 ======================
+    SPAWN_EGG_USE("使用刷怪蛋"),
     FARMLAND_TRAMPLE("踩踏耕地"),
     TURTLE_EGG_TRAMPLE("踩踏海龟蛋"),
     SWEET_BERRY_HARVEST("采摘浆果"),

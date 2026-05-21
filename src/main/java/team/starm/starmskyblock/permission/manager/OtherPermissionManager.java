@@ -1,5 +1,6 @@
 package team.starm.starmskyblock.permission.manager;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
@@ -15,14 +16,17 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.raid.RaidTriggerEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.BasePermissionManager;
+import team.starm.starmskyblock.tag.ItemTags;
 
 /**
  * 其它权限管理器
@@ -136,6 +140,56 @@ public class OtherPermissionManager extends BasePermissionManager {
         if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.RAID_TRIGGER)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.RAID_TRIGGER);
+        }
+    }
+
+    /**
+     * 监听玩家使用刷怪蛋事件（右键方块/空气）
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onSpawnEggUse(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+        Action action = event.getAction();
+        if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        ItemStack item = event.getItem();
+        if (item == null || !ItemTags.SPAWN_EGGS.contains(item.getType())) {
+            return;
+        }
+
+        Location loc = (event.getClickedBlock() != null)
+                ? event.getClickedBlock().getLocation()
+                : player.getLocation();
+        if (!checkPermission(loc, player.getUniqueId(), IslandPermission.SPAWN_EGG_USE)) {
+            event.setCancelled(true);
+            sendDenyMessage(player, IslandPermission.SPAWN_EGG_USE);
+        }
+    }
+
+    /**
+     * 监听玩家右键实体使用刷怪蛋事件
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onSpawnEggUseOnEntity(PlayerInteractEntityEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        ItemStack item = player.getInventory().getItem(event.getHand());
+        if (item.getType().isAir() || !ItemTags.SPAWN_EGGS.contains(item.getType())) {
+            return;
+        }
+
+        Location loc = event.getRightClicked().getLocation();
+        if (!checkPermission(loc, player.getUniqueId(), IslandPermission.SPAWN_EGG_USE)) {
+            event.setCancelled(true);
+            sendDenyMessage(player, IslandPermission.SPAWN_EGG_USE);
         }
     }
 

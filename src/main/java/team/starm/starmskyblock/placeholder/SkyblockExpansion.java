@@ -7,6 +7,7 @@ import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
+import team.starm.starmskyblock.setting.IslandSetting;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -42,6 +43,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
     private static final String PERMISSION_PREFIX = "permission_";
     private static final String PERMISSION_SUFFIX = "_level_weight";
     private static final String LEVEL_SEPARATOR = "_level_";
+    private static final String SETTINGS_PREFIX = "islandsettings_";
 
     @Override
     public String onPlaceholderRequest(Player player, String params) {
@@ -57,6 +59,11 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
         if (params.equalsIgnoreCase("role")) {
             return getPlayerRole(islandManager, chunkX, chunkZ, player.getUniqueId());
+        }
+
+        if (params.regionMatches(true, 0, SETTINGS_PREFIX, 0, SETTINGS_PREFIX.length())) {
+            String settingName = params.substring(SETTINGS_PREFIX.length());
+            return getIslandSettingStatus(islandManager, player.getUniqueId(), settingName);
         }
 
         if (params.regionMatches(true, 0, PERMISSION_PREFIX, 0, PERMISSION_PREFIX.length())) {
@@ -164,5 +171,24 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
         boolean hasPerm = island.hasPermission(role, permission);
         return (hasPerm ? "&a" : "&c") + role.getDisplayName();
+    }
+
+    private String getIslandSettingStatus(IslandManager islandManager, UUID playerUuid, String settingName) {
+        Optional<Island> islandOpt = islandManager.getIslandByPlayer(playerUuid);
+        if (islandOpt.isEmpty()) {
+            return null;
+        }
+
+        Island island = islandOpt.get();
+
+        IslandSetting setting;
+        try {
+            setting = IslandSetting.valueOf(settingName.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+
+        boolean enabled = island.getSetting(setting);
+        return enabled ? "&a是" : "&c否";
     }
 }

@@ -19,6 +19,7 @@ import team.starm.starmskyblock.listener.BorderListener;
 import team.starm.starmskyblock.listener.PortalListener;
 import team.starm.starmskyblock.setting.IslandSettingManager;
 import team.starm.starmskyblock.config.SettingsConfigManager;
+import team.starm.starmskyblock.config.SignConfigManager;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.util.ColorUtil;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
@@ -29,6 +30,7 @@ public class StarMSkyblock extends JavaPlugin {
     private ConfigManager configManager;
     private PermissionConfigManager permissionConfigManager;
     private SettingsConfigManager settingsConfigManager;
+    private SignConfigManager signConfigManager;
     private SQLiteManager sqliteManager;
     private SchematicManager schematicManager;
     private GridManager gridManager;
@@ -53,6 +55,10 @@ public class StarMSkyblock extends JavaPlugin {
         // 初始化岛屿默认设置配置
         settingsConfigManager = new SettingsConfigManager(this);
         settingsConfigManager.initialize();
+
+        // 初始化告示牌配置
+        signConfigManager = new SignConfigManager(this);
+        signConfigManager.initialize();
 
         // 释放内置的schematics文件
         extractSchematics();
@@ -135,6 +141,10 @@ public class StarMSkyblock extends JavaPlugin {
 
     public SettingsConfigManager getSettingsConfigManager() {
         return settingsConfigManager;
+    }
+
+    public SignConfigManager getSignConfigManager() {
+        return signConfigManager;
     }
 
     public SQLiteManager getSqliteManager() {
