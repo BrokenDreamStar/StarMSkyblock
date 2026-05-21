@@ -88,6 +88,10 @@ public class SkyblockExpansion extends PlaceholderExpansion {
     private String getIslandName(IslandManager islandManager, int chunkX, int chunkZ) {
         Optional<Island> islandOpt = islandManager.getIslandAt(chunkX, chunkZ);
         if (islandOpt.isEmpty()) {
+            // 当前半径内找不到，尝试在最大半径范围查找（未解锁区域）
+            islandOpt = islandManager.getIslandAtMaxRange(chunkX, chunkZ);
+        }
+        if (islandOpt.isEmpty()) {
             return "公共区域";
         }
 
@@ -101,6 +105,10 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
     private String getPlayerRole(IslandManager islandManager, int chunkX, int chunkZ, UUID playerUuid) {
         Optional<Island> islandOpt = islandManager.getIslandAt(chunkX, chunkZ);
+        if (islandOpt.isEmpty()) {
+            // 当前半径内找不到，尝试在最大半径范围查找（未解锁区域）
+            islandOpt = islandManager.getIslandAtMaxRange(chunkX, chunkZ);
+        }
         if (islandOpt.isEmpty()) {
             return IslandPermissionLevel.VISITOR.getDisplayName();
         }

@@ -121,6 +121,9 @@ public class StarMSkyblock extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // 取消所有本插件的调度任务（防止异步任务在关闭时报错）
+        org.bukkit.Bukkit.getScheduler().cancelTasks(this);
+
         if (sqliteManager != null) {
             sqliteManager.close();
         }
