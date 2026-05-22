@@ -3,6 +3,7 @@ package team.starm.starmskyblock.config;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import team.starm.starmskyblock.StarMSkyblock;
+import team.starm.starmskyblock.message.MessageUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,7 +48,7 @@ public class SignConfigManager {
         this.enabled = signConfig.getBoolean("enabled", true);
         this.lines = signConfig.getStringList("lines");
 
-        plugin.getLogger().info("§a[告示牌系统] 已加载岛屿告示牌配置");
+        MessageUtil.consolePrint("&a[告示牌系统] 已加载岛屿告示牌配置");
     }
 
     public boolean isEnabled() {
@@ -63,7 +64,8 @@ public class SignConfigManager {
             try {
                 signConfig.save(signFile);
             } catch (IOException e) {
-                plugin.getLogger().log(java.util.logging.Level.SEVERE, "保存告示牌配置文件失败", e);
+                MessageUtil.consoleError("&c保存告示牌配置文件失败");
+                e.printStackTrace();
             }
         }
     }

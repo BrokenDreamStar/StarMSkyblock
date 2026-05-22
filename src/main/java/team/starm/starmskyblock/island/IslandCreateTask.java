@@ -12,7 +12,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.config.SignConfigManager;
-import team.starm.starmskyblock.util.ColorUtil;
+import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.List;
 import java.util.UUID;
@@ -67,7 +67,7 @@ public class IslandCreateTask extends BukkitRunnable {
                     try {
                         completeCreation();
                     } catch (Exception e) {
-                        ColorUtil.consoleError("&c在主线程中完成岛屿创建时发生错误！");
+                        MessageUtil.consoleError("&c在主线程中完成岛屿创建时发生错误！");
                         e.printStackTrace();
                         sendMessage("§c创建岛屿时发生意外错误，请联系管理员！");
                     }
@@ -75,7 +75,7 @@ public class IslandCreateTask extends BukkitRunnable {
             }.runTask(plugin);
 
         } catch (Exception e) {
-            ColorUtil.consoleError("&c异步创建岛屿时发生错误！");
+            MessageUtil.consoleError("&c异步创建岛屿时发生错误！");
             e.printStackTrace();
             sendMessage("§c创建岛屿时发生意外错误，请联系管理员！");
         }
@@ -168,7 +168,7 @@ public class IslandCreateTask extends BukkitRunnable {
                         if (papiAvailable && player != null) {
                             line = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, line);
                         }
-                        sign.getSide(Side.FRONT).setLine(i, ColorUtil.colorize(line));
+                        sign.getSide(Side.FRONT).setLine(i, MessageUtil.colorize(line));
                     } else {
                         sign.getSide(Side.FRONT).setLine(i, "");
                     }

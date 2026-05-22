@@ -4,6 +4,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.ConfigurationSection;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.island.Island;
+import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -136,8 +137,7 @@ public class ConfigManager {
         this.defaultNormalSchematicId = config.getString("schematics.default-type", "default");
         if (!normalSchematics.containsKey(this.defaultNormalSchematicId)) {
             this.defaultNormalSchematicId = normalSchematics.keySet().iterator().next();
-            plugin.getLogger()
-                    .warning("§e配置文件中 schematics.default-type 指定的类型不存在，将自动使用: " + this.defaultNormalSchematicId);
+            MessageUtil.consoleWarn("配置文件中 schematics.default-type 指定的类型不存在，将自动使用: " + this.defaultNormalSchematicId);
         }
 
         // ====================== 下界 & 末地结构文件（自动生成） ======================

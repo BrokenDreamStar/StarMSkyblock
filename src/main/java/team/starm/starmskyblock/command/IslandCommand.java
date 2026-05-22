@@ -20,7 +20,6 @@ import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.permission.manager.ManagementPermissionManager;
 import team.starm.starmskyblock.message.MessageUtil;
-import team.starm.starmskyblock.util.ColorUtil;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
 import java.util.ArrayList;
@@ -82,14 +81,14 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         boolean silent = args.length > 0 && (args[args.length - 1].equals("-s"));
         if (silent) {
             args = java.util.Arrays.copyOf(args, args.length - 1);
-            ColorUtil.setSilent(player.getUniqueId(), true);
+            MessageUtil.setSilent(player.getUniqueId(), true);
         }
 
         try {
             return handleCommand(player, args);
         } finally {
             if (silent) {
-                ColorUtil.setSilent(player.getUniqueId(), false);
+                MessageUtil.setSilent(player.getUniqueId(), false);
             }
         }
     }
@@ -389,7 +388,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
 
         // ====================== 删除岛屿 ======================
         if (args[0].equalsIgnoreCase("delete")) {
-            Optional<Island> optionalIsland = islandManager.getIsland(player.getUniqueId());
+            Optional<Island> optionalIsland = islandManager.getIslandByPlayer(player.getUniqueId());
             if (optionalIsland.isEmpty()) {
                 MessageUtil.sendMessage(player, "&c你还没有岛屿！");
                 return true;

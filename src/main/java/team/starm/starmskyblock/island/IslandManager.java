@@ -8,7 +8,7 @@ import team.starm.starmskyblock.grid.GridManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.config.SettingsConfigManager;
-import team.starm.starmskyblock.util.ColorUtil;
+import team.starm.starmskyblock.message.MessageUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
 /**
  * 岛屿管理器 —— 核心业务层，负责岛屿的 CRUD、成员管理、区块查询和权限持久化。
@@ -42,7 +41,6 @@ public class IslandManager {
     private final SettingsConfigManager settingsConfigManager;
     private final GridManager gridManager;
     private final SQLiteManager sqliteManager;
-    private final Logger logger;
     /** SQLite 全局锁引用，用于配合 synchronized 块 */
     private final Object dbLock;
 
@@ -67,13 +65,12 @@ public class IslandManager {
      */
     public IslandManager(ConfigManager configManager, PermissionConfigManager permissionConfigManager,
             SettingsConfigManager settingsConfigManager, GridManager gridManager,
-            SQLiteManager sqliteManager, Logger logger) {
+            SQLiteManager sqliteManager) {
         this.configManager = configManager;
         this.permissionConfigManager = permissionConfigManager;
         this.settingsConfigManager = settingsConfigManager;
         this.gridManager = gridManager;
         this.sqliteManager = sqliteManager;
-        this.logger = logger;
         this.dbLock = sqliteManager.getDbLock();
 
         loadIslandsFromDatabase();
@@ -149,7 +146,7 @@ public class IslandManager {
                 nextIslandId = maxId + 1;
 
             } catch (SQLException e) {
-                ColorUtil.consoleError("&c加载岛屿数据失败！");
+                MessageUtil.consoleError("&c加载岛屿数据失败！");
                 e.printStackTrace();
             }
 
@@ -167,7 +164,7 @@ public class IslandManager {
                     }
                 }
             } catch (SQLException e) {
-                ColorUtil.consoleError("&c加载岛屿成员数据失败！");
+                MessageUtil.consoleError("&c加载岛屿成员数据失败！");
                 e.printStackTrace();
             }
 
@@ -184,12 +181,12 @@ public class IslandManager {
                     }
                 }
             } catch (SQLException e) {
-                ColorUtil.consoleError("&c加载岛屿合作者数据失败！");
+                MessageUtil.consoleError("&c加载岛屿合作者数据失败！");
                 e.printStackTrace();
             }
         }
 
-        ColorUtil.consolePrint("&a成功从数据库加载了 " + islandsById.size() + " 个岛屿。");
+        MessageUtil.consolePrint("&a成功从数据库加载了 " + islandsById.size() + " 个岛屿。");
     }
 
     /**
@@ -242,9 +239,9 @@ public class IslandManager {
                 memberToIslandIndex.put(ownerId, islandId);
                 addToGridIndex(island);
 
-                logger.info("岛屿已创建并保存至数据库！ID: " + islandId + "，中心区块坐标: " + location);
+                MessageUtil.consolePrint("&a岛屿已创建并保存至数据库！ID: " + islandId + "，中心区块坐标: " + location);
             } catch (SQLException e) {
-                ColorUtil.consoleError("&c保存新岛屿到数据库失败！");
+                MessageUtil.consoleError("&c保存新岛屿到数据库失败！");
                 e.printStackTrace();
                 throw new RuntimeException("数据库错误，无法创建岛屿");
             }
@@ -370,7 +367,7 @@ public class IslandManager {
                     island.setRadius(newRadius);
                     return true;
                 } catch (SQLException e) {
-                    ColorUtil.consoleError("&c更新岛屿半径到数据库失败！ID: " + id);
+                    MessageUtil.consoleError("&c更新岛屿半径到数据库失败！ID: " + id);
                     e.printStackTrace();
                 }
             }
@@ -393,7 +390,7 @@ public class IslandManager {
                     island.setName(newName);
                     return true;
                 } catch (SQLException e) {
-                    ColorUtil.consoleError("&c更新岛屿名称到数据库失败！ID: " + id);
+                    MessageUtil.consoleError("&c更新岛屿名称到数据库失败！ID: " + id);
                     e.printStackTrace();
                 }
             }
@@ -417,7 +414,7 @@ public class IslandManager {
                     island.setCustomHome(worldType, x, y, z);
                     return true;
                 } catch (SQLException e) {
-                    ColorUtil.consoleError("&c更新岛屿自定义传送点到数据库失败！ID: " + id);
+                    MessageUtil.consoleError("&c更新岛屿自定义传送点到数据库失败！ID: " + id);
                     e.printStackTrace();
                 }
             }
@@ -439,7 +436,7 @@ public class IslandManager {
                     island.clearCustomHome();
                     return true;
                 } catch (SQLException e) {
-                    ColorUtil.consoleError("&c清除岛屿自定义传送点到数据库失败！ID: " + id);
+                    MessageUtil.consoleError("&c清除岛屿自定义传送点到数据库失败！ID: " + id);
                     e.printStackTrace();
                 }
             }
@@ -461,7 +458,7 @@ public class IslandManager {
                     pstmt.executeUpdate();
                     return true;
                 } catch (SQLException e) {
-                    ColorUtil.consoleError("&c更新岛屿设置到数据库失败！ID: " + islandId);
+                    MessageUtil.consoleError("&c更新岛屿设置到数据库失败！ID: " + islandId);
                     e.printStackTrace();
                 }
             }
@@ -488,7 +485,7 @@ public class IslandManager {
                     }
                 }
             } catch (SQLException e) {
-                ColorUtil.consoleError("&c获取玩家删除岛屿次数失败！UUID: " + playerUuid);
+                MessageUtil.consoleError("&c获取玩家删除岛屿次数失败！UUID: " + playerUuid);
                 e.printStackTrace();
             }
         }
@@ -506,7 +503,7 @@ public class IslandManager {
                 pstmt.setString(1, playerUuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                ColorUtil.consoleError("&c增加玩家删除岛屿次数失败！UUID: " + playerUuid);
+                MessageUtil.consoleError("&c增加玩家删除岛屿次数失败！UUID: " + playerUuid);
                 e.printStackTrace();
             }
         }
@@ -551,7 +548,7 @@ public class IslandManager {
             });
             return true;
         } catch (SQLException e) {
-            ColorUtil.consoleError("&c添加成员到岛屿失败！岛屿ID: " + islandId + ", 成员UUID: " + memberUuid);
+            MessageUtil.consoleError("&c添加成员到岛屿失败！岛屿ID: " + islandId + ", 成员UUID: " + memberUuid);
             e.printStackTrace();
             return false;
         }
@@ -573,7 +570,7 @@ public class IslandManager {
                     memberToIslandIndex.remove(memberUuid);
                     return true;
                 } catch (SQLException e) {
-                    ColorUtil.consoleError("&c从岛屿移除成员失败！岛屿ID: " + islandId + ", 成员UUID: " + memberUuid);
+                    MessageUtil.consoleError("&c从岛屿移除成员失败！岛屿ID: " + islandId + ", 成员UUID: " + memberUuid);
                     e.printStackTrace();
                 }
             }
@@ -602,7 +599,7 @@ public class IslandManager {
                     coopToIslandsIndex.computeIfAbsent(playerUuid, k -> java.util.Collections.synchronizedList(new java.util.ArrayList<>())).add(islandId);
                     return true;
                 } catch (SQLException e) {
-                    ColorUtil.consoleError("&c添加合作者到岛屿失败！岛屿ID: " + islandId + ", 玩家UUID: " + playerUuid);
+                    MessageUtil.consoleError("&c添加合作者到岛屿失败！岛屿ID: " + islandId + ", 玩家UUID: " + playerUuid);
                     e.printStackTrace();
                 }
             }
@@ -632,7 +629,7 @@ public class IslandManager {
                     }
                     return true;
                 } catch (SQLException e) {
-                    ColorUtil.consoleError("&c从岛屿移除合作者失败！岛屿ID: " + islandId + ", 玩家UUID: " + playerUuid);
+                    MessageUtil.consoleError("&c从岛屿移除合作者失败！岛屿ID: " + islandId + ", 玩家UUID: " + playerUuid);
                     e.printStackTrace();
                 }
             }
@@ -656,7 +653,7 @@ public class IslandManager {
                     island.setMemberRole(memberUuid, newRole);
                     return true;
                 } catch (SQLException e) {
-                    ColorUtil.consoleError("&c更新成员角色失败！岛屿ID: " + islandId + ", 成员UUID: " + memberUuid);
+                    MessageUtil.consoleError("&c更新成员角色失败！岛屿ID: " + islandId + ", 成员UUID: " + memberUuid);
                     e.printStackTrace();
                 }
             }
@@ -705,7 +702,7 @@ public class IslandManager {
                 pstmt.setInt(2, island.getId());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                ColorUtil.consoleError("&c保存权限数据失败！岛屿ID: " + island.getId());
+                MessageUtil.consoleError("&c保存权限数据失败！岛屿ID: " + island.getId());
                 e.printStackTrace();
             }
         }
@@ -817,7 +814,7 @@ public class IslandManager {
             });
             return true;
         } catch (SQLException e) {
-            ColorUtil.consoleError("&c从数据库删除岛屿失败！ID: " + island.getId());
+            MessageUtil.consoleError("&c从数据库删除岛屿失败！ID: " + island.getId());
             e.printStackTrace();
             return false;
         }
@@ -848,7 +845,7 @@ public class IslandManager {
 
             return true;
         } catch (SQLException e) {
-            ColorUtil.consoleError("&c从数据库删除岛屿失败！ID: " + island.getId());
+            MessageUtil.consoleError("&c从数据库删除岛屿失败！ID: " + island.getId());
             e.printStackTrace();
         }
         return false;

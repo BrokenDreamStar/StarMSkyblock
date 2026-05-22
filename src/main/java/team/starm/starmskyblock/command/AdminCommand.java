@@ -12,7 +12,6 @@ import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.message.MessageUtil;
-import team.starm.starmskyblock.util.ColorUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,14 +43,14 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
         boolean silent = args.length > 0 && (args[args.length - 1].equals("-s"));
         if (silent) {
             args = java.util.Arrays.copyOf(args, args.length - 1);
-            ColorUtil.setSilent(player.getUniqueId(), true);
+            MessageUtil.setSilent(player.getUniqueId(), true);
         }
 
         try {
             return handleCommand(sender, args);
         } finally {
             if (silent) {
-                ColorUtil.setSilent(player.getUniqueId(), false);
+                MessageUtil.setSilent(player.getUniqueId(), false);
             }
         }
     }

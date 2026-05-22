@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
+import team.starm.starmskyblock.message.MessageUtil;
 
 /**
  * 结构文件（.schem）管理器 —— 基于 WorldEdit API 实现岛屿结构的加载、缓存和粘贴。
@@ -42,15 +42,13 @@ public class SchematicManager {
 
     /** 结构文件存放目录（<dataFolder>/schematics/） */
     private final File schematicFolder;
-    private final Logger logger;
     /** 已解析的 Clipboard 缓存（文件名 → Clipboard），避免重复解析 */
     private final Map<String, Clipboard> schematicCache = new HashMap<>();
     /** 告示牌相对于基岩原点的偏移缓存（文件名 → 偏移列表） */
     private final Map<String, List<BlockVector3>> signOffsetCache = new HashMap<>();
 
-    public SchematicManager(File schematicFolder, Logger logger) {
+    public SchematicManager(File schematicFolder) {
         this.schematicFolder = schematicFolder;
-        this.logger = logger;
 
         if (!schematicFolder.exists()) {
             schematicFolder.mkdirs();
@@ -71,13 +69,13 @@ public class SchematicManager {
 
         File file = new File(schematicFolder, fileName);
         if (!file.exists()) {
-            logger.warning("找不到岛屿结构文件: " + file.getAbsolutePath());
+            MessageUtil.consoleWarn("找不到岛屿结构文件: " + file.getAbsolutePath());
             return null;
         }
 
         ClipboardFormat format = ClipboardFormats.findByFile(file);
         if (format == null) {
-            logger.warning("无法识别的结构文件格式: " + fileName);
+            MessageUtil.consoleWarn("无法识别的结构文件格式: " + fileName);
             return null;
         }
 
@@ -127,14 +125,14 @@ public class SchematicManager {
                 }
                 signOffsetCache.put(fileName, relativeSigns);
             } else {
-                logger.warning("在结构文件 " + fileName + " 中未找到基岩方块！将使用默认原点进行粘贴。");
+                MessageUtil.consoleWarn("在结构文件 " + fileName + " 中未找到基岩方块！将使用默认原点进行粘贴。");
                 signOffsetCache.put(fileName, signPositions);
             }
 
             schematicCache.put(fileName, clipboard);
             return clipboard;
         } catch (IOException e) {
-            logger.severe("读取结构文件时发生错误: " + fileName);
+            MessageUtil.consoleError("&c读取结构文件时发生错误: " + fileName);
             e.printStackTrace();
             return null;
         }
@@ -184,7 +182,7 @@ public class SchematicManager {
             Operations.complete(operation);
             return true;
         } catch (WorldEditException e) {
-            logger.severe("粘贴岛屿结构时发生 WorldEdit 错误！");
+            MessageUtil.consoleError("&c粘贴岛屿结构时发生 WorldEdit 错误！");
             e.printStackTrace();
             return false;
         }
@@ -232,7 +230,7 @@ public class SchematicManager {
             editSession.setBlocks((Region) region, BlockTypes.AIR.getDefaultState());
             return true;
         } catch (Exception e) {
-            logger.severe("清空区域方块时发生 WorldEdit 错误！");
+            MessageUtil.consoleError("&c清空区域方块时发生 WorldEdit 错误！");
             e.printStackTrace();
             return false;
         }

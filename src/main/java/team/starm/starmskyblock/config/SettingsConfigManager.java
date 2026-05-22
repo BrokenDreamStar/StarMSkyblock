@@ -3,6 +3,7 @@ package team.starm.starmskyblock.config;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import team.starm.starmskyblock.StarMSkyblock;
+import team.starm.starmskyblock.message.MessageUtil;
 import team.starm.starmskyblock.setting.IslandSetting;
 
 import java.io.File;
@@ -44,7 +45,7 @@ public class SettingsConfigManager {
         settingsConfig = YamlConfiguration.loadConfiguration(settingsFile);
         loadDefaultSettings();
 
-        plugin.getLogger().info("§a[设置系统] 已加载岛屿默认设置配置");
+        MessageUtil.consolePrint("&a[设置系统] 已加载岛屿默认设置配置");
     }
 
     private void loadDefaultSettings() {
@@ -69,7 +70,8 @@ public class SettingsConfigManager {
             try {
                 settingsConfig.save(settingsFile);
             } catch (IOException e) {
-                plugin.getLogger().log(java.util.logging.Level.SEVERE, "保存设置配置文件失败", e);
+                MessageUtil.consoleError("&c保存设置配置文件失败");
+                e.printStackTrace();
             }
         }
     }

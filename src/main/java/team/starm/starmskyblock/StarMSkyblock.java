@@ -21,7 +21,7 @@ import team.starm.starmskyblock.setting.IslandSettingManager;
 import team.starm.starmskyblock.config.SettingsConfigManager;
 import team.starm.starmskyblock.config.SignConfigManager;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
-import team.starm.starmskyblock.util.ColorUtil;
+import team.starm.starmskyblock.message.MessageUtil;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
 /**
@@ -86,12 +86,12 @@ public class StarMSkyblock extends JavaPlugin {
         sqliteManager.init();
 
         // 初始化 FAWE/WorldEdit 结构管理器
-        schematicManager = new SchematicManager(new File(getDataFolder(), "schematics"), getLogger());
+        schematicManager = new SchematicManager(new File(getDataFolder(), "schematics"));
 
         // 初始化网格系统和岛屿管理器
         gridManager = new GridManager(configManager);
         islandManager = new IslandManager(configManager, permissionConfigManager, settingsConfigManager,
-                gridManager, sqliteManager, getLogger());
+                gridManager, sqliteManager);
 
         // 初始化世界管理器
         worldManager = new SkyblockWorldManager(configManager);
@@ -109,7 +109,7 @@ public class StarMSkyblock extends JavaPlugin {
         // 注册 PlaceholderAPI 扩展
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new team.starm.starmskyblock.placeholder.SkyblockExpansion(this).register();
-            getLogger().info("已注册 PlaceholderAPI 扩展");
+            MessageUtil.consolePrint("&a已注册 PlaceholderAPI 扩展");
         }
 
         // 提前创建或加载空岛世界
@@ -138,7 +138,7 @@ public class StarMSkyblock extends JavaPlugin {
             getCommand("is").setTabCompleter(islandCmd);
         }
 
-        ColorUtil.consolePrint("&a[StarMSkyblock] 插件已启用！虚空世界已准备就绪。");
+        MessageUtil.consolePrint("&a[StarMSkyblock] 插件已启用！虚空世界已准备就绪。");
     }
 
     /**
@@ -152,7 +152,7 @@ public class StarMSkyblock extends JavaPlugin {
         if (sqliteManager != null) {
             sqliteManager.close();
         }
-        ColorUtil.consolePrint("&c[StarMSkyblock] 插件已关闭。");
+        MessageUtil.consolePrint("&c[StarMSkyblock] 插件已关闭。");
     }
 
     public static StarMSkyblock getInstance() {
@@ -232,13 +232,13 @@ public class StarMSkyblock extends JavaPlugin {
 
             try (InputStream inputStream = getResource("schematics/" + fileName)) {
                 if (inputStream == null) {
-                    getLogger().warning("找不到内置的schematics文件: " + fileName);
+                    MessageUtil.consoleWarn("找不到内置的schematics文件: " + fileName);
                     continue;
                 }
                 Files.copy(inputStream, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                getLogger().info("已创建schematics文件: " + fileName);
+                MessageUtil.consolePrint("&a已创建schematics文件: " + fileName);
             } catch (IOException e) {
-                getLogger().severe("创建schematics文件时发生错误: " + fileName);
+                MessageUtil.consoleError("&c创建schematics文件时发生错误: " + fileName);
                 e.printStackTrace();
             }
         }

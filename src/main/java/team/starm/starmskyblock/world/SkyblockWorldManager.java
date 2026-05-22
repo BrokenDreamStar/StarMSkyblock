@@ -7,7 +7,7 @@ import org.bukkit.WorldType;
 import org.bukkit.block.Biome;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.generator.VoidChunkGenerator;
-import team.starm.starmskyblock.util.ColorUtil;
+import team.starm.starmskyblock.message.MessageUtil;
 
 /**
  * 空岛世界管理器。
@@ -57,9 +57,9 @@ public class SkyblockWorldManager {
         if (world == null) {
             java.io.File worldFolder = new java.io.File(Bukkit.getWorldContainer(), worldName);
             if (worldFolder.exists() && worldFolder.isDirectory()) {
-                ColorUtil.consolePrint("&e检测到已存在的空岛世界数据，正在加载 " + worldName + "...");
+                MessageUtil.consolePrint("&e检测到已存在的空岛世界数据，正在加载 " + worldName + "...");
             } else {
-                ColorUtil.consolePrint("&e正在创建新的空岛虚空世界: " + worldName);
+                MessageUtil.consolePrint("&e正在创建新的空岛虚空世界: " + worldName);
             }
 
             WorldCreator creator = new WorldCreator(worldName);
@@ -74,10 +74,10 @@ public class SkyblockWorldManager {
                 if (configBiome != null) {
                     biome = configBiome;
                 } else {
-                    ColorUtil.consoleError("&e未知的生物群系配置: " + biomeName + "，将使用默认的 " + defaultBiome.getKey().getKey());
+                    MessageUtil.consoleWarn("未知的生物群系配置: " + biomeName + "，将使用默认的 " + defaultBiome.getKey().getKey());
                 }
             } catch (Exception e) {
-                ColorUtil.consoleError("&e解析生物群系配置时发生错误: " + biomeName + "，将使用默认的 " + defaultBiome.getKey().getKey());
+                MessageUtil.consoleError("&e解析生物群系配置时发生错误: " + biomeName + "，将使用默认的 " + defaultBiome.getKey().getKey());
             }
             creator.generator(new VoidChunkGenerator(biome));
 
@@ -87,9 +87,9 @@ public class SkyblockWorldManager {
                 if (!worldFolder.exists() || !(new java.io.File(worldFolder, "level.dat")).exists()) {
                     world.setSpawnLocation(0, 80, 0);
                 }
-                ColorUtil.consolePrint("&a空岛世界准备就绪！名称: " + worldName);
+                MessageUtil.consolePrint("&a空岛世界准备就绪！名称: " + worldName);
             } else {
-                ColorUtil.consoleError("&c空岛世界加载或创建失败: " + worldName);
+                MessageUtil.consoleError("&c空岛世界加载或创建失败: " + worldName);
             }
         }
 

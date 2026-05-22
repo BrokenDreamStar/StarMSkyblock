@@ -6,6 +6,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import team.starm.starmskyblock.util.ColorUtil;
 
+import java.util.UUID;
+
 /**
  * 消息工具类，封装 ColorUtil 提供统一的消息发送接口
  */
@@ -51,5 +53,27 @@ public class MessageUtil {
      */
     public static String colorize(@Nullable String text) {
         return ColorUtil.colorize(text);
+    }
+
+    /**
+     * 向控制台打印彩色警告日志
+     */
+    public static void consoleWarn(@Nullable String text) {
+        if (text == null) return;
+        ColorUtil.consolePrint("&e[WARN] " + text);
+    }
+
+    /**
+     * 设置玩家是否进入静默模式（不接收命令反馈消息）
+     */
+    public static void setSilent(@NotNull UUID playerUuid, boolean silent) {
+        ColorUtil.setSilent(playerUuid, silent);
+    }
+
+    /**
+     * 检查玩家是否处于静默模式
+     */
+    public static boolean isSilent(@NotNull UUID playerUuid) {
+        return ColorUtil.isSilent(playerUuid);
     }
 }

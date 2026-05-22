@@ -5,7 +5,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import team.starm.starmskyblock.StarMSkyblock;
-import team.starm.starmskyblock.util.ColorUtil;
+import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.UUID;
 
@@ -127,7 +127,7 @@ public class IslandDeleteTask extends BukkitRunnable {
                             }
                         }
                     } catch (Exception e) {
-                        ColorUtil.consoleError("&c在主线程中清理实体时发生错误！");
+                        MessageUtil.consoleError("&c在主线程中清理实体时发生错误！");
                         e.printStackTrace();
                         Player player = Bukkit.getPlayer(playerUuid);
                         if (player != null && player.isOnline()) {
@@ -138,7 +138,7 @@ public class IslandDeleteTask extends BukkitRunnable {
             }.runTask(plugin);
 
         } catch (Exception e) {
-            ColorUtil.consoleError("&c异步删除岛屿时发生错误！");
+            MessageUtil.consoleError("&c异步删除岛屿时发生错误！");
             e.printStackTrace();
             new BukkitRunnable() {
                 @Override

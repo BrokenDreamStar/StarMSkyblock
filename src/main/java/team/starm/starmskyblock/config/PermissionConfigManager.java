@@ -3,6 +3,7 @@ package team.starm.starmskyblock.config;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import team.starm.starmskyblock.StarMSkyblock;
+import team.starm.starmskyblock.message.MessageUtil;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
 
@@ -71,7 +72,7 @@ public class PermissionConfigManager {
             defaultPermissions.put(level, perms);
         }
 
-        plugin.getLogger().info("§a[权限系统] 已加载默认权限配置（支持继承模式）");
+        MessageUtil.consolePrint("&a[权限系统] 已加载默认权限配置（支持继承模式）");
     }
 
     /**
@@ -94,7 +95,7 @@ public class PermissionConfigManager {
             if (parent != null && parent != level) {
                 perms.addAll(resolvePermissions(parent, cache));
             } else {
-                plugin.getLogger().warning("§e无效继承配置: " + level.name() + " 继承 " + parentName + "（已忽略）");
+                MessageUtil.consoleWarn("无效继承配置: " + level.name() + " 继承 " + parentName + "（已忽略）");
             }
         }
 
@@ -133,7 +134,7 @@ public class PermissionConfigManager {
                     set.addAll(EnumSet.allOf(IslandPermission.class));
                 }
             } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("§e未知的权限: " + name + "（已跳过）");
+                MessageUtil.consoleWarn("未知的权限: " + name + "（已跳过）");
             }
         }
         return set;
@@ -188,7 +189,8 @@ public class PermissionConfigManager {
             try {
                 permissionsConfig.save(permissionsFile);
             } catch (IOException e) {
-                plugin.getLogger().log(java.util.logging.Level.SEVERE, "保存权限配置文件失败", e);
+                MessageUtil.consoleError("&c保存权限配置文件失败");
+                e.printStackTrace();
             }
         }
     }
