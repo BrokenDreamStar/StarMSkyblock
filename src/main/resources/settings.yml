@@ -16,6 +16,9 @@ animal_spawn: true
 # 是否允许怪物自然生成
 monster_spawn: true
 
+# 是否允许生成幻翼
+phantom_spawn: true
+
 # 是否允许刷怪笼生成生物
 spawner_spawn: true
 

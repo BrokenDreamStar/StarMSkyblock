@@ -9,6 +9,7 @@ import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.setting.manager.ExplosionSettingManager;
 import team.starm.starmskyblock.setting.manager.FireSpreadSettingManager;
 import team.starm.starmskyblock.setting.manager.GriefSettingManager;
+import team.starm.starmskyblock.setting.manager.PhantomSpawnSettingManager;
 import team.starm.starmskyblock.setting.manager.PvpSettingManager;
 import team.starm.starmskyblock.setting.manager.SpawnSettingManager;
 
@@ -35,6 +36,8 @@ public class IslandSettingManager extends BaseSettingManager implements Listener
     private final GriefSettingManager griefManager;
     /** 爆炸相关的设置管理器（苦力怕、TNT、恶魂、凋灵头颅） */
     private final ExplosionSettingManager explosionManager;
+    /** 幻翼生成相关的设置管理器 */
+    private final PhantomSpawnSettingManager phantomSpawnManager;
 
     public IslandSettingManager(IslandManager islandManager, ConfigManager configManager, JavaPlugin plugin) {
         super(islandManager, configManager);
@@ -45,6 +48,7 @@ public class IslandSettingManager extends BaseSettingManager implements Listener
         this.fireSpreadManager = new FireSpreadSettingManager(islandManager, configManager);
         this.griefManager = new GriefSettingManager(islandManager, configManager);
         this.explosionManager = new ExplosionSettingManager(islandManager, configManager);
+        this.phantomSpawnManager = new PhantomSpawnSettingManager(islandManager, configManager);
 
         // 将所有子管理器注册为事件监听器
         registerEventListeners(plugin);
@@ -61,5 +65,6 @@ public class IslandSettingManager extends BaseSettingManager implements Listener
         pm.registerEvents(fireSpreadManager, plugin);
         pm.registerEvents(griefManager, plugin);
         pm.registerEvents(explosionManager, plugin);
+        pm.registerEvents(phantomSpawnManager, plugin);
     }
 }

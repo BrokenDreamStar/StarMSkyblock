@@ -29,7 +29,9 @@ public enum IslandSetting {
     /** TNT爆炸能否破坏方块 */
     TNT_EXPLOSION("TNT爆炸"),
     /** 凋灵破坏方块行为是否允许 */
-    WITHER_GRIEF("凋灵破坏方块");
+    WITHER_GRIEF("凋灵破坏方块"),
+    /** 是否允许生成幻翼 */
+    PHANTOM_SPAWN("生成幻翼");
 
     /** 该选项在菜单/消息中显示的中文名称 */
     private final String displayName;
