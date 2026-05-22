@@ -29,6 +29,9 @@ public class SignConfigManager {
         loadSignConfig();
     }
 
+    /**
+     * 加载 sign.yml 配置文件，读取 enabled 开关和 lines 文字行列表。
+     */
     public void loadSignConfig() {
         if (!plugin.getDataFolder().exists()) {
             plugin.getDataFolder().mkdirs();
@@ -43,9 +46,6 @@ public class SignConfigManager {
         signConfig = YamlConfiguration.loadConfiguration(signFile);
         this.enabled = signConfig.getBoolean("enabled", true);
         this.lines = signConfig.getStringList("lines");
-        if (this.lines == null) {
-            this.lines = new ArrayList<>();
-        }
 
         plugin.getLogger().info("§a[告示牌系统] 已加载岛屿告示牌配置");
     }

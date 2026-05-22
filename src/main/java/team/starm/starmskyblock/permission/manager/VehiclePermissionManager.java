@@ -23,6 +23,10 @@ import team.starm.starmskyblock.tag.ItemTags;
 
 /**
  * 载具权限管理器
+ * <p>
+ * 处理玩家与矿车和船等载具的交互权限检查。
+ * 覆盖破坏、乘坐、放置三种操作，每种操作对矿车和船分别有独立的权限。
+ * </p>
  */
 public class VehiclePermissionManager extends BasePermissionManager {
 
@@ -31,7 +35,11 @@ public class VehiclePermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 监听矿车/船破坏事件
+     * 监听载具被破坏事件
+     * <p>
+     * 过滤出玩家破坏的载具，根据类型（矿车/船）选择对应的权限。
+     * 非玩家的破坏（如爆炸、环境伤害）不进行拦截。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onVehicleDestroy(VehicleDestroyEvent event) {
@@ -40,12 +48,11 @@ public class VehiclePermissionManager extends BasePermissionManager {
         }
         Vehicle vehicle = event.getVehicle();
 
-        IslandPermission permission = null;
-        if (vehicle instanceof Minecart) {
-            permission = IslandPermission.MINECART_DAMAGE;
-        } else if (vehicle instanceof Boat) {
-            permission = IslandPermission.BOAT_DAMAGE;
-        }
+        IslandPermission permission = switch (vehicle) {
+            case Minecart m -> IslandPermission.MINECART_DAMAGE;
+            case Boat b -> IslandPermission.BOAT_DAMAGE;
+            default -> null;
+        };
 
         if (permission != null && !checkPermission(vehicle.getLocation(), player.getUniqueId(), permission)) {
             event.setCancelled(true);
@@ -54,7 +61,11 @@ public class VehiclePermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 监听乘坐矿车/船事件
+     * 监听玩家进入载具事件
+     * <p>
+     * 乘坐矿车和船时需要分别检查对应的进入权限。
+     * 防止被拒绝进入的玩家通过载具进入他人岛屿的受限区域。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onVehicleEnter(VehicleEnterEvent event) {
@@ -63,12 +74,11 @@ public class VehiclePermissionManager extends BasePermissionManager {
         }
 
         Vehicle vehicle = event.getVehicle();
-        IslandPermission permission = null;
-        if (vehicle instanceof Minecart) {
-            permission = IslandPermission.MINECART_ENTER;
-        } else if (vehicle instanceof Boat) {
-            permission = IslandPermission.BOAT_ENTER;
-        }
+        IslandPermission permission = switch (vehicle) {
+            case Minecart m -> IslandPermission.MINECART_ENTER;
+            case Boat b -> IslandPermission.BOAT_ENTER;
+            default -> null;
+        };
 
         if (permission != null && !checkPermission(vehicle.getLocation(), player.getUniqueId(), permission)) {
             event.setCancelled(true);
@@ -77,7 +87,15 @@ public class VehiclePermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 监听玩家放置矿车/船的事件
+     * 监听玩家放置载具的事件
+     * <p>
+     * 通过 {PlayerInteractEvent} 拦截放置矿车和船的行为：
+     * <ul>
+     *   <li>矿车必须右键点击铁轨方块才能放置</li>
+     *   <li>船可以右键点击方块或空气放置（取决于水面等条件）</li>
+     * </ul>
+     * 使用 {ItemTags} 判断当前手持物品是否为矿车或船类物品。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent event) {

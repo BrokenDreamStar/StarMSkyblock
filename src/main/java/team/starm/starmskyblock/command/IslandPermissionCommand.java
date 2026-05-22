@@ -15,6 +15,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * /is permission 子命令的处理器。
+ * 负责查看和修改每个权限（如 BUILD、BREAK、INVITE_MEMBER 等）所需的最低角色等级。
+ * 支持通过角色名（OWNER/ADMIN/MOD/MEMBER/COOP/VISITOR）、数字等级（0-5）
+ * 以及 cycle/rcycle 循环模式进行设置。
+ * 内嵌 PermissionCategory 枚举对权限进行类别分组，用于显示帮助列表。
+ */
 public class IslandPermissionCommand {
 
     private final StarMSkyblock plugin;
@@ -23,6 +30,10 @@ public class IslandPermissionCommand {
         this.plugin = plugin;
     }
 
+    /**
+     * /is permission 的主入口。
+     * 参数不足时显示用法，2 个参数时查询权限配置，3+ 参数时修改最低等级。
+     */
     public boolean handlePermissionCommand(Player player, String[] args) {
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
@@ -55,6 +66,9 @@ public class IslandPermissionCommand {
         return setPermissionLevel(player, island, args, permissionInput);
     }
 
+    /**
+     * 将字符串匹配为 IslandPermission 枚举值，不区分大小写。
+     */
     private IslandPermission resolvePermission(String input) {
         for (IslandPermission perm : IslandPermission.values()) {
             if (perm.name().equalsIgnoreCase(input)) {
@@ -130,8 +144,13 @@ public class IslandPermissionCommand {
         return true;
     }
 
+    /**
+     * cycle / rcycle 模式：在当前等级基础上 +1（或 -1）循环，范围 0-5。
+     *
+     * @param forward true 为递增 cycle，false 为递减 rcycle
+     */
     private boolean cyclePermissionLevel(Player player, Island island, IslandPermission permission,
-                                          String permissionInput, boolean forward) {
+                                         String permissionInput, boolean forward) {
         IslandManager islandManager = plugin.getIslandManager();
 
         Integer currentLevel = island.getPermissionMinLevel(permission);
@@ -158,6 +177,9 @@ public class IslandPermissionCommand {
         return true;
     }
 
+    /**
+     * 将输入解析为目标角色等级。支持数字 0-5 或角色枚举名。
+     */
     private IslandPermissionLevel parseTargetRole(String roleInput) {
         try {
             int level = Integer.parseInt(roleInput);
@@ -259,9 +281,7 @@ public class IslandPermissionCommand {
 
         List<String> getPermissions() {
             List<String> result = new ArrayList<>();
-            for (String extra : extra) {
-                result.add(extra);
-            }
+            result.addAll(List.of(extra));
             for (IslandPermission perm : IslandPermission.values()) {
                 String name = perm.name();
                 if (name.equals("ALL")) continue;

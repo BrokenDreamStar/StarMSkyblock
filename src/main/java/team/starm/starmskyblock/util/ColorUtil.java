@@ -8,16 +8,19 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 基于 Adventure API 的高级颜色工具类 (修复版)
+ * 基于 Adventure API 的高级颜色工具类。
+ * 统一处理含 & 颜色代码的字符串解析、发送、广播和日志打印。
+ * 支持 Hex 颜色（&#RRGGBB）和传统 § 格式。
+ * 内置静默模式：带有 -s 标记命令的玩家不会收到反馈消息。
  */
 public class ColorUtil {
 
-    private static final Set<UUID> SILENT_PLAYERS = new HashSet<>();
+    private static final Set<UUID> SILENT_PLAYERS = ConcurrentHashMap.newKeySet();
 
     // 支持传统的 & 颜色代码和 Hex 颜色
     private static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.builder()
@@ -52,7 +55,7 @@ public class ColorUtil {
      */
     public static void sendMessage(@NotNull CommandSender sender, @Nullable String message) {
         if (message == null) return;
-        if (sender instanceof Player && SILENT_PLAYERS.contains(((Player) sender).getUniqueId())) return;
+        if (sender instanceof Player player && SILENT_PLAYERS.contains(player.getUniqueId())) return;
         sender.sendMessage(colorize(message));
     }
 

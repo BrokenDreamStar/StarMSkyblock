@@ -18,6 +18,17 @@ import team.starm.starmskyblock.world.SkyblockWorldManager;
 
 import java.util.Optional;
 
+/**
+ * 传送门监听器 —— 处理空岛世界中下界传送门和末地传送门的跨世界传送逻辑。
+ * <p>
+ * 核心功能：
+ * <ul>
+ *   <li>下界传送门：在主世界/下界之间的 1:8 坐标换算；首次进入下界传送到岛内出生点</li>
+ *   <li>末地传送门：主世界/下界 → 末地，以及末地返回主世界</li>
+ *   <li>实体传送门：自动定位实体所属岛屿并跨世界传送，目标超出范围则拦截</li>
+ *   <li>安全检测：目标位置若不在岛屿已解锁区域内则取消传送并提示</li>
+ * </ul>
+ */
 public class PortalListener implements Listener {
 
     private final ConfigManager configManager;
@@ -32,6 +43,7 @@ public class PortalListener implements Listener {
         this.sqliteManager = sqliteManager;
     }
 
+    /** 玩家进入传送门时根据传送门类型分发到对应的处理方法 */
     @EventHandler
     public void onPlayerPortal(PlayerPortalEvent event) {
         Player player = event.getPlayer();
@@ -48,10 +60,11 @@ public class PortalListener implements Listener {
         }
     }
 
+    /** 非玩家实体通过传送门时：定位所属岛屿 → 跨世界传送 → 超出范围则拦截并通知岛主 */
     @EventHandler
     public void onEntityPortal(EntityPortalEvent event) {
         Entity entity = event.getEntity();
-        if (entity instanceof Player) return;
+        if (entity instanceof Player player) return;
         Location from = event.getFrom();
         World fromWorld = from.getWorld();
         if (fromWorld == null) return;
@@ -106,6 +119,7 @@ public class PortalListener implements Listener {
         event.setTo(targetLoc);
     }
 
+    /** 通知岛屿所有成员和岛主：实体试图创建传送门但目标位置不可达 */
     private void notifyIslandMembers(Island island, Location portalLoc, Location targetLoc) {
         int chunkX = targetLoc.getBlockX() >> 4;
         int chunkZ = targetLoc.getBlockZ() >> 4;
@@ -125,6 +139,7 @@ public class PortalListener implements Listener {
 
     // ==================== 下界传送门 ====================
 
+    /** 处理玩家下界传送门交互：根据来源世界分发到"进入下界"或"离开下界" */
     private void handleNetherPortal(PlayerPortalEvent event, Player player, World fromWorld) {
         String normalName = configManager.getWorldNameNormal();
         String netherName = configManager.getWorldNameNether();
@@ -141,6 +156,7 @@ public class PortalListener implements Listener {
         }
     }
 
+    /** 处理从主世界进入下界：首次进入传送岛内下界出生点，后续按坐标换算 */
     private void handleToNether(PlayerPortalEvent event, Player player, Island island) {
         World targetWorld = worldManager.getOrCreateSkyblockNether();
         if (targetWorld == null) return;
@@ -170,6 +186,7 @@ public class PortalListener implements Listener {
         event.setTo(targetLoc);
     }
 
+    /** 处理从下界返回主世界 */
     private void handleFromNether(PlayerPortalEvent event, Player player, Island island) {
         World targetWorld = worldManager.getOrCreateSkyblockWorld();
         if (targetWorld == null) return;
@@ -190,18 +207,22 @@ public class PortalListener implements Listener {
         event.setTo(targetLoc);
     }
 
+    /** 下界坐标 → 主世界坐标的 1:8 换算 */
     private Location calculateNetherPortalLocation(Location from, World targetWorld) {
         return new Location(targetWorld, from.getX() / 8.0, from.getY(), from.getZ() / 8.0,
                 from.getYaw(), from.getPitch());
     }
 
+    /** 主世界坐标 → 下界坐标的 8:1 换算 */
     private Location calculateOverworldPortalLocation(Location from, World targetWorld) {
         return new Location(targetWorld, from.getX() * 8.0, from.getY(), from.getZ() * 8.0,
                 from.getYaw(), from.getPitch());
     }
 
     /**
-     * @return null 如果目标在岛屿已解锁区域内，否则返回提示消息
+     * 检查目标位置是否在岛屿已解锁区域内。
+     *
+     * @return null 如果目标在岛屿已解锁区域内；否则返回对应的提示消息
      */
     private String checkIslandBounds(Location location, Island island) {
         int chunkX = location.getBlockX() >> 4;
@@ -217,6 +238,7 @@ public class PortalListener implements Listener {
 
     // ==================== 末地传送门 ====================
 
+    /** 处理玩家末地传送门：主世界/下界 → 末地岛屿位置，末地 → 主世界 spawn */
     private void handleEndPortal(PlayerPortalEvent event, Player player, World fromWorld) {
         String normalName = configManager.getWorldNameNormal();
         String netherName = configManager.getWorldNameNether();
@@ -247,6 +269,7 @@ public class PortalListener implements Listener {
         }
     }
 
+    /** 计算岛屿在该世界的传送点坐标（中心区块 + 配置偏移量） */
     private Location getIslandLocation(Island island, World world) {
         int startX = island.getCenterChunkX() * 16;
         int startZ = island.getCenterChunkZ() * 16;
@@ -261,6 +284,7 @@ public class PortalListener implements Listener {
         return new Location(world, teleportX, teleportY, teleportZ);
     }
 
+    /** 根据世界类型和岛屿结构 ID 获取传送点偏移量 */
     private double[] getTeleportOffsetsByWorldType(World world, Island island) {
         String worldName = world.getName();
         String netherName = worldManager.getSkyblockNether().getName();

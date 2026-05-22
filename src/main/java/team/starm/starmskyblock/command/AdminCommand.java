@@ -7,6 +7,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.jspecify.annotations.NonNull;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
@@ -18,6 +19,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 管理员命令处理器 — /isadmin。
+ * 提供服务器管理员对岛屿的后台管理功能。
+ * 当前支持：setradius（修改岛屿半径）。
+ * 需要 skyblock.admin 权限。
+ */
 public class AdminCommand implements CommandExecutor, TabCompleter {
 
     private final StarMSkyblock plugin;
@@ -28,8 +35,8 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission("skyblock.admin")) {
-            MessageUtil.sendMessage(sender, "&c你没有权限执行此命令！");
+        if (!(sender instanceof Player player)) {
+            MessageUtil.sendMessage(sender, "&c只有玩家才能执行该命令！");
             return true;
         }
 
@@ -37,20 +44,21 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
         boolean silent = args.length > 0 && (args[args.length - 1].equals("-s"));
         if (silent) {
             args = java.util.Arrays.copyOf(args, args.length - 1);
-            if (sender instanceof Player) {
-                ColorUtil.setSilent(((Player) sender).getUniqueId(), true);
-            }
+            ColorUtil.setSilent(player.getUniqueId(), true);
         }
 
         try {
             return handleCommand(sender, args);
         } finally {
-            if (silent && sender instanceof Player) {
-                ColorUtil.setSilent(((Player) sender).getUniqueId(), false);
+            if (silent) {
+                ColorUtil.setSilent(player.getUniqueId(), false);
             }
         }
     }
 
+    /**
+     * 命令路由。目前仅有 setradius 子命令，未来可在此扩展。
+     */
     private boolean handleCommand(CommandSender sender, String[] args) {
         if (args.length < 3) {
             MessageUtil.sendMessage(sender, "&c用法: /isadmin setradius <岛主ID> <新半径>");
@@ -98,7 +106,7 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    public List<String> onTabComplete(CommandSender sender, @NonNull Command command, @NonNull String alias, String[] args) {
         if (!sender.hasPermission("skyblock.admin")) {
             return new ArrayList<>();
         }

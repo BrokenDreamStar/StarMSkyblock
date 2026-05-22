@@ -52,6 +52,12 @@ import java.util.Objects;
 
 /**
  * 工具权限管理器
+ * <p>
+ * 处理玩家使用各种工具（斧、锹、锄、桶、剪刀、刷子、拴绳等）
+ * 与方块或实体交互时的权限检查。本管理器是权限系统中最为复杂的
+ * 一个，因为工具的右键交互行为高度多样化，需要考虑方块状态、
+ * 实体装备等多种因素来决定是否需要权限以及需要何种权限。
+ * </p>
  */
 public class ToolPermissionManager extends BasePermissionManager {
 
@@ -61,6 +67,21 @@ public class ToolPermissionManager extends BasePermissionManager {
 
     /**
      * 处理玩家手持工具与方块交互的事件
+     * <p>
+     * 这是工具权限管理的核心方法，处理逻辑非常复杂，因为不同工具在不同方块上的行为不同：
+     * <ul>
+     *   <li>斧头：剥树皮、铜块除蜡/氧化</li>
+     *   <li>锹：压平草径、熄灭营火</li>
+     *   <li>锄：犁地</li>
+     *   <li>桶：装/放液体（牛奶桶除外）</li>
+     *   <li>玻璃瓶：装水/蜂蜜</li>
+     *   <li>剪刀：修剪蜂箱/南瓜/藤蔓</li>
+     *   <li>刷子：刷可疑的沙/砾石</li>
+     *   <li>拴绳：拴在栅栏上</li>
+     *   <li>弓/弩：右键蓄力</li>
+     * </ul>
+     * 如果以上特定逻辑都没匹配到，则回退到 {getToolPermission} 进行通用映射。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onToolUse(PlayerInteractEvent event) {
@@ -71,7 +92,8 @@ public class ToolPermissionManager extends BasePermissionManager {
         Player player = event.getPlayer();
         Action action = event.getAction();
 
-        // 牵引生物时右键栅栏
+        // 牵引生物时右键栅栏：在玩家牵着生物的情况下右键栅栏会拴住生物
+        // 这是拴绳的特殊用法，需要提前拦截
         if (action == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null
                 && isLeashableBlock(event.getClickedBlock()) && isPlayerLeadingMob(player)) {
             Location loc = event.getClickedBlock().getLocation();
@@ -99,6 +121,7 @@ public class ToolPermissionManager extends BasePermissionManager {
         IslandPermission permission = null;
         Block clickedBlock = event.getClickedBlock();
 
+        // 右键方块时的特定工具逻辑
         if (action == Action.RIGHT_CLICK_BLOCK && clickedBlock != null) {
             Material blockType = clickedBlock.getType();
 
@@ -124,9 +147,11 @@ public class ToolPermissionManager extends BasePermissionManager {
                     permission = IslandPermission.HOE_USE;
                 }
             } else if (ItemTags.BUCKETS.contains(toolType)) {
+                // 牛奶桶不改变世界状态，不需要权限检查
                 if (toolType == Material.MILK_BUCKET) {
                     return;
                 } else if (toolType == Material.BUCKET) {
+                    // 空桶只对满的炼药锅、含水方块和雪块使用才检查权限
                     boolean isFilledCauldron = blockType == Material.WATER_CAULDRON
                             || blockType == Material.LAVA_CAULDRON
                             || blockType == Material.POWDER_SNOW_CAULDRON;
@@ -140,6 +165,7 @@ public class ToolPermissionManager extends BasePermissionManager {
                         permission = IslandPermission.BUCKET_USE;
                     }
                 } else {
+                    // 装有液体的桶（水桶/熔岩桶等）
                     permission = IslandPermission.BUCKET_USE;
                 }
             } else if (toolType == Material.GLASS_BOTTLE) {
@@ -159,10 +185,12 @@ public class ToolPermissionManager extends BasePermissionManager {
             }
         }
 
+        // 弓/弩的右键蓄力（可能在空中或方块上）
         if (permission == null && (toolType == Material.BOW || toolType == Material.CROSSBOW) && (action == Action.RIGHT_CLICK_BLOCK || action == Action.RIGHT_CLICK_AIR)) {
             permission = IslandPermission.BOW_USE;
         }
 
+        // 以上特定处理都没匹配到的工具，尝试通用映射
         boolean isHandledTool = Tag.ITEMS_AXES.isTagged(toolType) || Tag.ITEMS_SHOVELS.isTagged(toolType)
                 || Tag.ITEMS_HOES.isTagged(toolType) || ItemTags.BUCKETS.contains(toolType)
                 || toolType == Material.GLASS_BOTTLE || toolType == Material.SHEARS
@@ -185,7 +213,11 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 监听装桶事件（填充）
+     * 监听玩家用桶装液体事件
+     * <p>
+     * {PlayerBucketFillEvent} 在玩家使用空桶装水/熔岩/细雪时触发。
+     * 委托给 {handleBucketEvent} 统一处理。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBucketFill(PlayerBucketFillEvent event) {
@@ -193,7 +225,11 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 监听倒桶事件（放置）
+     * 监听玩家倒出液体事件
+     * <p>
+     * {PlayerBucketEmptyEvent} 在玩家使用水桶/熔岩桶等放置液体时触发。
+     * 委托给 {handleBucketEvent} 统一处理。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBucketEmpty(PlayerBucketEmptyEvent event) {
@@ -201,7 +237,13 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 统一的桶事件拦截逻辑，避免重复代码。
+     * 统一的桶事件拦截逻辑
+     * <p>
+     * 装桶和倒桶使用相同的权限检查逻辑，因此提取为公共方法避免代码重复。
+     * 两种操作都需要检查 BUCKET_USE 权限。
+     * </p>
+     *
+     * @param event 桶事件实例
      */
     private void handleBucketEvent(PlayerBucketEvent event) {
         Player player = event.getPlayer();
@@ -214,7 +256,12 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 针对玩家抛竿钓鱼的动作进行精细化权限拦截
+     * 监听玩家钓鱼事件
+     * <p>
+     * 在玩家抛竿（FISHING 状态）时检查 FISHING_ROD_USE 权限。
+     * 注意：收竿（CAUGHT_FISH/CAUGHT_ENTITY/INVALID）不应触发权限检查，
+     * 因为权限已经在抛竿时检查过了。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerFish(PlayerFishEvent event) {
@@ -228,8 +275,17 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 实体射箭事件监听，用于在箭矢实际射出的瞬间进行拦截，
-     * 防止玩家通过某些方式绕过右键蓄力检查。
+     * 监听实体射箭事件
+     * <p>
+     * 这是 BOW_USE 权限的第二道防线。{PlayerInterceptEvent} 只能拦截
+     * 右键蓄力的开始阶段，但某些情况下（如快速连发或利用客户端漏洞）
+     * 可能绕过蓄力事件直接射出箭矢。{EntityShootBowEvent} 在箭矢
+     * 实际射出时触发，提供了最终的拦截机会。
+     * </p>
+     * <p>
+     * 事件取消后需要将消耗的箭矢归还给玩家：
+     * 非创造模式且弓没有无限附魔时，将消耗品放回原槽位或物品栏。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityShootBow(EntityShootBowEvent event) {
@@ -260,7 +316,20 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 针对玩家手持工具右键点击实体的场景进行权限拦截。
+     * 监听玩家手持工具右键点击实体事件
+     * <p>
+     * 某些工具右键点击实体时需要特定权限，例如：
+     * <ul>
+     *   <li>碗 -> 哞菇（蘑菇煲）-> BOWL_USE</li>
+     *   <li>桶 -> 牛/山羊（挤奶）-> BUCKET_USE</li>
+     *   <li>水桶 -> 鱼/美西螈等 -> BUCKET_USE</li>
+     *   <li>剪刀 -> 羊/哞菇/雪傀儡等（剪毛/去蘑菇）-> SHEARS_USE</li>
+     *   <li>刷子 -> 成年犰狳 -> BRUSH_USE</li>
+     *   <li>拴绳 -> 可拴绳实体 -> LEASH_USE</li>
+     *   <li>拴绳扣（LeashKnot）-> LEASH_USE</li>
+     * </ul>
+     * 除此之外的实体右键交互回退到通用 {@code getToolPermission} 映射。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onToolUseOnEntity(PlayerInteractEntityEvent event) {
@@ -339,7 +408,13 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 额外拦截专门的实体脱甲/剪毛事件，防止底层机制绕过右键交互
+     * 监听剪刀修剪实体事件
+     * <p>
+     * {PlayerShearEntityEvent} 是对 {onToolUseOnEntity} 的补充拦截。
+     * 某些情况（例如通过发射器激活剪刀、利用游戏机制绕过右键交互）
+     * 可能不会经过 {PlayerInteractEntityEvent}，但会触发此事件。
+     * 双重拦截确保 SHEARS_USE 权限的完整性。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerShearEntity(PlayerShearEntityEvent event) {
@@ -355,7 +430,16 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 额外拦截解开拴绳的行为，根据手持物品区分使用拴绳或剪刀权限
+     * 监听解除拴绳事件
+     * <p>
+     * 玩家解开拴绳有两种方式：手持拴绳右键（收回拴绳）或手持剪刀右键（剪断）。
+     * 根据主手物品类型区分所需的权限：
+     * <ul>
+     *   <li>剪刀 -> SHEARS_USE</li>
+     *   <li>其他（通常是拴绳）-> LEASH_USE</li>
+     * </ul>
+     * 事件取消后需要同步实体状态以修复客户端视觉假象。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerUnleashEntity(PlayerUnleashEntityEvent event) {
@@ -376,7 +460,13 @@ public class ToolPermissionManager extends BasePermissionManager {
     
 
     /**
-     * 强制客户端同步实体状态，修复由于客户端本地预测导致的视觉假象
+     * 强制客户端同步实体状态
+     * <p>
+     * 当权限检查拒绝交互后，客户端可能已经本地预测了交互结果
+     * （例如拴绳绑到了栅栏上或者生物身上），导致视觉上的假象。
+     * 通过在下个 tick 隐藏再显示实体，强制服务器重新向客户端
+     * 发送正确的实体状态数据包，消除本地预测的残留效果。
+     * </p>
      */
     private void syncEntityStatusForPlayer(Player player, Entity entity) {
         Plugin plugin = JavaPlugin.getProvidingPlugin(getClass());
@@ -389,7 +479,20 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 模拟原版弹药选择规则，找出指定消耗品在玩家物品栏中的槽位
+     * 查找指定消耗品在玩家物品栏中的槽位
+     * <p>
+     * 模拟原版 Minecraft 的弹药选择优先级：
+     * <ol>
+     *   <li>副手（槽位 40）</li>
+     *   <li>快捷栏 0-8</li>
+     *   <li>背包 9-35</li>
+     * </ol>
+     * 用于在射箭事件取消后将消耗的弹药还到正确的槽位。
+     * </p>
+     *
+     * @param player 玩家
+     * @param ammo   需要匹配的弹药物品
+     * @return 槽位号，未找到返回 -1
      */
     private int findAmmoSlot(Player player, ItemStack ammo) {
         PlayerInventory inv = player.getInventory();
@@ -412,7 +515,11 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 判断物品栏中指定槽位是否为空
+     * 判断指定物品栏槽位是否为空
+     *
+     * @param inv  玩家物品栏
+     * @param slot 槽位号
+     * @return true 如果该槽位没有物品或物品为空气
      */
     private boolean isSlotEmpty(PlayerInventory inv, int slot) {
         ItemStack item = inv.getItem(slot);
@@ -420,7 +527,15 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 在事件取消后将消耗品返还给玩家，优先放回原槽位，若原槽位已满则尝试合并或放入空位
+     * 将射箭消耗的弹药返还给玩家
+     * <p>
+     * 优先级：先尝试放回原槽位；如果原槽位被其他物品占用但可叠加则合并；
+     * 最终回退到物品栏空位。这确保了玩家不会因为权限拦截而意外损失弹药。
+     * </p>
+     *
+     * @param player         玩家
+     * @param originalSlot   原弹药所在槽位
+     * @param itemToRestore  要返还的物品
      */
     private void restoreConsumable(Player player, int originalSlot, ItemStack itemToRestore) {
         if (itemToRestore == null || itemToRestore.getType().isAir()) {
@@ -444,7 +559,18 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 判断右键方块时是否需要 SHEARS 权限
+     * 判断右键指定方块时是否需要 SHEARS 权限
+     * <p>
+     * 以下情况需要使用剪刀并需要权限检查：
+     * <ul>
+     *   <li>南瓜/雕刻南瓜 -> 取下南瓜灯</li>
+     *   <li>蜂箱/蜂巢 -> 蜜脾满级时收取蜜脾</li>
+     *   <li>洞穴藤蔓/垂泪藤/缠怨藤/海带 -> 修剪（如果需要）</li>
+     * </ul>
+     * </p>
+     *
+     * @param block 目标方块
+     * @return true 如果需要 SHEARS 权限
      */
     private boolean requiresShearsOnBlock(Block block) {
         if (block == null) {
@@ -464,7 +590,22 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 判断右键实体时是否需要 SHEARS 权限（严格检测是否穿戴了特定的装备/鞍/地毯/挽具）
+     * 判断右键实体时是否需要 SHEARS 权限
+     * <p>
+     * 剪刀可以对多种实体使用：
+     * <ul>
+     *   <li>羊 -> 剪毛</li>
+     *   <li>哞菇 -> 去蘑菇变成牛</li>
+     *   <li>沼骸（Bogged）-> 剪去蘑菇</li>
+     *   <li>雪傀儡 -> 去南瓜头</li>
+     *   <li>铜傀儡 -> 取下罂粟</li>
+     *   <li>已驯服/可骑乘的实体 -> 取下鞍/马铠/地毯/挽具</li>
+     * </ul>
+     * 对每个实体类型进行详尽的检测以确保准确性。
+     * </p>
+     *
+     * @param entity 目标实体
+     * @return true 如果在该实体上使用剪刀需要 SHEARS 权限
      */
     private boolean requiresShearsOnEntity(Entity entity) {
         if (entity == null) {
@@ -534,14 +675,28 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 判断右键方块时是否需要 LEASH 权限（仅可拴绳的栅栏方块）
+     * 判断方块是否可以作为拴绳的固定点
+     * <p>
+     * 只有栅栏（fence）方块可以固定拴绳。
+     * 使用 Bukkit 的 {Tag.FENCES} 进行判断，覆盖所有栅栏变种。
+     * </p>
+     *
+     * @param block 目标方块
+     * @return true 如果是栅栏方块
      */
     private boolean isLeashableBlock(Block block) {
         return block != null && Tag.FENCES.isTagged(block.getType());
     }
 
     /**
-     * 判断实体是否为可被拴绳的生物或船
+     * 判断实体是否可以被拴绳拴住
+     * <p>
+     * 包括所有可拴绳的生物（通过 {EntityTags.CAN_BE_LEASHED} 定义）
+     * 以及箱子船和普通船。船可以被拴绳牵引。
+     * </p>
+     *
+     * @param entity 目标实体
+     * @return true 如果可以拴绳
      */
     private boolean isLeashableEntity(Entity entity) {
         if (entity == null) {
@@ -553,7 +708,15 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 判断玩家是否正在牵引任何可被拴绳的生物/船
+     * 判断玩家当前是否正在牵引着任何生物/船
+     * <p>
+     * 通过检查玩家周围 16 格范围内是否有被该玩家用拴绳牵着的生物。
+     * 用于判断玩家右键栅栏时是打算拴住牵引的生物还是单纯与栅栏交互。
+     * 16 格范围与拴绳的最大有效长度一致。
+     * </p>
+     *
+     * @param player 玩家
+     * @return true 如果玩家正在牵引着生物
      */
     private boolean isPlayerLeadingMob(Player player) {
         if (player == null) {
@@ -569,7 +732,14 @@ public class ToolPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 根据工具类型获取对应的基础权限
+     * 根据工具类型获取对应的通用权限
+     * <p>
+     * 用于处理 {onToolUse} 中未明确处理的工具类型。
+     * 作为兜底映射，覆盖所有已知的工具类物品。
+     * </p>
+     *
+     * @param toolType 工具的物品材质
+     * @return 对应的岛屿权限，未知工具返回 null
      */
     private IslandPermission getToolPermission(Material toolType) {
         if (toolType == null) {

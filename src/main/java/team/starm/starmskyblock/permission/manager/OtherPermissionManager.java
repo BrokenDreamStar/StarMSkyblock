@@ -39,7 +39,14 @@ public class OtherPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 监听玩家与杂项方块的交互事件 (踩踏、右键)
+     * 监听玩家与杂项方块的交互事件
+     * <p>
+     * 处理两类交互：
+     * <ul>
+     *   <li>物理交互（踩踏）：耕地和海龟蛋的踩踏保护</li>
+     *   <li>右键交互：床、蛋糕、重生锚、甜浆果丛/发光浆果的采摘</li>
+     * </ul>
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onOtherInteract(PlayerInteractEvent event) {
@@ -80,7 +87,12 @@ public class OtherPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 监听玩家完成告示牌文本编辑事件
+     * 监听告示牌文本编辑完成事件
+     * <p>
+     * {SignChangeEvent} 在玩家编辑告示牌后点击"完成"时触发。
+     * 在此处检查 SIGN_EDIT 权限。注意：打开编辑界面的操作
+     * 不在此处拦截（由其他事件处理）。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onSignChange(SignChangeEvent event) {
@@ -94,6 +106,10 @@ public class OtherPermissionManager extends BasePermissionManager {
 
     /**
      * 监听玩家上床睡觉事件
+     * <p>
+     * {PlayerBedEnterEvent} 在玩家尝试上床睡觉时触发。
+     * 检查 BED_USE 权限。该权限独立于其他容器/方块交互权限。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBedEnter(PlayerBedEnterEvent event) {
@@ -106,7 +122,12 @@ public class OtherPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 监听实体受到伤害事件（用于拦截破坏末地水晶）
+     * 监听末地水晶被破坏事件
+     * <p>
+     * 末地水晶是一种实体（EnderCrystal），通过 {EntityDamageByEntityEvent}
+     * 拦截对其造成的伤害。支持直接近战攻击和投射物攻击。
+     * 检查 END_CRYSTAL_DAMAGE 权限。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEndCrystalDamage(EntityDamageByEntityEvent event) {
@@ -115,11 +136,11 @@ public class OtherPermissionManager extends BasePermissionManager {
         }
 
         Player player = null;
-        if (event.getDamager() instanceof Player) {
-            player = (Player) event.getDamager();
+        if (event.getDamager() instanceof Player damagerPlayer) {
+            player = damagerPlayer;
         } else if (event.getDamager() instanceof Projectile projectile) {
-            if (projectile.getShooter() instanceof Player) {
-                player = (Player) projectile.getShooter();
+            if (projectile.getShooter() instanceof Player shooterPlayer) {
+                player = shooterPlayer;
             }
         }
 
@@ -133,6 +154,10 @@ public class OtherPermissionManager extends BasePermissionManager {
 
     /**
      * 监听玩家触发村庄袭击事件
+     * <p>
+     * {RaidTriggerEvent} 在玩家触发袭击（进入带有不祥之兆效果的村庄）时触发。
+     * 检查 RAID_TRIGGER 权限，防止玩家在他人岛屿上触发袭击破坏村庄。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onRaidTrigger(RaidTriggerEvent event) {
@@ -144,7 +169,13 @@ public class OtherPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 监听玩家使用刷怪蛋事件（右键方块/空气）
+     * 监听玩家使用刷怪蛋事件
+     * <p>
+     * 右键使用刷怪蛋时检查 SPAWN_EGG_USE 权限。
+     * 支持右键方块和右键空气两种使用方式。
+     * 使用 {ItemTags.SPAWN_EGGS} 判断物品是否为刷怪蛋，
+     * 覆盖所有生物类型的刷怪蛋。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onSpawnEggUse(PlayerInteractEvent event) {
@@ -173,6 +204,10 @@ public class OtherPermissionManager extends BasePermissionManager {
 
     /**
      * 监听玩家右键实体使用刷怪蛋事件
+     * <p>
+     * 右键点击生物使用刷怪蛋可以转换生物类型（如将僵尸转化为溺尸）。
+     * 这是 {onSpawnEggUse} 的补充，因为右键实体的事件路径与右键方块不同。
+     * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onSpawnEggUseOnEntity(PlayerInteractEntityEvent event) {
@@ -194,7 +229,16 @@ public class OtherPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * 辅助方法：根据方块类型和状态获取对应的右键操作权限
+     * 根据方块类型和状态获取对应的右键操作权限
+     * <p>
+     * 处理床、甜浆果丛、发光浆果、蛋糕、重生锚的右键权限映射。
+     * 对于结果类植物（甜浆果丛和发光浆果），只在已结果的状态下
+     * 才返回 SWEET_BERRY_HARVEST 权限；未成熟时返回 null 表示不需要检查。
+     * 这是为了避免在植物尚未结果时误拦截玩家的正常交互。
+     * </p>
+     *
+     * @param block 目标方块
+     * @return 对应的岛屿权限，不需要检查时返回 null
      */
     @SuppressWarnings("deprecation")
     private IslandPermission getRightClickPermission(Block block) {
@@ -203,13 +247,14 @@ public class OtherPermissionManager extends BasePermissionManager {
             return IslandPermission.BED_USE;
         }
 
-        // 浆果/发光浆果：只对已结果的状态进行权限检查
+        // 甜浆果丛：只有已结果的状态才需要权限检查
         if (material == Material.SWEET_BERRY_BUSH) {
             if (block.getBlockData() instanceof Ageable ageable && ageable.getAge() < ageable.getMaximumAge()) {
-                return null; // 未成熟，不触发采摘事件
+                return null;
             }
             return IslandPermission.SWEET_BERRY_HARVEST;
         }
+        // 发光浆果：只有已结果的状态才需要权限检查
         if (material == Material.CAVE_VINES || material == Material.CAVE_VINES_PLANT) {
             boolean hasBerries;
             if (block.getBlockData() instanceof CaveVines vines) {
@@ -220,7 +265,7 @@ public class OtherPermissionManager extends BasePermissionManager {
                 return IslandPermission.SWEET_BERRY_HARVEST;
             }
             if (!hasBerries) {
-                return null; // 未结果，不触发采摘事件
+                return null;
             }
             return IslandPermission.SWEET_BERRY_HARVEST;
         }

@@ -9,13 +9,25 @@ import team.starm.starmskyblock.util.ColorUtil;
 
 import java.util.UUID;
 
+/**
+ * 岛屿删除异步任务 —— 清空三个世界的方块 → 清理实体 → 删除数据库记录。
+ * <p>
+ * 分两步执行：
+ * <ol>
+ *   <li>异步阶段：使用 WorldEdit 批量清空主世界/下界/末地的方块（耗时操作）</li>
+ *   <li>同步阶段：在主线程清理非玩家实体 + 删除数据库</li>
+ * </ol>
+ * 实体清理必须在主线程执行以避免并发修改问题。
+ */
 public class IslandDeleteTask extends BukkitRunnable {
 
     private final StarMSkyblock plugin;
     private final IslandManager islandManager;
     private final Island island;
     private final UUID playerUuid;
+    /** 当前已删除次数（用于消息提示） */
     private final int deleteCount;
+    /** 允许的最大删除次数（配置值） */
     private final int maxDeleteTimes;
 
     public IslandDeleteTask(StarMSkyblock plugin, IslandManager islandManager,
@@ -28,10 +40,11 @@ public class IslandDeleteTask extends BukkitRunnable {
         this.maxDeleteTimes = maxDeleteTimes;
     }
 
+    /** 异步执行方块清空 → 调度主线程清理实体和数据库 */
     @Override
     public void run() {
         try {
-            // 1. 清理方块 (WorldEdit/FAWE)
+            // 1. 异步阶段：用 WorldEdit 批量清空方块（脱离主线程避免卡服）
             World world = plugin.getWorldManager().getSkyblockWorld();
             World netherWorld = plugin.getWorldManager().getSkyblockNether();
             World endWorld = plugin.getWorldManager().getSkyblockEnd();
@@ -60,15 +73,15 @@ public class IslandDeleteTask extends BukkitRunnable {
                         endWorld.getMaxHeight(), maxZ);
             }
 
-            // 2. 在主线程中清理实体
+            // 2. 同步阶段：在主线程清理非玩家实体 + 删除数据库记录
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     try {
                         if (world != null) {
                             world.getEntities().stream().filter(e -> !(e instanceof Player)).forEach(e -> {
-                                int eChunkX = e.getLocation().getChunk().getX();
-                                int eChunkZ = e.getLocation().getChunk().getZ();
+                                int eChunkX = e.getLocation().getBlockX() >> 4;
+                                int eChunkZ = e.getLocation().getBlockZ() >> 4;
                                 if (eChunkX >= minChunkX && eChunkX <= maxChunkX && eChunkZ >= minChunkZ && eChunkZ <= maxChunkZ) {
                                     e.remove();
                                 }
@@ -76,8 +89,8 @@ public class IslandDeleteTask extends BukkitRunnable {
                         }
                         if (netherWorld != null) {
                             netherWorld.getEntities().stream().filter(e -> !(e instanceof Player)).forEach(e -> {
-                                int eChunkX = e.getLocation().getChunk().getX();
-                                int eChunkZ = e.getLocation().getChunk().getZ();
+                                int eChunkX = e.getLocation().getBlockX() >> 4;
+                                int eChunkZ = e.getLocation().getBlockZ() >> 4;
                                 if (eChunkX >= minChunkX && eChunkX <= maxChunkX && eChunkZ >= minChunkZ && eChunkZ <= maxChunkZ) {
                                     e.remove();
                                 }
@@ -85,8 +98,8 @@ public class IslandDeleteTask extends BukkitRunnable {
                         }
                         if (endWorld != null) {
                             endWorld.getEntities().stream().filter(e -> !(e instanceof Player)).forEach(e -> {
-                                int eChunkX = e.getLocation().getChunk().getX();
-                                int eChunkZ = e.getLocation().getChunk().getZ();
+                                int eChunkX = e.getLocation().getBlockX() >> 4;
+                                int eChunkZ = e.getLocation().getBlockZ() >> 4;
                                 if (eChunkX >= minChunkX && eChunkX <= maxChunkX && eChunkZ >= minChunkZ && eChunkZ <= maxChunkZ) {
                                     e.remove();
                                 }

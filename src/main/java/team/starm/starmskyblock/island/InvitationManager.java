@@ -13,12 +13,20 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * 邀请管理器 —— 处理玩家之间发送/接受/拒绝岛屿邀请。
+ * <p>
+ * 邀请有 5 分钟有效期，过期自动失效。
+ * 被邀请的玩家如果有岛屿或已有有效邀请则不能再次被邀请。
+ * 接受邀请时自动解除该玩家的合作者关系（如果存在）。
+ */
 public class InvitationManager {
 
     private final IslandManager islandManager;
     private final ConfigManager configManager;
     private final SkyblockWorldManager worldManager;
 
+    /** 待处理的邀请缓存（目标玩家 UUID → 邀请数据） */
     private final Map<UUID, InvitationData> pendingInvitations = new HashMap<>();
 
     public InvitationManager(IslandManager islandManager, ConfigManager configManager, SkyblockWorldManager worldManager) {
@@ -27,34 +35,25 @@ public class InvitationManager {
         this.worldManager = worldManager;
     }
 
-    public static class InvitationData {
-        private final UUID inviterUuid;
-        private final int islandId;
-        private final long timestamp;
-
+    /** 邀请数据：包含邀请人、目标岛屿 ID 和创建时间 */
+    public record InvitationData(UUID inviterUuid, int islandId, long timestamp) {
         public InvitationData(UUID inviterUuid, int islandId) {
-            this.inviterUuid = inviterUuid;
-            this.islandId = islandId;
-            this.timestamp = System.currentTimeMillis();
+            this(inviterUuid, islandId, System.currentTimeMillis());
         }
 
-        public UUID getInviterUuid() {
-            return inviterUuid;
-        }
-
-        public int getIslandId() {
-            return islandId;
-        }
-
-        public long getTimestamp() {
-            return timestamp;
-        }
-
+        /** 判断邀请是否超过 5 分钟有效期 */
         public boolean isExpired() {
             return System.currentTimeMillis() - timestamp > 5 * 60 * 1000;
         }
     }
 
+    /**
+     * 发送岛屿邀请。
+     * 前提条件：目标玩家没有岛屿，且没有未过期的待处理邀请。
+     * 发送成功后双方都会收到消息提示。
+     *
+     * @return true 邀请发送成功
+     */
     public boolean sendInvitation(UUID inviterUuid, UUID targetUuid, int islandId) {
         Optional<Island> targetIsland = islandManager.getIsland(targetUuid);
         if (targetIsland.isPresent()) {
@@ -95,6 +94,12 @@ public class InvitationManager {
         return true;
     }
 
+    /**
+     * 接受邀请：将玩家以 MEMBER 角色加入岛屿并传送。
+     * 如果玩家已有岛屿或邀请已过期则拒绝。
+     *
+     * @return true 加入成功
+     */
     public boolean acceptInvitation(UUID targetUuid) {
         InvitationData invitation = pendingInvitations.get(targetUuid);
         if (invitation == null) {
@@ -112,13 +117,13 @@ public class InvitationManager {
             return false;
         }
 
-        if (islandManager.addMemberToIsland(invitation.getIslandId(), targetUuid, IslandPermissionLevel.MEMBER)) {
-            Optional<Island> island = islandManager.getIsland(invitation.getIslandId());
+        if (islandManager.addMemberToIsland(invitation.islandId(), targetUuid, IslandPermissionLevel.MEMBER)) {
+            Optional<Island> island = islandManager.getIsland(invitation.islandId());
             if (island.isPresent()) {
                 Player target = Bukkit.getPlayer(targetUuid);
                 if (target != null) {
                     Island islandObj = island.get();
-                    Player inviter = Bukkit.getPlayer(invitation.getInviterUuid());
+                    Player inviter = Bukkit.getPlayer(invitation.inviterUuid());
 
                     if (inviter != null) {
                         MessageUtil.sendMessage(inviter, "&a玩家 &e" + target.getName() + " &a已接受你的岛屿邀请！");
@@ -145,6 +150,7 @@ public class InvitationManager {
         return false;
     }
 
+    /** 拒绝邀请：双方收到提示后移除待处理记录 */
     public boolean declineInvitation(UUID targetUuid) {
         InvitationData invitation = pendingInvitations.get(targetUuid);
         if (invitation == null) {
@@ -152,7 +158,7 @@ public class InvitationManager {
         }
 
         Player target = Bukkit.getPlayer(targetUuid);
-        Player inviter = Bukkit.getPlayer(invitation.getInviterUuid());
+        Player inviter = Bukkit.getPlayer(invitation.inviterUuid());
 
         if (target != null) {
             MessageUtil.sendMessage(target, "&c你已拒绝岛屿邀请");
@@ -170,6 +176,7 @@ public class InvitationManager {
         return true;
     }
 
+    /** 获取目标玩家的待处理邀请（自动过滤已过期的） */
     public InvitationData getPendingInvitation(UUID targetUuid) {
         InvitationData invitation = pendingInvitations.get(targetUuid);
         if (invitation != null && invitation.isExpired()) {
@@ -179,10 +186,12 @@ public class InvitationManager {
         return invitation;
     }
 
+    /** 清理所有已过期的邀请 */
     public void cleanupExpiredInvitations() {
         pendingInvitations.entrySet().removeIf(entry -> entry.getValue().isExpired());
     }
 
+    /** 判断目标玩家是否有未过期的待处理邀请 */
     public boolean hasPendingInvitation(UUID targetUuid) {
         InvitationData invitation = getPendingInvitation(targetUuid);
         return invitation != null;

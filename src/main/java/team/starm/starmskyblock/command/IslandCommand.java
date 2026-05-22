@@ -33,15 +33,26 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * 空岛主命令处理器 - IslandCommand
- * 处理所有 /is 子命令
+ * 玩家空岛命令处理器 — /is。
+ * 实现 CommandExecutor + TabCompleter，处理所有玩家侧的空岛操作：
+ * 创建、传送、删除、邀请、成员管理、权限管理、设置等二十余个子命令。
+ * 将权限管理逻辑委托给 IslandPermissionCommand，保持职责分离。
  */
 public class IslandCommand implements CommandExecutor, TabCompleter {
 
+    /**
+     * 插件主实例引用
+     */
     private final StarMSkyblock plugin;
+    /**
+     * 委托处理 /is permission 子命令
+     */
     private final IslandPermissionCommand permissionCommand;
 
-    private final List<String> subCommands = Arrays.asList(
+    /**
+     * 所有 /is 子命令列表（用于帮助和 Tab 补全）
+     */
+    private final List<String> subCommands = List.of(
             "create", "home", "sethome", "border", "delete", "help",
             "invite", "remove", "promote", "demote", "rename", "coop",
             "members", "coops", "mycoops", "myperms", "role", "tp",
@@ -52,6 +63,9 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         this.permissionCommand = new IslandPermissionCommand(plugin);
     }
 
+    /**
+     * 命令入口。校验玩家身份和权限，提取 -s 静默标记后分发到 handleCommand。
+     */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -64,7 +78,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        // 提取 -s 静默标记
+        // 提取 -s 静默标记（末尾参数），使权限提示消息静音
         boolean silent = args.length > 0 && (args[args.length - 1].equals("-s"));
         if (silent) {
             args = java.util.Arrays.copyOf(args, args.length - 1);
@@ -80,6 +94,10 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    /**
+     * 命令路由核心。根据 args[0] 将请求分发给对应的功能处理器。
+     * 每个 if 分支对应一个子命令，共享相同的参数解析模式。
+     */
     private boolean handleCommand(Player player, String[] args) {
         IslandManager islandManager = plugin.getIslandManager();
         SkyblockWorldManager worldManager = plugin.getWorldManager();
@@ -90,6 +108,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         }
 
         // ====================== 创建岛屿 ======================
+        // 支持 /is create [schematicId] [islandName] 两种参数形式
         if (args[0].equalsIgnoreCase("create")) {
             if (islandManager.getIsland(player.getUniqueId()).isPresent()) {
                 MessageUtil.sendMessage(player, "&c你已经拥有一个岛屿了！使用 /is home 返回。");
@@ -226,7 +245,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
             } else {
-                targetIsland = matchingIslands.get(0);
+                targetIsland = matchingIslands.getFirst();
                 confirmArgIndex = 2;
             }
 
@@ -345,7 +364,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
 
             Island.WorldType worldType = playerWorld.equals(worldManager.getSkyblockNether()) ? Island.WorldType.NETHER
                     : playerWorld.equals(worldManager.getSkyblockEnd()) ? Island.WorldType.END
-                    : Island.WorldType.NORMAL;
+                      : Island.WorldType.NORMAL;
 
             ConfigManager configManager = plugin.getConfigManager();
             if (worldType == Island.WorldType.NETHER && !configManager.isAllowSethomeInNether()) {
@@ -394,7 +413,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            World mainWorld = Bukkit.getWorlds().get(0);
+            World mainWorld = Bukkit.getWorlds().getFirst();
             for (Player p : Bukkit.getOnlinePlayers()) {
                 if (islandManager.isPlayerOnIsland(p, island)) {
                     p.teleport(mainWorld.getSpawnLocation());
@@ -685,9 +704,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             MessageUtil.sendMessage(player, "&7当前角色: &e" + playerRole.getDisplayName() + " &7(等级 " + playerRole.getPermissionLevel() + ")");
             MessageUtil.sendMessage(player, "");
 
-            IslandPermission[] permissions = IslandPermission.values();
-            for (int i = 0; i < permissions.length; i++) {
-                IslandPermission perm = permissions[i];
+            for (IslandPermission perm : IslandPermission.values()) {
                 if (perm == IslandPermission.ALL) continue;
                 boolean hasPerm = island.hasPermission(player.getUniqueId(), perm);
                 String icon = hasPerm ? "&a✔" : "&c✘";
@@ -729,12 +746,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            StringBuilder sb = new StringBuilder();
-            for (int i = 1; i < args.length; i++) {
-                if (sb.length() > 0) sb.append(" ");
-                sb.append(args[i]);
-            }
-            String newName = sb.toString();
+            String newName = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
 
             if (newName.length() > 32) {
                 MessageUtil.sendMessage(player, "&c岛屿名称不能超过32个字符！");
@@ -893,6 +905,10 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    /**
+     * 处理 /is coop add <玩家> — 将其他岛屿的玩家添加为本岛的合作者。
+     * 合作者拥有独立于成员的权限集合，可以建造/破坏但不算岛屿成员。
+     */
     private boolean handleCoopAdd(Player player, String[] args, IslandManager islandManager) {
         Optional<Island> optionalIsland = islandManager.getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
@@ -946,6 +962,9 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    /**
+     * 处理 /is coop remove <玩家> — 将合作者从岛屿合作者列表中移除。
+     */
     private boolean handleCoopRemove(Player player, String[] args, IslandManager islandManager) {
         Optional<Island> optionalIsland = islandManager.getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
@@ -1030,26 +1049,20 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         MessageUtil.sendMessage(player, "&b/is settings <设置项> <true|false> &f- 修改岛屿设置");
     }
 
+    /**
+     * 检查传送位置是否安全（脚下是否有实心方块，防止摔落虚空）
+     */
     private boolean isLocationSafe(Location location) {
         Location blockBelowLocation = location.clone().subtract(0, 1, 0);
         return !blockBelowLocation.getBlock().getType().isAir();
     }
 
     /**
-     * 获取玩家显示名称：优先从数据库获取，回退到 OfflinePlayer API
+     * 获取玩家显示名称：优先从数据库缓存获取，否则返回UUID
      */
     private String getPlayerName(UUID uuid) {
         Optional<String> dbName = plugin.getSqliteManager().getPlayerName(uuid);
-        if (dbName.isPresent()) {
-            return dbName.get();
-        }
-        // 回退到 OfflinePlayer API，并存入数据库以备后续使用
-        String offlineName = Bukkit.getOfflinePlayer(uuid).getName();
-        if (offlineName != null) {
-            plugin.getSqliteManager().savePlayerName(uuid, offlineName);
-            return offlineName;
-        }
-        return uuid.toString();
+        return dbName.orElse(uuid.toString());
     }
 
     @Override
@@ -1067,7 +1080,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 2 && args[0].equalsIgnoreCase("border")) {
             String prefix = args[1].toLowerCase();
-            return Arrays.asList("true", "false", "toggle").stream()
+            return List.of("true", "false", "toggle").stream()
                     .filter(s -> s.startsWith(prefix))
                     .collect(Collectors.toList());
         }
@@ -1082,14 +1095,14 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 3 && args[0].equalsIgnoreCase("settings")) {
             String prefix = args[2].toLowerCase();
-            return Arrays.asList("true", "false").stream()
+            return List.of("true", "false").stream()
                     .filter(s -> s.startsWith(prefix))
                     .collect(Collectors.toList());
         }
 
         if (args.length == 2 && args[0].equalsIgnoreCase("coop")) {
             String prefix = args[1].toLowerCase();
-            return Arrays.asList("add", "remove").stream()
+            return List.of("add", "remove").stream()
                     .filter(s -> s.startsWith(prefix))
                     .collect(Collectors.toList());
         }

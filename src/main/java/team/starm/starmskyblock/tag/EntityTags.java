@@ -5,9 +5,17 @@ import org.bukkit.entity.EntityType;
 import java.util.EnumSet;
 import java.util.Set;
 
+/**
+ * 实体标签工具类
+ *
+ * 预定义了一系列 EntityType 集合，用于方便地判断实体是否属于某种分类。
+ * 涵盖运输船、可骑乘生物、可拴绳生物、携带背包的骑乘生物等常见分类，
+ * 避免在业务代码中反复编写 instanceof 判断或硬编码的实体列表
+ */
 public class EntityTags {
     /**
-     * 所有种类的运输船(实体)
+     * 所有种类的运输船（带箱子的船/筏）
+     * 用于判断实体是否为可存储物品的水上交通工具
      */
     public static final Set<EntityType> CHEST_BOATS = EnumSet.of(
             EntityType.OAK_CHEST_BOAT,
@@ -23,7 +31,9 @@ public class EntityTags {
     );
 
     /**
-     * 可被骑乘的生物
+     * 可被玩家骑乘的生物类型集合
+     * 包括马、驴、骡、猪、炽足兽、骆驼、鹦鹉螺等
+     * 用于判断玩家是否可骑上该生物（通过右键交互）
      */
     public static final Set<EntityType> RIDEABLE = EnumSet.of(
             EntityType.HORSE,
@@ -89,7 +99,10 @@ public class EntityTags {
     );
 
     /**
-     * 携带背包的可骑乘生物
+     * 携带背包（额外物品栏）的可骑乘生物集合
+     * 这类生物除了可被骑乘外，还拥有独立的物品栏，
+     * 可以装备鞍具、箱子（驴/骡）、地毯（羊驼）等
+     * 用于打开生物背包 UI 时的判断
      */
     public static final Set<EntityType> ANIMALS_WITH_INVENTORY = EnumSet.of(
             EntityType.HORSE,

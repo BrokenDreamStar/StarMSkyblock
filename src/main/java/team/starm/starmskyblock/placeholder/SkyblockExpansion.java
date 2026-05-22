@@ -12,6 +12,15 @@ import team.starm.starmskyblock.setting.IslandSetting;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * PlaceholderAPI 扩展，提供 %starmskyblock_*% 变量占位符。
+ * 子命令格式：
+ *   %starmskyblock_island%           — 当前区块所在岛屿名称
+ *   %starmskyblock_role%             — 玩家在当前岛屿的角色
+ *   %starmskyblock_permission_{PERM}_level_weight%  — 某权限的最低等级
+ *   %starmskyblock_permission_{PERM}_level_{ROLE}% — 某角色是否有某权限
+ *   %starmskyblock_islandsettings_{SETTING}%       — 某设置开关状态
+ */
 public class SkyblockExpansion extends PlaceholderExpansion {
 
     private final StarMSkyblock plugin;

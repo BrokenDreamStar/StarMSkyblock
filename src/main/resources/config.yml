@@ -55,7 +55,7 @@ biome:
   # 末地生物群系，如 THE_END, END_HIGHLANDS 等
   end: THE_END
 
-# 岛屿生成的高度。生成时会以结构文件中的基岩 (Bedrock) 方块为中心点对其，基岩将生成在这个 Y 坐标。
+# 岛屿生成的高度。生成时会以结构文件中的基岩为中心点，基岩将生成在这个高度。
 island-height: 63
 
 
@@ -64,9 +64,9 @@ island-height: 63
 max-delete-times: 3
 
 # 传送点设置权限配置
-# 是否允许玩家在下界使用 /is sethome 设置传送点
+# 是否允许玩家在下界使用 /is sethome 设置岛屿传送点
 allow-sethome-in-nether: true
-# 是否允许玩家在末地使用 /is sethome 设置传送点
+# 是否允许玩家在末地使用 /is sethome 设置岛屿传送点
 allow-sethome-in-end: true
 
 # 权限提示消息冷却时间（毫秒），防止玩家在快速触发（如踩踏耕地、触发压力板）时被刷屏

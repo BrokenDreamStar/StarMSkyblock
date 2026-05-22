@@ -10,6 +10,10 @@ import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
 
+/**
+ * 岛屿默认设置管理器（settings.yml）。
+ * 管理每个 IslandSetting 开关的默认值，新建岛屿时从此处读取初始配置。
+ */
 public class SettingsConfigManager {
 
     private final StarMSkyblock plugin;

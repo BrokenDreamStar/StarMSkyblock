@@ -54,6 +54,7 @@ public class ConfigManager {
     private boolean allowSethomeInNether; // 是否允许在下界使用 /is sethome
     private boolean allowSethomeInEnd; // 是否允许在末地使用 /is sethome
     private long permissionMessageCooldown; // 权限提示消息冷却时间（毫秒）
+
     public ConfigManager(StarMSkyblock plugin) {
         this.plugin = plugin;
     }
@@ -167,32 +168,53 @@ public class ConfigManager {
         this.permissionMessageCooldown = config.getLong("permission-message-cooldown", 1000);
     }
 
+    // ==================== Getter 方法（按功能分类） ====================
+
+    /**
+     * @return 岛屿初始半径（区块）
+     */
     public int getIslandRadius() {
         return islandRadius;
     }
 
-    // ==================== Getter 方法（按功能分类） ====================
-
+    /**
+     * @return 岛屿之间间隔距离（区块）
+     */
     public int getIslandSpacing() {
         return islandSpacing;
     }
 
+    /**
+     * @return 岛屿可扩展的最大半径（区块）
+     */
     public int getIslandMaxRadius() {
         return islandMaxRadius;
     }
 
+    /**
+     * @return 创建岛屿后是否自动传送玩家
+     */
     public boolean isTeleportOnCreate() {
         return teleportOnCreate;
     }
 
+    /**
+     * @return 岛屿边界是否默认显示
+     */
     public boolean isShowBorderDefault() {
         return showBorderDefault;
     }
 
+    /**
+     * @return 所有主世界岛屿类型 -> 结构文件名的映射
+     */
     public Map<String, String> getNormalSchematics() {
         return normalSchematics;
     }
 
+    /**
+     * @return 默认使用的岛屿类型ID
+     */
     public String getDefaultNormalSchematicId() {
         return defaultNormalSchematicId;
     }
@@ -301,11 +323,11 @@ public class ConfigManager {
 
         switch (worldType) {
             case NETHER:
-                return new double[]{config.getNetherOffsetX(), config.getNetherOffsetY(), config.getNetherOffsetZ()};
+                return new double[]{config.netherOffsetX(), config.netherOffsetY(), config.netherOffsetZ()};
             case END:
-                return new double[]{config.getEndOffsetX(), config.getEndOffsetY(), config.getEndOffsetZ()};
+                return new double[]{config.endOffsetX(), config.endOffsetY(), config.endOffsetZ()};
             default:
-                return new double[]{config.getNormalOffsetX(), config.getNormalOffsetY(), config.getNormalOffsetZ()};
+                return new double[]{config.normalOffsetX(), config.normalOffsetY(), config.normalOffsetZ()};
         }
     }
 
@@ -329,14 +351,14 @@ public class ConfigManager {
             return new double[]{0.5, 5, 2.2};
         switch (worldType) {
             case NETHER:
-                return new double[]{netherSchematicConfig.getNetherOffsetX(),
-                        netherSchematicConfig.getNetherOffsetY(), netherSchematicConfig.getNetherOffsetZ()};
+                return new double[]{netherSchematicConfig.netherOffsetX(),
+                        netherSchematicConfig.netherOffsetY(), netherSchematicConfig.netherOffsetZ()};
             case END:
-                return new double[]{netherSchematicConfig.getEndOffsetX(), netherSchematicConfig.getEndOffsetY(),
-                        netherSchematicConfig.getEndOffsetZ()};
+                return new double[]{netherSchematicConfig.endOffsetX(), netherSchematicConfig.endOffsetY(),
+                        netherSchematicConfig.endOffsetZ()};
             default:
-                return new double[]{netherSchematicConfig.getNormalOffsetX(),
-                        netherSchematicConfig.getNormalOffsetY(), netherSchematicConfig.getNormalOffsetZ()};
+                return new double[]{netherSchematicConfig.normalOffsetX(),
+                        netherSchematicConfig.normalOffsetY(), netherSchematicConfig.normalOffsetZ()};
         }
     }
 
@@ -344,12 +366,12 @@ public class ConfigManager {
         if (endSchematicConfig == null)
             return new double[]{0.5, 5, 2.2};
         return switch (worldType) {
-            case NETHER -> new double[]{endSchematicConfig.getNetherOffsetX(), endSchematicConfig.getNetherOffsetY(),
-                    endSchematicConfig.getNetherOffsetZ()};
-            case END -> new double[]{endSchematicConfig.getEndOffsetX(), endSchematicConfig.getEndOffsetY(),
-                    endSchematicConfig.getEndOffsetZ()};
-            default -> new double[]{endSchematicConfig.getNormalOffsetX(), endSchematicConfig.getNormalOffsetY(),
-                    endSchematicConfig.getNormalOffsetZ()};
+            case NETHER -> new double[]{endSchematicConfig.netherOffsetX(), endSchematicConfig.netherOffsetY(),
+                    endSchematicConfig.netherOffsetZ()};
+            case END -> new double[]{endSchematicConfig.endOffsetX(), endSchematicConfig.endOffsetY(),
+                    endSchematicConfig.endOffsetZ()};
+            default -> new double[]{endSchematicConfig.normalOffsetX(), endSchematicConfig.normalOffsetY(),
+                    endSchematicConfig.normalOffsetZ()};
         };
     }
 

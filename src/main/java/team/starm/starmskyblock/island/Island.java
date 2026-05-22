@@ -2,6 +2,7 @@ package team.starm.starmskyblock.island;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,43 +10,123 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.setting.IslandSetting;
 
+/**
+ * 岛屿领域模型 —— 封装一个天空岛屿的全部数据和行为。
+ * <p>
+ * 每个实例对应数据库中 islands 表的一条记录，包含：
+ * <ul>
+ *   <li>基础属性（ID、名称、岛主、半径、等级）</li>
+ *   <li>空间位置（中心区块坐标、最大可扩展半径）</li>
+ *   <li>成员与权限体系（成员、合作者、权限最低等级）</li>
+ *   <li>岛屿设置（PVP、生物生成等开关）</li>
+ *   <li>自定义传送点（跨世界）</li>
+ * </ul>
+ */
 public class Island {
 
+    /**
+     * 世界类型枚举，用于区分主世界/下界/末地的传送点归属
+     */
     public enum WorldType {
         NORMAL, NETHER, END
     }
 
+    /**
+     * 数据库自增主键
+     */
     private final int id;
+    /**
+     * 岛主 UUID
+     */
     private final UUID ownerId;
+    /**
+     * 岛屿显示名称
+     */
     private String name;
+    /**
+     * 当前岛屿半径（区块数），决定了边界和成员可活动范围
+     */
     private int radius;
+    /**
+     * 最大可扩展半径（区块数），0 表示未设上限
+     */
     private int maxRadius;
+    /**
+     * 岛屿中心所在的区块 X 坐标
+     */
     private int centerChunkX;
+    /**
+     * 岛屿中心所在的区块 Z 坐标
+     */
     private int centerChunkZ;
 
+    /**
+     * 自定义传送点 X 坐标
+     */
     private double customHomeX;
+    /**
+     * 自定义传送点 Y 坐标
+     */
     private double customHomeY;
+    /**
+     * 自定义传送点 Z 坐标
+     */
     private double customHomeZ;
+    /**
+     * 自定义传送点所在的世界类型
+     */
     private WorldType customHomeWorldType;
+    /**
+     * 是否已设置自定义传送点
+     */
     private boolean hasCustomHome;
+    /**
+     * 传送点数据的 JSON 序列化缓存
+     */
     private String homeJson = "{}";
 
+    /**
+     * 岛屿等级
+     */
     private int level;
 
+    /**
+     * 岛屿功能设置（枚举 → 布尔值），使用 EnumMap 保证紧凑存储
+     */
     private final Map<IslandSetting, Boolean> settingValues = new EnumMap<>(IslandSetting.class);
 
+    /**
+     * 所使用的结构模板 ID（决定生成哪种岛屿样式）
+     */
     private String schematicId;
 
+    /**
+     * 岛屿成员表（UUID → 权限等级）
+     */
     private final Map<UUID, IslandPermissionLevel> members = new HashMap<>();
+    /**
+     * 合作者 UUID 集合
+     */
     private final Set<UUID> coops = new HashSet<>();
+    /**
+     * 各项权限的最低等级要求（权限 → 最低等级数值）
+     */
     private final Map<IslandPermission, Integer> permissionMinLevels = new HashMap<>();
 
+    /**
+     * 用于 JSON 序列化/反序列化的共享 Gson 实例
+     */
     private static final Gson GSON = new GsonBuilder().create();
 
+    /**
+     * 构造岛屿核心模型（不含名称和结构 ID 的重载版本）。
+     * 默认启用所有设置，权限默认仅岛主可操作。
+     */
     public Island(int id, UUID ownerId, int radius) {
         this.id = id;
         this.ownerId = ownerId;
@@ -63,11 +144,17 @@ public class Island {
         }
     }
 
+    /**
+     * 带结构 ID 的构造函数
+     */
     public Island(int id, UUID ownerId, int radius, String schematicId) {
         this(id, ownerId, radius);
         this.schematicId = schematicId != null ? schematicId : "default";
     }
 
+    /**
+     * 完整参数的构造函数（含岛屿名称）
+     */
     public Island(int id, UUID ownerId, int radius, String schematicId, String name) {
         this(id, ownerId, radius, schematicId);
         this.name = name != null ? name : "";
@@ -126,7 +213,7 @@ public class Island {
     }
 
     public void applySettings(Map<IslandSetting, Boolean> defaults) {
-        defaults.forEach(settingValues::put);
+        settingValues.putAll(defaults);
     }
 
     public String getSettingsJson() {
@@ -160,7 +247,8 @@ public class Island {
                     settingValues.put(setting, (Boolean) entry.getValue());
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     private static IslandSetting legacyKeyToSetting(String key) {
@@ -236,10 +324,16 @@ public class Island {
         return members.getOrDefault(uuid, IslandPermissionLevel.VISITOR);
     }
 
+    /**
+     * 判断指定区块坐标是否在当前岛屿半径范围内
+     */
     public boolean isChunkWithinIsland(int chunkX, int chunkZ) {
         return Math.abs(chunkX - centerChunkX) <= radius && Math.abs(chunkZ - centerChunkZ) <= radius;
     }
 
+    /**
+     * 判断指定区块坐标是否在最大可扩展半径范围内（用于边界显示和传送门限制）
+     */
     public boolean isChunkWithinMaxRange(int chunkX, int chunkZ) {
         int effectiveMax = getEffectiveMaxRadius();
         return Math.abs(chunkX - centerChunkX) <= effectiveMax && Math.abs(chunkZ - centerChunkZ) <= effectiveMax;
@@ -296,6 +390,11 @@ public class Island {
     }
 
     // ==================== 权限核心方法（最低等级模式） ====================
+
+    /**
+     * 判断某玩家是否拥有某权限（基于其身份在岛屿中的角色）。
+     * 权限检查链路：岛主 → 成员 → 合作者 → 访客。
+     */
     public boolean hasPermission(UUID playerUuid, IslandPermission permission) {
         if (ownerId.equals(playerUuid)) return true;
         IslandPermissionLevel role = members.get(playerUuid);
@@ -304,6 +403,10 @@ public class Island {
         return hasPermission(IslandPermissionLevel.VISITOR, permission);
     }
 
+    /**
+     * 基于角色的等级数值判断是否拥有指定权限。
+     * 先检查该权限的自定义最低等级，未单独配置则回退为 ALL 的兜底值。
+     */
     public boolean hasPermission(IslandPermissionLevel role, IslandPermission permission) {
         // 岛主永远拥有全部权限
         if (role == IslandPermissionLevel.OWNER) {

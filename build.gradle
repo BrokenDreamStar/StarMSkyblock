@@ -25,13 +25,13 @@ dependencies {
 
     // Adventure（部分序列化模块需要显式声明）
     compileOnly 'net.kyori:adventure-text-serializer-legacy:4.19.0'
-    
+
     // Gson（运行时服务器自带，编译时需要）
     compileOnly 'com.google.code.gson:gson:2.11.0'
 
     // SQLite JDBC 驱动（编译时需要，运行时服务器自带）
     compileOnly 'org.xerial:sqlite-jdbc:3.46.1.0'
-    
+
     // WorldEdit API（可选，运行时需要 WorldEdit 或 FAWE 插件）
     compileOnly 'com.sk89q.worldedit:worldedit-bukkit:7.4.2'
 
@@ -49,18 +49,12 @@ processResources {
     filesMatching('plugin.yml') {
         expand 'version': projectVersion
     }
-    
+
     // 包含schematics文件夹中的所有文件
     from('src/main/resources') {
         include 'schematics/**'
         duplicatesStrategy = 'INCLUDE'
     }
-}
-
-shadowJar {
-    archiveBaseName.set('StarMSkyblock')
-    archiveClassifier.set('')
-    archiveVersion.set('')
 }
 
 build {

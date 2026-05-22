@@ -8,15 +8,22 @@ import team.starm.starmskyblock.permission.IslandPermissionLevel;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * 权限配置文件（permissions.yml）管理器。
+ * 采用继承式权限模型：每个角色可以指定从哪个父角色继承权限，
+ * 再额外添加（additional）和排除（excluded）特定权限。
+ * OWNER 角色强制拥有所有权限。支持 ALL 通配权限。
+ * 首次启动时自动从 jar 包释放默认 permissions.yml。
+ */
 public class PermissionConfigManager {
 
     private final StarMSkyblock plugin;
@@ -71,7 +78,7 @@ public class PermissionConfigManager {
      * 递归解析权限（带缓存 + 循环保护）
      */
     private Set<IslandPermission> resolvePermissions(IslandPermissionLevel level,
-            Map<IslandPermissionLevel, Set<IslandPermission>> cache) {
+                                                     Map<IslandPermissionLevel, Set<IslandPermission>> cache) {
         if (cache.containsKey(level)) {
             return cache.get(level);
         }
@@ -94,7 +101,7 @@ public class PermissionConfigManager {
         // 2. 添加本组额外权限
         String addKey = level.name() + ".additional";
         List<String> additionalList = permissionsConfig.getStringList(addKey);
-        parsePermissionList(additionalList).forEach(perms::add);
+        perms.addAll(parsePermissionList(additionalList));
 
         // 3. 排除权限
         String exKey = level.name() + ".excluded";
@@ -104,7 +111,7 @@ public class PermissionConfigManager {
         // 4. OWNER 强制全权限
         if (level == IslandPermissionLevel.OWNER) {
             perms.clear();
-            perms.addAll(Arrays.asList(IslandPermission.values()));
+            perms.addAll(EnumSet.allOf(IslandPermission.class));
         }
 
         cache.put(level, perms);
@@ -123,7 +130,7 @@ public class PermissionConfigManager {
                 IslandPermission perm = IslandPermission.valueOf(name.trim());
                 set.add(perm);
                 if (perm == IslandPermission.ALL) {
-                    set.addAll(Arrays.asList(IslandPermission.values()));
+                    set.addAll(EnumSet.allOf(IslandPermission.class));
                 }
             } catch (IllegalArgumentException e) {
                 plugin.getLogger().warning("§e未知的权限: " + name + "（已跳过）");

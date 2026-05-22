@@ -1,5 +1,6 @@
 package team.starm.starmskyblock.island;
 
+import com.sk89q.worldedit.math.BlockVector3;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -16,6 +17,17 @@ import team.starm.starmskyblock.util.ColorUtil;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * 岛屿创建异步任务 —— 分阶段完成岛屿生成。
+ * <p>
+ * 设计为两阶段模式：
+ * <ol>
+ *   <li>异步阶段（async）：分配岛屿 ID、计算坐标、写入数据库（耗时短，无世界操作）</li>
+ *   <li>同步阶段（sync）：粘贴主世界结构 → 下界结构 → 末地结构（每个阶段一个 tick，
+ *       避免单帧卡死主线程）</li>
+ * </ol>
+ * 最后更新告示牌文字并传送玩家到新岛屿。
+ */
 public class IslandCreateTask extends BukkitRunnable {
 
     private final StarMSkyblock plugin;
@@ -23,8 +35,10 @@ public class IslandCreateTask extends BukkitRunnable {
     private final UUID playerUuid;
     private final String schematicId;
     private final String islandName;
+    /** 创建开始时间戳（用于最终显示耗时） */
     private final long startTime;
 
+    /** 在异步阶段创建的岛屿对象（volatile 保证跨线程可见性） */
     private volatile Island createdIsland;
 
     public IslandCreateTask(StarMSkyblock plugin, IslandManager islandManager,
@@ -67,6 +81,11 @@ public class IslandCreateTask extends BukkitRunnable {
         }
     }
 
+    /**
+     * 在主线程中完成岛屿创建：粘贴三个世界的结构文件。
+     * 主世界 → 下界 → 末地通过 BukkitRunnable 链式延迟执行，
+     * 每步之间间隔一个 tick 以避免单帧造成服务器卡顿。
+     */
     private void completeCreation() {
         sendMessage("§e正在准备世界...");
         World world = plugin.getWorldManager().getOrCreateSkyblockWorld();
@@ -85,23 +104,39 @@ public class IslandCreateTask extends BukkitRunnable {
         String schematicName = plugin.getConfigManager().getNormalSchematicFileName(schematicId);
         boolean pasteSuccess = plugin.getSchematicManager().pasteSchematic(schematicName, world, pasteX, y, pasteZ);
 
-        sendMessage("§e正在生成下界结构...");
+        // 将下界和末地粘贴分散到后续tick，避免单帧卡顿
         String netherSchematicName = plugin.getConfigManager().getNetherSchematicFileName(schematicId);
-        plugin.getSchematicManager().pasteSchematic(netherSchematicName, netherWorld, pasteX, y, pasteZ);
-
-        sendMessage("§e正在生成末地结构...");
         String endSchematicName = plugin.getConfigManager().getEndSchematicFileName(schematicId);
-        plugin.getSchematicManager().pasteSchematic(endSchematicName, endWorld, pasteX, y, pasteZ);
 
-        // 更新主世界告示牌文字
-        updateSigns(world, pasteX, y, pasteZ, schematicName);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                sendMessage("§e正在生成下界结构...");
+                plugin.getSchematicManager().pasteSchematic(netherSchematicName, netherWorld, pasteX, y, pasteZ);
 
-        long endTime = System.currentTimeMillis();
-        long duration = endTime - startTime;
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        sendMessage("§e正在生成末地结构...");
+                        plugin.getSchematicManager().pasteSchematic(endSchematicName, endWorld, pasteX, y, pasteZ);
 
-        sendCompletionMessage(createdIsland, world, startX, startZ, y, duration, pasteSuccess);
+                        // 更新主世界告示牌文字
+                        updateSigns(world, pasteX, y, pasteZ, schematicName);
+
+                        long endTime = System.currentTimeMillis();
+                        long duration = endTime - startTime;
+
+                        sendCompletionMessage(createdIsland, world, startX, startZ, y, duration, pasteSuccess);
+                    }
+                }.runTask(plugin);
+            }
+        }.runTask(plugin);
     }
 
+    /**
+     * 更新结构中告示牌的文本内容。
+     * 支持 PlaceholderAPI 变量替换，从 SignConfigManager 读取模板行。
+     */
     private void updateSigns(World world, int pasteX, int pasteY, int pasteZ, String schematicName) {
         SignConfigManager signConfig = plugin.getSignConfigManager();
         if (signConfig == null || !signConfig.isEnabled()) {
@@ -113,47 +148,37 @@ public class IslandCreateTask extends BukkitRunnable {
             return;
         }
 
-        int[] bounds = plugin.getSchematicManager().getSchematicBounds(schematicName, pasteX, pasteY, pasteZ);
-        if (bounds == null) {
+        List<BlockVector3> signOffsets = plugin.getSchematicManager().getSignOffsets(schematicName);
+        if (signOffsets == null || signOffsets.isEmpty()) {
             return;
         }
-
-        int minX = bounds[0];
-        int minY = bounds[1];
-        int minZ = bounds[2];
-        int maxX = bounds[3];
-        int maxY = bounds[4];
-        int maxZ = bounds[5];
 
         Player player = Bukkit.getPlayer(playerUuid);
         boolean papiAvailable = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null;
 
-        for (int bx = minX; bx <= maxX; bx++) {
-            for (int by = minY; by <= maxY; by++) {
-                for (int bz = minZ; bz <= maxZ; bz++) {
-                    Block block = world.getBlockAt(bx, by, bz);
-                    if (block.getState() instanceof Sign sign) {
-                        for (int i = 0; i < 4; i++) {
-                            if (i < lines.size()) {
-                                String line = lines.get(i);
-                                if (line == null) {
-                                    line = "";
-                                }
-                                if (papiAvailable && player != null) {
-                                    line = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, line);
-                                }
-                                sign.getSide(Side.FRONT).setLine(i, ColorUtil.colorize(line));
-                            } else {
-                                sign.getSide(Side.FRONT).setLine(i, "");
-                            }
+        for (BlockVector3 offset : signOffsets) {
+            Block block = world.getBlockAt(pasteX + offset.x(), pasteY + offset.y(), pasteZ + offset.z());
+            if (block.getState() instanceof Sign sign) {
+                for (int i = 0; i < 4; i++) {
+                    if (i < lines.size()) {
+                        String line = lines.get(i);
+                        if (line == null) {
+                            line = "";
                         }
-                        sign.update();
+                        if (papiAvailable && player != null) {
+                            line = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, line);
+                        }
+                        sign.getSide(Side.FRONT).setLine(i, ColorUtil.colorize(line));
+                    } else {
+                        sign.getSide(Side.FRONT).setLine(i, "");
                     }
                 }
+                sign.update();
             }
         }
     }
 
+    /** 向创建者发送消息（仅在玩家在线时） */
     private void sendMessage(String message) {
         Player player = Bukkit.getPlayer(playerUuid);
         if (player != null && player.isOnline()) {
@@ -161,6 +186,7 @@ public class IslandCreateTask extends BukkitRunnable {
         }
     }
 
+    /** 向玩家发送创建完成信息，并根据配置自动传送回城 */
     private void sendCompletionMessage(Island island, World world, int startX, int startZ, int y,
             long duration, boolean success) {
         Player player = Bukkit.getPlayer(playerUuid);

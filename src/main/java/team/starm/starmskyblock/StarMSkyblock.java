@@ -24,22 +24,40 @@ import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.util.ColorUtil;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
+/**
+ * StarMSkyblock 插件的主入口类。
+ * 继承 JavaPlugin，负责在服务器启动时初始化所有子系统：
+ * 配置管理器、数据库、结构加载器、网格系统、岛屿管理器、世界管理器、
+ * 邀请系统、权限协调器、监听器以及 PlaceholderAPI 扩展。
+ * 也是各个管理器单例的集中持有者（通过 getInstance() 访问）。
+ */
 public class StarMSkyblock extends JavaPlugin {
 
+    /** 插件单例实例 */
     private static StarMSkyblock instance;
-    private ConfigManager configManager;
-    private PermissionConfigManager permissionConfigManager;
-    private SettingsConfigManager settingsConfigManager;
-    private SignConfigManager signConfigManager;
-    private SQLiteManager sqliteManager;
-    private SchematicManager schematicManager;
-    private GridManager gridManager;
-    private IslandManager islandManager;
-    private InvitationManager invitationManager;
-    private SkyblockWorldManager worldManager;
-    private IslandPermissionManager permissionCoordinator;
-    private BorderListener borderListener;
 
+    // ========== 配置管理器 ==========
+    private ConfigManager configManager;               // 主配置（config.yml）
+    private PermissionConfigManager permissionConfigManager; // 权限配置（permissions.yml）
+    private SettingsConfigManager settingsConfigManager;     // 岛屿默认设置（settings.yml）
+    private SignConfigManager signConfigManager;             // 告示牌文字配置（sign.yml）
+
+    // ========== 数据与生成 ==========
+    private SQLiteManager sqliteManager;               // SQLite 数据库管理器
+    private SchematicManager schematicManager;         // WorldEdit 结构文件加载器
+    private GridManager gridManager;                   // 岛屿网格坐标系统
+    private IslandManager islandManager;               // 岛屿核心业务逻辑
+
+    // ========== 功能模块 ==========
+    private InvitationManager invitationManager;       // 玩家邀请系统
+    private SkyblockWorldManager worldManager;         // 虚空世界创建/加载
+    private IslandPermissionManager permissionCoordinator; // 岛屿权限协调器
+    private BorderListener borderListener;             // 岛屿边界显示监听器
+
+    /**
+     * 插件启用入口。依次初始化所有子系统，确保依赖关系正确：
+     * 配置 -> 数据库 -> 结构管理器 -> 网格/岛屿 -> 世界 -> 邀请 & 权限 -> 监听器 -> 命令。
+     */
     @Override
     public void onEnable() {
         instance = this;
@@ -80,6 +98,10 @@ public class StarMSkyblock extends JavaPlugin {
 
         invitationManager = new InvitationManager(islandManager, configManager, worldManager);
 
+        // 每5分钟清理到期邀请（5分钟 = 6000 tick）
+        getServer().getScheduler().runTaskTimer(this, () ->
+                invitationManager.cleanupExpiredInvitations(), 6000L, 6000L);
+
         // 初始化权限协调器
         permissionCoordinator = new IslandPermissionManager(
                 islandManager, configManager, this);
@@ -119,6 +141,9 @@ public class StarMSkyblock extends JavaPlugin {
         ColorUtil.consolePrint("&a[StarMSkyblock] 插件已启用！虚空世界已准备就绪。");
     }
 
+    /**
+     * 插件关闭入口。取消所有调度任务并关闭数据库连接。
+     */
     @Override
     public void onDisable() {
         // 取消所有本插件的调度任务（防止异步任务在关闭时报错）
@@ -182,13 +207,17 @@ public class StarMSkyblock extends JavaPlugin {
         return borderListener;
     }
 
+    /**
+     * 将 jar 包中内置的 .schem 结构文件释放到插件数据目录下的 schematics 文件夹。
+     * 仅当文件不存在时才会拷贝，避免覆盖用户自定义的结构文件。
+     */
     private void extractSchematics() {
-        // （保持不变）
         File schematicsFolder = new File(getDataFolder(), "schematics");
         if (!schematicsFolder.exists()) {
             schematicsFolder.mkdirs();
         }
 
+        // 内置的三个结构文件（主世界、下界、末地）
         String[] schematicFiles = {
                 "default.schem",
                 "default_nether.schem",
@@ -197,6 +226,7 @@ public class StarMSkyblock extends JavaPlugin {
 
         for (String fileName : schematicFiles) {
             File targetFile = new File(schematicsFolder, fileName);
+            // 已存在则跳过，避免覆盖用户自定义
             if (targetFile.exists())
                 continue;
 

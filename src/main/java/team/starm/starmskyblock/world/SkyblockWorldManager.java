@@ -9,6 +9,12 @@ import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.generator.VoidChunkGenerator;
 import team.starm.starmskyblock.util.ColorUtil;
 
+/**
+ * 空岛世界管理器。
+ * 负责创建/加载三个虚空世界（主世界、下界、末地），
+ * 使用 VoidChunkGenerator 生成仅含基岩和设定生物群系的虚空地形。
+ * 世界名称、环境类型和生物群系均从 ConfigManager 读取。
+ */
 public class SkyblockWorldManager {
 
     private final ConfigManager configManager;

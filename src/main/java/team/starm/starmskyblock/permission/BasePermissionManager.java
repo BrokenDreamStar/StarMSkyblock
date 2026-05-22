@@ -17,15 +17,30 @@ import team.starm.starmskyblock.message.MessageUtil;
 
 /**
  * 权限检查基类
- * 提供 checkPermission / sendDenyMessage 等子管理器共用的方法
+ * <p>
+ * 所有具体权限管理器的抽象基类，提供统一的权限检查逻辑和拒绝消息发送机制。
+ * 封装了以下通用功能：
+ * <ul>
+ *   <li>根据玩家位置和 UUID 查询所属岛屿并进行权限判断</li>
+ *   <li>区域锁定检测（未解锁的岛屿区块）</li>
+ *   <li>公共区域检测</li>
+ *   <li>权限拒绝消息发送（带冷却控制，防止刷屏）</li>
+ * </ul>
+ * </p>
  */
 public abstract class BasePermissionManager implements Listener {
 
+    /** 岛屿管理器，用于根据坐标查询岛屿 */
     protected final IslandManager islandManager;
+    /** 配置管理器，用于获取世界名称和消息冷却时间等配置 */
     protected final ConfigManager configManager;
+    /** 记录每个玩家最近一次收到权限拒绝消息的时间戳，用于消息冷却防刷屏 */
     protected final Map<UUID, Long> lastDenyMessageTime = new HashMap<>();
+    /** 上次权限检查结果：是否因为区域未锁定而拒绝 */
     protected boolean lastCheckWasAreaLocked = false;
+    /** 上次权限检查结果：是否因为处于公共区域而拒绝 */
     protected boolean lastCheckWasPublicArea = false;
+    /** 上次触发区域锁定的岛屿引用（用于发送更精准的提示消息） */
     protected Island lastAreaLockedIsland = null;
 
     public BasePermissionManager(IslandManager islandManager, ConfigManager configManager) {
