@@ -69,12 +69,10 @@ public class PortalListener implements Listener {
         World fromWorld = from.getWorld();
         if (fromWorld == null) return;
 
-        String normalName = configManager.getWorldNameNormal();
-        String netherName = configManager.getWorldNameNether();
         String worldName = fromWorld.getName();
 
-        boolean fromNormal = worldName.equals(normalName);
-        boolean fromNether = worldName.equals(netherName);
+        boolean fromNormal = worldManager.isNormalWorld(worldName);
+        boolean fromNether = worldManager.isNetherWorld(worldName);
 
         if (!fromNormal && !fromNether) return;
 
@@ -141,17 +139,15 @@ public class PortalListener implements Listener {
 
     /** 处理玩家下界传送门交互：根据来源世界分发到"进入下界"或"离开下界" */
     private void handleNetherPortal(PlayerPortalEvent event, Player player, World fromWorld) {
-        String normalName = configManager.getWorldNameNormal();
-        String netherName = configManager.getWorldNameNether();
-
         Optional<Island> optionalIsland = islandManager.getIsland(player.getUniqueId());
         if (optionalIsland.isEmpty()) return;
 
         Island island = optionalIsland.get();
+        String worldName = fromWorld.getName();
 
-        if (fromWorld.getName().equals(normalName)) {
+        if (worldManager.isNormalWorld(worldName)) {
             handleToNether(event, player, island);
-        } else if (fromWorld.getName().equals(netherName)) {
+        } else if (worldManager.isNetherWorld(worldName)) {
             handleFromNether(event, player, island);
         }
     }
@@ -240,18 +236,16 @@ public class PortalListener implements Listener {
 
     /** 处理玩家末地传送门：主世界/下界 → 末地岛屿位置，末地 → 主世界 spawn */
     private void handleEndPortal(PlayerPortalEvent event, Player player, World fromWorld) {
-        String normalName = configManager.getWorldNameNormal();
-        String netherName = configManager.getWorldNameNether();
-        String endName = configManager.getWorldNameEnd();
+        String worldName = fromWorld.getName();
 
         Optional<Island> optionalIsland = islandManager.getIsland(player.getUniqueId());
 
         World targetWorld = null;
         Location targetLoc;
 
-        if (fromWorld.getName().equals(normalName) || fromWorld.getName().equals(netherName)) {
+        if (worldManager.isNormalWorld(worldName) || worldManager.isNetherWorld(worldName)) {
             targetWorld = worldManager.getOrCreateSkyblockEnd();
-        } else if (fromWorld.getName().equals(endName)) {
+        } else if (worldManager.isEndWorld(worldName)) {
             targetWorld = worldManager.getOrCreateSkyblockWorld();
         }
 
@@ -259,7 +253,7 @@ public class PortalListener implements Listener {
             if (optionalIsland.isPresent()) {
                 targetLoc = getIslandLocation(optionalIsland.get(), targetWorld);
             } else {
-                if (fromWorld.getName().equals(endName)) {
+                if (worldManager.isEndWorld(worldName)) {
                     targetLoc = targetWorld.getSpawnLocation();
                 } else {
                     targetLoc = new Location(targetWorld, 100, 50, 0);
@@ -287,13 +281,11 @@ public class PortalListener implements Listener {
     /** 根据世界类型和岛屿结构 ID 获取传送点偏移量 */
     private double[] getTeleportOffsetsByWorldType(World world, Island island) {
         String worldName = world.getName();
-        String netherName = worldManager.getSkyblockNether().getName();
-        String endName = worldManager.getSkyblockEnd().getName();
 
         Island.WorldType worldType;
-        if (worldName.equals(netherName)) {
+        if (worldManager.isNetherWorld(worldName)) {
             worldType = Island.WorldType.NETHER;
-        } else if (worldName.equals(endName)) {
+        } else if (worldManager.isEndWorld(worldName)) {
             worldType = Island.WorldType.END;
         } else {
             worldType = Island.WorldType.NORMAL;

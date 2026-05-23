@@ -38,6 +38,7 @@ Minecraft Spigot/Paper plugin (Java 21) for a skyblock gamemode. Built with Grad
 
 - **Entry point:** `StarMSkyblock.java` — initializes configs, SQLite, schematic manager, grid system, world manager, invitation manager, permission coordinator, listeners, and commands.
 - **Commands:** `is` (player skyblock command) and `isadmin` (admin command). Both use tab completers.
+- **Permission subcommands** (`/is permission`) are delegated to `IslandPermissionCommand`; all other subcommands follow the command pattern via `command/subcommand/` package with a `SubCommand` abstract base class.
 - **Worlds:** Three worlds are eagerly created/loaded on enable: normal skyblock world, nether, and end.
 - **Database:** SQLite via `SQLiteManager`, stored in the plugin data folder.
 - **Permissions & Settings:** YAML-driven (`permissions.yml`, `settings.yml`, `config.yml`). Config managers handle defaults and reloading.
@@ -48,6 +49,27 @@ Minecraft Spigot/Paper plugin (Java 21) for a skyblock gamemode. Built with Grad
 - Package root: `team.starm.starmskyblock`
 - Chinese comments are common in this codebase.
 - UTF-8 encoding is enforced for compilation.
+- World name checks should go through `SkyblockWorldManager.isSkyblockWorld(World)` / `isSkyblockWorldName(String)` / `isNormalWorld(String)` / `isNetherWorld(String)` / `isEndWorld(String)` rather than comparing strings directly.
+- Message utilities are in `MessageUtil` (`team.starm.starmskyblock.message.MessageUtil`).
+- Version is sourced from `gradle.properties` via `project.version` in `build.gradle`.
+- Subcommand dispatcher pattern: `IslandCommand` routes via `Map<String, SubCommand>`; each subcommand is its own class in `command/subcommand/`.
+
+## Package Structure
+
+- `command/` — `IslandCommand` (dispatcher), `AdminCommand`, `IslandPermissionCommand`
+- `command/subcommand/` — `SubCommand` base + individual subcommand classes (Create, Home, Tp, etc.)
+- `config/` — `ConfigManager`, `PermissionConfigManager`, `SettingsConfigManager`, `SignConfigManager`, `SchematicConfig`
+- `database/` — `SQLiteManager`
+- `generator/` — `VoidChunkGenerator`, `SchematicManager`
+- `grid/` — `GridManager` (Ulam Spiral)
+- `island/` — `Island`, `IslandManager`, `IslandCreateTask`, `IslandDeleteTask`, `InvitationManager`
+- `listener/` — `BorderListener`, `PortalListener`
+- `permission/` — `IslandPermission` (enum), `IslandPermissionLevel`, `IslandPermissionManager`, `BasePermissionManager`, 12 sub-managers
+- `placeholder/` — `SkyblockExpansion` (PAPI)
+- `setting/` — `IslandSetting` (enum), `IslandSettingManager`, `BaseSettingManager`, 6 sub-managers
+- `message/` — `MessageUtil` (color/console/broadcast utilities)
+- `tag/` — `EntityTags`, `ItemTags` (static sets)
+- `world/` — `SkyblockWorldManager`
 
 ## CI / Automation
 

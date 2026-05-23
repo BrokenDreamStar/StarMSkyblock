@@ -331,7 +331,6 @@ public class SQLiteManager {
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
                 pstmt.setString(1, playerUuid.toString());
                 pstmt.setBoolean(2, enabled);
-                pstmt.setBoolean(3, enabled);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
                 MessageUtil.consoleError("&c保存边界开关状态失败！UUID: " + playerUuid);

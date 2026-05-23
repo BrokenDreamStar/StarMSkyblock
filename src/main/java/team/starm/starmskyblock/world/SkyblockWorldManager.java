@@ -107,4 +107,37 @@ public class SkyblockWorldManager {
     public World getSkyblockEnd() {
         return skyblockEnd;
     }
+
+    /**
+     * 判断是否为空岛世界（主世界/下界/末地）
+     */
+    public boolean isSkyblockWorld(World world) {
+        if (world == null) return false;
+        return world.equals(skyblockWorld) || world.equals(skyblockNether) || world.equals(skyblockEnd);
+    }
+
+    /**
+     * 判断世界名称是否为空岛世界
+     */
+    public boolean isSkyblockWorldName(String worldName) {
+        if (worldName == null) return false;
+        return worldName.equals(configManager.getWorldNameNormal())
+                || worldName.equals(configManager.getWorldNameNether())
+                || worldName.equals(configManager.getWorldNameEnd());
+    }
+
+    /**
+     * 判断世界名称是否为空岛世界的某个环境
+     */
+    public boolean isNormalWorld(String worldName) {
+        return worldName != null && worldName.equals(configManager.getWorldNameNormal());
+    }
+
+    public boolean isNetherWorld(String worldName) {
+        return worldName != null && worldName.equals(configManager.getWorldNameNether());
+    }
+
+    public boolean isEndWorld(String worldName) {
+        return worldName != null && worldName.equals(configManager.getWorldNameEnd());
+    }
 }

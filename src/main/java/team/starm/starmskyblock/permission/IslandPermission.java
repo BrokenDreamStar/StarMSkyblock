@@ -171,4 +171,13 @@ public enum IslandPermission {
     public String getDisplayName() {
         return displayName;
     }
+
+    public boolean isManagement() {
+        return switch (this) {
+            case ALL, DELETE_ISLAND, RENAME_ISLAND, EDIT_PERMISSIONS, EDIT_SETTINGS,
+                 INVITE_MEMBER, REMOVE_MEMBER, SET_ROLE, INVITE_COOP, REMOVE_COOP,
+                 SET_HOME, SET_BIOME -> true;
+            default -> false;
+        };
+    }
 }

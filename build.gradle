@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'team.starm'
-version = '1.0.0'
+version = project.version
 
 java {
     toolchain {

@@ -54,6 +54,7 @@ public class IslandPermissionCommand {
             MessageUtil.sendMessage(player, "&c示例: /is permission build cycle — 0→1→2→3→4→5→0 循环");
             MessageUtil.sendMessage(player, "&c示例: /is permission build rcycle — 5→4→3→2→1→0→5 循环");
             MessageUtil.sendMessage(player, "&c查询当前配置: /is permission build");
+            MessageUtil.sendMessage(player, "&7管理权限仅可分配给岛主(5)/管理员(4)/风纪委员(3)，cycle 仅限 5↔4↔3");
             return true;
         }
 
@@ -136,6 +137,12 @@ public class IslandPermissionCommand {
         }
 
         int targetLevel = targetRole.getPermissionLevel();
+
+        // 管理权限仅允许分配给风纪委员(3)及以上角色
+        if (permission.isManagement() && targetLevel < 3) {
+            MessageUtil.sendMessage(player, "&c管理权限不能分配给 " + targetRole.getDisplayName() + " 及以下的角色！");
+            return true;
+        }
         IslandManager islandManager = plugin.getIslandManager();
 
         islandManager.setPermissionMinLevel(island.getId(), permission, targetLevel);
@@ -145,7 +152,8 @@ public class IslandPermissionCommand {
     }
 
     /**
-     * cycle / rcycle 模式：在当前等级基础上 +1（或 -1）循环，范围 0-5。
+     * cycle / rcycle 模式：在当前等级基础上 +1（或 -1）循环。
+     * 普通权限范围 0-5，管理权限限制在 3-5 之间循环。
      *
      * @param forward true 为递增 cycle，false 为递减 rcycle
      */
@@ -161,7 +169,17 @@ public class IslandPermissionCommand {
             currentLevel = IslandPermissionLevel.OWNER.getPermissionLevel();
         }
 
-        int nextLevel = forward ? (currentLevel + 1) % 6 : (currentLevel + 5) % 6;
+        int nextLevel;
+        if (permission.isManagement()) {
+            // 管理权限仅在 3(MOD) / 4(ADMIN) / 5(OWNER) 之间循环
+            if (forward) {
+                nextLevel = currentLevel >= 5 ? 3 : currentLevel + 1;
+            } else {
+                nextLevel = currentLevel <= 3 ? 5 : currentLevel - 1;
+            }
+        } else {
+            nextLevel = forward ? (currentLevel + 1) % 6 : (currentLevel + 5) % 6;
+        }
 
         IslandPermissionLevel targetRole = null;
         for (IslandPermissionLevel r : IslandPermissionLevel.values()) {
@@ -235,6 +253,7 @@ public class IslandPermissionCommand {
         MessageUtil.sendMessage(player, "&7/is permission all 4 → admin(4) 及以上（含岛主）拥有全部权限");
         MessageUtil.sendMessage(player, "&7/is permission all 5 → 仅岛主拥有全部权限");
         MessageUtil.sendMessage(player, "&7/is permission build 2 → member(2) 及以上拥有建造权限");
+        MessageUtil.sendMessage(player, "&7管理权限仅可分配给 风纪委员(3)/管理员(4)/岛主(5)");
 
         return true;
     }
@@ -346,15 +365,29 @@ public class IslandPermissionCommand {
                 completions.add("RCYCLE");
             }
 
+            // 判断是否为管理权限，管理权限仅允许补全 MOD/ADMIN/OWNER
+            IslandPermission perm = resolvePermission(args[1]);
+            boolean isManagementPerm = perm != null && perm.isManagement();
+
             for (IslandPermissionLevel role : IslandPermissionLevel.values()) {
-                if (role.name().toLowerCase().startsWith(prefix)) {
+                if ((!isManagementPerm || role.getPermissionLevel() >= 3)
+                        && role.name().toLowerCase().startsWith(prefix)) {
                     completions.add(role.name());
                 }
             }
-            for (int i = 0; i <= 5; i++) {
-                String level = String.valueOf(i);
-                if (level.startsWith(prefix)) {
-                    completions.add(level);
+            if (isManagementPerm) {
+                for (int i = 3; i <= 5; i++) {
+                    String level = String.valueOf(i);
+                    if (level.startsWith(prefix)) {
+                        completions.add(level);
+                    }
+                }
+            } else {
+                for (int i = 0; i <= 5; i++) {
+                    String level = String.valueOf(i);
+                    if (level.startsWith(prefix)) {
+                        completions.add(level);
+                    }
                 }
             }
             return completions;

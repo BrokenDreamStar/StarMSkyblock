@@ -125,12 +125,7 @@ public class BorderListener implements Listener {
             return;
         }
 
-        List<World> skyblockWorlds = List.of(
-                worldManager.getSkyblockWorld(),
-                worldManager.getSkyblockNether(),
-                worldManager.getSkyblockEnd());
-
-        boolean isInSkyblockWorld = skyblockWorlds.stream().anyMatch(w -> w != null && w.equals(playerWorld));
+        boolean isInSkyblockWorld = worldManager.isSkyblockWorld(playerWorld);
         if (!isInSkyblockWorld) {
             player.setWorldBorder(null);
             return;

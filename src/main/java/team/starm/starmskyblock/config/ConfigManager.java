@@ -38,10 +38,7 @@ public class ConfigManager {
     private Map<String, SchematicConfig> schematicConfigs; // 岛屿类型 -> 完整配置（含偏移）
     private String defaultNormalSchematicId; // 默认使用的岛屿类型ID
     // 下界和末地结构（当前版本自动根据主世界结构文件名生成 _nether / _the_end 后缀）
-    private String netherSchematic;
-    private String endSchematic;
-    private SchematicConfig netherSchematicConfig;
-    private SchematicConfig endSchematicConfig;
+    // (netherSchematic / endSchematic 字段已移除，改用 getNetherSchematicFileName / getEndSchematicFileName)
     // ==================== 世界与生物群系配置 ====================
     private String biomeNormal; // 主世界生物群系
     private String biomeNether; // 下界生物群系
@@ -141,10 +138,7 @@ public class ConfigManager {
         }
 
         // ====================== 下界 & 末地结构文件（自动生成） ======================
-        this.netherSchematic = "default_nether.schem";
-        this.endSchematic = "default_the_end.schem";
-        this.netherSchematicConfig = new SchematicConfig(this.netherSchematic, 0.5, 5, 2.2, 0, 5, 0, 0, 5, 0);
-        this.endSchematicConfig = new SchematicConfig(this.endSchematic, 0.5, 5, 2.2, 0, 5, 0, 0, 5, 0);
+        // 文件名由 getNetherSchematicFileName / getEndSchematicFileName 动态生成
 
         // ====================== 生物群系配置 ======================
         this.biomeNormal = config.getString("biome.normal", "PLAINS");
@@ -256,14 +250,6 @@ public class ConfigManager {
         return baseName + "_the_end.schem";
     }
 
-    public String getNetherSchematic() {
-        return netherSchematic;
-    }
-
-    public String getEndSchematic() {
-        return endSchematic;
-    }
-
     public String getBiomeNormal() {
         return biomeNormal;
     }
@@ -336,43 +322,6 @@ public class ConfigManager {
             return schematicConfigs.get(defaultNormalSchematicId);
         }
         return schematicConfigs.get(schematicId);
-    }
-
-    public SchematicConfig getNetherSchematicConfig() {
-        return netherSchematicConfig;
-    }
-
-    public SchematicConfig getEndSchematicConfig() {
-        return endSchematicConfig;
-    }
-
-    public double[] getNetherSchematicOffsetsByWorldType(Island.WorldType worldType) {
-        if (netherSchematicConfig == null)
-            return new double[]{0.5, 5, 2.2};
-        switch (worldType) {
-            case NETHER:
-                return new double[]{netherSchematicConfig.netherOffsetX(),
-                        netherSchematicConfig.netherOffsetY(), netherSchematicConfig.netherOffsetZ()};
-            case END:
-                return new double[]{netherSchematicConfig.endOffsetX(), netherSchematicConfig.endOffsetY(),
-                        netherSchematicConfig.endOffsetZ()};
-            default:
-                return new double[]{netherSchematicConfig.normalOffsetX(),
-                        netherSchematicConfig.normalOffsetY(), netherSchematicConfig.normalOffsetZ()};
-        }
-    }
-
-    public double[] getEndSchematicOffsetsByWorldType(Island.WorldType worldType) {
-        if (endSchematicConfig == null)
-            return new double[]{0.5, 5, 2.2};
-        return switch (worldType) {
-            case NETHER -> new double[]{endSchematicConfig.netherOffsetX(), endSchematicConfig.netherOffsetY(),
-                    endSchematicConfig.netherOffsetZ()};
-            case END -> new double[]{endSchematicConfig.endOffsetX(), endSchematicConfig.endOffsetY(),
-                    endSchematicConfig.endOffsetZ()};
-            default -> new double[]{endSchematicConfig.normalOffsetX(), endSchematicConfig.normalOffsetY(),
-                    endSchematicConfig.normalOffsetZ()};
-        };
     }
 
 }
