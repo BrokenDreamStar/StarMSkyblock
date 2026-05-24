@@ -5,8 +5,6 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandDeleteTask;
-import team.starm.starmskyblock.permission.IslandPermission;
-import team.starm.starmskyblock.permission.manager.ManagementPermissionManager;
 import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.Optional;
@@ -26,8 +24,8 @@ public class DeleteCommand extends SubCommand {
         }
 
         Island island = optionalIsland.get();
-        if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.DELETE_ISLAND)) {
-            MessageUtil.sendMessage(player, "&c你没有权限删除岛屿！");
+        if (!island.getOwnerId().equals(player.getUniqueId())) {
+            MessageUtil.sendMessage(player, "&c只有岛主才能删除岛屿！");
             return true;
         }
 

@@ -71,3 +71,10 @@ allow-sethome-in-end: true
 
 # 权限提示消息冷却时间（毫秒），防止玩家在快速触发（如踩踏耕地、触发压力板）时被刷屏
 permission-message-cooldown: 1000
+
+# WorldEdit 引擎模式
+# 可选值：
+#   'we'   - 标准 WorldEdit（兼容性最佳）
+#   'fawe' - FastAsyncWorldEdit（启用 FAWE 特有性能优化，需安装 FAWE 插件）
+# 注意：若设置为 fawe 但服务器未安装 FAWE，会自动回退到标准 WorldEdit
+worldedit-mode: 'we'

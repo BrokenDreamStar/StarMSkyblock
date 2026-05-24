@@ -27,8 +27,6 @@ package team.starm.starmskyblock.permission;
 public enum IslandPermission {
 
     // ====================== 管理权限 ======================
-    ALL("所有权限"),
-    DELETE_ISLAND("删除岛屿"),
     RENAME_ISLAND("修改岛屿名称"),
     EDIT_PERMISSIONS("修改岛屿权限"),
     EDIT_SETTINGS("修改岛屿设置"),
@@ -174,7 +172,7 @@ public enum IslandPermission {
 
     public boolean isManagement() {
         return switch (this) {
-            case ALL, DELETE_ISLAND, RENAME_ISLAND, EDIT_PERMISSIONS, EDIT_SETTINGS,
+            case RENAME_ISLAND, EDIT_PERMISSIONS, EDIT_SETTINGS,
                  INVITE_MEMBER, REMOVE_MEMBER, SET_ROLE, INVITE_COOP, REMOVE_COOP,
                  SET_HOME, SET_BIOME -> true;
             default -> false;

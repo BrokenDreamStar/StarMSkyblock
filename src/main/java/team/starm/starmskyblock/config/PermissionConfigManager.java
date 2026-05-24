@@ -130,9 +130,6 @@ public class PermissionConfigManager {
             try {
                 IslandPermission perm = IslandPermission.valueOf(name.trim());
                 set.add(perm);
-                if (perm == IslandPermission.ALL) {
-                    set.addAll(EnumSet.allOf(IslandPermission.class));
-                }
             } catch (IllegalArgumentException e) {
                 MessageUtil.consoleWarn("未知的权限: " + name + "（已跳过）");
             }
@@ -148,8 +145,6 @@ public class PermissionConfigManager {
         Set<IslandPermission> perms = defaultPermissions.get(level);
         if (perms == null)
             return false;
-        if (perms.contains(IslandPermission.ALL))
-            return true;
         return perms.contains(permission);
     }
 
@@ -170,7 +165,6 @@ public class PermissionConfigManager {
         };
 
         for (IslandPermission permission : IslandPermission.values()) {
-            if (permission == IslandPermission.ALL) continue;
             for (IslandPermissionLevel role : ascending) {
                 if (hasDefaultPermission(role, permission)) {
                     levels.put(permission, role.getPermissionLevel());
@@ -179,8 +173,6 @@ public class PermissionConfigManager {
             }
         }
 
-        // ALL 默认仅岛主
-        levels.put(IslandPermission.ALL, IslandPermissionLevel.OWNER.getPermissionLevel());
         return levels;
     }
 

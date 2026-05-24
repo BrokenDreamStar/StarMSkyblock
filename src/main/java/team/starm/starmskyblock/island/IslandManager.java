@@ -293,6 +293,7 @@ public class IslandManager {
     }
 
     /** 根据玩家名称查询其岛屿（离线兼容） */
+    @SuppressWarnings("deprecation")
     public Optional<Island> getIslandByPlayerName(String playerName) {
         org.bukkit.OfflinePlayer offlinePlayer = org.bukkit.Bukkit.getOfflinePlayer(playerName);
         if (offlinePlayer.hasPlayedBefore() || offlinePlayer.isOnline()) {

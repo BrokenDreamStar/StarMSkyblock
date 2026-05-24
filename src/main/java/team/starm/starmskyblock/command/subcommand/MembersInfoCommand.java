@@ -118,7 +118,6 @@ public class MembersInfoCommand extends SubCommand {
         MessageUtil.sendMessage(player, "");
 
         for (IslandPermission perm : IslandPermission.values()) {
-            if (perm == IslandPermission.ALL) continue;
             boolean hasPerm = island.hasPermission(player.getUniqueId(), perm);
             String icon = hasPerm ? "&a✔" : "&c✘";
             MessageUtil.sendMessage(player, icon + " &7" + perm.getDisplayName());

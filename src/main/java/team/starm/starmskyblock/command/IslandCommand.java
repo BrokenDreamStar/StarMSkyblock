@@ -48,6 +48,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         subCommands.put("role", new MembersInfoCommand(plugin));
         subCommands.put("rename", new RenameCommand(plugin));
         subCommands.put("coop", new CoopCommand(plugin));
+        subCommands.put("list", new ListCommand(plugin));
         subCommands.put("settings", new SettingsCommand(plugin));
         subCommands.put("accept", new AcceptDeclineCommand(plugin));
         subCommands.put("decline", new AcceptDeclineCommand(plugin));
@@ -125,6 +126,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         MessageUtil.sendMessage(player, "&b/is coop add <玩家> &f- 添加合作者");
         MessageUtil.sendMessage(player, "&b/is coop remove <玩家> &f- 移除合作者");
         MessageUtil.sendMessage(player, "&b/is myperms &f- 查看自己拥有的权限");
+        MessageUtil.sendMessage(player, "&b/is list [next|prev] &f- 翻页浏览岛屿列表");
         MessageUtil.sendMessage(player, "&b/is permission <权限> <等级> &f- 设置权限最低等级");
         MessageUtil.sendMessage(player, "&b/is settings &f- 查看岛屿设置");
         MessageUtil.sendMessage(player, "&b/is settings <设置项> <true|false> &f- 修改岛屿设置");
@@ -141,6 +143,10 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             return subCommandNames.stream()
                     .filter(sub -> sub.startsWith(prefix))
                     .collect(Collectors.toList());
+        }
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("list")) {
+            return filterPrefix(List.of("next", "prev"), args[1]);
         }
 
         if (args.length == 2 && args[0].equalsIgnoreCase("border")) {

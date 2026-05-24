@@ -163,9 +163,6 @@ public class IslandPermissionCommand {
 
         Integer currentLevel = island.getPermissionMinLevel(permission);
         if (currentLevel == null) {
-            currentLevel = island.getPermissionMinLevel(IslandPermission.ALL);
-        }
-        if (currentLevel == null) {
             currentLevel = IslandPermissionLevel.OWNER.getPermissionLevel();
         }
 
@@ -220,20 +217,10 @@ public class IslandPermissionCommand {
 
     private void sendPermissionUpdateMessage(Player player, IslandPermission permission,
                                              String permissionInput, IslandPermissionLevel targetRole, int targetLevel) {
-        if (permission == IslandPermission.ALL) {
-            if (targetLevel == 5) {
-                MessageUtil.sendMessage(player, "&a已将 &ball &a权限设置为 &e仅岛主 &a拥有");
-            } else {
-                MessageUtil.sendMessage(player,
-                        "&a已将 &ball &a权限的最低等级设置为 &e" + targetRole.getDisplayName() +
-                                " &a(&6" + targetLevel + "&e) 及以上角色拥有（包括岛主）");
-            }
-        } else {
-            MessageUtil.sendMessage(player,
-                    "&a已将权限 &b" + permissionInput +
-                            " &a的最低等级设置为 &e" + targetRole.getDisplayName() +
-                            " &a(&6" + targetLevel + "&e) 及以上角色拥有");
-        }
+        MessageUtil.sendMessage(player,
+                "&a已将权限 &b" + permissionInput +
+                        " &a的最低等级设置为 &e" + targetRole.getDisplayName() +
+                        " &a(&6" + targetLevel + "&e) 及以上角色拥有");
     }
 
     public boolean handlePermissionsListCommand(Player player) {
@@ -259,7 +246,7 @@ public class IslandPermissionCommand {
     }
 
     private enum PermissionCategory {
-        MANAGEMENT("管理权限", "ALL", s -> s.startsWith("DELETE_") || s.startsWith("RENAME_") || s.startsWith("EDIT_")
+        MANAGEMENT("管理权限", s -> s.startsWith("RENAME_") || s.startsWith("EDIT_")
                 || s.startsWith("INVITE_") || s.startsWith("REMOVE_") || s.startsWith("SET_")),
         ITEM_DROP_PICKUP("丢弃/拾取", s -> s.equals("ITEM_DROP") || s.equals("ITEM_PICKUP") || s.equals("EXP_PICKUP")),
         BLOCK("方块破坏/建造", s -> s.equals("BREAK") || s.equals("BUILD")),
@@ -285,12 +272,8 @@ public class IslandPermissionCommand {
         private final String[] extra;
 
         PermissionCategory(String displayName, java.util.function.Predicate<String> matcher) {
-            this(displayName, null, matcher);
-        }
-
-        PermissionCategory(String displayName, String extra, java.util.function.Predicate<String> matcher) {
             this.displayName = displayName;
-            this.extra = extra != null ? new String[]{extra} : new String[0];
+            this.extra = new String[0];
             this.matcher = matcher;
         }
 
@@ -303,7 +286,6 @@ public class IslandPermissionCommand {
             result.addAll(List.of(extra));
             for (IslandPermission perm : IslandPermission.values()) {
                 String name = perm.name();
-                if (name.equals("ALL")) continue;
                 if (matches(name) && !result.contains(name)) {
                     result.add(name);
                 }

@@ -227,6 +227,7 @@ public class Island {
     /**
      * 从 JSON 加载设置。支持新格式 (枚举名大写) 和旧格式 (camelCase字段名)。
      */
+    @SuppressWarnings("unchecked")
     public void setSettingsFromJson(String json) {
         if (json == null || json.isEmpty() || json.equals("{}")) return;
         try {
@@ -419,9 +420,7 @@ public class Island {
             return role.getPermissionLevel() >= minLevel;
         }
 
-        // ALL 兜底：未单独配置的权限以此为准
-        Integer allMinLevel = permissionMinLevels.get(IslandPermission.ALL);
-        return allMinLevel != null && role.getPermissionLevel() >= allMinLevel;
+        return false;
     }
 
     // ==================== 自定义最低等级操作 ====================
@@ -461,6 +460,7 @@ public class Island {
     /**
      * 从 JSON 加载权限最低等级配置。值为 null 或缺失的权限使用默认配置。
      */
+    @SuppressWarnings("unchecked")
     public void setPermissionsFromJson(String json) {
         permissionMinLevels.clear();
         if (json == null || json.isEmpty() || json.equals("{}")) return;

@@ -52,7 +52,12 @@ public class SQLiteManager {
                 dataFolder.mkdirs();
             }
 
-            File dbFile = new File(dataFolder, "islands.db");
+            File dbFolder = new File(dataFolder, "database");
+            if (!dbFolder.exists()) {
+                dbFolder.mkdirs();
+            }
+
+            File dbFile = new File(dbFolder, "islands.db");
             String url = "jdbc:sqlite:" + dbFile.getAbsolutePath();
 
             try {

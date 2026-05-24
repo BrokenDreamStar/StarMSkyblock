@@ -52,6 +52,7 @@ public class ConfigManager {
     private boolean allowSethomeInNether; // 是否允许在下界使用 /is sethome
     private boolean allowSethomeInEnd; // 是否允许在末地使用 /is sethome
     private long permissionMessageCooldown; // 权限提示消息冷却时间（毫秒）
+    private boolean useFawe; // 是否使用 FAWE 模式
 
     public ConfigManager(StarMSkyblock plugin) {
         this.plugin = plugin;
@@ -160,6 +161,10 @@ public class ConfigManager {
         this.allowSethomeInEnd = config.getBoolean("allow-sethome-in-end", true);
 
         this.permissionMessageCooldown = config.getLong("permission-message-cooldown", 1000);
+
+        // ====================== WorldEdit 引擎模式 ======================
+        String worldEditMode = config.getString("worldedit-mode", "we");
+        this.useFawe = "fawe".equalsIgnoreCase(worldEditMode);
     }
 
     // ==================== Getter 方法（按功能分类） ====================
@@ -292,6 +297,10 @@ public class ConfigManager {
 
     public long getPermissionMessageCooldown() {
         return permissionMessageCooldown;
+    }
+
+    public boolean isUseFawe() {
+        return useFawe;
     }
 
     /**

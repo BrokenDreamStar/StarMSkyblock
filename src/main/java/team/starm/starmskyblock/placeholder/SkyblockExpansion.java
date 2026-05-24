@@ -9,8 +9,13 @@ import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.setting.IslandSetting;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * PlaceholderAPI 扩展，提供 %starmskyblock_*% 变量占位符。
@@ -53,6 +58,29 @@ public class SkyblockExpansion extends PlaceholderExpansion {
     private static final String PERMISSION_SUFFIX = "_level_weight";
     private static final String LEVEL_SEPARATOR = "_level_";
     private static final String SETTINGS_PREFIX = "islandsettings_";
+    private static final String HAS_PERMISSION_PREFIX = "haspermission_";
+    private static final String ISLAND_LIST_PREFIX = "island_list_";
+    private static final String ISLAND_LIST_SIZE = "island_list_size";
+    private static final Pattern ISLAND_LIST_ITEM_PATTERN = Pattern.compile("island_list_(\\d+)(?:_(\\w+))?", Pattern.CASE_INSENSITIVE);
+
+    private volatile List<Island> sortedIslandsCache;
+    private volatile long sortedIslandsCacheTime;
+
+    private final Map<UUID, Integer> playerListPages = new HashMap<>();
+    private static final int ISLANDS_PER_PAGE = 28;
+
+    public void setPlayerPage(Player player, int page) {
+        if (page < 1) page = 1;
+        playerListPages.put(player.getUniqueId(), page);
+    }
+
+    public int getPlayerPage(Player player) {
+        return playerListPages.getOrDefault(player.getUniqueId(), 1);
+    }
+
+    public void resetPlayerPage(Player player) {
+        playerListPages.remove(player.getUniqueId());
+    }
 
     @Override
     public String onPlaceholderRequest(Player player, String params) {
@@ -68,6 +96,18 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
         if (params.equalsIgnoreCase("role")) {
             return getPlayerRole(islandManager, chunkX, chunkZ, player.getUniqueId());
+        }
+
+        if (params.equalsIgnoreCase(ISLAND_LIST_SIZE)) {
+            return String.valueOf(getSortedIslands().size());
+        }
+
+        if (params.equalsIgnoreCase("list_page")) {
+            return String.valueOf(getPlayerPage(player));
+        }
+
+        if (params.regionMatches(true, 0, ISLAND_LIST_PREFIX, 0, ISLAND_LIST_PREFIX.length())) {
+            return handleIslandListItem(player, params);
         }
 
         if (params.regionMatches(true, 0, SETTINGS_PREFIX, 0, SETTINGS_PREFIX.length())) {
@@ -89,6 +129,12 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                 String roleName = rest.substring(separatorIdx + LEVEL_SEPARATOR.length());
                 return getPermissionRoleStatus(islandManager, player.getUniqueId(), permName, roleName);
             }
+        }
+
+        if (params.regionMatches(true, 0, HAS_PERMISSION_PREFIX, 0, HAS_PERMISSION_PREFIX.length())) {
+            String permissionNode = params.substring(HAS_PERMISSION_PREFIX.length());
+            if (permissionNode.isEmpty()) return null;
+            return player.hasPermission(permissionNode) ? "true" : "false";
         }
 
         return null;
@@ -156,11 +202,6 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             return String.valueOf(customLevel);
         }
 
-        Integer allLevel = island.getPermissionMinLevel(IslandPermission.ALL);
-        if (allLevel != null) {
-            return String.valueOf(allLevel);
-        }
-
         return String.valueOf(IslandPermissionLevel.OWNER.getPermissionLevel());
     }
 
@@ -207,5 +248,66 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
         boolean enabled = island.getSetting(setting);
         return enabled ? "&a是" : "&c否";
+    }
+
+    private List<Island> getSortedIslands() {
+        long now = System.currentTimeMillis();
+        if (sortedIslandsCache != null && now - sortedIslandsCacheTime < 1000) {
+            return sortedIslandsCache;
+        }
+        List<Island> list = new ArrayList<>(plugin.getIslandManager().getAllIslands());
+        list.sort((a, b) -> {
+            int levelCompare = Integer.compare(b.getLevel(), a.getLevel());
+            if (levelCompare != 0) return levelCompare;
+            return Integer.compare(a.getId(), b.getId());
+        });
+        sortedIslandsCache = list;
+        sortedIslandsCacheTime = now;
+        return list;
+    }
+
+    private String getOwnerName(Island island) {
+        Optional<String> name = plugin.getSqliteManager().getPlayerName(island.getOwnerId());
+        if (name.isPresent()) return name.get();
+        org.bukkit.OfflinePlayer player = org.bukkit.Bukkit.getOfflinePlayer(island.getOwnerId());
+        String playerName = player.getName();
+        return playerName != null ? playerName : "未知";
+    }
+
+    private String handleIslandListItem(Player player, String params) {
+        var matcher = ISLAND_LIST_ITEM_PATTERN.matcher(params);
+        if (!matcher.matches()) return null;
+
+        int slotNumber;
+        try {
+            slotNumber = Integer.parseInt(matcher.group(1));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+
+        int page = getPlayerPage(player);
+        int actualIndex = (page - 1) * ISLANDS_PER_PAGE + slotNumber - 1;
+
+        List<Island> sorted = getSortedIslands();
+        if (actualIndex < 0 || actualIndex >= sorted.size()) return "NONE";
+
+        Island island = sorted.get(actualIndex);
+        String field = matcher.group(2);
+
+        if (field == null || field.equalsIgnoreCase("name")) {
+            String islandName = island.getName();
+            if (islandName == null || islandName.isEmpty()) {
+                return "岛屿 #" + island.getId();
+            }
+            return islandName;
+        }
+
+        return switch (field.toLowerCase()) {
+            case "id" -> String.valueOf(island.getId());
+            case "owner" -> getOwnerName(island);
+            case "level" -> String.valueOf(island.getLevel());
+            case "members" -> String.valueOf(island.getMembers().size() + 1);
+            default -> null;
+        };
     }
 }

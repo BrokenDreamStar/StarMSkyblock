@@ -21,6 +21,7 @@ import team.starm.starmskyblock.setting.IslandSettingManager;
 import team.starm.starmskyblock.config.SettingsConfigManager;
 import team.starm.starmskyblock.config.SignConfigManager;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
+import team.starm.starmskyblock.placeholder.SkyblockExpansion;
 import team.starm.starmskyblock.message.MessageUtil;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
@@ -54,6 +55,8 @@ public class StarMSkyblock extends JavaPlugin {
     private IslandPermissionManager permissionCoordinator; // 岛屿权限协调器
     private BorderListener borderListener;             // 岛屿边界显示监听器
 
+    private SkyblockExpansion skyblockExpansion;       // PAPI 扩展引用
+
     /**
      * 插件启用入口。依次初始化所有子系统，确保依赖关系正确：
      * 配置 -> 数据库 -> 结构管理器 -> 网格/岛屿 -> 世界 -> 邀请 & 权限 -> 监听器 -> 命令。
@@ -61,6 +64,15 @@ public class StarMSkyblock extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+
+        // 检查 WorldEdit / FAWE 是否安装（必须依赖）
+        if (getServer().getPluginManager().getPlugin("WorldEdit") == null) {
+            MessageUtil.consoleError("未检测到 WorldEdit 或 FastAsyncWorldEdit！");
+            MessageUtil.consoleError("StarMSkyblock 需要 WorldEdit 或 FAWE 才能运行。");
+            MessageUtil.consoleError("请安装 WorldEdit (https://enginehub.org/worldedit/) 或 FastAsyncWorldEdit 后重启服务器。");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
 
         // 初始化配置
         configManager = new ConfigManager(this);
@@ -86,7 +98,7 @@ public class StarMSkyblock extends JavaPlugin {
         sqliteManager.init();
 
         // 初始化 FAWE/WorldEdit 结构管理器
-        schematicManager = new SchematicManager(new File(getDataFolder(), "schematics"));
+        schematicManager = new SchematicManager(new File(getDataFolder(), "schematics"), configManager.isUseFawe());
 
         // 初始化网格系统和岛屿管理器
         gridManager = new GridManager(configManager);
@@ -108,7 +120,8 @@ public class StarMSkyblock extends JavaPlugin {
 
         // 注册 PlaceholderAPI 扩展
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            new team.starm.starmskyblock.placeholder.SkyblockExpansion(this).register();
+            skyblockExpansion = new SkyblockExpansion(this);
+            skyblockExpansion.register();
             MessageUtil.consolePrint("&a已注册 PlaceholderAPI 扩展");
         }
 
@@ -205,6 +218,10 @@ public class StarMSkyblock extends JavaPlugin {
 
     public BorderListener getBorderListener() {
         return borderListener;
+    }
+
+    public SkyblockExpansion getSkyblockExpansion() {
+        return skyblockExpansion;
     }
 
     /**
