@@ -61,6 +61,8 @@ public class SkyblockExpansion extends PlaceholderExpansion {
     private static final String HAS_PERMISSION_PREFIX = "haspermission_";
     private static final String ISLAND_LIST_PREFIX = "island_list_";
     private static final String ISLAND_LIST_SIZE = "island_list_size";
+    private static final String ISLAND_LIST_MAX_PAGE = "island_list_max_page";
+    private static final String ISLAND_LIST_IS_LAST_PAGE = "island_list_is_last_page";
     private static final Pattern ISLAND_LIST_ITEM_PATTERN = Pattern.compile("island_list_(\\d+)(?:_(\\w+))?", Pattern.CASE_INSENSITIVE);
 
     private volatile List<Island> sortedIslandsCache;
@@ -102,8 +104,25 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             return String.valueOf(getSortedIslands().size());
         }
 
-        if (params.equalsIgnoreCase("list_page")) {
+        if (params.equalsIgnoreCase("island_list_page")) {
             return String.valueOf(getPlayerPage(player));
+        }
+
+        if (params.equalsIgnoreCase(ISLAND_LIST_MAX_PAGE)) {
+            return String.valueOf(Math.max(1, (int) Math.ceil((double) getSortedIslands().size() / ISLANDS_PER_PAGE)));
+        }
+
+        if (params.equalsIgnoreCase(ISLAND_LIST_IS_LAST_PAGE)) {
+            int currentPage = getPlayerPage(player);
+            int maxPage = Math.max(1, (int) Math.ceil((double) getSortedIslands().size() / ISLANDS_PER_PAGE));
+            return currentPage >= maxPage ? "true" : "false";
+        }
+
+        if (params.equalsIgnoreCase("creationtime")) {
+            Optional<Island> islandOpt = islandManager.getIslandByPlayer(player.getUniqueId());
+            if (islandOpt.isEmpty()) return "";
+            String time = islandOpt.get().getCreatedAt();
+            return time != null ? time : "";
         }
 
         if (params.regionMatches(true, 0, ISLAND_LIST_PREFIX, 0, ISLAND_LIST_PREFIX.length())) {
@@ -132,9 +151,16 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         }
 
         if (params.regionMatches(true, 0, HAS_PERMISSION_PREFIX, 0, HAS_PERMISSION_PREFIX.length())) {
-            String permissionNode = params.substring(HAS_PERMISSION_PREFIX.length());
-            if (permissionNode.isEmpty()) return null;
-            return player.hasPermission(permissionNode) ? "true" : "false";
+            String permName = params.substring(HAS_PERMISSION_PREFIX.length());
+            if (permName.isEmpty()) return null;
+            try {
+                IslandPermission permission = IslandPermission.valueOf(permName.toUpperCase());
+                Optional<Island> islandOpt = islandManager.getIslandByPlayer(player.getUniqueId());
+                if (islandOpt.isPresent()) {
+                    return islandOpt.get().hasPermission(player.getUniqueId(), permission) ? "true" : "false";
+                }
+            } catch (IllegalArgumentException ignored) {}
+            return "false";
         }
 
         return null;
@@ -152,7 +178,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
         Island island = islandOpt.get();
         String name = island.getName();
-        if (name == null || name.isEmpty()) {
+        if (name == null || name.isEmpty()) {œ
             return "岛屿 #" + island.getId();
         }
         return name;

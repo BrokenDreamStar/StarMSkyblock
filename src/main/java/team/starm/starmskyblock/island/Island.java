@@ -91,6 +91,11 @@ public class Island {
     private String homeJson = "{}";
 
     /**
+     * 岛屿创建时间（ISO-8601 格式，来自 SQLite CURRENT_TIMESTAMP）
+     */
+    private String createdAt;
+
+    /**
      * 岛屿等级
      */
     private int level;
@@ -194,6 +199,14 @@ public class Island {
 
     public int getEffectiveMaxRadius() {
         return maxRadius > 0 ? maxRadius : radius;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 
     public int getLevel() {

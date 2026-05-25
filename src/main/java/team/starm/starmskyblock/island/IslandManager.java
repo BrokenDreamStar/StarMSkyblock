@@ -82,7 +82,7 @@ public class IslandManager {
      * 同时完成：权限默认值填充、传送点反序列化、网格索引构建。
      */
     private void loadIslandsFromDatabase() {
-        String selectIslands = "SELECT id, owner_uuid, name, level, radius, center_x, center_z, home_data, permissions, settings FROM islands";
+        String selectIslands = "SELECT id, owner_uuid, name, level, radius, center_x, center_z, home_data, permissions, settings, created_at FROM islands";
         String selectAllMembers = "SELECT island_id, player_uuid, role FROM island_members";
         String selectAllCoops = "SELECT island_id, player_uuid FROM island_coops";
 
@@ -107,6 +107,7 @@ public class IslandManager {
                     island.setCenterChunkZ(centerZ);
                     island.setMaxRadius(configManager.getIslandMaxRadius());
                     island.setLevel(rs.getInt("level"));
+                    island.setCreatedAt(rs.getString("created_at"));
                     island.setSettingsFromJson(rs.getString("settings"));
 
                     String permissionsJson = rs.getString("permissions");
