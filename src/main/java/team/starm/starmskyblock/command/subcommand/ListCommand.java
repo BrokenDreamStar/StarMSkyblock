@@ -44,8 +44,12 @@ public class ListCommand extends SubCommand {
                 expansion.setPlayerPage(player, currentPage - 1);
                 MessageUtil.sendMessage(player, "&a已切换到第 &e" + (currentPage - 1) + " &a页，共 &e" + totalPages + " &a页");
             }
+            case "home", "first" -> {
+                expansion.resetPlayerPage(player);
+                MessageUtil.sendMessage(player, "&a已返回第 1 页，共 &e" + totalPages + " &a页");
+            }
             default ->
-                MessageUtil.sendMessage(player, "&c用法: /is list <next|prev>");
+                MessageUtil.sendMessage(player, "&c用法: /is list <next|prev|home>");
         }
 
         return true;

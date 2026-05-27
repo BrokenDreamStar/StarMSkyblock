@@ -8,6 +8,7 @@ import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.setting.IslandSetting;
+import team.starm.starmskyblock.util.SkullTextureCache;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 /**
@@ -65,6 +67,16 @@ public class SkyblockExpansion extends PlaceholderExpansion {
     private static final String ISLAND_LIST_IS_LAST_PAGE = "island_list_is_last_page";
     private static final Pattern ISLAND_LIST_ITEM_PATTERN = Pattern.compile("island_list_(\\d+)(?:_(\\w+))?", Pattern.CASE_INSENSITIVE);
 
+    private final AtomicInteger papiCallCount = new AtomicInteger(0);
+
+    public int getPapiCallCount() {
+        return papiCallCount.get();
+    }
+
+    public void resetPapiCallCount() {
+        papiCallCount.set(0);
+    }
+
     private volatile List<Island> sortedIslandsCache;
     private volatile long sortedIslandsCacheTime;
 
@@ -86,6 +98,16 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
     @Override
     public String onPlaceholderRequest(Player player, String params) {
+        papiCallCount.incrementAndGet();
+
+        if (params.equalsIgnoreCase("call_count")) {
+            return String.valueOf(papiCallCount.get());
+        }
+
+        if (params.equalsIgnoreCase("call_count_reset")) {
+            return String.valueOf(papiCallCount.getAndSet(0));
+        }
+
         if (player == null) return "";
 
         IslandManager islandManager = plugin.getIslandManager();
@@ -178,7 +200,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
         Island island = islandOpt.get();
         String name = island.getName();
-        if (name == null || name.isEmpty()) {œ
+        if (name == null || name.isEmpty()) {
             return "岛屿 #" + island.getId();
         }
         return name;
@@ -333,6 +355,10 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             case "owner" -> getOwnerName(island);
             case "level" -> String.valueOf(island.getLevel());
             case "members" -> String.valueOf(island.getMembers().size() + 1);
+            case "owner_head" -> {
+                String texture = SkullTextureCache.getTexture(island.getOwnerId());
+                yield texture != null ? texture : "";
+            }
             default -> null;
         };
     }

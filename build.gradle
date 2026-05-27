@@ -37,6 +37,9 @@ dependencies {
 
     // PlaceholderAPI
     compileOnly 'me.clip:placeholderapi:2.11.6'
+
+    // Authlib（运行时服务器自带，编译时需要）
+    compileOnly 'com.mojang:authlib:6.0.54'
 }
 
 tasks.withType(JavaCompile).configureEach {
