@@ -151,6 +151,13 @@ public class StarMSkyblock extends JavaPlugin {
             getCommand("is").setTabCompleter(islandCmd);
         }
 
+        if (getCommand("istest") != null) {
+            team.starm.starmskyblock.command.test.TestCreateCommand testCmd =
+                    new team.starm.starmskyblock.command.test.TestCreateCommand(this);
+            getCommand("istest").setExecutor(testCmd);
+            getCommand("istest").setTabCompleter(testCmd);
+        }
+
         MessageUtil.consolePrint("&a[StarMSkyblock] 插件已启用！虚空世界已准备就绪。");
     }
 

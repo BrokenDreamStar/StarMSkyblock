@@ -19,6 +19,10 @@ commands:
     description: 空岛管理员命令
     usage: /isadmin setradius <id> <radius>
     permission: skyblock.admin
+  istest:                                          # TEST COMMAND - REMOVE ME
+    description: 测试命令 - 批量生成岛屿             # TEST COMMAND - REMOVE ME
+    usage: /istest create <数量>                    # TEST COMMAND - REMOVE ME
+    permission: skyblock.admin                     # TEST COMMAND - REMOVE ME
 
 permissions:
   skyblock.is:
