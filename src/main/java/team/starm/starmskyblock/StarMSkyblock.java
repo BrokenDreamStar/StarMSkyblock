@@ -17,6 +17,7 @@ import team.starm.starmskyblock.island.InvitationManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.listener.BorderListener;
 import team.starm.starmskyblock.listener.PortalListener;
+import team.starm.starmskyblock.listener.TeleportCountdownListener;
 import team.starm.starmskyblock.setting.IslandSettingManager;
 import team.starm.starmskyblock.config.SettingsConfigManager;
 import team.starm.starmskyblock.config.SignConfigManager;
@@ -154,6 +155,7 @@ public class StarMSkyblock extends JavaPlugin {
         borderListener = new BorderListener(islandManager, worldManager, sqliteManager);
         getServer().getPluginManager().registerEvents(borderListener, this);
         getServer().getPluginManager().registerEvents(new PortalListener(configManager, worldManager, islandManager, sqliteManager), this);
+        getServer().getPluginManager().registerEvents(new TeleportCountdownListener(), this);
         // 初始化设置管理器（会自动注册所有子监听器）
         new IslandSettingManager(islandManager, configManager, this);
 

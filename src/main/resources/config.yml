@@ -72,6 +72,15 @@ allow-sethome-in-end: true
 # 权限提示消息冷却时间（毫秒），防止玩家在快速触发（如踩踏耕地、触发压力板）时被刷屏
 permission-message-cooldown: 1000
 
+# 岛屿名称最大长度（颜色代码 & 不计入字符）
+max-name-length: 32
+
+# 岛屿重命名冷却时间（毫秒），设为 0 表示无冷却
+rename-cooldown: 300000
+
+# 岛屿传送倒计时（秒），设为 0 表示无倒计时直接传送
+teleport-countdown: 3
+
 # WorldEdit 引擎模式
 # 可选值：
 #   'we'   - 标准 WorldEdit（兼容性最佳）

@@ -8,6 +8,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import org.bukkit.ChatColor;
+
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -80,6 +82,17 @@ public class MessageUtil {
     public static void consolePrint(@Nullable String text) {
         if (text == null) return;
         Bukkit.getConsoleSender().sendMessage(colorize(text));
+    }
+
+    /**
+     * 剔除字符串中的所有颜色代码（包括 & 格式和 § 格式）
+     *
+     * @param text 原始字符串（可包含 &a, &b, &#RRGGBB 等颜色代码）
+     * @return 剔除颜色代码后的纯文本
+     */
+    public static String stripColor(@Nullable String text) {
+        if (text == null) return null;
+        return ChatColor.stripColor(colorize(text));
     }
 
     /**

@@ -5,6 +5,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.Island;
+import team.starm.starmskyblock.listener.TeleportCountdownListener;
 import team.starm.starmskyblock.setting.IslandSetting;
 import team.starm.starmskyblock.message.MessageUtil;
 
@@ -98,8 +99,14 @@ public class TpCommand extends SubCommand {
             return true;
         }
 
-        player.teleport(spawnLocation);
-        MessageUtil.sendMessage(player, "&a已传送到岛屿 &e" + targetIsland.getName() + "&a！");
+        int countdown = plugin.getConfigManager().getTeleportCountdown();
+        if (countdown > 0) {
+            TeleportCountdownListener.startCountdown(player, spawnLocation, countdown,
+                    "&a已传送到岛屿 &e" + targetIsland.getName() + "&a！");
+        } else {
+            player.teleport(spawnLocation);
+            MessageUtil.sendMessage(player, "&a已传送到岛屿 &e" + targetIsland.getName() + "&a！");
+        }
         return true;
     }
 

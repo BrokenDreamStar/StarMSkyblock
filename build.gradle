@@ -24,6 +24,7 @@ dependencies {
     compileOnly 'org.spigotmc:spigot-api:26.1.2-R0.1-SNAPSHOT'
 
     // Adventure（部分序列化模块需要显式声明）
+    compileOnly 'net.kyori:adventure-api:4.19.0'
     compileOnly 'net.kyori:adventure-text-serializer-legacy:4.19.0'
 
     // Gson（运行时服务器自带，编译时需要）
@@ -47,7 +48,7 @@ dependencies {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
-    options.compilerArgs.add('-Xlint:all')
+    options.compilerArgs.addAll(['-Xlint:all', '-Xlint:-classfile'])
 }
 
 def projectVersion = version
