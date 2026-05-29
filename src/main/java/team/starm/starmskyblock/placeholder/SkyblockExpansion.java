@@ -394,6 +394,8 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
                 case "members" -> String.valueOf(island.getMembers().size() + 1);
 
+                case "memberlist" -> getMemberList(island);
+
                 default -> EMPTY;
             };
 
@@ -402,6 +404,67 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         }
 
         return EMPTY;
+    }
+
+    private String getMemberList(Island island) {
+
+        Map<IslandPermissionLevel, List<String>> groups = new LinkedHashMap<>();
+
+        groups.put(IslandPermissionLevel.ADMIN, new ArrayList<>());
+        groups.put(IslandPermissionLevel.MOD, new ArrayList<>());
+        groups.put(IslandPermissionLevel.MEMBER, new ArrayList<>());
+
+        for (var entry : island.getMembers().entrySet()) {
+
+            List<String> list = groups.get(entry.getValue());
+
+            if (list != null) {
+
+                String name = plugin.getSqliteManager()
+                        .getPlayerName(entry.getKey())
+                        .orElseGet(() -> {
+                            OfflinePlayer op =
+                                    Bukkit.getOfflinePlayer(entry.getKey());
+
+                            return op.getName() != null
+                                    ? op.getName()
+                                    : "未知";
+                        });
+
+                list.add(name);
+            }
+        }
+
+        Map<IslandPermissionLevel, String> colors = new LinkedHashMap<>();
+
+        colors.put(IslandPermissionLevel.ADMIN, "&c");
+        colors.put(IslandPermissionLevel.MOD, "&a");
+        colors.put(IslandPermissionLevel.MEMBER, "&f");
+
+        StringBuilder result = new StringBuilder();
+
+        for (var entry : groups.entrySet()) {
+
+            if (entry.getValue().isEmpty()) {
+                continue;
+            }
+
+            if (!result.isEmpty()) {
+                result.append("\n");
+            }
+
+            result.append(colors.get(entry.getKey()))
+                    .append(entry.getKey().getDisplayName())
+                    .append(":\n");
+
+            for (String name : entry.getValue()) {
+                result.append("  - ").append(name).append("\n");
+            }
+        }
+
+        return !result.isEmpty()
+                ? result.toString().stripTrailing()
+                : EMPTY;
     }
 
     private String getOwnerName(Island island) {

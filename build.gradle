@@ -40,6 +40,9 @@ dependencies {
 
     // Authlib（运行时服务器自带，编译时需要）
     compileOnly 'com.mojang:authlib:6.0.54'
+
+    // TrMenu（编译时需要 HookAbstract / JavaScriptAgent 等类）
+    compileOnly files('/Users/starm/Minecraft/TEST/plugins/TrMenu-3.12.2.jar')
 }
 
 tasks.withType(JavaCompile).configureEach {

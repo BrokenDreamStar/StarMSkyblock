@@ -23,6 +23,9 @@ import team.starm.starmskyblock.config.SignConfigManager;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.placeholder.SkyblockExpansion;
 import team.starm.starmskyblock.message.MessageUtil;
+import team.starm.starmskyblock.util.SkullManager;
+import team.starm.starmskyblock.bridge.StarMSkyblockHook;
+import me.arasple.mc.trmenu.module.internal.script.js.JavaScriptAgent;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
 /**
@@ -123,6 +126,23 @@ public class StarMSkyblock extends JavaPlugin {
             skyblockExpansion = new SkyblockExpansion(this);
             skyblockExpansion.register();
             MessageUtil.consolePrint("&a已注册 PlaceholderAPI 扩展");
+        }
+
+        // 玩家加入时异步预缓存头颅纹理（参考 LiteSignIn Join.onJoin）
+        getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener() {
+            @org.bukkit.event.EventHandler
+            public void onJoin(org.bukkit.event.player.PlayerJoinEvent event) {
+                org.bukkit.entity.Player player = event.getPlayer();
+                getServer().getScheduler().runTaskAsynchronously(
+                        StarMSkyblock.this,
+                        () -> SkullManager.refreshTextureByDefaultMethod(player.getUniqueId(), player.getName()));
+            }
+        }, this);
+
+        // 注册 TrMenu JS 物品源桥接
+        if (getServer().getPluginManager().getPlugin("TrMenu") != null) {
+            JavaScriptAgent.INSTANCE.putBinding("StarMSkyblockAPI", new StarMSkyblockHook());
+            MessageUtil.consolePrint("&a已注册 TrMenu JS 物品源桥接 (StarMSkyblockAPI)");
         }
 
         // 提前创建或加载空岛世界
