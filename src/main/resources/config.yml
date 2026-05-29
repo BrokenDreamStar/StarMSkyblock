@@ -3,24 +3,24 @@
 # 岛屿世界名称配置
 world-name: 'starmskyblockworld'
 
-# 岛屿的初始大小，单位：区块 (Chunk)。
+# 岛屿的初始大小，单位：区块。
 # 1 个区块 = 16x16 格。
 # 如果设置为 5，则岛屿包含中心区块，并向四面八方扩展 5 个区块，即 (5+1+5) = 11x11 个区块。
 island-radius: 5
 
 # 岛屿与岛屿之间的间隔距离，单位：区块。
-# 设置为 10，则两个岛屿的边缘之间相隔 10 个区块，防止岛屿连在一起。
+# 设置为 5，则两个岛屿的边缘之间相隔 5 个区块。
 island-spacing: 5
 
 # 岛屿能够扩展的最大半径，单位：区块。
-# 设置为 15，意味着岛屿最大可以达到 (15+1+15) = 31x31 个区块。
+# 设置为 16，意味着岛屿最大可以达到 (16+1+16) = 33x33 个区块。
 island-max-radius: 16
 
-# 创建岛屿后是否自动传送
+# 创建岛屿后是否自动传送到岛屿
 teleport-on-create: true
 
 # 岛屿边界是否默认显示
-show-border-default: true
+show-border-default: false
 
 # 岛屿结构文件配置 (需放在插件的 schematics 文件夹下)
 schematics:
@@ -43,22 +43,20 @@ schematics:
         y: 5
         z: 0
 
-  # 默认使用的岛屿类型（玩家未指定时使用）
-  default-type: 'default'
+# 默认使用的岛屿类型（玩家未指定时使用）
+default-type: 'default'
 
 # 全局生物群系配置
 biome:
-  # 主世界生物群系，如 PLAINS, FOREST, OCEAN 等
+  # 主世界生物群系
   normal: PLAINS
-  # 下界生物群系，如 NETHER_WASTES, CRIMSON_FOREST, WARPED_FOREST 等
+  # 下界生物群系
   nether: NETHER_WASTES
-  # 末地生物群系，如 THE_END, END_HIGHLANDS 等
+  # 末地生物群系
   end: THE_END
 
 # 岛屿生成的高度。生成时会以结构文件中的基岩为中心点，基岩将生成在这个高度。
 island-height: 63
-
-
 
 # 玩家最多可以删除自己岛屿的次数
 max-delete-times: 3
@@ -69,21 +67,21 @@ allow-sethome-in-nether: true
 # 是否允许玩家在末地使用 /is sethome 设置岛屿传送点
 allow-sethome-in-end: true
 
-# 权限提示消息冷却时间（毫秒），防止玩家在快速触发（如踩踏耕地、触发压力板）时被刷屏
+# 权限提示消息冷却时间（毫秒）
 permission-message-cooldown: 1000
 
 # 岛屿名称最大长度（颜色代码 & 不计入字符）
-max-name-length: 32
+max-name-length: 20
 
-# 岛屿重命名冷却时间（毫秒），设为 0 表示无冷却
-rename-cooldown: 300000
+# 岛屿重命名冷却时间（秒），设为 0 表示无冷却
+rename-cooldown: 300
 
 # 岛屿传送倒计时（秒），设为 0 表示无倒计时直接传送
 teleport-countdown: 3
 
 # WorldEdit 引擎模式
 # 可选值：
-#   'we'   - 标准 WorldEdit（兼容性最佳）
-#   'fawe' - FastAsyncWorldEdit（启用 FAWE 特有性能优化，需安装 FAWE 插件）
+#   'we'   - WorldEdit
+#   'fawe' - FastAsyncWorldEdit
 # 注意：若设置为 fawe 但服务器未安装 FAWE，会自动回退到标准 WorldEdit
-worldedit-mode: 'we'
+worldedit-mode: 'fawe'

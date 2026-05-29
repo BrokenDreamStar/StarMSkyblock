@@ -53,7 +53,7 @@ public class ConfigManager {
     private boolean allowSethomeInEnd; // 是否允许在末地使用 /is sethome
     private long permissionMessageCooldown; // 权限提示消息冷却时间（毫秒）
     private int maxNameLength; // 岛屿名称最大长度（颜色代码不计入）
-    private long renameCooldown; // 岛屿重命名冷却时间（毫秒）
+    private int renameCooldown; // 岛屿重命名冷却时间（秒）
     private int teleportCountdown; // 岛屿传送倒计时（秒）
     private boolean useFawe; // 是否使用 FAWE 模式
 
@@ -167,7 +167,7 @@ public class ConfigManager {
 
         this.maxNameLength = config.getInt("max-name-length", 32);
 
-        this.renameCooldown = config.getLong("rename-cooldown", 300000);
+        this.renameCooldown = config.getInt("rename-cooldown", 300);
 
         this.teleportCountdown = config.getInt("teleport-countdown", 3);
 
@@ -312,7 +312,7 @@ public class ConfigManager {
         return maxNameLength;
     }
 
-    public long getRenameCooldown() {
+    public int getRenameCooldown() {
         return renameCooldown;
     }
 

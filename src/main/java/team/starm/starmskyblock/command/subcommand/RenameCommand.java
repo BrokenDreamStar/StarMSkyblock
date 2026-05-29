@@ -34,13 +34,14 @@ public class RenameCommand extends SubCommand {
             return true;
         }
 
-        long cooldown = plugin.getConfigManager().getRenameCooldown();
+        int cooldown = plugin.getConfigManager().getRenameCooldown();
         if (cooldown > 0) {
             Long lastRename = renameCooldowns.get(player.getUniqueId());
             if (lastRename != null) {
+                long cooldownMs = cooldown * 1000L;
                 long elapsed = System.currentTimeMillis() - lastRename;
-                if (elapsed < cooldown) {
-                    long remaining = (cooldown - elapsed) / 1000;
+                if (elapsed < cooldownMs) {
+                    long remaining = cooldown - (elapsed / 1000);
                     MessageUtil.sendMessage(player, "&c岛屿重命名冷却中，请等待 &e" + remaining + " &c秒后再试！");
                     return true;
                 }

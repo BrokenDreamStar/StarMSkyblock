@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.Island.WorldType;
-import team.starm.starmskyblock.listener.TeleportCountdownListener;
 import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.Optional;
@@ -47,8 +46,7 @@ public class HomeCommand extends SubCommand {
 
             String worldName = worldType == WorldType.NORMAL ? "主世界"
                     : worldType == WorldType.NETHER ? "下界" : "末地";
-            String successMessage = "&a已传送到你设置的岛屿 &e" + worldName + " &a传送点！";
-            teleportWithCountdown(player, spawnLocation, successMessage);
+            MessageUtil.sendMessage(player, "&a已传送到你设置的岛屿 &e" + worldName + " &a传送点！");
         } else {
             targetWorld = plugin.getWorldManager().getSkyblockWorld();
             ConfigManager config = plugin.getConfigManager();
@@ -67,19 +65,10 @@ public class HomeCommand extends SubCommand {
                 return true;
             }
 
-            teleportWithCountdown(player, spawnLocation, "&a欢迎回到你的岛屿！");
+            MessageUtil.sendMessage(player, "&a欢迎回到你的岛屿！");
         }
 
+        player.teleport(spawnLocation);
         return true;
-    }
-
-    private void teleportWithCountdown(Player player, Location location, String successMessage) {
-        int countdown = plugin.getConfigManager().getTeleportCountdown();
-        if (countdown > 0) {
-            TeleportCountdownListener.startCountdown(player, location, countdown, successMessage);
-        } else {
-            player.teleport(location);
-            MessageUtil.sendMessage(player, successMessage);
-        }
     }
 }
