@@ -107,7 +107,8 @@ public class SQLiteManager {
                     permissions TEXT DEFAULT '{}',
                     settings TEXT DEFAULT '{}',
                     home_data TEXT DEFAULT '{}',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    nether_unlocked INTEGER DEFAULT 0
                 );""";
 
         String createMembersTable = """
@@ -141,12 +142,19 @@ public class SQLiteManager {
                     delete_count INTEGER DEFAULT 0
                 );""";
 
+        String createSkinTexturesTable = """
+                CREATE TABLE IF NOT EXISTS skin_textures (
+                    uuid VARCHAR(36) PRIMARY KEY,
+                    texture TEXT NOT NULL
+                );""";
+
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createIslandsTable);
             stmt.execute(createMembersTable);
             stmt.execute(createCoopsTable);
             stmt.execute(createPlayersTable);
             stmt.execute(createPlayerStatsTable);
+            stmt.execute(createSkinTexturesTable);
             MessageUtil.consolePrint("&a数据库表结构检查/创建完毕。");
         } catch (SQLException e) {
             MessageUtil.consoleError("&c创建数据库表失败！");
@@ -172,11 +180,13 @@ public class SQLiteManager {
             boolean hasLevel = false;
             boolean hasSettings = false;
             boolean hasPermissions = false;
+            boolean hasNetherUnlocked = false;
             while (rs.next()) {
                 String colName = rs.getString("name");
                 if ("level".equalsIgnoreCase(colName)) hasLevel = true;
                 if ("settings".equalsIgnoreCase(colName)) hasSettings = true;
                 if ("permissions".equalsIgnoreCase(colName)) hasPermissions = true;
+                if ("nether_unlocked".equalsIgnoreCase(colName)) hasNetherUnlocked = true;
             }
             rs.close();
             if (!hasLevel) {
@@ -190,6 +200,11 @@ public class SQLiteManager {
             if (!hasPermissions) {
                 stmt.execute("ALTER TABLE islands ADD COLUMN permissions TEXT DEFAULT '{}'");
                 MessageUtil.consolePrint("&a数据库迁移：已添加 permissions 列到 islands 表。");
+            }
+
+            if (!hasNetherUnlocked) {
+                stmt.execute("ALTER TABLE islands ADD COLUMN nether_unlocked INTEGER DEFAULT 0");
+                MessageUtil.consolePrint("&a数据库迁移：已添加 nether_unlocked 列到 islands 表。");
             }
 
             stmt.execute("DROP TABLE IF EXISTS island_permissions");
@@ -231,6 +246,27 @@ public class SQLiteManager {
     /** 返回底层 SQLite 连接（调用方需自行同步） */
     public Connection getConnection() {
         return connection;
+    }
+
+    /** 批量预加载玩家名称到缓存，避免首次菜单打开时大量串行 SQL 查询 */
+    public void warmUpPlayerNameCache() {
+        String sql = "SELECT player_uuid, player_name FROM players";
+        synchronized (dbLock) {
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery(sql)) {
+                int count = 0;
+                while (rs.next()) {
+                    UUID uuid = UUID.fromString(rs.getString("player_uuid"));
+                    String name = rs.getString("player_name");
+                    playerNameCache.put(uuid, name);
+                    count++;
+                }
+                MessageUtil.consolePrint("&a已预加载 " + count + " 个玩家名称到缓存");
+            } catch (SQLException e) {
+                MessageUtil.consoleError("&c预加载玩家名称缓存失败！");
+                e.printStackTrace();
+            }
+        }
     }
 
     // ==================== 事务辅助 ====================
@@ -383,13 +419,49 @@ public class SQLiteManager {
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
                 pstmt.setString(1, playerUuid.toString());
                 pstmt.setBoolean(2, firstJoin);
-                pstmt.setBoolean(3, firstJoin);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
                 MessageUtil.consoleError("&c保存首次进入下界状态失败！UUID: " + playerUuid);
                 e.printStackTrace();
             }
         }
+    }
+
+    // ==================== 皮肤纹理操作 ====================
+
+    /** 保存玩家皮肤纹理 base64 到数据库（INSERT OR REPLACE） */
+    public void saveSkinTexture(UUID uuid, String texture) {
+        String sql = "INSERT OR REPLACE INTO skin_textures (uuid, texture) VALUES (?, ?)";
+        synchronized (dbLock) {
+            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                pstmt.setString(1, uuid.toString());
+                pstmt.setString(2, texture);
+                pstmt.executeUpdate();
+            } catch (SQLException e) {
+                MessageUtil.consoleError("&c保存皮肤纹理失败！UUID: " + uuid);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /** 从数据库加载所有皮肤纹理到 Map（启动时调用） */
+    public Map<UUID, String> loadAllSkinTextures() {
+        Map<UUID, String> result = new java.util.HashMap<>();
+        String sql = "SELECT uuid, texture FROM skin_textures";
+        synchronized (dbLock) {
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery(sql)) {
+                while (rs.next()) {
+                    UUID uuid = UUID.fromString(rs.getString("uuid"));
+                    String texture = rs.getString("texture");
+                    result.put(uuid, texture);
+                }
+            } catch (SQLException e) {
+                MessageUtil.consoleError("&c加载皮肤纹理缓存失败！");
+                e.printStackTrace();
+            }
+        }
+        return result;
     }
 
     // ==================== 连接管理 ====================

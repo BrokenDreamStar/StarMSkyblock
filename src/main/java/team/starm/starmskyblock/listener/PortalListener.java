@@ -14,6 +14,7 @@ import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.database.SQLiteManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
 import java.util.Optional;
@@ -89,6 +90,13 @@ public class PortalListener implements Listener {
         }
 
         Island island = optionalIsland.get();
+
+        // 下界未解锁时阻止非玩家实体进入
+        if (fromNormal && !island.isNetherUnlocked()) {
+            event.setCancelled(true);
+            return;
+        }
+
         World targetWorld = fromNormal
                 ? worldManager.getOrCreateSkyblockNether()
                 : worldManager.getOrCreateSkyblockWorld();
@@ -139,15 +147,40 @@ public class PortalListener implements Listener {
 
     /** 处理玩家下界传送门交互：根据来源世界分发到"进入下界"或"离开下界" */
     private void handleNetherPortal(PlayerPortalEvent event, Player player, World fromWorld) {
-        Optional<Island> optionalIsland = islandManager.getIsland(player.getUniqueId());
-        if (optionalIsland.isEmpty()) return;
-
-        Island island = optionalIsland.get();
         String worldName = fromWorld.getName();
+        boolean fromNormal = worldManager.isNormalWorld(worldName);
+        boolean fromNether = worldManager.isNetherWorld(worldName);
+        if (!fromNormal && !fromNether) return;
 
-        if (worldManager.isNormalWorld(worldName)) {
+        // 1. 先按玩家关联查找（owner / member）
+        Optional<Island> optionalIsland = islandManager.getIslandByPlayer(player.getUniqueId());
+        Island island = null;
+
+        if (optionalIsland.isPresent()) {
+            island = optionalIsland.get();
+        } else {
+            // 2. 合作者/访客：按区块位置查找
+            int chunkX = event.getFrom().getChunk().getX();
+            int chunkZ = event.getFrom().getChunk().getZ();
+            optionalIsland = islandManager.getIslandAt(chunkX, chunkZ);
+            if (optionalIsland.isEmpty()) {
+                optionalIsland = islandManager.getIslandAtMaxRange(chunkX, chunkZ);
+            }
+            if (optionalIsland.isEmpty()) return;
+
+            island = optionalIsland.get();
+
+            // 3. 非成员从主世界进入下界：检查岛屿是否解锁下界
+            if (fromNormal && !island.isNetherUnlocked()) {
+                player.sendMessage("§c该岛屿尚未解锁下界，无法进入！");
+                event.setCancelled(true);
+                return;
+            }
+        }
+
+        if (fromNormal) {
             handleToNether(event, player, island);
-        } else if (worldManager.isNetherWorld(worldName)) {
+        } else if (fromNether) {
             handleFromNether(event, player, island);
         }
     }
@@ -157,12 +190,16 @@ public class PortalListener implements Listener {
         World targetWorld = worldManager.getOrCreateSkyblockNether();
         if (targetWorld == null) return;
 
-        // 首次进入下界：传送到岛屿下界出生点
-        if (sqliteManager.isFirstNetherJoin(player.getUniqueId())) {
+        boolean isMember = island.getMemberRole(player.getUniqueId()).getPermissionLevel()
+                >= IslandPermissionLevel.MEMBER.getPermissionLevel();
+
+        // 首次进入下界（仅岛屿成员）：传送到岛屿下界出生点
+        if (isMember && sqliteManager.isFirstNetherJoin(player.getUniqueId())) {
             Location spawnLoc = getIslandLocation(island, targetWorld);
             event.setTo(spawnLoc);
             sqliteManager.setFirstNetherJoin(player.getUniqueId(), false);
             player.sendMessage("§a欢迎来到下界！这是你第一次进入，已将你传送到岛屿下界出生点。");
+            tryUnlockNether(island);
             return;
         }
 
@@ -179,6 +216,7 @@ public class PortalListener implements Listener {
             event.setCancelled(true);
             return;
         }
+        tryUnlockNether(island);
         event.setTo(targetLoc);
     }
 
@@ -232,13 +270,21 @@ public class PortalListener implements Listener {
         return "§c无法创建传送门：目标位置超出你的岛屿范围！";
     }
 
+    /** 尝试解锁岛屿下界（仅当岛屿尚未解锁且进入者是岛屿成员时） */
+    private void tryUnlockNether(Island island) {
+        if (!island.isNetherUnlocked()) {
+            island.setNetherUnlocked(true);
+            islandManager.updateIslandNetherUnlocked(island.getId(), true);
+        }
+    }
+
     // ==================== 末地传送门 ====================
 
     /** 处理玩家末地传送门：主世界/下界 → 末地岛屿位置，末地 → 主世界 spawn */
     private void handleEndPortal(PlayerPortalEvent event, Player player, World fromWorld) {
         String worldName = fromWorld.getName();
 
-        Optional<Island> optionalIsland = islandManager.getIsland(player.getUniqueId());
+        Optional<Island> optionalIsland = islandManager.getIslandByPlayer(player.getUniqueId());
 
         World targetWorld = null;
         Location targetLoc;

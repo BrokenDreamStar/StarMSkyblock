@@ -91,6 +91,11 @@ public class Island {
     private String homeJson = "{}";
 
     /**
+     * 下界是否已解锁（有岛屿成员进入过下界后为 true）
+     */
+    private boolean netherUnlocked = false;
+
+    /**
      * 岛屿创建时间（ISO-8601 格式，来自 SQLite CURRENT_TIMESTAMP）
      */
     private String createdAt;
@@ -369,6 +374,14 @@ public class Island {
     public void clearCustomHome() {
         this.hasCustomHome = false;
         this.homeJson = "{}";
+    }
+
+    public boolean isNetherUnlocked() {
+        return netherUnlocked;
+    }
+
+    public void setNetherUnlocked(boolean netherUnlocked) {
+        this.netherUnlocked = netherUnlocked;
     }
 
     public String getHomeJson() {

@@ -82,7 +82,7 @@ public class IslandManager {
      * 同时完成：权限默认值填充、传送点反序列化、网格索引构建。
      */
     private void loadIslandsFromDatabase() {
-        String selectIslands = "SELECT id, owner_uuid, name, level, radius, center_x, center_z, home_data, permissions, settings, created_at FROM islands";
+        String selectIslands = "SELECT id, owner_uuid, name, level, radius, center_x, center_z, home_data, permissions, settings, created_at, nether_unlocked FROM islands";
         String selectAllMembers = "SELECT island_id, player_uuid, role FROM island_members";
         String selectAllCoops = "SELECT island_id, player_uuid FROM island_coops";
 
@@ -108,6 +108,7 @@ public class IslandManager {
                     island.setMaxRadius(configManager.getIslandMaxRadius());
                     island.setLevel(rs.getInt("level"));
                     island.setCreatedAt(rs.getString("created_at"));
+                    island.setNetherUnlocked(rs.getInt("nether_unlocked") == 1);
                     island.setSettingsFromJson(rs.getString("settings"));
 
                     String permissionsJson = rs.getString("permissions");
@@ -370,6 +371,29 @@ public class IslandManager {
                     return true;
                 } catch (SQLException e) {
                     MessageUtil.consoleError("&c更新岛屿半径到数据库失败！ID: " + id);
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
+    }
+
+    /** 更新岛屿下界解锁状态，同步写库 */
+    public boolean updateIslandNetherUnlocked(int id, boolean unlocked) {
+        Island island = islandsById.get(id);
+        if (island != null) {
+            String updateSql = "UPDATE islands SET nether_unlocked = ? WHERE id = ?";
+            synchronized (dbLock) {
+                Connection conn = sqliteManager.getConnection();
+                try (PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
+                    pstmt.setInt(1, unlocked ? 1 : 0);
+                    pstmt.setInt(2, id);
+                    pstmt.executeUpdate();
+
+                    island.setNetherUnlocked(unlocked);
+                    return true;
+                } catch (SQLException e) {
+                    MessageUtil.consoleError("&c更新岛屿下界解锁状态到数据库失败！ID: " + id);
                     e.printStackTrace();
                 }
             }
