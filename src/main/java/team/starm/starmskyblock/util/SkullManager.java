@@ -56,7 +56,7 @@ public class SkullManager {
         database = sqliteManager;
         Map<UUID, String> textures = database.loadAllSkinTextures();
         base64Meta.putAll(textures);
-        MessageUtil.consolePrint("已从数据库加载 " + textures.size() + " 个皮肤纹理到缓存");
+        MessageUtil.consolePrint("已预加载 " + textures.size() + " 个皮肤纹理到缓存");
     }
 
     // ==================== 纹理获取 ====================

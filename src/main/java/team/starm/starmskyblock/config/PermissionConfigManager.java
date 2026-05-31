@@ -72,7 +72,7 @@ public class PermissionConfigManager {
             defaultPermissions.put(level, perms);
         }
 
-        MessageUtil.consolePrint("已加载默认权限配置（支持继承模式）");
+        MessageUtil.consolePrint("已加载岛屿默认权限配置");
     }
 
     /**

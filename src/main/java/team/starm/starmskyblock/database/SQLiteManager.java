@@ -41,13 +41,14 @@ public class SQLiteManager {
             }
 
             File dbFile = new File(dbFolder, "islands.db");
+            boolean isNewDatabase = !dbFile.exists();
             String url = "jdbc:sqlite:" + dbFile.getAbsolutePath();
 
             try {
                 Class.forName("org.sqlite.JDBC");
                 connection = DriverManager.getConnection(url);
                 applyPragmas();
-                createTables();
+                createTables(isNewDatabase);
                 migrate();
                 MessageUtil.consolePrint("SQLite 数据库连接成功！");
             } catch (ClassNotFoundException | SQLException e) {
@@ -67,7 +68,7 @@ public class SQLiteManager {
         }
     }
 
-    private void createTables() {
+    private void createTables(boolean isNewDatabase) {
         String createIslandsTable = """
                 CREATE TABLE IF NOT EXISTS islands (
                     id INTEGER PRIMARY KEY,
@@ -128,7 +129,11 @@ public class SQLiteManager {
             stmt.execute(createPlayersTable);
             stmt.execute(createPlayerStatsTable);
             stmt.execute(createSkinTexturesTable);
-            MessageUtil.consolePrint("数据库表结构检查/创建完毕。");
+            if (isNewDatabase) {
+                MessageUtil.consolePrint("数据库表结构创建成功！");
+            } else {
+                MessageUtil.consolePrint("数据库表结构检查成功！");
+            }
         } catch (SQLException e) {
             MessageUtil.consoleError("创建数据库表失败！");
             e.printStackTrace();

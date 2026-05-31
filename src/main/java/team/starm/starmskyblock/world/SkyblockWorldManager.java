@@ -56,10 +56,13 @@ public class SkyblockWorldManager {
 
         if (world == null) {
             java.io.File worldFolder = new java.io.File(Bukkit.getWorldContainer(), worldName);
-            if (worldFolder.exists() && worldFolder.isDirectory()) {
-                MessageUtil.consolePrint("检测到已存在的空岛世界数据，正在加载 " + worldName + "...");
+            java.io.File levelFile = new java.io.File(worldFolder, "level.dat");
+            boolean existingData = worldFolder.isDirectory() && levelFile.isFile();
+
+            if (existingData) {
+                MessageUtil.consolePrint("正在加载已有空岛世界: " + worldName);
             } else {
-                MessageUtil.consolePrint("正在创建新的空岛虚空世界: " + worldName);
+                MessageUtil.consolePrint("正在创建空岛世界: " + worldName);
             }
 
             WorldCreator creator = new WorldCreator(worldName);
@@ -84,7 +87,7 @@ public class SkyblockWorldManager {
             world = Bukkit.createWorld(creator);
 
             if (world != null) {
-                if (!worldFolder.exists() || !(new java.io.File(worldFolder, "level.dat")).exists()) {
+                if (!existingData) {
                     world.setSpawnLocation(0, 80, 0);
                 }
                 MessageUtil.consolePrint("空岛世界准备就绪！名称: " + worldName);

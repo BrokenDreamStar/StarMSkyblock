@@ -1,5 +1,6 @@
 package team.starm.starmskyblock;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -7,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+
 import team.starm.starmskyblock.command.AdminCommand;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.config.PermissionConfigManager;
@@ -40,7 +42,9 @@ import team.starm.starmskyblock.world.SkyblockWorldManager;
  */
 public class StarMSkyblock extends JavaPlugin {
 
-    /** 插件单例实例 */
+    /**
+     * 插件单例实例
+     */
     private static StarMSkyblock instance;
 
     // ========== 配置管理器 ==========
@@ -71,6 +75,7 @@ public class StarMSkyblock extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        printLogo();
 
         if (!checkWorldEdit()) return;
         initConfigs();
@@ -86,14 +91,40 @@ public class StarMSkyblock extends JavaPlugin {
         registerListeners();
         registerCommands();
 
-        MessageUtil.consolePrint("插件已启用！虚空世界已准备就绪。");
+        MessageUtil.consolePrint("插件已准备就绪！");
+    }
+
+    /***
+     *   ____    _                    __  __   ____    _              _       _                  _
+     *  / ___|  | |_    __ _   _ __  |  \/  | / ___|  | | __  _   _  | |__   | |   ___     ___  | | __
+     *  \___ \  | __|  / _` | | '__| | |\/| | \___ \  | |/ / | | | | | '_ \  | |  / _ \   / __| | |/ /
+     *   ___) | | |_  | (_| | | |    | |  | |  ___) | |   <  | |_| | | |_) | | | | (_) | | (__  |   <
+     *  |____/   \__|  \__,_| |_|    |_|  |_| |____/  |_|\_\  \__, | |_.__/  |_|  \___/   \___| |_|\_\
+     *                                                        |___/
+     */
+
+    private void printLogo() {
+        Bukkit.getConsoleSender().sendMessage(
+                MessageUtil.colorize(
+                        """
+                                
+                                <gradient:#14bcfe:#495aff>\
+                                   ____    _                    __  __   ____    _              _       _                  _   \s
+                                  / ___|  | |_    __ _   _ __  |  \\/  | / ___|  | | __  _   _  | |__   | |   ___     ___  | | __
+                                  \\___ \\  | __|  / _` | | '__| | |\\/| | \\___ \\  | |/ / | | | | | '_ \\  | |  / _ \\   / __| | |/ /
+                                   ___) | | |_  | (_| | | |    | |  | |  ___) | |   <  | |_| | | |_) | | | | (_) | | (__  |   <\s
+                                  |____/   \\__|  \\__,_| |_|    |_|  |_| |____/  |_|\\_\\  \\__, | |_.__/  |_|  \\___/   \\___| |_|\\_\\
+                                                                                        |___/                                    \
+                                </gradient>"""
+                )
+        );
     }
 
     private boolean checkWorldEdit() {
         if (getServer().getPluginManager().getPlugin("WorldEdit") == null) {
             MessageUtil.consoleError("未检测到 WorldEdit 或 FastAsyncWorldEdit！");
-            MessageUtil.consoleError("StarMSkyblock 需要 WorldEdit 或 FAWE 才能运行。");
-            MessageUtil.consoleError("请安装 WorldEdit (https://enginehub.org/worldedit/) 或 FastAsyncWorldEdit 后重启服务器。");
+            MessageUtil.consoleError("StarMSkyblock 需要 WorldEdit 或 FastAsyncWorldEdit  才能运行。");
+            MessageUtil.consoleError("请安装 WorldEdit 或 FastAsyncWorldEdit 后重启服务器。");
             getServer().getPluginManager().disablePlugin(this);
             return false;
         }
@@ -166,7 +197,7 @@ public class StarMSkyblock extends JavaPlugin {
 
         if (getServer().getPluginManager().getPlugin("TrMenu") != null) {
             JavaScriptAgent.INSTANCE.putBinding("StarMSkyblockAPI", new StarMSkyblockHook());
-            MessageUtil.consolePrint("已注册 TrMenu JS 物品源桥接 (StarMSkyblockAPI)");
+            MessageUtil.consolePrint("已注册 TrMenu JS 物品源桥接");
         }
     }
 
