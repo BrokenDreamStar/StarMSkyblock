@@ -14,29 +14,40 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import team.starm.starmskyblock.message.color.ColorUtils;
+
 /**
  * 基于 Adventure API 的通用消息/颜色工具类。
  * 统一处理含 & 颜色代码的字符串解析、发送、广播和日志打印。
  * 支持 Hex 颜色（&#RRGGBB）和传统 § 格式。
  * 内置静默模式：带有 -s 标记命令的玩家不会收到反馈消息。
+ * <p>
+ * 颜色管线委托给 ColorUtils（来自 LiteCommandEditor），支持：
+ * - & 传统颜色代码
+ * - <gradient:color1:color2>text</gradient> 渐变
+ * - <rainbow>text</rainbow> 彩虹
+ * - <color:name>text</color> / <name>text</name> 单色
+ * - <transition:colors:ratio>text</transition> 过渡色
  */
 public class MessageUtil {
 
     private static final Set<UUID> SILENT_PLAYERS = ConcurrentHashMap.newKeySet();
 
-    // 支持传统的 & 颜色代码和 Hex 颜色
-    private static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.builder()
-            .character('&')
+    private static final String LOG_PREFIX = "&7[<gradient:#14bcfe:#495aff>&lStarM Skyblock</gradient>&7]&r";
+
+    // 用于将 ColorUtils.toColor() 输出的 § 字符串解析为 Adventure Component
+    private static final LegacyComponentSerializer SECTION_SERIALIZER = LegacyComponentSerializer.builder()
+            .character('§')
             .hexColors()
             .useUnusualXRepeatedCharacterHexFormat()
             .build();
 
     /**
-     * 将包含 & 颜色代码的字符串解析为 Component
+     * 将包含颜色代码的字符串解析为 Component
      */
     public static @NotNull Component parse(@Nullable String text) {
         if (text == null || text.isEmpty()) return Component.empty();
-        return LEGACY_SERIALIZER.deserialize(text);
+        return SECTION_SERIALIZER.deserialize(ColorUtils.toColor(text));
     }
 
     /**
@@ -81,7 +92,7 @@ public class MessageUtil {
      */
     public static void consolePrint(@Nullable String text) {
         if (text == null) return;
-        Bukkit.getConsoleSender().sendMessage(colorize(text));
+        Bukkit.getConsoleSender().sendMessage(colorize(LOG_PREFIX + "&a" + text));
     }
 
     /**
@@ -100,7 +111,7 @@ public class MessageUtil {
      */
     public static void consoleError(@Nullable String text) {
         if (text == null) return;
-        Bukkit.getConsoleSender().sendMessage(colorize("&c[ERROR] " + text));
+        Bukkit.getConsoleSender().sendMessage(colorize(LOG_PREFIX + "&c[ERROR] " + text));
     }
 
     /**
@@ -108,6 +119,6 @@ public class MessageUtil {
      */
     public static void consoleWarn(@Nullable String text) {
         if (text == null) return;
-        consolePrint("&e[WARN] " + text);
+        Bukkit.getConsoleSender().sendMessage(colorize(LOG_PREFIX + "&e[WARN] " + text));
     }
 }
