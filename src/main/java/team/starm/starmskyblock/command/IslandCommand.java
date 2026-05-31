@@ -5,6 +5,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.command.subcommand.*;
@@ -12,6 +13,7 @@ import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.setting.IslandSetting;
+import team.starm.starmskyblock.util.SkyblockBiome;
 import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.*;
@@ -50,6 +52,8 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         subCommands.put("coop", new CoopCommand(plugin));
         subCommands.put("list", new ListCommand(plugin));
         subCommands.put("settings", new SettingsCommand(plugin));
+        subCommands.put("setchunkbiome", new SetChunkBiomeCommand(plugin));
+        subCommands.put("setbiome", new SetBiomeCommand(plugin));
         subCommands.put("accept", new AcceptDeclineCommand(plugin));
         subCommands.put("decline", new AcceptDeclineCommand(plugin));
         subCommandNames.addAll(subCommands.keySet());
@@ -130,6 +134,8 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         MessageUtil.sendMessage(player, "&b/is permission <权限> <等级> &f- 设置权限最低等级");
         MessageUtil.sendMessage(player, "&b/is settings &f- 查看岛屿设置");
         MessageUtil.sendMessage(player, "&b/is settings <设置项> <true|false> &f- 修改岛屿设置");
+        MessageUtil.sendMessage(player, "&b/is setchunkbiome <生物群系> &f- 修改当前区块生物群系");
+        MessageUtil.sendMessage(player, "&b/is setbiome <生物群系> &f- 修改整个岛屿生物群系");
     }
 
     @Override
@@ -161,6 +167,20 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 3 && args[0].equalsIgnoreCase("settings")) {
             return filterPrefix(List.of("true", "false"), args[2]);
+        }
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("setchunkbiome")) {
+            SkyblockBiome.Dimension dim = player.getWorld().getEnvironment() == World.Environment.NETHER
+                    ? SkyblockBiome.Dimension.NETHER
+                    : SkyblockBiome.Dimension.OVERWORLD;
+            return filterPrefix(SkyblockBiome.displayNamesFor(dim), args[1]);
+        }
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("setbiome")) {
+            SkyblockBiome.Dimension dim = player.getWorld().getEnvironment() == World.Environment.NETHER
+                    ? SkyblockBiome.Dimension.NETHER
+                    : SkyblockBiome.Dimension.OVERWORLD;
+            return filterPrefix(SkyblockBiome.displayNamesFor(dim), args[1]);
         }
 
         if (args.length == 2 && args[0].equalsIgnoreCase("coop")) {
@@ -255,7 +275,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
     }
 
     private String getPlayerName(java.util.UUID uuid) {
-        var name = plugin.getSqliteManager().getPlayerName(uuid);
+        var name = plugin.getPlayerRepo().getPlayerName(uuid);
         return name.orElse(uuid.toString());
     }
 

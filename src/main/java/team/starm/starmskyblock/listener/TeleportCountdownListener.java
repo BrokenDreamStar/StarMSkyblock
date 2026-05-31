@@ -7,8 +7,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.Map;
@@ -17,12 +17,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TeleportCountdownListener implements Listener {
 
-    private static final Map<UUID, CountdownTask> COUNTING_DOWN = new ConcurrentHashMap<>();
+    private final JavaPlugin plugin;
+    private final Map<UUID, CountdownTask> countingDown = new ConcurrentHashMap<>();
 
-    public static void startCountdown(Player player, Location targetLocation, int seconds, String successMessage) {
+    public TeleportCountdownListener(JavaPlugin plugin) {
+        this.plugin = plugin;
+    }
+
+    public void startCountdown(Player player, Location targetLocation, int seconds, String successMessage) {
         UUID uuid = player.getUniqueId();
 
-        CountdownTask existing = COUNTING_DOWN.get(uuid);
+        CountdownTask existing = countingDown.get(uuid);
         if (existing != null) {
             existing.task.cancel();
         }
@@ -37,7 +42,7 @@ public class TeleportCountdownListener implements Listener {
                 if (remaining <= 0) {
                     player.teleport(targetLocation);
                     MessageUtil.sendMessage(player, successMessage);
-                    COUNTING_DOWN.remove(uuid);
+                    countingDown.remove(uuid);
                     cancel();
                     return;
                 }
@@ -47,27 +52,27 @@ public class TeleportCountdownListener implements Listener {
         };
 
         countdownTask.task = runnable;
-        COUNTING_DOWN.put(uuid, countdownTask);
-        runnable.runTaskTimer(StarMSkyblock.getInstance(), 0L, 20L);
+        countingDown.put(uuid, countdownTask);
+        runnable.runTaskTimer(plugin, 0L, 20L);
     }
 
-    public static void cancelCountdown(Player player) {
+    public void cancelCountdown(Player player) {
         UUID uuid = player.getUniqueId();
-        CountdownTask countdownTask = COUNTING_DOWN.remove(uuid);
+        CountdownTask countdownTask = countingDown.remove(uuid);
         if (countdownTask != null) {
             countdownTask.task.cancel();
             ((net.kyori.adventure.audience.Audience) player).sendActionBar(MessageUtil.parse("&c传送已取消！"));
         }
     }
 
-    public static boolean isCountingDown(Player player) {
-        return COUNTING_DOWN.containsKey(player.getUniqueId());
+    public boolean isCountingDown(Player player) {
+        return countingDown.containsKey(player.getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        if (!COUNTING_DOWN.containsKey(player.getUniqueId())) {
+        if (!countingDown.containsKey(player.getUniqueId())) {
             return;
         }
 
@@ -86,7 +91,7 @@ public class TeleportCountdownListener implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
-        CountdownTask countdownTask = COUNTING_DOWN.remove(uuid);
+        CountdownTask countdownTask = countingDown.remove(uuid);
         if (countdownTask != null) {
             countdownTask.task.cancel();
         }

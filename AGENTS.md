@@ -9,7 +9,7 @@ Minecraft Spigot/Paper plugin (Java 21) for a skyblock gamemode. Built with Grad
 - **Build command:** `./gradlew build` (depends on `shadowJar`)
 - **Output JAR:** `build/libs/StarMSkyblock.jar` (base name `StarMSkyblock`, no classifier or version suffix)
 - **Shadow plugin:** `com.gradleup.shadow` version `9.4.1`
-- **Java toolchain:** 21 (`-Xlint:all` enabled)
+- **Java toolchain:** 25 (`-Xlint:all` enabled)
 - **No tests exist.** Do not expect `./gradlew test` to do anything useful.
 
 ## Runtime Environment

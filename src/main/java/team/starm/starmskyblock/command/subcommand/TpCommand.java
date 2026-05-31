@@ -5,7 +5,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.Island;
-import team.starm.starmskyblock.listener.TeleportCountdownListener;
+
 import team.starm.starmskyblock.setting.IslandSetting;
 import team.starm.starmskyblock.message.MessageUtil;
 
@@ -26,12 +26,23 @@ public class TpCommand extends SubCommand {
         }
 
         var islandManager = plugin.getIslandManager();
-        String islandName = args[1];
+        String islandName = args[1].replace('§', '&');
         List<Island> matchingIslands = islandManager.getIslandsByName(islandName);
 
         if (matchingIslands.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c未找到名称为 &e" + islandName + " &c的岛屿！");
-            return true;
+            if (args.length >= 3) {
+                try {
+                    int fallbackId = Integer.parseInt(args[2]);
+                    Optional<Island> byId = islandManager.getIsland(fallbackId);
+                    if (byId.isPresent()) {
+                        matchingIslands = List.of(byId.get());
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+            if (matchingIslands.isEmpty()) {
+                MessageUtil.sendMessage(player, "&c未找到名称为 &e" + islandName + " &c的岛屿！");
+                return true;
+            }
         }
 
         Island targetIsland;
@@ -101,7 +112,7 @@ public class TpCommand extends SubCommand {
 
         int countdown = plugin.getConfigManager().getTeleportCountdown();
         if (countdown > 0) {
-            TeleportCountdownListener.startCountdown(player, spawnLocation, countdown,
+            plugin.getTeleportCountdownListener().startCountdown(player, spawnLocation, countdown,
                     "&a已传送到岛屿 &e" + targetIsland.getName() + "&a！");
         } else {
             player.teleport(spawnLocation);

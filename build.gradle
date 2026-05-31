@@ -43,7 +43,8 @@ dependencies {
     compileOnly 'com.mojang:authlib:6.0.54'
 
     // TrMenu（编译时需要 HookAbstract / JavaScriptAgent 等类）
-    compileOnly files('/Users/starm/Minecraft/TEST/plugins/TrMenu-3.12.2.jar')
+    // 将 TrMenu-3.12.2.jar 放到项目根目录的 libs/ 文件夹中
+    compileOnly files('libs/TrMenu-3.12.2.jar')
 }
 
 tasks.withType(JavaCompile).configureEach {

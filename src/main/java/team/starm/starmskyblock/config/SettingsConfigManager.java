@@ -45,7 +45,7 @@ public class SettingsConfigManager {
         settingsConfig = YamlConfiguration.loadConfiguration(settingsFile);
         loadDefaultSettings();
 
-        MessageUtil.consolePrint("&a[设置系统] 已加载岛屿默认设置配置");
+        MessageUtil.consolePrint("已加载岛屿默认设置配置");
     }
 
     private void loadDefaultSettings() {
@@ -70,7 +70,7 @@ public class SettingsConfigManager {
             try {
                 settingsConfig.save(settingsFile);
             } catch (IOException e) {
-                MessageUtil.consoleError("&c保存设置配置文件失败");
+                MessageUtil.consoleError("保存设置配置文件失败");
                 e.printStackTrace();
             }
         }

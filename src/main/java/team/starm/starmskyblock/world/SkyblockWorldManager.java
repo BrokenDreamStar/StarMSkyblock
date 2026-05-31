@@ -57,9 +57,9 @@ public class SkyblockWorldManager {
         if (world == null) {
             java.io.File worldFolder = new java.io.File(Bukkit.getWorldContainer(), worldName);
             if (worldFolder.exists() && worldFolder.isDirectory()) {
-                MessageUtil.consolePrint("&e检测到已存在的空岛世界数据，正在加载 " + worldName + "...");
+                MessageUtil.consolePrint("检测到已存在的空岛世界数据，正在加载 " + worldName + "...");
             } else {
-                MessageUtil.consolePrint("&e正在创建新的空岛虚空世界: " + worldName);
+                MessageUtil.consolePrint("正在创建新的空岛虚空世界: " + worldName);
             }
 
             WorldCreator creator = new WorldCreator(worldName);
@@ -77,7 +77,7 @@ public class SkyblockWorldManager {
                     MessageUtil.consoleWarn("未知的生物群系配置: " + biomeName + "，将使用默认的 " + defaultBiome.getKey().getKey());
                 }
             } catch (Exception e) {
-                MessageUtil.consoleError("&e解析生物群系配置时发生错误: " + biomeName + "，将使用默认的 " + defaultBiome.getKey().getKey());
+                MessageUtil.consoleError("解析生物群系配置时发生错误: " + biomeName + "，将使用默认的 " + defaultBiome.getKey().getKey());
             }
             creator.generator(new VoidChunkGenerator(biome));
 
@@ -87,9 +87,9 @@ public class SkyblockWorldManager {
                 if (!worldFolder.exists() || !(new java.io.File(worldFolder, "level.dat")).exists()) {
                     world.setSpawnLocation(0, 80, 0);
                 }
-                MessageUtil.consolePrint("&a空岛世界准备就绪！名称: " + worldName);
+                MessageUtil.consolePrint("空岛世界准备就绪！名称: " + worldName);
             } else {
-                MessageUtil.consoleError("&c空岛世界加载或创建失败: " + worldName);
+                MessageUtil.consoleError("空岛世界加载或创建失败: " + worldName);
             }
         }
 

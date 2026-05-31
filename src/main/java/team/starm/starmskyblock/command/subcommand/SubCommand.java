@@ -29,7 +29,7 @@ public abstract class SubCommand {
     }
 
     protected String getPlayerName(UUID uuid) {
-        Optional<String> dbName = plugin.getSqliteManager().getPlayerName(uuid);
+        Optional<String> dbName = plugin.getPlayerRepo().getPlayerName(uuid);
         return dbName.orElse(uuid.toString());
     }
 

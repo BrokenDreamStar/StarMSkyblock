@@ -67,7 +67,7 @@ public class IslandCreateTask extends BukkitRunnable {
                     try {
                         completeCreation();
                     } catch (Exception e) {
-                        MessageUtil.consoleError("&c在主线程中完成岛屿创建时发生错误！");
+                        MessageUtil.consoleError("在主线程中完成岛屿创建时发生错误！");
                         e.printStackTrace();
                         sendMessage("§c创建岛屿时发生意外错误，请联系管理员！");
                     }
@@ -75,7 +75,7 @@ public class IslandCreateTask extends BukkitRunnable {
             }.runTask(plugin);
 
         } catch (Exception e) {
-            MessageUtil.consoleError("&c异步创建岛屿时发生错误！");
+            MessageUtil.consoleError("异步创建岛屿时发生错误！");
             e.printStackTrace();
             sendMessage("§c创建岛屿时发生意外错误，请联系管理员！");
         }

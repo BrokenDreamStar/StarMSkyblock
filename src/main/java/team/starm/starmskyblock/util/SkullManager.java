@@ -19,6 +19,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import team.starm.starmskyblock.StarMSkyblock;
+import team.starm.starmskyblock.database.SQLiteManager;
+import team.starm.starmskyblock.message.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -39,9 +42,21 @@ import org.bukkit.inventory.meta.SkullMeta;
 public class SkullManager {
 
     private static final Map<UUID, String> base64Meta = new ConcurrentHashMap<>();
+    private static SQLiteManager database;
     private static Gson gson;
 
     private SkullManager() {
+    }
+
+    /**
+     * 初始化数据库引用并从 DB 加载所有已持久化的纹理到缓存。
+     * 应在服务器启动时调用（onEnable）。
+     */
+    public static void initDatabase(SQLiteManager sqliteManager) {
+        database = sqliteManager;
+        Map<UUID, String> textures = database.loadAllSkinTextures();
+        base64Meta.putAll(textures);
+        MessageUtil.consolePrint("已从数据库加载 " + textures.size() + " 个皮肤纹理到缓存");
     }
 
     // ==================== 纹理获取 ====================
@@ -64,7 +79,7 @@ public class SkullManager {
         }
         StringBuilder source = new StringBuilder();
         try {
-            URL url = URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid.toString()).toURL();
+            URL url = URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid.toString().replace("-", "")).toURL();
             String line;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"))) {
                 while ((line = reader.readLine()) != null) {
@@ -73,33 +88,17 @@ public class SkullManager {
                 }
             }
             JsonObject json = gson.fromJson(source.toString(), JsonObject.class);
-            base64Meta.put(uuid, json.getAsJsonArray("properties").get(0).getAsJsonObject().get("value").getAsString());
-        } catch (Exception ignored) {
+            String texture = json.getAsJsonArray("properties").get(0).getAsJsonObject().get("value").getAsString();
+            base64Meta.put(uuid, texture);
+            if (database != null) {
+                database.saveSkinTexture(uuid, texture);
+            }
+        } catch (Exception e) {
+            MessageUtil.consoleWarn("获取玩家 " + name + " 的皮肤纹理失败: " + e.getMessage());
         }
     }
 
-    /**
-     * 优先通过 Bukkit API 提取纹理（不触发 Mojang API），失败则回退到直接 HTTP 请求。
-     *
-     * @param uuid 玩家 UUID
-     * @param name 玩家名称
-     */
-    public static void refreshTextureByDefaultMethod(UUID uuid, String name) {
-        if (base64Meta.containsKey(uuid)) return;
-        try {
-            ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-            SkullMeta sm = (SkullMeta) head.getItemMeta();
-            sm.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
-            head.setItemMeta(sm);
-            String texture = getHeadTexturesFromHead(head);
-            if (texture != null) {
-                base64Meta.put(uuid, texture);
-            } else {
-                refreshTexture(uuid, name);
-            }
-        } catch (Exception ignored) {
-        }
-    }
+    
 
     // ==================== 纹理提取 ====================
 
@@ -193,7 +192,13 @@ public class SkullManager {
     /**
      * 获取指定玩家的头颅物品。
      * <p>
-     * 优先检查缓存，命中则直接构建；未命中则异步获取并返回无纹理头颅。
+     * 统一使用 {@code Bukkit.getOfflinePlayer(name).getUniqueId()} 作为缓存键，
+     * 消除在线/离线路径 UUID 不一致导致的正版离线玩家纹理永久丢失问题。
+     * <p>
+     * 非正版玩家（UUID 与离线模式计算结果一致）直接返回默认 {@code PLAYER_HEAD}，不发起任何请求。
+     * <p>
+     * 正版玩家缓存命中时直接返回纹理头颅；未命中时异步触发 {@link #refreshTexture(UUID, String)}
+     * 预热缓存（纯 HTTP，不阻塞），同时立即返回（在线玩家带 owner 引用，离线玩家空白头）。
      *
      * @param playerName 玩家名称
      * @return 玩家头颅 ItemStack
@@ -204,16 +209,34 @@ public class SkullManager {
         }
 
         Player online = Bukkit.getPlayerExact(playerName);
-        UUID uuid;
-        String name;
 
         if (online != null) {
-            uuid = online.getUniqueId();
-            name = online.getName();
-        } else {
-            OfflinePlayer offline = Bukkit.getOfflinePlayer(playerName);
-            uuid = offline.getUniqueId();
-            name = playerName;
+            UUID uuid = online.getUniqueId();
+            String texture = base64Meta.get(uuid);
+            if (texture != null) {
+                return getHeadWithTextures(texture);
+            }
+
+            final UUID finalUuid = uuid;
+            final String finalName = online.getName();
+            Bukkit.getScheduler().runTaskAsynchronously(
+                    Bukkit.getPluginManager().getPlugin("StarMSkyblock"),
+                    () -> refreshTexture(finalUuid, finalName));
+
+            ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+            SkullMeta meta = (SkullMeta) head.getItemMeta();
+            meta.setOwningPlayer(online);
+            head.setItemMeta(meta);
+            return head;
+        }
+
+        @SuppressWarnings("deprecation")
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+        UUID uuid = offlinePlayer.getUniqueId();
+
+        UUID offlineModeId = UUID.nameUUIDFromBytes(("OfflinePlayer:" + playerName).getBytes());
+        if (offlineModeId.equals(uuid)) {
+            return new ItemStack(Material.PLAYER_HEAD);
         }
 
         String texture = base64Meta.get(uuid);
@@ -221,17 +244,10 @@ public class SkullManager {
             return getHeadWithTextures(texture);
         }
 
-        final UUID finalUuid = uuid;
-        final String finalName = name;
         Bukkit.getScheduler().runTaskAsynchronously(
                 Bukkit.getPluginManager().getPlugin("StarMSkyblock"),
-                () -> refreshTextureByDefaultMethod(finalUuid, finalName));
-
-        ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) head.getItemMeta();
-        meta.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
-        head.setItemMeta(meta);
-        return head;
+                () -> refreshTexture(uuid, playerName));
+        return new ItemStack(Material.PLAYER_HEAD);
     }
 
     // ==================== GameProfile 工具 ====================

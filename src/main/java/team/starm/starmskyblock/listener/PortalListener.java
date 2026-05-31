@@ -11,7 +11,7 @@ import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import team.starm.starmskyblock.config.ConfigManager;
-import team.starm.starmskyblock.database.SQLiteManager;
+import team.starm.starmskyblock.database.PlayerRepository;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
@@ -35,13 +35,13 @@ public class PortalListener implements Listener {
     private final ConfigManager configManager;
     private final SkyblockWorldManager worldManager;
     private final IslandManager islandManager;
-    private final SQLiteManager sqliteManager;
+    private final PlayerRepository playerRepo;
 
-    public PortalListener(ConfigManager configManager, SkyblockWorldManager worldManager, IslandManager islandManager, SQLiteManager sqliteManager) {
+    public PortalListener(ConfigManager configManager, SkyblockWorldManager worldManager, IslandManager islandManager, PlayerRepository playerRepo) {
         this.configManager = configManager;
         this.worldManager = worldManager;
         this.islandManager = islandManager;
-        this.sqliteManager = sqliteManager;
+        this.playerRepo = playerRepo;
     }
 
     /** 玩家进入传送门时根据传送门类型分发到对应的处理方法 */
@@ -194,10 +194,10 @@ public class PortalListener implements Listener {
                 >= IslandPermissionLevel.MEMBER.getPermissionLevel();
 
         // 首次进入下界（仅岛屿成员）：传送到岛屿下界出生点
-        if (isMember && sqliteManager.isFirstNetherJoin(player.getUniqueId())) {
+        if (isMember && playerRepo.isFirstNetherJoin(player.getUniqueId())) {
             Location spawnLoc = getIslandLocation(island, targetWorld);
             event.setTo(spawnLoc);
-            sqliteManager.setFirstNetherJoin(player.getUniqueId(), false);
+            playerRepo.setFirstNetherJoin(player.getUniqueId(), false);
             player.sendMessage("§a欢迎来到下界！这是你第一次进入，已将你传送到岛屿下界出生点。");
             tryUnlockNether(island);
             return;

@@ -48,7 +48,7 @@ public class SignConfigManager {
         this.enabled = signConfig.getBoolean("enabled", true);
         this.lines = signConfig.getStringList("lines");
 
-        MessageUtil.consolePrint("&a[告示牌系统] 已加载岛屿告示牌配置");
+        MessageUtil.consolePrint("已加载岛屿告示牌配置");
     }
 
     public boolean isEnabled() {
@@ -64,7 +64,7 @@ public class SignConfigManager {
             try {
                 signConfig.save(signFile);
             } catch (IOException e) {
-                MessageUtil.consoleError("&c保存告示牌配置文件失败");
+                MessageUtil.consoleError("保存告示牌配置文件失败");
                 e.printStackTrace();
             }
         }

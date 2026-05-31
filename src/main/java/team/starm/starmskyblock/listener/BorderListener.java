@@ -12,7 +12,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import team.starm.starmskyblock.database.SQLiteManager;
+import team.starm.starmskyblock.database.PlayerRepository;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
@@ -34,7 +34,7 @@ public class BorderListener implements Listener {
 
     private final IslandManager islandManager;
     private final SkyblockWorldManager worldManager;
-    private final SQLiteManager sqliteManager;
+    private final PlayerRepository playerRepo;
     /** 玩家边界显示开关的 LRU 缓存（容量 1000），减少数据库读取 */
     private final Map<UUID, Boolean> borderCache = new LinkedHashMap<UUID, Boolean>(1000, 0.75f, true) {
         @Override
@@ -43,10 +43,10 @@ public class BorderListener implements Listener {
         }
     };
 
-    public BorderListener(IslandManager islandManager, SkyblockWorldManager worldManager, SQLiteManager sqliteManager) {
+    public BorderListener(IslandManager islandManager, SkyblockWorldManager worldManager, PlayerRepository playerRepo) {
         this.islandManager = islandManager;
         this.worldManager = worldManager;
-        this.sqliteManager = sqliteManager;
+        this.playerRepo = playerRepo;
     }
 
     /** 查询某玩家是否开启了岛屿边界显示（默认开启） */
@@ -57,15 +57,15 @@ public class BorderListener implements Listener {
     /** 设置玩家边界显示开关（更新内存缓存 + 数据库） */
     public void setPlayerShowBorder(UUID playerUuid, boolean show) {
         borderCache.put(playerUuid, show);
-        sqliteManager.setBorderEnabled(playerUuid, show);
+        playerRepo.setBorderEnabled(playerUuid, show);
     }
 
     /** 玩家加入服务器时加载其边界偏好并更新边界 */
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        sqliteManager.savePlayerName(player.getUniqueId(), player.getName());
-        borderCache.put(player.getUniqueId(), sqliteManager.isBorderEnabled(player.getUniqueId()));
+        playerRepo.savePlayerName(player.getUniqueId(), player.getName());
+        borderCache.put(player.getUniqueId(), playerRepo.isBorderEnabled(player.getUniqueId()));
         updatePlayerBorder(player);
     }
 

@@ -10,6 +10,8 @@ import java.nio.file.StandardCopyOption;
 import team.starm.starmskyblock.command.AdminCommand;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.config.PermissionConfigManager;
+import team.starm.starmskyblock.database.IslandRepository;
+import team.starm.starmskyblock.database.PlayerRepository;
 import team.starm.starmskyblock.database.SQLiteManager;
 import team.starm.starmskyblock.generator.SchematicManager;
 import team.starm.starmskyblock.grid.GridManager;
@@ -42,124 +44,151 @@ public class StarMSkyblock extends JavaPlugin {
     private static StarMSkyblock instance;
 
     // ========== 配置管理器 ==========
-    private ConfigManager configManager;               // 主配置（config.yml）
-    private PermissionConfigManager permissionConfigManager; // 权限配置（permissions.yml）
-    private SettingsConfigManager settingsConfigManager;     // 岛屿默认设置（settings.yml）
-    private SignConfigManager signConfigManager;             // 告示牌文字配置（sign.yml）
+    private ConfigManager configManager;
+    private PermissionConfigManager permissionConfigManager;
+    private SettingsConfigManager settingsConfigManager;
+    private SignConfigManager signConfigManager;
 
     // ========== 数据与生成 ==========
-    private SQLiteManager sqliteManager;               // SQLite 数据库管理器
-    private SchematicManager schematicManager;         // WorldEdit 结构文件加载器
-    private GridManager gridManager;                   // 岛屿网格坐标系统
-    private IslandManager islandManager;               // 岛屿核心业务逻辑
+    private SQLiteManager sqliteManager;
+    private PlayerRepository playerRepo;
+    private SchematicManager schematicManager;
+    private GridManager gridManager;
+    private IslandManager islandManager;
 
     // ========== 功能模块 ==========
-    private InvitationManager invitationManager;       // 玩家邀请系统
-    private SkyblockWorldManager worldManager;         // 虚空世界创建/加载
-    private IslandPermissionManager permissionCoordinator; // 岛屿权限协调器
-    private BorderListener borderListener;             // 岛屿边界显示监听器
+    private InvitationManager invitationManager;
+    private SkyblockWorldManager worldManager;
+    private IslandPermissionManager permissionCoordinator;
+    private BorderListener borderListener;
+    private TeleportCountdownListener teleportCountdownListener;
 
-    private SkyblockExpansion skyblockExpansion;       // PAPI 扩展引用
+    private SkyblockExpansion skyblockExpansion;
 
     /**
-     * 插件启用入口。依次初始化所有子系统，确保依赖关系正确：
-     * 配置 -> 数据库 -> 结构管理器 -> 网格/岛屿 -> 世界 -> 邀请 & 权限 -> 监听器 -> 命令。
+     * 插件启用入口。将初始化分解为独立步骤，保证依赖关系正确。
      */
     @Override
     public void onEnable() {
         instance = this;
 
-        // 检查 WorldEdit / FAWE 是否安装（必须依赖）
+        if (!checkWorldEdit()) return;
+        initConfigs();
+        extractSchematics();
+        initDatabase();
+        initSchematicManager();
+        initGridAndIslands();
+        initWorlds();
+        initInvitations();
+        initPermissions();
+        registerIntegrations();
+        preWarmWorlds();
+        registerListeners();
+        registerCommands();
+
+        MessageUtil.consolePrint("插件已启用！虚空世界已准备就绪。");
+    }
+
+    private boolean checkWorldEdit() {
         if (getServer().getPluginManager().getPlugin("WorldEdit") == null) {
             MessageUtil.consoleError("未检测到 WorldEdit 或 FastAsyncWorldEdit！");
             MessageUtil.consoleError("StarMSkyblock 需要 WorldEdit 或 FAWE 才能运行。");
             MessageUtil.consoleError("请安装 WorldEdit (https://enginehub.org/worldedit/) 或 FastAsyncWorldEdit 后重启服务器。");
             getServer().getPluginManager().disablePlugin(this);
-            return;
+            return false;
         }
+        return true;
+    }
 
-        // 初始化配置
+    private void initConfigs() {
         configManager = new ConfigManager(this);
         configManager.initialize();
 
-        // 初始化权限配置
         permissionConfigManager = new PermissionConfigManager(this);
         permissionConfigManager.initialize();
 
-        // 初始化岛屿默认设置配置
         settingsConfigManager = new SettingsConfigManager(this);
         settingsConfigManager.initialize();
 
-        // 初始化告示牌配置
         signConfigManager = new SignConfigManager(this);
         signConfigManager.initialize();
+    }
 
-        // 释放内置的schematics文件
-        extractSchematics();
-
-        // 初始化数据库
+    private void initDatabase() {
         sqliteManager = new SQLiteManager(getDataFolder());
         sqliteManager.init();
+        playerRepo = new PlayerRepository(sqliteManager);
+        playerRepo.warmUpPlayerNameCache();
+        SkullManager.initDatabase(sqliteManager);
+    }
 
-        // 初始化 FAWE/WorldEdit 结构管理器
+    private void initSchematicManager() {
         schematicManager = new SchematicManager(new File(getDataFolder(), "schematics"), configManager.isUseFawe());
+    }
 
-        // 初始化网格系统和岛屿管理器
+    private void initGridAndIslands() {
         gridManager = new GridManager(configManager);
+        IslandRepository islandRepo = new IslandRepository(sqliteManager);
         islandManager = new IslandManager(configManager, permissionConfigManager, settingsConfigManager,
-                gridManager, sqliteManager);
+                gridManager, islandRepo, playerRepo);
+    }
 
-        // 初始化世界管理器
+    private void initWorlds() {
         worldManager = new SkyblockWorldManager(configManager);
+    }
 
+    private void initInvitations() {
         invitationManager = new InvitationManager(islandManager, configManager, worldManager);
-
-        // 每5分钟清理到期邀请（5分钟 = 6000 tick）
         getServer().getScheduler().runTaskTimer(this, () ->
                 invitationManager.cleanupExpiredInvitations(), 6000L, 6000L);
+    }
 
-        // 初始化权限协调器
-        permissionCoordinator = new IslandPermissionManager(
-                islandManager, configManager, this);
+    private void initPermissions() {
+        permissionCoordinator = new IslandPermissionManager(islandManager, configManager, this);
+    }
 
-        // 注册 PlaceholderAPI 扩展
+    private void registerIntegrations() {
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             skyblockExpansion = new SkyblockExpansion(this);
             skyblockExpansion.register();
-            MessageUtil.consolePrint("&a已注册 PlaceholderAPI 扩展");
+            MessageUtil.consolePrint("已注册 PlaceholderAPI 扩展");
         }
 
-        // 玩家加入时异步预缓存头颅纹理（参考 LiteSignIn Join.onJoin）
         getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener() {
             @org.bukkit.event.EventHandler
             public void onJoin(org.bukkit.event.player.PlayerJoinEvent event) {
                 org.bukkit.entity.Player player = event.getPlayer();
                 getServer().getScheduler().runTaskAsynchronously(
                         StarMSkyblock.this,
-                        () -> SkullManager.refreshTextureByDefaultMethod(player.getUniqueId(), player.getName()));
+                        () -> SkullManager.refreshTexture(player.getUniqueId(), player.getName()));
             }
         }, this);
 
-        // 注册 TrMenu JS 物品源桥接
         if (getServer().getPluginManager().getPlugin("TrMenu") != null) {
             JavaScriptAgent.INSTANCE.putBinding("StarMSkyblockAPI", new StarMSkyblockHook());
-            MessageUtil.consolePrint("&a已注册 TrMenu JS 物品源桥接 (StarMSkyblockAPI)");
+            MessageUtil.consolePrint("已注册 TrMenu JS 物品源桥接 (StarMSkyblockAPI)");
         }
+    }
 
-        // 提前创建或加载空岛世界
+    private void preWarmWorlds() {
         worldManager.getOrCreateSkyblockWorld();
         worldManager.getOrCreateSkyblockNether();
         worldManager.getOrCreateSkyblockEnd();
+    }
 
-        // 注册事件监听器
-        borderListener = new BorderListener(islandManager, worldManager, sqliteManager);
+    private void registerListeners() {
+        borderListener = new BorderListener(islandManager, worldManager, playerRepo);
         getServer().getPluginManager().registerEvents(borderListener, this);
-        getServer().getPluginManager().registerEvents(new PortalListener(configManager, worldManager, islandManager, sqliteManager), this);
-        getServer().getPluginManager().registerEvents(new TeleportCountdownListener(), this);
-        // 初始化设置管理器（会自动注册所有子监听器）
-        new IslandSettingManager(islandManager, configManager, this);
+        getServer().getPluginManager().registerEvents(
+                new PortalListener(configManager, worldManager, islandManager, playerRepo), this);
 
-        // 注册命令
+        teleportCountdownListener = new TeleportCountdownListener(this);
+        getServer().getPluginManager().registerEvents(teleportCountdownListener, this);
+
+        new IslandSettingManager(islandManager, configManager, this);
+    }
+
+    private void registerCommands() {
         if (getCommand("isadmin") != null) {
             AdminCommand adminCmd = new AdminCommand(this);
             getCommand("isadmin").setExecutor(adminCmd);
@@ -167,20 +196,12 @@ public class StarMSkyblock extends JavaPlugin {
         }
 
         if (getCommand("is") != null) {
-            team.starm.starmskyblock.command.IslandCommand islandCmd = new team.starm.starmskyblock.command.IslandCommand(
-                    this);
+            team.starm.starmskyblock.command.IslandCommand islandCmd =
+                    new team.starm.starmskyblock.command.IslandCommand(this);
             getCommand("is").setExecutor(islandCmd);
             getCommand("is").setTabCompleter(islandCmd);
         }
 
-        if (getCommand("istest") != null) {
-            team.starm.starmskyblock.command.test.TestCreateCommand testCmd =
-                    new team.starm.starmskyblock.command.test.TestCreateCommand(this);
-            getCommand("istest").setExecutor(testCmd);
-            getCommand("istest").setTabCompleter(testCmd);
-        }
-
-        MessageUtil.consolePrint("&a[StarMSkyblock] 插件已启用！虚空世界已准备就绪。");
     }
 
     /**
@@ -188,13 +209,12 @@ public class StarMSkyblock extends JavaPlugin {
      */
     @Override
     public void onDisable() {
-        // 取消所有本插件的调度任务（防止异步任务在关闭时报错）
         org.bukkit.Bukkit.getScheduler().cancelTasks(this);
 
         if (sqliteManager != null) {
             sqliteManager.close();
         }
-        MessageUtil.consolePrint("&c[StarMSkyblock] 插件已关闭。");
+        MessageUtil.consolePrint("&c插件已关闭。");
     }
 
     public static StarMSkyblock getInstance() {
@@ -219,6 +239,10 @@ public class StarMSkyblock extends JavaPlugin {
 
     public SQLiteManager getSqliteManager() {
         return sqliteManager;
+    }
+
+    public PlayerRepository getPlayerRepo() {
+        return playerRepo;
     }
 
     public SchematicManager getSchematicManager() {
@@ -249,6 +273,10 @@ public class StarMSkyblock extends JavaPlugin {
         return borderListener;
     }
 
+    public TeleportCountdownListener getTeleportCountdownListener() {
+        return teleportCountdownListener;
+    }
+
     public SkyblockExpansion getSkyblockExpansion() {
         return skyblockExpansion;
     }
@@ -263,7 +291,6 @@ public class StarMSkyblock extends JavaPlugin {
             schematicsFolder.mkdirs();
         }
 
-        // 内置的三个结构文件（主世界、下界、末地）
         String[] schematicFiles = {
                 "default.schem",
                 "default_nether.schem",
@@ -272,7 +299,6 @@ public class StarMSkyblock extends JavaPlugin {
 
         for (String fileName : schematicFiles) {
             File targetFile = new File(schematicsFolder, fileName);
-            // 已存在则跳过，避免覆盖用户自定义
             if (targetFile.exists())
                 continue;
 
@@ -282,9 +308,9 @@ public class StarMSkyblock extends JavaPlugin {
                     continue;
                 }
                 Files.copy(inputStream, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                MessageUtil.consolePrint("&a已创建schematics文件: " + fileName);
+                MessageUtil.consolePrint("已创建schematics文件: " + fileName);
             } catch (IOException e) {
-                MessageUtil.consoleError("&c创建schematics文件时发生错误: " + fileName);
+                MessageUtil.consoleError("创建schematics文件时发生错误: " + fileName);
                 e.printStackTrace();
             }
         }

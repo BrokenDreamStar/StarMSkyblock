@@ -72,7 +72,7 @@ public class PermissionConfigManager {
             defaultPermissions.put(level, perms);
         }
 
-        MessageUtil.consolePrint("&a[权限系统] 已加载默认权限配置（支持继承模式）");
+        MessageUtil.consolePrint("已加载默认权限配置（支持继承模式）");
     }
 
     /**
@@ -181,7 +181,7 @@ public class PermissionConfigManager {
             try {
                 permissionsConfig.save(permissionsFile);
             } catch (IOException e) {
-                MessageUtil.consoleError("&c保存权限配置文件失败");
+                MessageUtil.consoleError("保存权限配置文件失败");
                 e.printStackTrace();
             }
         }

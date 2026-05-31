@@ -1,6 +1,8 @@
 package team.starm.starmskyblock.bridge;
 
 import me.arasple.mc.trmenu.module.internal.hook.HookAbstract;
+import me.clip.placeholderapi.PlaceholderAPI;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import team.starm.starmskyblock.util.SkullManager;
 
@@ -40,6 +42,35 @@ public class StarMSkyblockHook extends HookAbstract {
      */
     public ItemStack getPlayerHead(String playerName) {
         return SkullManager.getPlayerHead(playerName);
+    }
+
+    /**
+     * 解析岛屿列表占位符并获取岛主头颅。
+     * <p>
+     * 当 {@code value} 以 {@code "island_list_"} 开头时，会将其作为
+     * {@code %starmskyblock_island_list_...%} 占位符通过 PlaceholderAPI 解析，
+     * 将解析出的玩家名称传给 {@link #getPlayerHead(String)} 获取头颅。
+     * <p>
+     * 若解析返回空或 {@code "NONE"}（无效槽位），则返回默认无纹理头颅。
+     * <p>
+     * TrMenu 菜单使用：
+     * <pre>{@code
+     * material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_1_owner")'
+     * }</pre>
+     *
+     * @param player 菜单查看者（占位符上下文）
+     * @param value  玩家名称或 {@code island_list_<slot>_owner} 占位符
+     * @return 玩家头颅 ItemStack
+     */
+    public ItemStack getPlayerHead(Player player, String value) {
+        if (value != null && value.startsWith("island_list_")) {
+            String resolved = PlaceholderAPI.setPlaceholders(player, "%starmskyblock_" + value + "%");
+            if (resolved != null && !resolved.isEmpty() && !resolved.equals("NONE")) {
+                return SkullManager.getPlayerHead(resolved);
+            }
+            return new ItemStack(org.bukkit.Material.PLAYER_HEAD);
+        }
+        return SkullManager.getPlayerHead(value);
     }
 
     /**

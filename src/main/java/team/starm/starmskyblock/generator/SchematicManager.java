@@ -55,7 +55,7 @@ public class SchematicManager {
 
         if (faweMode && faweAvailable) {
             initFaweReflection();
-            MessageUtil.consolePrint("&a[StarMSkyblock] FAWE 模式已启用 — 使用 FastAsyncWorldEdit 高性能引擎");
+            MessageUtil.consolePrint("FAWE 模式已启用 — 使用 FastAsyncWorldEdit 高性能引擎");
         } else if (faweMode && !faweAvailable) {
             MessageUtil.consoleWarn("配置为 FAWE 模式但服务器未安装 FAWE，已自动回退到标准 WorldEdit");
         }
@@ -164,7 +164,7 @@ public class SchematicManager {
             schematicCache.put(fileName, clipboard);
             return clipboard;
         } catch (IOException e) {
-            MessageUtil.consoleError("&c读取结构文件时发生错误: " + fileName);
+            MessageUtil.consoleError("读取结构文件时发生错误: " + fileName);
             e.printStackTrace();
             return null;
         }
@@ -234,7 +234,7 @@ public class SchematicManager {
             flushIfFawe(editSession);
             return true;
         } catch (WorldEditException e) {
-            MessageUtil.consoleError("&c粘贴岛屿结构时发生 WorldEdit 错误！");
+            MessageUtil.consoleError("粘贴岛屿结构时发生 WorldEdit 错误！");
             e.printStackTrace();
             return false;
         }
@@ -270,7 +270,7 @@ public class SchematicManager {
             flushIfFawe(editSession);
             return true;
         } catch (Exception e) {
-            MessageUtil.consoleError("&c清空区域方块时发生 WorldEdit 错误！");
+            MessageUtil.consoleError("清空区域方块时发生 WorldEdit 错误！");
             e.printStackTrace();
             return false;
         }
