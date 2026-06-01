@@ -102,12 +102,33 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             int chunkX = player.getLocation().getChunk().getX();
             int chunkZ = player.getLocation().getChunk().getZ();
 
-            if (params.equalsIgnoreCase("island")) {
+            if (params.equalsIgnoreCase("island_name_here")) {
+                if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
+                    return "公共区域";
+                }
                 return getIslandName(islandManager, chunkX, chunkZ);
             }
 
-            if (params.equalsIgnoreCase("role")) {
+            if (params.equalsIgnoreCase("island_name")) {
+                return getPlayerOwnIslandName(islandManager, player.getUniqueId());
+            }
+
+            if (params.equalsIgnoreCase("role_here")) {
+                if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
+                    return IslandPermissionLevel.VISITOR.getDisplayName();
+                }
                 return getPlayerRole(islandManager, chunkX, chunkZ, player.getUniqueId());
+            }
+
+            if (params.equalsIgnoreCase("role")) {
+                return getPlayerOwnRole(islandManager, player.getUniqueId());
+            }
+
+            if (params.equalsIgnoreCase("level_here")) {
+                if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
+                    return "&f-";
+                }
+                return getIslandLevelHere(islandManager, chunkX, chunkZ);
             }
 
             if (params.equalsIgnoreCase("creationtime")) {
@@ -122,6 +143,18 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                 String time = islandOpt.get().getCreatedAt();
 
                 return time != null ? time : null;
+            }
+
+            if (params.equalsIgnoreCase("level")) {
+
+                Optional<Island> islandOpt =
+                        islandManager.getIslandByPlayer(player.getUniqueId());
+
+                if (islandOpt.isEmpty()) {
+                    return "&f-";
+                }
+
+                return String.valueOf(islandOpt.get().getLevel());
             }
 
             if (params.regionMatches(
@@ -234,18 +267,105 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                     island.getMemberRole(playerUuid);
 
             if (role != IslandPermissionLevel.VISITOR) {
-                return role.getDisplayName();
+                return role.getColor() + role.getDisplayName();
             }
 
             if (island.isCoop(playerUuid)) {
-                return IslandPermissionLevel.COOP.getDisplayName();
+                return IslandPermissionLevel.COOP.getColor() + IslandPermissionLevel.COOP.getDisplayName();
             }
 
-            return IslandPermissionLevel.VISITOR.getDisplayName();
+            return IslandPermissionLevel.VISITOR.getColor() + IslandPermissionLevel.VISITOR.getDisplayName();
 
         } catch (Throwable ignored) {
         }
 
-        return IslandPermissionLevel.VISITOR.getDisplayName();
+        return IslandPermissionLevel.VISITOR.getColor() + IslandPermissionLevel.VISITOR.getDisplayName();
+    }
+
+    private String getIslandLevelHere(
+            IslandManager islandManager,
+            int chunkX,
+            int chunkZ
+    ) {
+        try {
+            Optional<Island> islandOpt =
+                    islandManager.getIslandAt(chunkX, chunkZ);
+
+            if (islandOpt.isEmpty()) {
+                islandOpt =
+                        islandManager.getIslandAtMaxRange(chunkX, chunkZ);
+            }
+
+            if (islandOpt.isEmpty()) {
+                return "&f-";
+            }
+
+            return String.valueOf(islandOpt.get().getLevel());
+
+        } catch (Throwable ignored) {
+        }
+
+        return "&f-";
+    }
+
+    private String getPlayerOwnIslandName(
+            IslandManager islandManager,
+            UUID playerUuid
+    ) {
+        try {
+            Optional<Island> islandOpt =
+                    islandManager.getIslandByPlayer(playerUuid);
+
+            if (islandOpt.isEmpty()) {
+                return null;
+            }
+
+            Island island = islandOpt.get();
+
+            String name = island.getName();
+
+            if (name == null || name.isBlank()) {
+                return "岛屿 #" + island.getId();
+            }
+
+            return name;
+
+        } catch (Throwable ignored) {
+        }
+
+        return null;
+    }
+
+    private String getPlayerOwnRole(
+            IslandManager islandManager,
+            UUID playerUuid
+    ) {
+        try {
+            Optional<Island> islandOpt =
+                    islandManager.getIslandByPlayer(playerUuid);
+
+            if (islandOpt.isEmpty()) {
+                return IslandPermissionLevel.VISITOR.getDisplayName();
+            }
+
+            Island island = islandOpt.get();
+
+            IslandPermissionLevel role =
+                    island.getMemberRole(playerUuid);
+
+            if (role != IslandPermissionLevel.VISITOR) {
+                return role.getColor() + role.getDisplayName();
+            }
+
+            if (island.isCoop(playerUuid)) {
+                return IslandPermissionLevel.COOP.getColor() + IslandPermissionLevel.COOP.getDisplayName();
+            }
+
+            return IslandPermissionLevel.VISITOR.getColor() + IslandPermissionLevel.VISITOR.getDisplayName();
+
+        } catch (Throwable ignored) {
+        }
+
+        return IslandPermissionLevel.VISITOR.getColor() + IslandPermissionLevel.VISITOR.getDisplayName();
     }
 }

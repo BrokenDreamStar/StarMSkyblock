@@ -19,7 +19,9 @@ import team.starm.starmskyblock.generator.SchematicManager;
 import team.starm.starmskyblock.grid.GridManager;
 import team.starm.starmskyblock.island.InvitationManager;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.listener.BlockPlaceListener;
 import team.starm.starmskyblock.listener.BorderListener;
+import team.starm.starmskyblock.listener.EndProtectionListener;
 import team.starm.starmskyblock.listener.PortalListener;
 import team.starm.starmskyblock.listener.TeleportCountdownListener;
 import team.starm.starmskyblock.setting.IslandSettingManager;
@@ -165,7 +167,7 @@ public class StarMSkyblock extends JavaPlugin {
     }
 
     private void initWorlds() {
-        worldManager = new SkyblockWorldManager(configManager);
+        worldManager = new SkyblockWorldManager(configManager, this);
     }
 
     private void initInvitations() {
@@ -217,6 +219,10 @@ public class StarMSkyblock extends JavaPlugin {
         getServer().getPluginManager().registerEvents(teleportCountdownListener, this);
 
         new IslandSettingManager(islandManager, configManager, this);
+
+        getServer().getPluginManager().registerEvents(new EndProtectionListener(worldManager), this);
+
+        getServer().getPluginManager().registerEvents(new BlockPlaceListener(worldManager, configManager), this);
     }
 
     private void registerCommands() {

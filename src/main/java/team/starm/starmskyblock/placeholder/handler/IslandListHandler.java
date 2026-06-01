@@ -231,13 +231,6 @@ public class IslandListHandler {
         String ownerName = getOwnerName(island);
         groups.get(IslandPermissionLevel.OWNER).add(ownerName);
 
-        Map<IslandPermissionLevel, String> colors = new LinkedHashMap<>();
-
-        colors.put(IslandPermissionLevel.OWNER, "&6");
-        colors.put(IslandPermissionLevel.ADMIN, "&c");
-        colors.put(IslandPermissionLevel.MOD, "&2");
-        colors.put(IslandPermissionLevel.MEMBER, "&a");
-
         StringBuilder result = new StringBuilder();
 
         for (var entry : groups.entrySet()) {
@@ -246,7 +239,7 @@ public class IslandListHandler {
                 continue;
             }
 
-            String color = colors.get(entry.getKey());
+            String color = entry.getKey().getColor();
             String roleName = entry.getKey().getDisplayName();
 
             for (String name : entry.getValue()) {

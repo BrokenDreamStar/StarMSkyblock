@@ -12,19 +12,21 @@ import java.util.Set;
  * </p>
  */
 public enum IslandPermissionLevel {
-    OWNER("岛主", 5),
-    ADMIN("管理员", 4),
-    MOD("风纪委员", 3),
-    MEMBER("岛员", 2),
-    COOP("合作者", 1),
-    VISITOR("访客", 0);
+    OWNER("岛主", 5, "&6"),
+    ADMIN("管理员", 4, "&c"),
+    MOD("风纪委员", 3, "&2"),
+    MEMBER("岛员", 2, "&a"),
+    COOP("合作者", 1, "&b"),
+    VISITOR("访客", 0, "&f");
 
     private final String displayName;
     private final int permissionLevel;
+    private final String color;
 
-    IslandPermissionLevel(String displayName, int permissionLevel) {
+    IslandPermissionLevel(String displayName, int permissionLevel, String color) {
         this.displayName = displayName;
         this.permissionLevel = permissionLevel;
+        this.color = color;
     }
 
     public String getDisplayName() {
@@ -33,6 +35,10 @@ public enum IslandPermissionLevel {
 
     public int getPermissionLevel() {
         return permissionLevel;
+    }
+
+    public String getColor() {
+        return color;
     }
 
     /**

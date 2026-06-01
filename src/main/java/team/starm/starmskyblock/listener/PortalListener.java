@@ -2,14 +2,18 @@ package team.starm.starmskyblock.listener;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityPortalEnterEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+
+import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.database.PlayerRepository;
 import team.starm.starmskyblock.island.Island;
@@ -17,7 +21,10 @@ import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * 传送门监听器 —— 处理空岛世界中下界传送门和末地传送门的跨世界传送逻辑。
@@ -36,6 +43,7 @@ public class PortalListener implements Listener {
     private final SkyblockWorldManager worldManager;
     private final IslandManager islandManager;
     private final PlayerRepository playerRepo;
+    private final Map<UUID, Long> lastPortalEnter = new HashMap<>();
 
     public PortalListener(ConfigManager configManager, SkyblockWorldManager worldManager, IslandManager islandManager, PlayerRepository playerRepo) {
         this.configManager = configManager;
@@ -74,8 +82,9 @@ public class PortalListener implements Listener {
 
         boolean fromNormal = worldManager.isNormalWorld(worldName);
         boolean fromNether = worldManager.isNetherWorld(worldName);
+        boolean fromEnd = worldManager.isEndWorld(worldName);
 
-        if (!fromNormal && !fromNether) return;
+        if (!fromNormal && !fromNether && !fromEnd) return;
 
         // 查找实体所在区块属于哪个岛屿
         int chunkX = from.getChunk().getX();
@@ -90,6 +99,19 @@ public class PortalListener implements Listener {
         }
 
         Island island = optionalIsland.get();
+
+        // 处理末地传送门：主世界END_PORTAL → 末地岛屿传送点，末地 → 主世界岛屿传送点
+        if (fromEnd || ((fromNormal || fromNether) && from.getBlock().getType() == Material.END_PORTAL)) {
+            World targetWorld = fromEnd
+                    ? worldManager.getOrCreateSkyblockWorld()
+                    : worldManager.getOrCreateSkyblockEnd();
+            if (targetWorld == null) {
+                event.setCancelled(true);
+                return;
+            }
+            event.setTo(getIslandLocation(island, targetWorld));
+            return;
+        }
 
         // 下界未解锁时阻止非玩家实体进入
         if (fromNormal && !island.isNetherUnlocked()) {
@@ -193,13 +215,14 @@ public class PortalListener implements Listener {
         boolean isMember = island.getMemberRole(player.getUniqueId()).getPermissionLevel()
                 >= IslandPermissionLevel.MEMBER.getPermissionLevel();
 
-        // 首次进入下界（仅岛屿成员）：传送到岛屿下界出生点
+        // 首次进入下界（仅岛屿成员）：取消传送门事件并直接传送到岛屿下界出生点
         if (isMember && playerRepo.isFirstNetherJoin(player.getUniqueId())) {
             Location spawnLoc = getIslandLocation(island, targetWorld);
-            event.setTo(spawnLoc);
+            event.setCancelled(true);
             playerRepo.setFirstNetherJoin(player.getUniqueId(), false);
             player.sendMessage("§a欢迎来到下界！这是你第一次进入，已将你传送到岛屿下界出生点。");
             tryUnlockNether(island);
+            player.teleport(spawnLoc);
             return;
         }
 
@@ -306,7 +329,50 @@ public class PortalListener implements Listener {
                 }
             }
             event.setTo(targetLoc);
+            event.setCancelled(true);
+            player.teleport(targetLoc);
         }
+    }
+
+    /**
+     * 监听玩家踏入传送门的瞬间（EntityPortalEnterEvent）。
+     * Paper 在末地维度中不会触发 PlayerPortalEvent，
+     * 但一定会触发 EntityPortalEnterEvent —— 这是修复末地→主世界传送的关键。
+     */
+    @EventHandler
+    public void onEntityPortalEnter(EntityPortalEnterEvent event) {
+        Entity entity = event.getEntity();
+        if (!(entity instanceof Player player)) return;
+
+        Location location = event.getLocation();
+        World world = location.getWorld();
+        if (world == null) return;
+        if (!worldManager.isEndWorld(world.getName())) return;
+        if (location.getBlock().getType() != Material.END_PORTAL) return;
+
+        UUID uuid = player.getUniqueId();
+        long now = System.currentTimeMillis();
+        if (now - lastPortalEnter.getOrDefault(uuid, 0L) < 2000) return;
+        lastPortalEnter.put(uuid, now);
+
+        World targetWorld = worldManager.getOrCreateSkyblockWorld();
+        if (targetWorld == null) return;
+
+        Optional<Island> optionalIsland = islandManager.getIslandByPlayer(player.getUniqueId());
+        Location targetLoc = optionalIsland.isPresent()
+                ? getIslandLocation(optionalIsland.get(), targetWorld)
+                : targetWorld.getSpawnLocation();
+
+        player.setPortalCooldown(40);
+
+        player.teleport(targetLoc);
+
+        Bukkit.getScheduler().runTask(StarMSkyblock.getInstance(), () -> {
+            World current = player.getWorld();
+            if (current == null || !current.equals(targetWorld)) {
+                player.teleport(targetLoc);
+            }
+        });
     }
 
     /** 计算岛屿在该世界的传送点坐标（中心区块 + 配置偏移量） */

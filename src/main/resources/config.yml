@@ -35,13 +35,13 @@ schematics:
         y: 5
         z: 2.5
       nether:
-        x: 0
+        x: 0.5
         y: 5
-        z: 0
+        z: 0.5
       end:
-        x: 0
+        x: 0.5
         y: 5
-        z: 0
+        z: 0.5
 
 # 默认使用的岛屿类型（玩家未指定时使用）
 default-type: 'default'
@@ -56,7 +56,7 @@ biome:
   end: THE_END
 
 # 岛屿生成的高度。生成时会以结构文件中的基岩为中心点，基岩将生成在这个高度。
-island-height: 63
+island-height: 58
 
 # 玩家最多可以删除自己岛屿的次数
 max-delete-times: 3
@@ -66,6 +66,11 @@ max-delete-times: 3
 allow-sethome-in-nether: true
 # 是否允许玩家在末地使用 /is sethome 设置岛屿传送点
 allow-sethome-in-end: true
+
+# 是否允许玩家在岛屿下界维度放置末地传送门
+allow-end-portal-in-nether: false
+# 是否允许玩家在岛屿末地维度放置末地传送门
+allow-end-portal-in-end: false
 
 # 权限提示消息冷却时间（毫秒）
 permission-message-cooldown: 1000

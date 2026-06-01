@@ -51,6 +51,8 @@ public class ConfigManager {
     private int maxDeleteTimes; // 玩家最多可删除自己岛屿的次数
     private boolean allowSethomeInNether; // 是否允许在下界使用 /is sethome
     private boolean allowSethomeInEnd; // 是否允许在末地使用 /is sethome
+    private boolean allowEndPortalInNether; // 是否允许在下界放置末地传送门
+    private boolean allowEndPortalInEnd; // 是否允许在末地放置末地传送门
     private long permissionMessageCooldown; // 权限提示消息冷却时间（毫秒）
     private int maxNameLength; // 岛屿名称最大长度（颜色代码不计入）
     private int renameCooldown; // 岛屿重命名冷却时间（秒）
@@ -162,6 +164,9 @@ public class ConfigManager {
 
         this.allowSethomeInNether = config.getBoolean("allow-sethome-in-nether", true);
         this.allowSethomeInEnd = config.getBoolean("allow-sethome-in-end", true);
+
+        this.allowEndPortalInNether = config.getBoolean("allow-end-portal-in-nether", false);
+        this.allowEndPortalInEnd = config.getBoolean("allow-end-portal-in-end", false);
 
         this.permissionMessageCooldown = config.getLong("permission-message-cooldown", 1000);
 
@@ -302,6 +307,14 @@ public class ConfigManager {
 
     public boolean isAllowSethomeInEnd() {
         return allowSethomeInEnd;
+    }
+
+    public boolean isAllowEndPortalInNether() {
+        return allowEndPortalInNether;
+    }
+
+    public boolean isAllowEndPortalInEnd() {
+        return allowEndPortalInEnd;
     }
 
     public long getPermissionMessageCooldown() {

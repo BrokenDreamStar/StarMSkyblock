@@ -6,6 +6,8 @@ build/
 .idea/
 *.iml
 .vscode/
+.claude
+CLAUDE.md
 
 # Environment
 *.log

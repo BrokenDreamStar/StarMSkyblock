@@ -5,9 +5,15 @@ import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.WorldType;
 import org.bukkit.block.Biome;
+import org.bukkit.boss.DragonBattle;
+import org.bukkit.entity.EntityType;
+import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.generator.VoidChunkGenerator;
 import team.starm.starmskyblock.message.MessageUtil;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * 空岛世界管理器。
@@ -18,12 +24,14 @@ import team.starm.starmskyblock.message.MessageUtil;
 public class SkyblockWorldManager {
 
     private final ConfigManager configManager;
+    private final StarMSkyblock plugin;
     private World skyblockWorld;
     private World skyblockNether;
     private World skyblockEnd;
 
-    public SkyblockWorldManager(ConfigManager configManager) {
+    public SkyblockWorldManager(ConfigManager configManager, StarMSkyblock plugin) {
         this.configManager = configManager;
+        this.plugin = plugin;
     }
 
     public World getOrCreateSkyblockWorld() {
@@ -90,6 +98,11 @@ public class SkyblockWorldManager {
                 if (!existingData) {
                     world.setSpawnLocation(0, 80, 0);
                 }
+
+                if (environment == World.Environment.THE_END) {
+                    disableEnderDragonFight(world);
+                }
+
                 MessageUtil.consolePrint("空岛世界准备就绪！名称: " + worldName);
             } else {
                 MessageUtil.consoleError("空岛世界加载或创建失败: " + worldName);
@@ -142,5 +155,59 @@ public class SkyblockWorldManager {
 
     public boolean isEndWorld(String worldName) {
         return worldName != null && worldName.equals(configManager.getWorldNameEnd());
+    }
+
+    private void disableEnderDragonFight(World world) {
+        try {
+            DragonBattle battle = world.getEnderDragonBattle();
+            if (battle != null) {
+                battle.setPreviouslyKilled(true);
+            }
+        } catch (Exception e) {
+            MessageUtil.consoleWarn("无法通过 API 标记末影龙为已击败: " + e.getMessage());
+        }
+
+        try {
+            Method getHandle = null;
+            Class<?> clazz = world.getClass();
+            while (clazz != null && getHandle == null) {
+                try {
+                    getHandle = clazz.getDeclaredMethod("getHandle");
+                } catch (NoSuchMethodException ignored) {
+                    clazz = clazz.getSuperclass();
+                }
+            }
+
+            if (getHandle != null) {
+                getHandle.setAccessible(true);
+                Object serverLevel = getHandle.invoke(world);
+
+                Field dragonFightField = null;
+                try {
+                    dragonFightField = serverLevel.getClass().getDeclaredField("dragonFight");
+                } catch (NoSuchFieldException e) {
+                    for (Field f : serverLevel.getClass().getDeclaredFields()) {
+                        String typeName = f.getType().getSimpleName().toLowerCase();
+                        if (typeName.contains("dragon") || typeName.contains("fight")) {
+                            dragonFightField = f;
+                            break;
+                        }
+                    }
+                }
+
+                if (dragonFightField != null) {
+                    dragonFightField.setAccessible(true);
+                    dragonFightField.set(serverLevel, null);
+                }
+            }
+        } catch (Exception e) {
+            MessageUtil.consoleWarn("无法通过反射禁用末地龙战系统: " + e.getMessage());
+        }
+
+        world.getEntities().forEach(entity -> {
+            if (entity.getType() == EntityType.ENDER_DRAGON || entity.getType() == EntityType.END_CRYSTAL) {
+                entity.remove();
+            }
+        });
     }
 }
