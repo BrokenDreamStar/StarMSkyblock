@@ -20,9 +20,6 @@ import java.util.Map;
  * 2. 加载多岛屿类型结构文件（schematics）及其独立的传送偏移量
  * 3. 提供生物群系、世界名称、生成高度等全局配置
  * 4. 提供便捷的 Getter 方法，供插件其他模块调用
- *
- * @author AI 优化版（已清理旧兼容代码）
- * @version 2.0
  */
 public class ConfigManager {
 

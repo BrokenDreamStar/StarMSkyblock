@@ -188,6 +188,8 @@ public class IslandListHandler {
 
                 case "memberlist" -> getMemberList(island);
 
+                case "creationtime" -> island.getCreatedAt();
+
                 default -> null;
             };
 

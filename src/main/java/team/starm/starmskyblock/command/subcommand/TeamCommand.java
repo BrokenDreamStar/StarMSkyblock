@@ -5,9 +5,11 @@ import org.bukkit.entity.Player;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.InvitationManager;
 import team.starm.starmskyblock.permission.IslandPermission;
+import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.permission.manager.ManagementPermissionManager;
 import team.starm.starmskyblock.message.MessageUtil;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,6 +23,7 @@ public class TeamCommand extends SubCommand {
     public boolean execute(Player player, String[] args) {
         if (args.length < 2) {
             MessageUtil.sendMessage(player, "&c用法:");
+            MessageUtil.sendMessage(player, "&b/is team list &f- 查看岛屿成员列表");
             MessageUtil.sendMessage(player, "&b/is team invite <玩家> &f- 邀请玩家加入岛屿");
             MessageUtil.sendMessage(player, "&b/is team remove <玩家> [confirm] &f- 移除岛屿成员");
             MessageUtil.sendMessage(player, "&b/is team accept &f- 接受岛屿邀请");
@@ -29,16 +32,47 @@ public class TeamCommand extends SubCommand {
         }
 
         return switch (args[1].toLowerCase()) {
+            case "list" -> handleList(player);
             case "invite" -> handleInvite(player, args);
             case "remove" -> handleRemove(player, args);
             case "accept" -> handleAccept(player);
             case "decline" -> handleDecline(player);
             default -> {
                 MessageUtil.sendMessage(player, "&c未知的子命令: &e" + args[1]);
-                MessageUtil.sendMessage(player, "&c用法: /is team invite|remove|accept|decline");
+                MessageUtil.sendMessage(player, "&c用法: /is team list|invite|remove|accept|decline");
                 yield true;
             }
         };
+    }
+
+    private boolean handleList(Player player) {
+        Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+        if (optionalIsland.isEmpty()) {
+            MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+            return true;
+        }
+
+        Island island = optionalIsland.get();
+        MessageUtil.sendMessage(player, "&a=== 岛屿成员列表 ===");
+
+        String ownerName = getPlayerName(island.getOwnerId());
+        boolean ownerOnline = Bukkit.getPlayer(island.getOwnerId()) != null;
+        String ownerStatus = ownerOnline ? "" : " &7(离线)";
+        MessageUtil.sendMessage(player, "&6岛主: &e" + ownerName + " &6("
+                + IslandPermissionLevel.OWNER.getDisplayName() + ")" + ownerStatus);
+
+        for (Map.Entry<UUID, IslandPermissionLevel> entry : island.getMembers().entrySet()) {
+            String memberName = getPlayerName(entry.getKey());
+            boolean memberOnline = Bukkit.getPlayer(entry.getKey()) != null;
+            String status = memberOnline ? "" : " &7(离线)";
+            MessageUtil.sendMessage(player, "&b成员: &e" + memberName +
+                    " &b(" + entry.getValue().getDisplayName() + ")" + status);
+        }
+
+        if (island.getMembers().isEmpty()) {
+            MessageUtil.sendMessage(player, "&7暂无其他成员");
+        }
+        return true;
     }
 
     private boolean handleInvite(Player player, String[] args) {
