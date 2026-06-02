@@ -12,9 +12,11 @@ public class CreateCommand extends SubCommand {
 
     @Override
     public boolean execute(Player player, String[] args) {
+        if (!assertMaxArgs(player, args, 3, "/is create [类型] [名称]")) return true;
+
         var islandManager = plugin.getIslandManager();
         if (islandManager.getIsland(player.getUniqueId()).isPresent()) {
-            MessageUtil.sendMessage(player, "&c你已经拥有一个岛屿了！使用 /is home 返回。");
+            MessageUtil.sendMessage(player, "&c你已经拥有一个岛屿了！使用 /is spawn 返回。");
             return true;
         }
 

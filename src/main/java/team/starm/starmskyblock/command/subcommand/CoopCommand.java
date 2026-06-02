@@ -37,6 +37,8 @@ public class CoopCommand extends SubCommand {
     }
 
     private boolean handleAdd(Player player, String[] args) {
+        if (!assertMaxArgs(player, args, 3, "/is coop add <玩家名>")) return true;
+
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
             MessageUtil.sendMessage(player, "&c你还没有岛屿！");
@@ -91,6 +93,8 @@ public class CoopCommand extends SubCommand {
     }
 
     private boolean handleRemove(Player player, String[] args) {
+        if (!assertMaxArgs(player, args, 3, "/is coop remove <玩家名>")) return true;
+
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
             MessageUtil.sendMessage(player, "&c你还没有岛屿！");

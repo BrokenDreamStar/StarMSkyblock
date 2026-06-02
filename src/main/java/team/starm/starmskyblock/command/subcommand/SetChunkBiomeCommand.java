@@ -65,6 +65,8 @@ public class SetChunkBiomeCommand extends SubCommand {
             return true;
         }
 
+        if (!assertMaxArgs(player, args, 2, "/is setchunkbiome <生物群系>")) return true;
+
         SkyblockBiome target = SkyblockBiome.fromInput(args[1]);
         if (target == null) {
             MessageUtil.sendMessage(player, "&c未知生物群系: " + args[1]);
@@ -100,7 +102,7 @@ public class SetChunkBiomeCommand extends SubCommand {
 
         playerWorld.refreshChunk(chunk.getX(), chunk.getZ());
 
-        MessageUtil.sendMessage(player, "&a已成功将当前区块的生物群系设置为 " + target.getDisplayName() + " &a！");
+        MessageUtil.sendMessage(player, "&a已将当前所在区块生物群系修改为" + target.getColoredDisplayName());
         return true;
     }
 

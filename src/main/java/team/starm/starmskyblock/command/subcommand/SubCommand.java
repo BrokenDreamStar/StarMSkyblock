@@ -37,4 +37,12 @@ public abstract class SubCommand {
         org.bukkit.Location blockBelow = location.clone().subtract(0, 1, 0);
         return !blockBelow.getBlock().getType().isAir();
     }
+
+    protected boolean assertMaxArgs(Player player, String[] args, int max, String usage) {
+        if (args.length > max) {
+            MessageUtil.sendMessage(player, "&c用法: " + usage);
+            return false;
+        }
+        return true;
+    }
 }

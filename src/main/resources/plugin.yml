@@ -4,16 +4,16 @@ version: '${version}'
 main: team.starm.starmskyblock.StarMSkyblock
 api-version: '26.1.2'
 load: POSTWORLD
-softdepend: [PlaceholderAPI, WorldEdit, TrMenu]
+softdepend: [ PlaceholderAPI, WorldEdit, TrMenu ]
 
-authors: [BrokenDream_Star,Gemini,Grok,DeepSeek]
+authors: [ BrokenDream_Star,DeepSeek,Gemini,Grok ]
 website: https://starm.team/
 description: StarM的空岛插件
 
 commands:
   is:
     description: 空岛主命令
-    usage: /is <create|home|border|help>
+    usage: /is <create|spawn|border|help>
     permission: skyblock.is
   isadmin:
     description: 空岛管理员命令

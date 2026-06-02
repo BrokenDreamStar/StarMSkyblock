@@ -29,6 +29,8 @@ public class DeleteCommand extends SubCommand {
             return true;
         }
 
+        if (!assertMaxArgs(player, args, 2, "/is delete [confirm]")) return true;
+
         if (args.length == 1 || !args[1].equalsIgnoreCase("confirm")) {
             MessageUtil.sendMessage(player, "&c警告：这将永久删除你的岛屿！使用 &e/is delete confirm &c确认。");
             return true;

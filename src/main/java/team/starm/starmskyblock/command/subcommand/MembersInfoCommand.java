@@ -21,6 +21,8 @@ public class MembersInfoCommand extends SubCommand {
 
     @Override
     public boolean execute(Player player, String[] args) {
+        if (!assertMaxArgs(player, args, 1, "/is " + args[0])) return true;
+
         return switch (args[0].toLowerCase()) {
             case "members" -> showMembers(player);
             case "coops" -> showCoops(player);

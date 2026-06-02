@@ -62,15 +62,22 @@ public class SkyblockWorldManager {
     private World createWorld(String worldName, World.Environment environment, String biomeName, Biome defaultBiome) {
         World world = Bukkit.getWorld(worldName);
 
+        String dimensionName = switch (environment) {
+            case NORMAL -> "主世界";
+            case NETHER -> "下界";
+            case THE_END -> "末地";
+            default -> environment.name();
+        };
+
         if (world == null) {
             java.io.File worldFolder = new java.io.File(Bukkit.getWorldContainer(), worldName);
             java.io.File levelFile = new java.io.File(worldFolder, "level.dat");
             boolean existingData = worldFolder.isDirectory() && levelFile.isFile();
 
             if (existingData) {
-                MessageUtil.consolePrint("正在加载已有空岛世界: " + worldName);
+                MessageUtil.consolePrint("正在加载已有空岛世界[" + dimensionName + "]: " + worldName);
             } else {
-                MessageUtil.consolePrint("正在创建空岛世界: " + worldName);
+                MessageUtil.consolePrint("正在创建空岛世界[" + dimensionName + "]: " + worldName);
             }
 
             WorldCreator creator = new WorldCreator(worldName);
@@ -103,9 +110,9 @@ public class SkyblockWorldManager {
                     disableEnderDragonFight(world);
                 }
 
-                MessageUtil.consolePrint("空岛世界准备就绪！名称: " + worldName);
+                MessageUtil.consolePrint("空岛世界[" + dimensionName + "]准备就绪！名称: " + worldName);
             } else {
-                MessageUtil.consoleError("空岛世界加载或创建失败: " + worldName);
+                MessageUtil.consoleError("空岛世界[" + dimensionName + "]加载或创建失败: " + worldName);
             }
         }
 

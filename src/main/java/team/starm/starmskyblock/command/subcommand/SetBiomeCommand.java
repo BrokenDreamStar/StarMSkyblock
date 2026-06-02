@@ -53,6 +53,8 @@ public class SetBiomeCommand extends SubCommand {
             return true;
         }
 
+        if (!assertMaxArgs(player, args, 3, "/is setbiome <生物群系> [confirm]")) return true;
+
         SkyblockBiome target = SkyblockBiome.fromInput(args[1]);
         if (target == null) {
             MessageUtil.sendMessage(player, "&c未知生物群系: " + args[1]);
@@ -105,7 +107,7 @@ public class SetBiomeCommand extends SubCommand {
             }
         }
 
-        MessageUtil.sendMessage(player, "&a已成功将岛屿的生物群系设置为 " + target.getDisplayName() + " &a（共修改 " + modifiedChunks + " 个区块）！");
+        MessageUtil.sendMessage(player, "&a已将整个岛屿的生物群系修改为" + target.getColoredDisplayName());
         return true;
     }
 

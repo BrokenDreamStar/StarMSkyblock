@@ -12,12 +12,10 @@ import team.starm.starmskyblock.placeholder.handler.SettingsHandler;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class SkyblockExpansion extends PlaceholderExpansion {
 
     private final StarMSkyblock plugin;
-    private final AtomicInteger papiCallCount = new AtomicInteger(0);
 
     private final IslandListHandler islandListHandler;
     private final PermissionHandler permissionHandler;
@@ -50,14 +48,6 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         return true;
     }
 
-    public int getPapiCallCount() {
-        return papiCallCount.get();
-    }
-
-    public void resetPapiCallCount() {
-        papiCallCount.set(0);
-    }
-
     public void setPlayerPage(Player player, int page) {
         islandListHandler.setPlayerPage(player, page);
     }
@@ -77,20 +67,10 @@ public class SkyblockExpansion extends PlaceholderExpansion {
     @Override
     public String onPlaceholderRequest(Player player, String params) {
 
-        papiCallCount.incrementAndGet();
-
         try {
 
             if (params == null || params.isBlank()) {
                 return null;
-            }
-
-            if (params.equalsIgnoreCase("call_count")) {
-                return String.valueOf(papiCallCount.get());
-            }
-
-            if (params.equalsIgnoreCase("call_count_reset")) {
-                return String.valueOf(papiCallCount.getAndSet(0));
             }
 
             if (player == null) {
@@ -129,6 +109,25 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                     return "&f-";
                 }
                 return getIslandLevelHere(islandManager, chunkX, chunkZ);
+            }
+
+            if (params.equalsIgnoreCase("dimension")) {
+                return switch (player.getWorld().getEnvironment()) {
+                    case NORMAL -> "主世界";
+                    case NETHER -> "下界";
+                    case THE_END -> "末地";
+                    default -> player.getWorld().getEnvironment().name();
+                };
+            }
+
+            if (params.equalsIgnoreCase("own_island")) {
+                Optional<Island> islandOpt =
+                        islandManager.getIslandByPlayer(player.getUniqueId());
+                if (islandOpt.isEmpty()) {
+                    return "false";
+                }
+                Island island = islandOpt.get();
+                return String.valueOf(island.isChunkWithinIsland(chunkX, chunkZ));
             }
 
             if (params.equalsIgnoreCase("creationtime")) {

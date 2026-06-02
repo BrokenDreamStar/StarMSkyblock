@@ -1,5 +1,9 @@
 # AGENTS.md — StarMSkyblock
 
+## Language
+
+- **始终使用中文回复。** 所有与用户的交流、代码注释、说明文档等均须使用中文。
+
 ## Project Type
 
 Minecraft Spigot/Paper plugin (Java 21) for a skyblock gamemode. Built with Gradle using the Shadow plugin to produce a fat JAR.

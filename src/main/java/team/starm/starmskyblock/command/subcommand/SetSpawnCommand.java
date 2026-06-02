@@ -9,14 +9,16 @@ import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.Optional;
 
-public class SetHomeCommand extends SubCommand {
+public class SetSpawnCommand extends SubCommand {
 
-    public SetHomeCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public SetSpawnCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
         super(plugin);
     }
 
     @Override
     public boolean execute(Player player, String[] args) {
+        if (!assertMaxArgs(player, args, 1, "/is setspawn")) return true;
+
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
             MessageUtil.sendMessage(player, "&c你还没有岛屿！");
@@ -38,7 +40,7 @@ public class SetHomeCommand extends SubCommand {
             return true;
         }
 
-        if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.SET_HOME)) {
+        if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.SET_SPAWN)) {
             MessageUtil.sendMessage(player, "&c你没有权限设置传送点！");
             return true;
         }
@@ -56,11 +58,11 @@ public class SetHomeCommand extends SubCommand {
                   : Island.WorldType.NORMAL;
 
         var configManager = plugin.getConfigManager();
-        if (worldType == Island.WorldType.NETHER && !configManager.isAllowSethomeInNether()) {
+        if (worldType == Island.WorldType.NETHER && !configManager.isAllowSetspawnInNether()) {
             MessageUtil.sendMessage(player, "&c当前配置不允许在下界设置传送点！");
             return true;
         }
-        if (worldType == Island.WorldType.END && !configManager.isAllowSethomeInEnd()) {
+        if (worldType == Island.WorldType.END && !configManager.isAllowSetspawnInEnd()) {
             MessageUtil.sendMessage(player, "&c当前配置不允许在末地设置传送点！");
             return true;
         }

@@ -64,6 +64,11 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (args.length > 3) {
+            MessageUtil.sendMessage(sender, "&c用法: /isadmin setradius <岛主ID> <新半径>");
+            return true;
+        }
+
         if (args[0].equalsIgnoreCase("setradius")) {
             String ownerName = args[1];
             int newRadius;

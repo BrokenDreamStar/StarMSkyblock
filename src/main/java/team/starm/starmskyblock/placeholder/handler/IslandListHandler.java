@@ -246,7 +246,7 @@ public class IslandListHandler {
                 if (!result.isEmpty()) {
                     result.append("\n");
                 }
-                result.append("&f- ").append(color).append(name).append("(").append(color).append(roleName).append(")");
+                result.append("&f - ").append(color).append(name).append("(").append(color).append(roleName).append(")");
             }
         }
 

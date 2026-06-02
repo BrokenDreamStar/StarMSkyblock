@@ -60,6 +60,11 @@ public class IslandPermissionCommand {
 
         String permissionInput = args[1].toLowerCase();
 
+        if (args.length > 3) {
+            MessageUtil.sendMessage(player, "&c用法: /is permission <权限> [角色/等级/cycle/rcycle]");
+            return true;
+        }
+
         if (args.length == 2) {
             return showPermissionConfig(player, island, permissionInput);
         }

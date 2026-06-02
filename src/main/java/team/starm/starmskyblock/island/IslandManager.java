@@ -415,6 +415,7 @@ public class IslandManager {
             islandRepo.removeMember(islandId, memberUuid);
             island.removeMember(memberUuid);
             memberToIslandIndex.remove(memberUuid);
+            playerRepo.setFirstNetherJoin(memberUuid, true);
             return true;
         }
         return false;
@@ -588,6 +589,7 @@ public class IslandManager {
     /** 从数据库删除岛屿（含成员和合作者级联删除），保留内存索引 */
     public boolean deleteIslandFromDatabase(Island island) {
         islandRepo.deleteIslandCascade(island.getId());
+        playerRepo.setFirstNetherJoin(island.getOwnerId(), true);
         return true;
     }
 

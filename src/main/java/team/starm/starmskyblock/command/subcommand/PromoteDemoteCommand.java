@@ -36,6 +36,8 @@ public class PromoteDemoteCommand extends SubCommand {
             return true;
         }
 
+        if (!assertMaxArgs(player, args, 2, "/is " + args[0] + " <玩家名>")) return true;
+
         UUID targetUuid = island.getMembers().keySet().stream()
                 .filter(uuid -> {
                     String name = getPlayerName(uuid);

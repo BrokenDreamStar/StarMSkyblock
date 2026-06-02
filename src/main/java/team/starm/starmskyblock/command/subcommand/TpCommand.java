@@ -25,6 +25,8 @@ public class TpCommand extends SubCommand {
             return true;
         }
 
+        if (!assertMaxArgs(player, args, 4, "/is tp <岛屿名称> [岛屿ID] [confirm]")) return true;
+
         var islandManager = plugin.getIslandManager();
         String islandName = args[1].replace('§', '&');
         List<Island> matchingIslands = islandManager.getIslandsByName(islandName);

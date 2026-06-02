@@ -10,14 +10,16 @@ import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.Optional;
 
-public class HomeCommand extends SubCommand {
+public class SpawnCommand extends SubCommand {
 
-    public HomeCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public SpawnCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
         super(plugin);
     }
 
     @Override
     public boolean execute(Player player, String[] args) {
+        if (!assertMaxArgs(player, args, 2, "/is spawn [confirm]")) return true;
+
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
             MessageUtil.sendMessage(player, "&c你还没有岛屿！使用 /is create 创建。");
@@ -40,7 +42,7 @@ public class HomeCommand extends SubCommand {
 
             if (!isLocationSafe(spawnLocation) && (args.length == 1 || !args[1].equalsIgnoreCase("confirm"))) {
                 MessageUtil.sendMessage(player, "&c警告：传送点不安全！脚下可能是空气。");
-                MessageUtil.sendMessage(player, "&c使用 &e/is home confirm &c强制传送（可能摔落）。");
+                MessageUtil.sendMessage(player, "&c使用 &e/is spawn confirm &c强制传送（可能摔落）。");
                 return true;
             }
 
@@ -61,7 +63,7 @@ public class HomeCommand extends SubCommand {
 
             if (!isLocationSafe(spawnLocation) && (args.length == 1 || !args[1].equalsIgnoreCase("confirm"))) {
                 MessageUtil.sendMessage(player, "&c警告：传送点不安全！脚下可能是空气。");
-                MessageUtil.sendMessage(player, "&c使用 &e/is home confirm &c强制传送（可能摔落）。");
+                MessageUtil.sendMessage(player, "&c使用 &e/is spawn confirm &c强制传送（可能摔落）。");
                 return true;
             }
 

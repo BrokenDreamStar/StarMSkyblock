@@ -34,6 +34,8 @@ public class SettingsCommand extends SubCommand {
             return displaySettings(player, island);
         }
 
+        if (!assertMaxArgs(player, args, 3, "/is settings <设置项> <true|false>")) return true;
+
         String settingKey = args[1].toLowerCase();
 
         IslandSetting setting = IslandSetting.fromKey(settingKey);

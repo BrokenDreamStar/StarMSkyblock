@@ -62,10 +62,10 @@ island-height: 58
 max-delete-times: 3
 
 # 传送点设置权限配置
-# 是否允许玩家在下界使用 /is sethome 设置岛屿传送点
-allow-sethome-in-nether: true
-# 是否允许玩家在末地使用 /is sethome 设置岛屿传送点
-allow-sethome-in-end: true
+# 是否允许玩家在下界使用 /is setspawn 设置岛屿传送点
+allow-setspawn-in-nether: true
+# 是否允许玩家在末地使用 /is setspawn 设置岛屿传送点
+allow-setspawn-in-end: true
 
 # 是否允许玩家在岛屿下界维度放置末地传送门
 allow-end-portal-in-nether: false
@@ -83,6 +83,9 @@ rename-cooldown: 300
 
 # 岛屿传送倒计时（秒），设为 0 表示无倒计时直接传送
 teleport-countdown: 3
+
+# /is 无参数时执行的子命令，设为 help 则显示帮助菜单
+default-island-command: spawn
 
 # WorldEdit 引擎模式
 # 可选值：

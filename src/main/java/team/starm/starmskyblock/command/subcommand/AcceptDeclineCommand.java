@@ -11,6 +11,8 @@ public class AcceptDeclineCommand extends SubCommand {
 
     @Override
     public boolean execute(Player player, String[] args) {
+        if (!assertMaxArgs(player, args, 1, "/is " + args[0])) return true;
+
         var invitationManager = plugin.getInvitationManager();
 
         if (args[0].equalsIgnoreCase("accept")) {

@@ -10,67 +10,67 @@ import java.util.List;
 public enum SkyblockBiome {
 
     // ====================== 主世界 ======================
-    PLAINS("平原", Dimension.OVERWORLD),
-    SUNFLOWER_PLAINS("向日葵平原", Dimension.OVERWORLD),
-    DESERT("沙漠", Dimension.OVERWORLD),
-    SAVANNA("热带草原", Dimension.OVERWORLD),
-    SAVANNA_PLATEAU("热带高原", Dimension.OVERWORLD),
-    WINDSWEPT_SAVANNA("风袭热带草原", Dimension.OVERWORLD),
-    FOREST("森林", Dimension.OVERWORLD),
-    FLOWER_FOREST("繁花森林", Dimension.OVERWORLD),
-    BIRCH_FOREST("白桦森林", Dimension.OVERWORLD),
-    OLD_GROWTH_BIRCH_FOREST("原始白桦森林", Dimension.OVERWORLD),
-    DARK_FOREST("黑森林", Dimension.OVERWORLD),
-    OLD_GROWTH_PINE_TAIGA("原始松木针叶林", Dimension.OVERWORLD),
-    OLD_GROWTH_SPRUCE_TAIGA("原始云杉针叶林", Dimension.OVERWORLD),
-    TAIGA("针叶林", Dimension.OVERWORLD),
-    SNOWY_TAIGA("积雪针叶林", Dimension.OVERWORLD),
-    SNOWY_PLAINS("雪原", Dimension.OVERWORLD),
-    ICE_SPIKES("冰刺平原", Dimension.OVERWORLD),
-    JUNGLE("丛林", Dimension.OVERWORLD),
-    BAMBOO_JUNGLE("竹林", Dimension.OVERWORLD),
-    SPARSE_JUNGLE("稀疏丛林", Dimension.OVERWORLD),
-    BEACH("沙滩", Dimension.OVERWORLD),
-    SNOWY_BEACH("积雪沙滩", Dimension.OVERWORLD),
-    STONY_SHORE("石岸", Dimension.OVERWORLD),
-    SWAMP("沼泽", Dimension.OVERWORLD),
-    MANGROVE_SWAMP("红树林沼泽", Dimension.OVERWORLD),
-    RIVER("河流", Dimension.OVERWORLD),
-    FROZEN_RIVER("冻河", Dimension.OVERWORLD),
-    MUSHROOM_FIELDS("蘑菇岛", Dimension.OVERWORLD),
-    CHERRY_GROVE("樱花树林", Dimension.OVERWORLD),
-    OCEAN("海洋", Dimension.OVERWORLD),
-    DEEP_OCEAN("深海", Dimension.OVERWORLD),
-    COLD_OCEAN("冷水海洋", Dimension.OVERWORLD),
-    DEEP_COLD_OCEAN("冷水深海", Dimension.OVERWORLD),
-    FROZEN_OCEAN("冻洋", Dimension.OVERWORLD),
-    DEEP_FROZEN_OCEAN("深海冻洋", Dimension.OVERWORLD),
-    LUKEWARM_OCEAN("温水海洋", Dimension.OVERWORLD),
-    DEEP_LUKEWARM_OCEAN("温水深海", Dimension.OVERWORLD),
-    WARM_OCEAN("暖水海洋", Dimension.OVERWORLD),
-    DEEP_WARM_OCEAN("深海暖水海洋", Dimension.OVERWORLD),
-    MEADOW("草甸", Dimension.OVERWORLD),
-    WINDSWEPT_HILLS("风袭丘陵", Dimension.OVERWORLD),
-    WINDSWEPT_GRAVELLY_HILLS("风袭砾石丘陵", Dimension.OVERWORLD),
-    WINDSWEPT_FOREST("风袭森林", Dimension.OVERWORLD),
-    STONY_PEAKS("石峰", Dimension.OVERWORLD),
-    FROZEN_PEAKS("冰封山峰", Dimension.OVERWORLD),
-    JAGGED_PEAKS("尖峭山峰", Dimension.OVERWORLD),
-    SNOWY_SLOPES("雪坡", Dimension.OVERWORLD),
-    GROVE("雪林", Dimension.OVERWORLD),
-    DEEP_DARK("深暗之域", Dimension.OVERWORLD),
-    DRIPSTONE_CAVES("溶洞", Dimension.OVERWORLD),
-    LUSH_CAVES("繁茂洞穴", Dimension.OVERWORLD),
-    BADLANDS("恶地", Dimension.OVERWORLD),
-    WOODED_BADLANDS("林地恶地", Dimension.OVERWORLD),
-    ERODED_BADLANDS("风蚀恶地", Dimension.OVERWORLD),
+    PLAINS("平原", Dimension.OVERWORLD, "&a"),
+    SUNFLOWER_PLAINS("向日葵平原", Dimension.OVERWORLD, "&e"),
+    DESERT("沙漠", Dimension.OVERWORLD, "&e"),
+    SAVANNA("热带草原", Dimension.OVERWORLD, "&6"),
+    SAVANNA_PLATEAU("热带高原", Dimension.OVERWORLD, "&6"),
+    WINDSWEPT_SAVANNA("风袭热带草原", Dimension.OVERWORLD, "&6"),
+    FOREST("森林", Dimension.OVERWORLD, "&a"),
+    FLOWER_FOREST("繁花森林", Dimension.OVERWORLD, "&c"),
+    BIRCH_FOREST("白桦森林", Dimension.OVERWORLD, "&f"),
+    OLD_GROWTH_BIRCH_FOREST("原始白桦森林", Dimension.OVERWORLD, "&f"),
+    DARK_FOREST("黑森林", Dimension.OVERWORLD, "&5"),
+    OLD_GROWTH_PINE_TAIGA("原始松木针叶林", Dimension.OVERWORLD, "&6"),
+    OLD_GROWTH_SPRUCE_TAIGA("原始云杉针叶林", Dimension.OVERWORLD, "&6"),
+    TAIGA("针叶林", Dimension.OVERWORLD, "&2"),
+    SNOWY_TAIGA("积雪针叶林", Dimension.OVERWORLD, "&f"),
+    SNOWY_PLAINS("雪原", Dimension.OVERWORLD, "&b"),
+    ICE_SPIKES("冰刺平原", Dimension.OVERWORLD, "&b"),
+    JUNGLE("丛林", Dimension.OVERWORLD, "&2"),
+    BAMBOO_JUNGLE("竹林", Dimension.OVERWORLD, "&2"),
+    SPARSE_JUNGLE("稀疏丛林", Dimension.OVERWORLD, "&2"),
+    BEACH("沙滩", Dimension.OVERWORLD, "&6"),
+    SNOWY_BEACH("积雪沙滩", Dimension.OVERWORLD, "&f"),
+    STONY_SHORE("石岸", Dimension.OVERWORLD, "&8"),
+    SWAMP("沼泽", Dimension.OVERWORLD, "&7"),
+    MANGROVE_SWAMP("红树林沼泽", Dimension.OVERWORLD, "&8"),
+    RIVER("河流", Dimension.OVERWORLD, "&9"),
+    FROZEN_RIVER("冻河", Dimension.OVERWORLD, "&b"),
+    MUSHROOM_FIELDS("蘑菇岛", Dimension.OVERWORLD, "&5"),
+    CHERRY_GROVE("樱花树林", Dimension.OVERWORLD, "&d"),
+    OCEAN("海洋", Dimension.OVERWORLD, "&9"),
+    DEEP_OCEAN("深海", Dimension.OVERWORLD, "&9"),
+    COLD_OCEAN("冷水海洋", Dimension.OVERWORLD, "&1"),
+    DEEP_COLD_OCEAN("冷水深海", Dimension.OVERWORLD, "&1"),
+    FROZEN_OCEAN("冻洋", Dimension.OVERWORLD, "&b"),
+    DEEP_FROZEN_OCEAN("深海冻洋", Dimension.OVERWORLD, "&b"),
+    LUKEWARM_OCEAN("温水海洋", Dimension.OVERWORLD, "&3"),
+    DEEP_LUKEWARM_OCEAN("温水深海", Dimension.OVERWORLD, "&3"),
+    WARM_OCEAN("暖水海洋", Dimension.OVERWORLD, "&e"),
+    DEEP_WARM_OCEAN("深海暖水海洋", Dimension.OVERWORLD, "&e"),
+    MEADOW("草甸", Dimension.OVERWORLD, "&a"),
+    WINDSWEPT_HILLS("风袭丘陵", Dimension.OVERWORLD, "&2"),
+    WINDSWEPT_GRAVELLY_HILLS("风袭砾石丘陵", Dimension.OVERWORLD, "&7"),
+    WINDSWEPT_FOREST("风袭森林", Dimension.OVERWORLD, "&2"),
+    STONY_PEAKS("石峰", Dimension.OVERWORLD, "&7"),
+    FROZEN_PEAKS("冰封山峰", Dimension.OVERWORLD, "&b"),
+    JAGGED_PEAKS("尖峭山峰", Dimension.OVERWORLD, "&f"),
+    SNOWY_SLOPES("雪坡", Dimension.OVERWORLD, "&f"),
+    GROVE("雪林", Dimension.OVERWORLD, "&f"),
+    DEEP_DARK("深暗之域", Dimension.OVERWORLD, "&d"),
+    DRIPSTONE_CAVES("溶洞", Dimension.OVERWORLD, "&6"),
+    LUSH_CAVES("繁茂洞穴", Dimension.OVERWORLD, "&a"),
+    BADLANDS("恶地", Dimension.OVERWORLD, "&4"),
+    WOODED_BADLANDS("林地恶地", Dimension.OVERWORLD, "&c"),
+    ERODED_BADLANDS("风蚀恶地", Dimension.OVERWORLD, "&4"),
 
     // ====================== 下界 ======================
-    NETHER_WASTES("下界荒地", Dimension.NETHER),
-    CRIMSON_FOREST("绯红森林", Dimension.NETHER),
-    WARPED_FOREST("诡异森林", Dimension.NETHER),
-    SOUL_SAND_VALLEY("灵魂沙峡谷", Dimension.NETHER),
-    BASALT_DELTAS("玄武岩三角洲", Dimension.NETHER);
+    NETHER_WASTES("下界荒地", Dimension.NETHER, "&c"),
+    CRIMSON_FOREST("绯红森林", Dimension.NETHER, "&4"),
+    WARPED_FOREST("诡异森林", Dimension.NETHER, "&3"),
+    SOUL_SAND_VALLEY("灵魂沙峡谷", Dimension.NETHER, "&3"),
+    BASALT_DELTAS("玄武岩三角洲", Dimension.NETHER, "&7");
 
     public enum Dimension {
         OVERWORLD, NETHER
@@ -78,14 +78,20 @@ public enum SkyblockBiome {
 
     private final String displayName;
     private final Dimension dimension;
+    private final String colorPrefix;
 
-    SkyblockBiome(String displayName, Dimension dimension) {
+    SkyblockBiome(String displayName, Dimension dimension, String colorPrefix) {
         this.displayName = displayName;
         this.dimension = dimension;
+        this.colorPrefix = colorPrefix;
     }
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    public String getColoredDisplayName() {
+        return colorPrefix + "&l" + displayName;
     }
 
     public Dimension getDimension() {

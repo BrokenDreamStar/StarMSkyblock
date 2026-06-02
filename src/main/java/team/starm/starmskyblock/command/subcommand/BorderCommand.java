@@ -20,6 +20,8 @@ public class BorderCommand extends SubCommand {
             return true;
         }
 
+        if (!assertMaxArgs(player, args, 2, "/is border [true|false|toggle]")) return true;
+
         boolean show;
         if (args[1].equalsIgnoreCase("toggle")) {
             show = !borderListener.isPlayerShowBorder(player.getUniqueId());

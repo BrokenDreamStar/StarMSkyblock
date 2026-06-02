@@ -35,7 +35,7 @@ public enum IslandPermission {
     SET_ROLE("设置成员角色"),
     INVITE_COOP("邀请合作者"),
     REMOVE_COOP("移除合作者"),
-    SET_HOME("设置传送点"),
+    SET_SPAWN("设置传送点"),
     SET_BIOME("设置生物群系"),
 
     // ====================== 物品丢弃/拾取 ======================
@@ -174,7 +174,7 @@ public enum IslandPermission {
         return switch (this) {
             case RENAME_ISLAND, EDIT_PERMISSIONS, EDIT_SETTINGS,
                  INVITE_MEMBER, REMOVE_MEMBER, SET_ROLE, INVITE_COOP, REMOVE_COOP,
-                 SET_HOME, SET_BIOME -> true;
+                 SET_SPAWN, SET_BIOME -> true;
             default -> false;
         };
     }

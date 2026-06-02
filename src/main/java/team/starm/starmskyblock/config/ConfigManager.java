@@ -49,8 +49,8 @@ public class ConfigManager {
     private int islandHeight; // 岛屿生成高度（以基岩方块为中心点的 Y 坐标）
     // ==================== 其他功能配置 ====================
     private int maxDeleteTimes; // 玩家最多可删除自己岛屿的次数
-    private boolean allowSethomeInNether; // 是否允许在下界使用 /is sethome
-    private boolean allowSethomeInEnd; // 是否允许在末地使用 /is sethome
+    private boolean allowSetspawnInNether; // 是否允许在下界使用 /is setspawn
+    private boolean allowSetspawnInEnd; // 是否允许在末地使用 /is setspawn
     private boolean allowEndPortalInNether; // 是否允许在下界放置末地传送门
     private boolean allowEndPortalInEnd; // 是否允许在末地放置末地传送门
     private long permissionMessageCooldown; // 权限提示消息冷却时间（毫秒）
@@ -58,6 +58,7 @@ public class ConfigManager {
     private int renameCooldown; // 岛屿重命名冷却时间（秒）
     private int teleportCountdown; // 岛屿传送倒计时（秒）
     private boolean useFawe; // 是否使用 FAWE 模式
+    private String defaultIslandCommand; // /is 无参数时执行的子命令（默认 spawn）
 
     public ConfigManager(StarMSkyblock plugin) {
         this.plugin = plugin;
@@ -162,8 +163,8 @@ public class ConfigManager {
         // ====================== 其他功能配置 ======================
         this.maxDeleteTimes = config.getInt("max-delete-times", 3);
 
-        this.allowSethomeInNether = config.getBoolean("allow-sethome-in-nether", true);
-        this.allowSethomeInEnd = config.getBoolean("allow-sethome-in-end", true);
+        this.allowSetspawnInNether = config.getBoolean("allow-setspawn-in-nether", true);
+        this.allowSetspawnInEnd = config.getBoolean("allow-setspawn-in-end", true);
 
         this.allowEndPortalInNether = config.getBoolean("allow-end-portal-in-nether", false);
         this.allowEndPortalInEnd = config.getBoolean("allow-end-portal-in-end", false);
@@ -179,6 +180,8 @@ public class ConfigManager {
         // ====================== WorldEdit 引擎模式 ======================
         String worldEditMode = config.getString("worldedit-mode", "we");
         this.useFawe = "fawe".equalsIgnoreCase(worldEditMode);
+
+        this.defaultIslandCommand = config.getString("default-island-command", "spawn");
     }
 
     // ==================== Getter 方法（按功能分类） ====================
@@ -301,12 +304,12 @@ public class ConfigManager {
         return maxDeleteTimes;
     }
 
-    public boolean isAllowSethomeInNether() {
-        return allowSethomeInNether;
+    public boolean isAllowSetspawnInNether() {
+        return allowSetspawnInNether;
     }
 
-    public boolean isAllowSethomeInEnd() {
-        return allowSethomeInEnd;
+    public boolean isAllowSetspawnInEnd() {
+        return allowSetspawnInEnd;
     }
 
     public boolean isAllowEndPortalInNether() {
@@ -335,6 +338,10 @@ public class ConfigManager {
 
     public boolean isUseFawe() {
         return useFawe;
+    }
+
+    public String getDefaultIslandCommand() {
+        return defaultIslandCommand;
     }
 
     /**
