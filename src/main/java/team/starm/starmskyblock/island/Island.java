@@ -366,7 +366,7 @@ public class Island {
     // ==================== 权限核心方法（最低等级模式） ====================
 
     /**
-     * 判断某玩家是否拥有某权限（基于其身份在岛屿中的角色）。
+     * 判断某玩家是否拥有某权限（基于其身份在岛屿中的权限组）。
      * 权限检查链路：岛主 → 成员 → 合作者 → 访客。
      */
     public boolean hasPermission(UUID playerUuid, IslandPermission permission) {
@@ -378,7 +378,7 @@ public class Island {
     }
 
     /**
-     * 基于角色的等级数值判断是否拥有指定权限。
+     * 基于权限组的等级数值判断是否拥有指定权限。
      * 先检查该权限的自定义最低等级，未单独配置则回退为 ALL 的兜底值。
      */
     public boolean hasPermission(IslandPermissionLevel role, IslandPermission permission) {

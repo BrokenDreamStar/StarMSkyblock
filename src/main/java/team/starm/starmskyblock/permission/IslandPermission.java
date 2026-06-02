@@ -32,7 +32,7 @@ public enum IslandPermission {
     EDIT_SETTINGS("修改岛屿设置"),
     INVITE_MEMBER("邀请成员"),
     REMOVE_MEMBER("移除成员"),
-    SET_ROLE("设置成员角色"),
+    SET_ROLE("设置成员权限组"),
     INVITE_COOP("邀请合作者"),
     REMOVE_COOP("移除合作者"),
     SET_SPAWN("设置传送点"),

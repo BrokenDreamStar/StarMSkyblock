@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 
 /**
  * /is permission 子命令的处理器。
- * 负责查看和修改每个权限（如 BUILD、BREAK、INVITE_MEMBER 等）所需的最低角色等级。
- * 支持通过角色名（OWNER/ADMIN/MOD/MEMBER/COOP/VISITOR）、数字等级（0-5）
+ * 负责查看和修改每个权限（如 BUILD、BREAK、INVITE_MEMBER 等）所需的最低权限组等级。
+ * 支持通过权限组名（OWNER/ADMIN/MOD/MEMBER/COOP/VISITOR）、数字等级（0-5）
  * 以及 cycle/rcycle 循环模式进行设置。
  * 内嵌 PermissionCategory 枚举对权限进行类别分组，用于显示帮助列表。
  */
@@ -49,19 +49,19 @@ public class IslandPermissionCommand {
         }
 
         if (args.length < 2) {
-            MessageUtil.sendMessage(player, "&c用法: /is permission <权限> [角色/等级/cycle/rcycle]");
+            MessageUtil.sendMessage(player, "&c用法: /is permission <权限> [权限组/等级/cycle/rcycle]");
             MessageUtil.sendMessage(player, "&c示例: /is permission build 2");
             MessageUtil.sendMessage(player, "&c示例: /is permission build cycle — 0→1→2→3→4→5→0 循环");
             MessageUtil.sendMessage(player, "&c示例: /is permission build rcycle — 5→4→3→2→1→0→5 循环");
             MessageUtil.sendMessage(player, "&c查询当前配置: /is permission build");
-            MessageUtil.sendMessage(player, "&7管理权限仅可分配给岛主(5)/管理员(4)/风纪委员(3)，cycle 仅限 5↔4↔3");
+            MessageUtil.sendMessage(player, "&7管理权限仅可分配给岛主(5)/管理员(4)/风纪委员(3)");
             return true;
         }
 
         String permissionInput = args[1].toLowerCase();
 
         if (args.length > 3) {
-            MessageUtil.sendMessage(player, "&c用法: /is permission <权限> [角色/等级/cycle/rcycle]");
+            MessageUtil.sendMessage(player, "&c用法: /is permission <权限> [权限组/等级/cycle/rcycle]");
             return true;
         }
 
@@ -88,7 +88,6 @@ public class IslandPermissionCommand {
         IslandPermission permission = resolvePermission(permissionInput);
         if (permission == null) {
             MessageUtil.sendMessage(player, "&c无效的权限: " + permissionInput);
-            MessageUtil.sendMessage(player, "&c输入 /is permission 按空格+TAB 查看所有可用权限");
             return true;
         }
 
@@ -127,25 +126,25 @@ public class IslandPermissionCommand {
 
         IslandPermissionLevel targetRole = parseTargetRole(roleInput);
         if (targetRole == null) {
-            MessageUtil.sendMessage(player, "&c无效的角色: " + roleInput);
+            MessageUtil.sendMessage(player, "&c无效的权限组: " + roleInput);
             MessageUtil.sendMessage(player,
-                    "&c可用角色: OWNER(5), ADMIN(4), MOD(3), MEMBER(2), COOP(1), VISITOR(0) 或数字 0-5");
+                    "&c可用权限组: OWNER(5), ADMIN(4), MOD(3), MEMBER(2), COOP(1), VISITOR(0) 或数字 0-5");
             return true;
         }
 
         IslandPermissionLevel playerRole = island.getMemberRole(player.getUniqueId());
 
-        // 检查玩家是否有权限管理目标角色的权限
+        // 检查玩家是否有权限管理目标权限组的权限
         if (!IslandPermissionLevel.getManageableRoles(playerRole).contains(targetRole)) {
-            MessageUtil.sendMessage(player, "&c你不能管理 " + targetRole.getDisplayName() + " 角色的权限！");
+            MessageUtil.sendMessage(player, "&c你不能管理 " + targetRole.getDisplayName() + " 的权限！");
             return true;
         }
 
         int targetLevel = targetRole.getPermissionLevel();
 
-        // 管理权限仅允许分配给风纪委员(3)及以上角色
+        // 管理权限仅允许分配给风纪委员(3)及以上权限组
         if (permission.isManagement() && targetLevel < 3) {
-            MessageUtil.sendMessage(player, "&c管理权限不能分配给 " + targetRole.getDisplayName() + " 及以下的角色！");
+            MessageUtil.sendMessage(player, "&c管理权限不能分配给 " + targetRole.getDisplayName() + " 及以下的权限组！");
             return true;
         }
         IslandManager islandManager = plugin.getIslandManager();
@@ -198,7 +197,7 @@ public class IslandPermissionCommand {
     }
 
     /**
-     * 将输入解析为目标角色等级。支持数字 0-5 或角色枚举名。
+     * 将输入解析为目标权限组等级。支持数字 0-5 或权限组枚举名。
      */
     private IslandPermissionLevel parseTargetRole(String roleInput) {
         try {
@@ -225,12 +224,11 @@ public class IslandPermissionCommand {
         MessageUtil.sendMessage(player,
                 "&a已将权限 &b" + permissionInput +
                         " &a的最低等级设置为 &e" + targetRole.getDisplayName() +
-                        " &a(&6" + targetLevel + "&e) 及以上角色拥有");
+                        " &a(&6" + targetLevel + "&e) 及以上权限组拥有");
     }
 
     public boolean handlePermissionsListCommand(Player player) {
         MessageUtil.sendMessage(player, "&a=== 所有可用权限列表 ===");
-        MessageUtil.sendMessage(player, "&7（使用 Tab 补全查看 /is permission <权限名>）");
 
         // 动态按类别分组显示权限
         for (PermissionCategory category : PermissionCategory.values()) {

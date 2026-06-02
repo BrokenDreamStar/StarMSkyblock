@@ -22,7 +22,7 @@ public class SpawnCommand extends SubCommand {
 
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你还没有岛屿！使用 /is create 创建。");
+            MessageUtil.sendMessage(player, "&c你还没有岛屿！使用 /is create <岛屿名称> <岛屿类型>创建。");
             return true;
         }
 
@@ -41,8 +41,8 @@ public class SpawnCommand extends SubCommand {
                     island.getCustomHomeX(), island.getCustomHomeY(), island.getCustomHomeZ());
 
             if (!isLocationSafe(spawnLocation) && (args.length == 1 || !args[1].equalsIgnoreCase("confirm"))) {
-                MessageUtil.sendMessage(player, "&c警告：传送点不安全！脚下可能是空气。");
-                MessageUtil.sendMessage(player, "&c使用 &e/is spawn confirm &c强制传送（可能摔落）。");
+                MessageUtil.sendMessage(player, "&c警告：传送点不安全！");
+                MessageUtil.sendMessage(player, "&c使用 &e/is spawn confirm &c强制传送");
                 return true;
             }
 
@@ -62,8 +62,8 @@ public class SpawnCommand extends SubCommand {
             spawnLocation = new Location(targetWorld, teleportX, teleportY, teleportZ);
 
             if (!isLocationSafe(spawnLocation) && (args.length == 1 || !args[1].equalsIgnoreCase("confirm"))) {
-                MessageUtil.sendMessage(player, "&c警告：传送点不安全！脚下可能是空气。");
-                MessageUtil.sendMessage(player, "&c使用 &e/is spawn confirm &c强制传送（可能摔落）。");
+                MessageUtil.sendMessage(player, "&c警告：传送点不安全！");
+                MessageUtil.sendMessage(player, "&c使用 &e/is spawn confirm &c强制传送");
                 return true;
             }
 

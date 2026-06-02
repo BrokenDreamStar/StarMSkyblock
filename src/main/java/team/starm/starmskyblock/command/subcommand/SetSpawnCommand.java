@@ -59,11 +59,11 @@ public class SetSpawnCommand extends SubCommand {
 
         var configManager = plugin.getConfigManager();
         if (worldType == Island.WorldType.NETHER && !configManager.isAllowSetspawnInNether()) {
-            MessageUtil.sendMessage(player, "&c当前配置不允许在下界设置传送点！");
+            MessageUtil.sendMessage(player, "&c暂不支持在下界设置传送点！");
             return true;
         }
         if (worldType == Island.WorldType.END && !configManager.isAllowSetspawnInEnd()) {
-            MessageUtil.sendMessage(player, "&c当前配置不允许在末地设置传送点！");
+            MessageUtil.sendMessage(player, "&c暂不支持在末地设置传送点！");
             return true;
         }
 

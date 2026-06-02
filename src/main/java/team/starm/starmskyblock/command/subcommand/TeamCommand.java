@@ -22,16 +22,20 @@ public class TeamCommand extends SubCommand {
         if (args.length < 2) {
             MessageUtil.sendMessage(player, "&c用法:");
             MessageUtil.sendMessage(player, "&b/is team invite <玩家> &f- 邀请玩家加入岛屿");
-            MessageUtil.sendMessage(player, "&b/is team remove <玩家> [confirm] &f- 踢出岛屿成员");
+            MessageUtil.sendMessage(player, "&b/is team remove <玩家> [confirm] &f- 移除岛屿成员");
+            MessageUtil.sendMessage(player, "&b/is team accept &f- 接受岛屿邀请");
+            MessageUtil.sendMessage(player, "&b/is team decline &f- 拒绝岛屿邀请");
             return true;
         }
 
         return switch (args[1].toLowerCase()) {
             case "invite" -> handleInvite(player, args);
             case "remove" -> handleRemove(player, args);
+            case "accept" -> handleAccept(player);
+            case "decline" -> handleDecline(player);
             default -> {
                 MessageUtil.sendMessage(player, "&c未知的子命令: &e" + args[1]);
-                MessageUtil.sendMessage(player, "&c用法: /is team invite|remove <玩家名>");
+                MessageUtil.sendMessage(player, "&c用法: /is team invite|remove|accept|decline");
                 yield true;
             }
         };
@@ -77,6 +81,38 @@ public class TeamCommand extends SubCommand {
         return true;
     }
 
+    private boolean handleAccept(Player player) {
+        var invitationManager = plugin.getInvitationManager();
+
+        if (!invitationManager.hasPendingInvitation(player.getUniqueId())) {
+            MessageUtil.sendMessage(player, "&c你没有待处理的岛屿邀请！");
+            return true;
+        }
+
+        if (invitationManager.acceptInvitation(player.getUniqueId())) {
+            MessageUtil.sendMessage(player, "&a你已成功加入岛屿！");
+        } else {
+            MessageUtil.sendMessage(player, "&c接受邀请失败，邀请可能已过期或你已有岛屿。");
+        }
+        return true;
+    }
+
+    private boolean handleDecline(Player player) {
+        var invitationManager = plugin.getInvitationManager();
+
+        if (!invitationManager.hasPendingInvitation(player.getUniqueId())) {
+            MessageUtil.sendMessage(player, "&c你没有待处理的岛屿邀请！");
+            return true;
+        }
+
+        if (invitationManager.declineInvitation(player.getUniqueId())) {
+            MessageUtil.sendMessage(player, "&c你已拒绝岛屿邀请");
+        } else {
+            MessageUtil.sendMessage(player, "&c拒绝邀请失败，请稍后重试。");
+        }
+        return true;
+    }
+
     private boolean handleRemove(Player player, String[] args) {
         if (!assertMaxArgs(player, args, 4, "/is team remove <玩家名> [confirm]")) return true;
 
@@ -111,12 +147,12 @@ public class TeamCommand extends SubCommand {
         String targetName = getPlayerName(targetUuid);
 
         if (targetUuid.equals(island.getOwnerId())) {
-            MessageUtil.sendMessage(player, "&c你不能踢出岛主！");
+            MessageUtil.sendMessage(player, "&c你不能移除岛主！");
             return true;
         }
 
         if (args.length < 4 || !args[3].equalsIgnoreCase("confirm")) {
-            MessageUtil.sendMessage(player, "&c警告：将踢出 &e" + targetName + " &c，使用 &e/is team remove " + targetName + " confirm &c确认。");
+            MessageUtil.sendMessage(player, "&c警告：将移除 &e" + targetName + " &c，使用 &e/is team remove " + targetName + " confirm &c确认。");
             return true;
         }
 
@@ -124,10 +160,10 @@ public class TeamCommand extends SubCommand {
             MessageUtil.sendMessage(player, "&a成功踢出 &e" + targetName + " &a从岛屿");
             Player targetPlayer = Bukkit.getPlayer(targetUuid);
             if (targetPlayer != null) {
-                MessageUtil.sendMessage(targetPlayer, "&c你已被 &e" + player.getName() + " &c从岛屿踢出");
+                MessageUtil.sendMessage(targetPlayer, "&c你已被 &e" + player.getName() + " &c从岛屿移除");
             }
         } else {
-            MessageUtil.sendMessage(player, "&c踢出失败，该玩家可能不是岛屿成员。");
+            MessageUtil.sendMessage(player, "&c移除失败，该玩家可能不是岛屿成员。");
         }
         return true;
     }

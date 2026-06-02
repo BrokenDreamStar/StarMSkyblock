@@ -40,9 +40,9 @@ public class CreateCommand extends SubCommand {
         }
 
         MessageUtil.sendMessage(player, "&a================================");
-        MessageUtil.sendMessage(player, "&a开始异步创建岛屿...");
+        MessageUtil.sendMessage(player, "&a开始创建岛屿...");
         MessageUtil.sendMessage(player, "&a岛屿类型: &e" + schematicId);
-        MessageUtil.sendMessage(player, "&a岛屿名称: &e" + islandName);
+        MessageUtil.sendMessage(player, "&a岛屿名称: " + islandName);
         MessageUtil.sendMessage(player, "&a================================");
 
         IslandCreateTask createTask = new IslandCreateTask(plugin, islandManager,

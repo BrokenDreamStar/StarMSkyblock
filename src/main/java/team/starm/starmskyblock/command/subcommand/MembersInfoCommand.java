@@ -115,7 +115,7 @@ public class MembersInfoCommand extends SubCommand {
         Island island = optionalIsland.get();
         IslandPermissionLevel playerRole = island.getMemberRole(player.getUniqueId());
         MessageUtil.sendMessage(player, "&a=== 我的岛屿权限 ===");
-        MessageUtil.sendMessage(player, "&7当前角色: &e" + playerRole.getDisplayName()
+        MessageUtil.sendMessage(player, "&7当前权限组: &e" + playerRole.getDisplayName()
                 + " &7(等级 " + playerRole.getPermissionLevel() + ")");
         MessageUtil.sendMessage(player, "");
 
@@ -136,7 +136,7 @@ public class MembersInfoCommand extends SubCommand {
 
         Island island = optionalIsland.get();
         IslandPermissionLevel playerRole = island.getMemberRole(player.getUniqueId());
-        MessageUtil.sendMessage(player, "&a你的岛屿角色: &e" + playerRole.getDisplayName());
+        MessageUtil.sendMessage(player, "&a你的岛屿权限组: &e" + playerRole.getDisplayName());
         return true;
     }
 }

@@ -53,8 +53,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         subCommands.put("settings", new SettingsCommand(plugin));
         subCommands.put("setchunkbiome", new SetChunkBiomeCommand(plugin));
         subCommands.put("setbiome", new SetBiomeCommand(plugin));
-        subCommands.put("accept", new AcceptDeclineCommand(plugin));
-        subCommands.put("decline", new AcceptDeclineCommand(plugin));
+
         subCommands.put("help", new HelpCommand(plugin, this));
         subCommandNames.addAll(subCommands.keySet());
         Collections.sort(subCommandNames); // keep sorted for help/tab
@@ -114,28 +113,28 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
     }
 
     public void sendHelpMessage(Player player) {
-        MessageUtil.sendMessage(player, "&a=== StarMSkyblock 帮助 ===");
-        MessageUtil.sendMessage(player, "&b/is create [类型] [名称] &f- 创建你的空岛");
-        MessageUtil.sendMessage(player, "&b/is spawn [confirm] &f- 传送到你的空岛（confirm强制传送）");
-        MessageUtil.sendMessage(player, "&b/is tp <岛屿名称> [岛屿ID] [confirm] &f- 传送到指定岛屿");
-        MessageUtil.sendMessage(player, "&b/is setspawn &f- 设置岛屿传送点（脚下不能是空气）");
+        MessageUtil.sendMessage(player, "&a=== <gradient:#14bcfe:#495aff>&lStarM Skyblock</gradient>&a帮助 ===");
+        MessageUtil.sendMessage(player, "&b/is create [类型] [名称] &f- 创建岛屿");
+        MessageUtil.sendMessage(player, "&b/is spawn &f- 传送回岛屿");
+        MessageUtil.sendMessage(player, "&b/is tp <岛屿名称> [岛屿ID]&f- 传送到指定岛屿");
+        MessageUtil.sendMessage(player, "&b/is setspawn &f- 设置岛屿传送点");
         MessageUtil.sendMessage(player, "&b/is border [true|false|toggle] &f- 开启/关闭/切换岛屿边界显示");
-        MessageUtil.sendMessage(player, "&b/is delete [confirm] &f- 删除你的空岛");
+        MessageUtil.sendMessage(player, "&b/is delete &f- 删除岛屿");
         MessageUtil.sendMessage(player, "&b/is team invite <玩家> &f- 邀请玩家加入岛屿");
-        MessageUtil.sendMessage(player, "&b/is team remove <玩家> [confirm] &f- 踢出岛屿成员");
-        MessageUtil.sendMessage(player, "&b/is accept &f- 接受岛屿邀请");
-        MessageUtil.sendMessage(player, "&b/is decline &f- 拒绝岛屿邀请");
-        MessageUtil.sendMessage(player, "&b/is promote <玩家> &f- 晋升成员角色");
-        MessageUtil.sendMessage(player, "&b/is demote <玩家> &f- 降级成员角色");
+        MessageUtil.sendMessage(player, "&b/is team remove <玩家> [confirm] &f- 移除岛屿成员");
+        MessageUtil.sendMessage(player, "&b/is team accept &f- 接受岛屿邀请");
+        MessageUtil.sendMessage(player, "&b/is team decline &f- 拒绝岛屿邀请");
+        MessageUtil.sendMessage(player, "&b/is promote <玩家> &f- 晋升成员权限组");
+        MessageUtil.sendMessage(player, "&b/is demote <玩家> &f- 降级成员权限组");
         MessageUtil.sendMessage(player, "&b/is members &f- 查看岛屿成员列表");
         MessageUtil.sendMessage(player, "&b/is coops &f- 查看合作者列表");
         MessageUtil.sendMessage(player, "&b/is mycoops &f- 查看自己是哪些岛屿的合作者");
-        MessageUtil.sendMessage(player, "&b/is role &f- 查看自己的岛屿角色");
+        MessageUtil.sendMessage(player, "&b/is role &f- 查看自己的岛屿权限组");
         MessageUtil.sendMessage(player, "&b/is rename <名称> &f- 修改岛屿名称");
         MessageUtil.sendMessage(player, "&b/is coop add <玩家> &f- 添加合作者");
         MessageUtil.sendMessage(player, "&b/is coop remove <玩家> &f- 移除合作者");
         MessageUtil.sendMessage(player, "&b/is myperms &f- 查看自己拥有的权限");
-        MessageUtil.sendMessage(player, "&b/is list [next|prev|spawn] &f- 翻页浏览岛屿列表");
+//        MessageUtil.sendMessage(player, "&b/is list [next|prev|home] &f- 翻页浏览岛屿列表");
         MessageUtil.sendMessage(player, "&b/is permission <权限> <等级> &f- 设置权限最低等级");
         MessageUtil.sendMessage(player, "&b/is settings &f- 查看岛屿设置");
         MessageUtil.sendMessage(player, "&b/is settings <设置项> <true|false> &f- 修改岛屿设置");
@@ -157,7 +156,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 2 && args[0].equalsIgnoreCase("list")) {
-            return filterPrefix(List.of("next", "prev", "spawn"), args[1]);
+            return filterPrefix(List.of("next", "prev", "home"), args[1]);
         }
 
         if (args.length == 2 && args[0].equalsIgnoreCase("border")) {
@@ -223,7 +222,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 2 && args[0].equalsIgnoreCase("team")) {
-            return filterPrefix(List.of("invite", "remove"), args[1]);
+            return filterPrefix(List.of("invite", "remove", "accept", "decline"), args[1]);
         }
 
         if (args.length == 3 && args[0].equalsIgnoreCase("team") && args[1].equalsIgnoreCase("invite")) {

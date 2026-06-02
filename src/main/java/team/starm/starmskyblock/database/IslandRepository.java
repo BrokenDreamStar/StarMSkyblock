@@ -322,7 +322,7 @@ public class IslandRepository {
                 pstmt.setString(3, memberUuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("更新成员角色失败！岛屿ID: " + islandId + ", 成员UUID: " + memberUuid);
+                MessageUtil.consoleError("更新成员权限组失败！岛屿ID: " + islandId + ", 成员UUID: " + memberUuid);
                 e.printStackTrace();
             }
         }

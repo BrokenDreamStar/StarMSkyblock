@@ -45,11 +45,10 @@ public enum IslandPermissionLevel {
      * 从字符串解析岛屿等级
      * <p>
      * 支持通过枚举名称（不区分大小写）或中文显示名称匹配。
-     * 用于从 YAML 配置文件和外部输入中解析角色等级，
-     * 例如解析 permissions.yml 中的角色配置或指令参数。
-     * </p>
+     * 用于从 YAML 配置文件和外部输入中解析权限组等级，
+     * 例如解析 permissions.yml 中的权限组配置或指令参数。
      *
-     * @param roleName 角色名称字符串
+     * @param roleName 权限组名称字符串
      * @return 匹配的等级，未匹配时返回 VISITOR
      */
     public static IslandPermissionLevel fromString(String roleName) {
@@ -62,15 +61,12 @@ public enum IslandPermissionLevel {
     }
 
     /**
-     * 获取当前角色可以管理的所有下级角色集合
+     * 获取当前权限组可以管理的所有下级权限组集合
      * <p>
-     * 用于权限界面和指令中的防越权保护：低等级角色不能修改高等级角色的权限。
-     * 例如岛主可以管理所有人，管理员不能管理其他管理员和岛主，风纪委员只能管理普通岛员及以下。
-     * 这确保了权限层级的安全约束。
-     * </p>
+     * 用于权限界面和指令中的防越权保护：低等级权限组不能修改高等级权限组的权限。
      *
-     * @param currentRole 当前操作者的角色
-     * @return 当前角色可管理的下级角色集合（不含同级和更高级别）
+     * @param currentRole 当前操作者的权限组
+     * @return 当前权限组可管理的下级权限组集合（不含同级和更高级别）
      */
     public static Set<IslandPermissionLevel> getManageableRoles(IslandPermissionLevel currentRole) {
         Set<IslandPermissionLevel> manageable = EnumSet.noneOf(IslandPermissionLevel.class);

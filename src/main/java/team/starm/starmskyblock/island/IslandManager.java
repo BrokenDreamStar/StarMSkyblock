@@ -459,7 +459,7 @@ public class IslandManager {
         return false;
     }
 
-    /** 更新成员在岛屿中的角色（晋升/降级） */
+    /** 更新成员在岛屿中的权限组（晋升/降级） */
     public boolean updateMemberRole(int islandId, UUID memberUuid, IslandPermissionLevel newRole) {
         Island island = islandsById.get(islandId);
         if (island != null && island.getMembers().containsKey(memberUuid)) {
@@ -501,7 +501,7 @@ public class IslandManager {
         return null;
     }
 
-    /** 获取某玩家在指定岛屿中的角色级别（默认 VISITOR） */
+    /** 获取某玩家在指定岛屿中的权限组等级（默认 VISITOR） */
     public IslandPermissionLevel getPlayerRoleOnIsland(UUID playerUuid, int islandId) {
         Island island = islandsById.get(islandId);
         if (island != null) {

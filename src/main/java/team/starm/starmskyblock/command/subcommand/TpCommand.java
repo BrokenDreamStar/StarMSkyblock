@@ -39,7 +39,8 @@ public class TpCommand extends SubCommand {
                     if (byId.isPresent()) {
                         matchingIslands = List.of(byId.get());
                     }
-                } catch (NumberFormatException ignored) {}
+                } catch (NumberFormatException ignored) {
+                }
             }
             if (matchingIslands.isEmpty()) {
                 MessageUtil.sendMessage(player, "&c未找到名称为 &e" + islandName + " &c的岛屿！");
@@ -107,18 +108,18 @@ public class TpCommand extends SubCommand {
 
         boolean confirmed = args.length > confirmArgIndex && args[confirmArgIndex].equalsIgnoreCase("confirm");
         if (!isLocationSafe(spawnLocation) && !confirmed) {
-            MessageUtil.sendMessage(player, "&c警告：该岛屿传送点不安全！脚下可能是空气。");
-            MessageUtil.sendMessage(player, "&c使用 &e/is tp " + islandName + " confirm &c强制传送（可能摔落）。");
+            MessageUtil.sendMessage(player, "&c警告：该岛屿传送点不安全！");
+            MessageUtil.sendMessage(player, "&c使用 &e/is tp " + islandName + " confirm &c强制传送");
             return true;
         }
 
         int countdown = plugin.getConfigManager().getTeleportCountdown();
         if (countdown > 0) {
             plugin.getTeleportCountdownListener().startCountdown(player, spawnLocation, countdown,
-                    "&a已传送到岛屿 &e" + targetIsland.getName() + "&a！");
+                    "&a已传送到岛屿 &e" + targetIsland.getName());
         } else {
             player.teleport(spawnLocation);
-            MessageUtil.sendMessage(player, "&a已传送到岛屿 &e" + targetIsland.getName() + "&a！");
+            MessageUtil.sendMessage(player, "&a已传送到" + targetIsland.getName());
         }
         return true;
     }

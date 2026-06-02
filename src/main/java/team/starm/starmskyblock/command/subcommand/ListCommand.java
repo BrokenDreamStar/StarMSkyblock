@@ -18,11 +18,11 @@ public class ListCommand extends SubCommand {
         }
 
         if (args.length < 2) {
-            MessageUtil.sendMessage(player, "&c用法: /is list <next|prev|spawn>");
+            MessageUtil.sendMessage(player, "&c用法: /is list <next|prev|home>");
             return true;
         }
 
-        if (!assertMaxArgs(player, args, 2, "/is list <next|prev|spawn>")) return true;
+        if (!assertMaxArgs(player, args, 2, "/is list <next|prev|home>")) return true;
 
         String action = args[1].toLowerCase();
         int currentPage = expansion.getPlayerPage(player);
@@ -50,8 +50,7 @@ public class ListCommand extends SubCommand {
                 expansion.resetPlayerPage(player);
                 MessageUtil.sendMessage(player, "&a已返回第 1 页，共 &e" + totalPages + " &a页");
             }
-            default ->
-                MessageUtil.sendMessage(player, "&c用法: /is list <next|prev|spawn>");
+            default -> MessageUtil.sendMessage(player, "&c用法: /is list <next|prev|home>");
         }
 
         return true;

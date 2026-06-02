@@ -95,7 +95,7 @@ public class InvitationManager {
     }
 
     /**
-     * 接受邀请：将玩家以 MEMBER 角色加入岛屿并传送。
+     * 接受邀请：将玩家以 MEMBER 权限组加入岛屿并传送。
      * 如果玩家已有岛屿或邀请已过期则拒绝。
      *
      * @return true 加入成功

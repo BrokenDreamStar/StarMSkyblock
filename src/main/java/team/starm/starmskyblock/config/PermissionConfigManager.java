@@ -20,9 +20,9 @@ import java.util.Set;
 
 /**
  * 权限配置文件（permissions.yml）管理器。
- * 采用继承式权限模型：每个角色可以指定从哪个父角色继承权限，
+ * 采用继承式权限模型：每个权限组可以指定从哪个父权限组继承权限，
  * 再额外添加（additional）和排除（excluded）特定权限。
- * OWNER 角色强制拥有所有权限。支持 ALL 通配权限。
+ * OWNER 权限组强制拥有所有权限。支持 ALL 通配权限。
  * 首次启动时自动从 jar 包释放默认 permissions.yml。
  */
 public class PermissionConfigManager {
@@ -150,7 +150,7 @@ public class PermissionConfigManager {
 
     /**
      * 计算每个权限的初始最低等级（岛屿创建时使用）
-     * 遍历角色从低到高，找到能拥有该权限的最低角色等级
+     * 遍历权限组从低到高，找到能拥有该权限的最低权限组等级
      */
     public Map<IslandPermission, Integer> getDefaultMinLevels() {
         Map<IslandPermission, Integer> levels = new HashMap<>();

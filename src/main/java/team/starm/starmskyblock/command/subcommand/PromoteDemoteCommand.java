@@ -27,7 +27,7 @@ public class PromoteDemoteCommand extends SubCommand {
 
         Island island = optionalIsland.get();
         if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.SET_ROLE)) {
-            MessageUtil.sendMessage(player, "&c你没有权限管理成员角色！");
+            MessageUtil.sendMessage(player, "&c你没有权限管理成员权限组！");
             return true;
         }
 
@@ -72,7 +72,7 @@ public class PromoteDemoteCommand extends SubCommand {
                 case MEMBER -> newRole = IslandPermissionLevel.MOD;
                 case MOD -> newRole = IslandPermissionLevel.ADMIN;
                 case ADMIN -> {
-                    MessageUtil.sendMessage(player, "&c该玩家已经是最高角色！");
+                    MessageUtil.sendMessage(player, "&c该玩家已经是最高权限组！");
                     return true;
                 }
                 default -> {
@@ -85,7 +85,7 @@ public class PromoteDemoteCommand extends SubCommand {
                 case ADMIN -> newRole = IslandPermissionLevel.MOD;
                 case MOD -> newRole = IslandPermissionLevel.MEMBER;
                 case MEMBER -> {
-                    MessageUtil.sendMessage(player, "&c该玩家已经是最低角色！");
+                    MessageUtil.sendMessage(player, "&c该玩家已经是最低权限组！");
                     return true;
                 }
                 default -> {
@@ -101,7 +101,7 @@ public class PromoteDemoteCommand extends SubCommand {
             Player targetPlayer = Bukkit.getPlayer(targetUuid);
             if (targetPlayer != null) {
                 MessageUtil.sendMessage(targetPlayer,
-                        "&a你的岛屿角色已被 &e" + player.getName() + " &a" + action + "为 &e" + newRole.getDisplayName());
+                        "&a你的岛屿权限组已被 &e" + player.getName() + " &a" + action + "为 &e" + newRole.getDisplayName());
             }
         } else {
             MessageUtil.sendMessage(player, "&c操作失败，请稍后重试。");
