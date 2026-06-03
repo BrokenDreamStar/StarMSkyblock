@@ -37,6 +37,7 @@ public enum IslandPermission {
     REMOVE_COOP("移除合作者"),
     SET_SPAWN("设置传送点"),
     SET_BIOME("设置生物群系"),
+    SET_GENERATOR("设置岛屿刷石机"),
 
     // ====================== 物品丢弃/拾取 ======================
     ITEM_DROP("丢弃物品"),
@@ -174,7 +175,7 @@ public enum IslandPermission {
         return switch (this) {
             case RENAME_ISLAND, EDIT_PERMISSIONS, EDIT_SETTINGS,
                  INVITE_MEMBER, REMOVE_MEMBER, SET_ROLE, INVITE_COOP, REMOVE_COOP,
-                 SET_SPAWN, SET_BIOME -> true;
+                 SET_SPAWN, SET_BIOME, SET_GENERATOR -> true;
             default -> false;
         };
     }

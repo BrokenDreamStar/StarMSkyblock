@@ -152,6 +152,7 @@ ADMIN:
     - SET_ROLE # 设置成员角色
     - EDIT_PERMISSIONS # 修改岛屿权限
     - EDIT_SETTINGS # 修改岛屿设置
+    - SET_GENERATOR # 修改岛屿刷石机设置
   excluded: [ ]
 
 # 合作者

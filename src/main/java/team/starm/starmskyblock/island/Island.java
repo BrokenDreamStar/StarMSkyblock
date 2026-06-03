@@ -102,6 +102,11 @@ public class Island {
     private int level;
 
     /**
+     * 刷石机生成器等级（决定刷石机替换概率，与岛屿等级独立）
+     */
+    private int generatorLevel = 1;
+
+    /**
      * 岛屿功能设置（枚举 → 布尔值），使用 EnumMap 保证紧凑存储
      */
     private final Map<IslandSetting, Boolean> settingValues = new EnumMap<>(IslandSetting.class);
@@ -123,6 +128,11 @@ public class Island {
      * 各项权限的最低等级要求（权限 → 最低等级数值）
      */
     private final Map<IslandPermission, Integer> permissionMinLevels = new HashMap<>();
+
+    /**
+     * 刷石机已禁用的矿石（维度名 → 禁用矿石 Material 名集合）
+     */
+    private final Map<String, Set<String>> disabledGeneratorOres = new HashMap<>();
 
     /**
      * 构造岛屿核心模型（不含名称和结构 ID 的重载版本）。
@@ -211,6 +221,89 @@ public class Island {
 
     public void setLevel(int level) {
         this.level = level;
+    }
+
+    /**
+     * @return 刷石机生成器等级
+     */
+    public int getGeneratorLevel() {
+        return generatorLevel;
+    }
+
+    /**
+     * 设置刷石机生成器等级
+     *
+     * @param generatorLevel 新的生成器等级
+     */
+    public void setGeneratorLevel(int generatorLevel) {
+        this.generatorLevel = generatorLevel;
+    }
+
+    /**
+     * @return 已禁用的刷石机矿石（维度名 → 禁用矿石 Material 名集合），不可变副本
+     */
+    public Map<String, Set<String>> getDisabledGeneratorOres() {
+        Map<String, Set<String>> copy = new HashMap<>();
+        for (var entry : disabledGeneratorOres.entrySet()) {
+            copy.put(entry.getKey(), new HashSet<>(entry.getValue()));
+        }
+        return copy;
+    }
+
+    /**
+     * 切换指定维度中某个矿石的启用/禁用状态。
+     *
+     * @return 操作后的状态：true=启用（不在禁用集中），false=禁用
+     */
+    public boolean toggleGeneratorOre(String dimension, String materialName, Boolean enable) {
+        Set<String> disabled = disabledGeneratorOres.computeIfAbsent(dimension, k -> new HashSet<>());
+        if (enable == null) {
+            // toggle
+            if (disabled.contains(materialName)) {
+                disabled.remove(materialName);
+                if (disabled.isEmpty()) disabledGeneratorOres.remove(dimension);
+                return true;
+            } else {
+                disabled.add(materialName);
+                return false;
+            }
+        } else if (enable) {
+            disabled.remove(materialName);
+            if (disabled.isEmpty()) disabledGeneratorOres.remove(dimension);
+            return true;
+        } else {
+            disabled.add(materialName);
+            return false;
+        }
+    }
+
+    public boolean isGeneratorOreDisabled(String dimension, String materialName) {
+        Set<String> disabled = disabledGeneratorOres.get(dimension);
+        return disabled != null && disabled.contains(materialName);
+    }
+
+    public String getDisabledGeneratorOresJson() {
+        if (disabledGeneratorOres.isEmpty()) return "{}";
+        return new com.google.gson.Gson().toJson(disabledGeneratorOres);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void setDisabledGeneratorOresFromJson(String json) {
+        disabledGeneratorOres.clear();
+        if (json == null || json.isEmpty() || json.equals("{}")) return;
+        try {
+            Map<String, Object> raw = new com.google.gson.Gson().fromJson(json, Map.class);
+            if (raw == null) return;
+            for (var entry : raw.entrySet()) {
+                if (entry.getValue() instanceof java.util.List<?> list) {
+                    Set<String> set = new HashSet<>();
+                    for (Object item : list) {
+                        if (item instanceof String s) set.add(s);
+                    }
+                    if (!set.isEmpty()) disabledGeneratorOres.put(entry.getKey(), set);
+                }
+            }
+        } catch (Exception ignored) {}
     }
 
     public boolean getSetting(IslandSetting setting) {

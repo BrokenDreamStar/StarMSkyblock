@@ -82,6 +82,8 @@ public class IslandManager {
             island.setCenterChunkZ(row.centerZ());
             island.setMaxRadius(configManager.getIslandMaxRadius());
             island.setLevel(row.level());
+            island.setGeneratorLevel(row.generatorLevel());
+            island.setDisabledGeneratorOresFromJson(row.generatorDisabled());
             island.setCreatedAt(row.createdAt());
             island.setNetherUnlocked(row.netherUnlocked());
             island.setSettingsFromJson(row.settings());
@@ -173,7 +175,8 @@ public class IslandManager {
 
         islandRepo.insertIsland(islandId, island.getName(), ownerId, island.getLevel(),
                 defaultRadius, island.getCenterChunkX(), island.getCenterChunkZ(),
-                island.getPermissionsJson(), island.getSettingsJson());
+                island.getPermissionsJson(), island.getSettingsJson(),
+                island.getGeneratorLevel());
 
         islandsById.put(islandId, island);
         islandsByOwner.put(ownerId, island);
@@ -465,6 +468,27 @@ public class IslandManager {
         if (island != null && island.getMembers().containsKey(memberUuid)) {
             islandRepo.updateMemberRole(islandId, memberUuid, newRole.name());
             island.setMemberRole(memberUuid, newRole);
+            return true;
+        }
+        return false;
+    }
+
+    /** 更新岛屿刷石机等级，同步写库 */
+    public boolean updateIslandGeneratorLevel(int islandId, int generatorLevel) {
+        Island island = islandsById.get(islandId);
+        if (island != null) {
+            island.setGeneratorLevel(generatorLevel);
+            islandRepo.updateGeneratorLevel(islandId, generatorLevel);
+            return true;
+        }
+        return false;
+    }
+
+    /** 更新岛屿刷石机禁用矿石配置，同步写库 */
+    public boolean updateIslandGeneratorDisabled(int id, String json) {
+        Island island = islandsById.get(id);
+        if (island != null) {
+            islandRepo.updateGeneratorDisabled(id, json);
             return true;
         }
         return false;

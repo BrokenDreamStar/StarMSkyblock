@@ -11,7 +11,10 @@ import java.nio.file.StandardCopyOption;
 
 import team.starm.starmskyblock.command.AdminCommand;
 import team.starm.starmskyblock.config.ConfigManager;
+import team.starm.starmskyblock.config.GeneratorConfigManager;
 import team.starm.starmskyblock.config.PermissionConfigManager;
+import team.starm.starmskyblock.config.SettingsConfigManager;
+import team.starm.starmskyblock.config.SignConfigManager;
 import team.starm.starmskyblock.database.IslandRepository;
 import team.starm.starmskyblock.database.PlayerRepository;
 import team.starm.starmskyblock.database.SQLiteManager;
@@ -21,12 +24,11 @@ import team.starm.starmskyblock.island.InvitationManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.listener.BlockPlaceListener;
 import team.starm.starmskyblock.listener.BorderListener;
+import team.starm.starmskyblock.listener.CobblestoneGeneratorListener;
 import team.starm.starmskyblock.listener.EndProtectionListener;
 import team.starm.starmskyblock.listener.PortalListener;
 import team.starm.starmskyblock.listener.TeleportCountdownListener;
 import team.starm.starmskyblock.setting.IslandSettingManager;
-import team.starm.starmskyblock.config.SettingsConfigManager;
-import team.starm.starmskyblock.config.SignConfigManager;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.placeholder.SkyblockExpansion;
 import team.starm.starmskyblock.message.MessageUtil;
@@ -54,6 +56,7 @@ public class StarMSkyblock extends JavaPlugin {
     private PermissionConfigManager permissionConfigManager;
     private SettingsConfigManager settingsConfigManager;
     private SignConfigManager signConfigManager;
+    private GeneratorConfigManager generatorConfigManager;
 
     // ========== 数据与生成 ==========
     private SQLiteManager sqliteManager;
@@ -145,6 +148,9 @@ public class StarMSkyblock extends JavaPlugin {
 
         signConfigManager = new SignConfigManager(this);
         signConfigManager.initialize();
+
+        generatorConfigManager = new GeneratorConfigManager(this);
+        generatorConfigManager.initialize();
     }
 
     private void initDatabase() {
@@ -223,6 +229,12 @@ public class StarMSkyblock extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new EndProtectionListener(worldManager), this);
 
         getServer().getPluginManager().registerEvents(new BlockPlaceListener(worldManager, configManager), this);
+
+        if (generatorConfigManager.isEnabled()) {
+            getServer().getPluginManager().registerEvents(
+                    new CobblestoneGeneratorListener(generatorConfigManager, islandManager, worldManager), this);
+            MessageUtil.consolePrint("已注册刷石机监听器");
+        }
     }
 
     private void registerCommands() {
@@ -235,6 +247,7 @@ public class StarMSkyblock extends JavaPlugin {
         if (getCommand("is") != null) {
             team.starm.starmskyblock.command.IslandCommand islandCmd =
                     new team.starm.starmskyblock.command.IslandCommand(this);
+            islandCmd.registerCommands();
             getCommand("is").setExecutor(islandCmd);
             getCommand("is").setTabCompleter(islandCmd);
         }
@@ -272,6 +285,10 @@ public class StarMSkyblock extends JavaPlugin {
 
     public SignConfigManager getSignConfigManager() {
         return signConfigManager;
+    }
+
+    public GeneratorConfigManager getGeneratorConfigManager() {
+        return generatorConfigManager;
     }
 
     public SQLiteManager getSqliteManager() {

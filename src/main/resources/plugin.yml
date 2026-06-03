@@ -17,7 +17,7 @@ commands:
     permission: skyblock.is
   isadmin:
     description: 空岛管理员命令
-    usage: /isadmin setradius <id> <radius>
+    usage: /isadmin setradius <island-id> <radius>
     permission: skyblock.admin
 
 permissions:

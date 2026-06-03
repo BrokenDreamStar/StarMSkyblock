@@ -116,10 +116,10 @@ public class TpCommand extends SubCommand {
         int countdown = plugin.getConfigManager().getTeleportCountdown();
         if (countdown > 0) {
             plugin.getTeleportCountdownListener().startCountdown(player, spawnLocation, countdown,
-                    "&a已传送到岛屿 &e" + targetIsland.getName());
+                    "&a已传送到&r" + targetIsland.getName());
         } else {
             player.teleport(spawnLocation);
-            MessageUtil.sendMessage(player, "&a已传送到" + targetIsland.getName());
+            MessageUtil.sendMessage(player, "&a已传送到&r" + targetIsland.getName());
         }
         return true;
     }

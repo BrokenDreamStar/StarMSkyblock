@@ -10,8 +10,14 @@ import team.starm.starmskyblock.placeholder.handler.IslandListHandler;
 import team.starm.starmskyblock.placeholder.handler.PermissionHandler;
 import team.starm.starmskyblock.placeholder.handler.SettingsHandler;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+
+import team.starm.starmskyblock.config.GeneratorConfigManager;
+import team.starm.starmskyblock.util.OreDisplayName;
 
 public class SkyblockExpansion extends PlaceholderExpansion {
 
@@ -111,6 +117,13 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                 return getIslandLevelHere(islandManager, chunkX, chunkZ);
             }
 
+            if (params.equalsIgnoreCase("generator_level_here")) {
+                if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
+                    return "&f-";
+                }
+                return getGeneratorLevelHere(islandManager, chunkX, chunkZ);
+            }
+
             if (params.equalsIgnoreCase("dimension")) {
                 return switch (player.getWorld().getEnvironment()) {
                     case NORMAL -> "主世界";
@@ -154,6 +167,25 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                 }
 
                 return String.valueOf(islandOpt.get().getLevel());
+            }
+
+            if (params.equalsIgnoreCase("generator_level")) {
+
+                Optional<Island> islandOpt =
+                        islandManager.getIslandByPlayer(player.getUniqueId());
+
+                if (islandOpt.isEmpty()) {
+                    return "&f-";
+                }
+
+                return String.valueOf(islandOpt.get().getGeneratorLevel());
+            }
+
+            if (params.startsWith("generator_")) {
+                String dim = params.substring("generator_".length()).toLowerCase();
+                if (Set.of("normal", "end", "nether").contains(dim)) {
+                    return buildGeneratorDimensionString(player, dim);
+                }
             }
 
             if (params.regionMatches(
@@ -307,6 +339,32 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         return "&f-";
     }
 
+    private String getGeneratorLevelHere(
+            IslandManager islandManager,
+            int chunkX,
+            int chunkZ
+    ) {
+        try {
+            Optional<Island> islandOpt =
+                    islandManager.getIslandAt(chunkX, chunkZ);
+
+            if (islandOpt.isEmpty()) {
+                islandOpt =
+                        islandManager.getIslandAtMaxRange(chunkX, chunkZ);
+            }
+
+            if (islandOpt.isEmpty()) {
+                return "&f-";
+            }
+
+            return String.valueOf(islandOpt.get().getGeneratorLevel());
+
+        } catch (Throwable ignored) {
+        }
+
+        return "&f-";
+    }
+
     private String getPlayerOwnIslandName(
             IslandManager islandManager,
             UUID playerUuid
@@ -333,6 +391,44 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         }
 
         return null;
+    }
+
+    private String buildGeneratorDimensionString(Player player, String dim) {
+        Optional<Island> islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+        if (islandOpt.isEmpty()) return "&f-";
+
+        Island island = islandOpt.get();
+        GeneratorConfigManager.GeneratorTier tier = plugin.getGeneratorConfigManager()
+                .getTier(island.getGeneratorLevel());
+
+        Map<String, Integer> rates = switch (dim) {
+            case "normal" -> tier.normal();
+            case "end" -> tier.end();
+            case "nether" -> tier.nether();
+            default -> Map.of();
+        };
+        if (rates.isEmpty()) return "&f-";
+
+        Map<String, Boolean> enabledMap = new LinkedHashMap<>();
+        Set<String> disabled = island.getDisabledGeneratorOres().get(dim);
+        int totalWeight = 0;
+        for (int w : rates.values()) totalWeight += w;
+
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, Integer> entry : rates.entrySet()) {
+            String material = entry.getKey();
+            int weight = entry.getValue();
+            double pct = totalWeight > 0 ? (weight * 100.0 / totalWeight) : 0;
+            boolean enabled = disabled == null || !disabled.contains(material);
+
+            if (!sb.isEmpty()) sb.append("\n");
+            sb.append("&7- &f").append(OreDisplayName.toChinese(material));
+            sb.append("&7: ");
+            sb.append(String.format("%.1f%% ", pct));
+            sb.append(enabled ? "&a✓" : "&c✗");
+        }
+
+        return sb.toString();
     }
 
     private String getPlayerOwnRole(

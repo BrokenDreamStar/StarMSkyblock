@@ -29,7 +29,8 @@ public class IslandRepository {
 
     public record IslandRow(int id, UUID ownerUuid, String name, int level, int radius,
                             int centerX, int centerZ, String permissions, String settings,
-                            String homeData, String createdAt, boolean netherUnlocked) {}
+                            String homeData, String createdAt, boolean netherUnlocked,
+                            int generatorLevel, String generatorDisabled) {}
 
     public record MemberRow(int islandId, UUID playerUuid, String role) {}
 
@@ -38,7 +39,7 @@ public class IslandRepository {
     // ==================== 批量加载 ====================
 
     public List<IslandRow> loadAllIslands() {
-        String sql = "SELECT id, owner_uuid, name, level, radius, center_x, center_z, permissions, settings, home_data, created_at, nether_unlocked FROM islands";
+        String sql = "SELECT id, owner_uuid, name, level, radius, center_x, center_z, permissions, settings, home_data, created_at, nether_unlocked, generator_level, generator_disabled FROM islands";
         List<IslandRow> rows = new ArrayList<>();
         synchronized (dbLock) {
             Connection conn = sqliteManager.getConnection();
@@ -57,7 +58,9 @@ public class IslandRepository {
                             rs.getString("settings"),
                             rs.getString("home_data"),
                             rs.getString("created_at"),
-                            rs.getInt("nether_unlocked") == 1
+                            rs.getInt("nether_unlocked") == 1,
+                            rs.getInt("generator_level"),
+                            rs.getString("generator_disabled")
                     ));
                 }
             } catch (SQLException e) {
@@ -115,7 +118,13 @@ public class IslandRepository {
 
     public void insertIsland(int id, String name, UUID ownerUuid, int level, int radius,
                              int centerX, int centerZ, String permissionsJson, String settingsJson) {
-        String sql = "INSERT INTO islands (id, name, owner_uuid, level, radius, center_x, center_z, permissions, settings) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        insertIsland(id, name, ownerUuid, level, radius, centerX, centerZ, permissionsJson, settingsJson, 1);
+    }
+
+    public void insertIsland(int id, String name, UUID ownerUuid, int level, int radius,
+                             int centerX, int centerZ, String permissionsJson, String settingsJson,
+                             int generatorLevel) {
+        String sql = "INSERT INTO islands (id, name, owner_uuid, level, radius, center_x, center_z, permissions, settings, generator_level, generator_disabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         synchronized (dbLock) {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -128,6 +137,8 @@ public class IslandRepository {
                 pstmt.setInt(7, centerZ);
                 pstmt.setString(8, permissionsJson);
                 pstmt.setString(9, settingsJson);
+                pstmt.setInt(10, generatorLevel);
+                pstmt.setString(11, "{}");
                 pstmt.executeUpdate();
             } catch (SQLException e) {
                 MessageUtil.consoleError("保存新岛屿到数据库失败！");
@@ -177,6 +188,36 @@ public class IslandRepository {
                 pstmt.executeUpdate();
             } catch (SQLException e) {
                 MessageUtil.consoleError("更新岛屿名称到数据库失败！ID: " + id);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void updateGeneratorLevel(int id, int generatorLevel) {
+        String sql = "UPDATE islands SET generator_level = ? WHERE id = ?";
+        synchronized (dbLock) {
+            Connection conn = sqliteManager.getConnection();
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, generatorLevel);
+                pstmt.setInt(2, id);
+                pstmt.executeUpdate();
+            } catch (SQLException e) {
+                MessageUtil.consoleError("更新岛屿刷石机等级到数据库失败！ID: " + id);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void updateGeneratorDisabled(int id, String json) {
+        String sql = "UPDATE islands SET generator_disabled = ? WHERE id = ?";
+        synchronized (dbLock) {
+            Connection conn = sqliteManager.getConnection();
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, json);
+                pstmt.setInt(2, id);
+                pstmt.executeUpdate();
+            } catch (SQLException e) {
+                MessageUtil.consoleError("更新岛屿刷石机禁用矿石到数据库失败！ID: " + id);
                 e.printStackTrace();
             }
         }

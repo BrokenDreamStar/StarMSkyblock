@@ -1,0 +1,107 @@
+# 岛屿刷石机配置文件
+#
+# 当岩浆遇水生成圆石/石头（主世界、末地）或玄武岩（下界）时，
+# 按概率权重随机替换为其他方块。概率基于岛屿的 generator-level。
+#
+# levels 下的 key 为最低生成器等级门槛，取最高匹配等级。
+# 每个等级配置包含三种维度的替换表：
+#   normal — 主世界（生成圆石/石头时替换）
+#   end    — 末地（生成圆石/石头时替换）
+#   nether — 下界（生成玄武岩时替换）
+#
+# 权重制：每个方块的数值代表相对权重，实际概率 = 该方块权重 / 总权重 × 100%
+
+# 是否启用
+enabled: true
+
+# Y0 以下深板岩替换（仅主世界维度生效）
+# 当刷石机产物为圆石或石头且 Y < y-threshold 时，
+# 圆石 → 深板岩圆石，石头 → 深板岩
+deepslate:
+  enabled: true
+  y-threshold: 0
+
+levels:
+  1:
+    normal:
+      COBBLESTONE: 85
+      STONE: 10
+      COAL_ORE: 3
+      COPPER_ORE: 2
+    nether:
+      BASALT: 90
+      NETHERRACK: 10
+    end:
+      END_STONE: 100
+
+  2:
+    normal:
+      COBBLESTONE: 76
+      STONE: 10
+      COAL_ORE: 5
+      COPPER_ORE: 4
+      IRON_ORE: 3
+      LAPIS_ORE: 2
+    nether:
+      BASALT: 85
+      NETHER_QUARTZ_ORE: 10
+      SOUL_SOIL: 5
+    end:
+      END_STONE: 100
+
+  3:
+    normal:
+      COBBLESTONE: 62
+      STONE: 10
+      COAL_ORE: 7
+      COPPER_ORE: 6
+      IRON_ORE: 5
+      LAPIS_ORE: 4
+      GOLD_ORE: 2
+      REDSTONE_ORE: 3
+      DIAMOND_ORE: 0.7
+      EMERALD_ORE: 0.3
+    nether:
+      BASALT: 85
+      NETHER_QUARTZ_ORE: 10
+      SOUL_SOIL: 5
+    end:
+      END_STONE: 100
+
+  4:
+    normal:
+      COBBLESTONE: 51
+      STONE: 10
+      COAL_ORE: 7
+      COPPER_ORE: 7
+      IRON_ORE: 7
+      LAPIS_ORE: 6
+      GOLD_ORE: 5
+      REDSTONE_ORE: 5
+      DIAMOND_ORE: 1.4
+      EMERALD_ORE: 0.6
+    nether:
+      BASALT: 85
+      NETHER_QUARTZ_ORE: 10
+      SOUL_SOIL: 5
+    end:
+      END_STONE: 100
+
+  5:
+    normal:
+      COBBLESTONE: 47
+      STONE: 10
+      COAL_ORE: 7
+      COPPER_ORE: 7
+      IRON_ORE: 7
+      LAPIS_ORE: 6
+      GOLD_ORE: 6
+      REDSTONE_ORE: 6.5
+      DIAMOND_ORE: 2.3
+      EMERALD_ORE: 1.2
+    nether:
+      BASALT: 85
+      NETHER_QUARTZ_ORE: 10
+      SOUL_SOIL: 5
+    end:
+      END_STONE: 100

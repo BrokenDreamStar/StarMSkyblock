@@ -152,12 +152,16 @@ public class SQLiteManager {
             boolean hasSettings = false;
             boolean hasPermissions = false;
             boolean hasNetherUnlocked = false;
+            boolean hasGeneratorLevel = false;
+            boolean hasGeneratorDisabled = false;
             while (rs.next()) {
                 String colName = rs.getString("name");
                 if ("level".equalsIgnoreCase(colName)) hasLevel = true;
                 if ("settings".equalsIgnoreCase(colName)) hasSettings = true;
                 if ("permissions".equalsIgnoreCase(colName)) hasPermissions = true;
                 if ("nether_unlocked".equalsIgnoreCase(colName)) hasNetherUnlocked = true;
+                if ("generator_level".equalsIgnoreCase(colName)) hasGeneratorLevel = true;
+                if ("generator_disabled".equalsIgnoreCase(colName)) hasGeneratorDisabled = true;
             }
             rs.close();
             if (!hasLevel) {
@@ -175,6 +179,14 @@ public class SQLiteManager {
             if (!hasNetherUnlocked) {
                 stmt.execute("ALTER TABLE islands ADD COLUMN nether_unlocked INTEGER DEFAULT 0");
                 MessageUtil.consolePrint("数据库迁移：已添加 nether_unlocked 列到 islands 表。");
+            }
+            if (!hasGeneratorLevel) {
+                stmt.execute("ALTER TABLE islands ADD COLUMN generator_level INTEGER DEFAULT 1");
+                MessageUtil.consolePrint("数据库迁移：已添加 generator_level 列到 islands 表。");
+            }
+            if (!hasGeneratorDisabled) {
+                stmt.execute("ALTER TABLE islands ADD COLUMN generator_disabled TEXT DEFAULT '{}'");
+                MessageUtil.consolePrint("数据库迁移：已添加 generator_disabled 列到 islands 表。");
             }
 
             stmt.execute("DROP TABLE IF EXISTS island_permissions");
