@@ -178,6 +178,9 @@ public class IslandManager {
                 island.getPermissionsJson(), island.getSettingsJson(),
                 island.getGeneratorLevel());
 
+        island.setCreatedAt(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                .format(new java.util.Date()));
+
         islandsById.put(islandId, island);
         islandsByOwner.put(ownerId, island);
         memberToIslandIndex.put(ownerId, islandId);
