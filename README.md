@@ -10,7 +10,7 @@
 | **API 版本**  | 26.1.2 (Paper 1.26.x)                  |
 | **Java 版本** | 21+ (工具链: 25)                          |
 | **加载时机**    | POSTWORLD                              |
-| **软依赖**     | PlaceholderAPI, WorldEdit/FAWE, TrMenu |
+| **软依赖**     | PlaceholderAPI, WorldEdit/FAWE, TrMenu, Vault |
 | **构建工具**    | Gradle (Shadow JAR)                    |
 | **输出文件**    | `build/libs/StarMSkyblock.jar`         |
 
@@ -30,7 +30,8 @@
 2. 确保已安装 **WorldEdit** 或 **FastAsyncWorldEdit**（必需）
 3. （可选）安装 **PlaceholderAPI** 以使用变量占位符
 4. （可选）安装 **TrMenu** 以使用菜单桥接功能
-5. 重启服务器
+5. （可选）安装 **Vault** 以使用经济升级功能
+6. 重启服务器
 
 ### 配置文件
 
@@ -42,6 +43,7 @@
 | `permissions.yml` | 权限组定义：MEMBER / MOD / ADMIN / COOP / VISITOR 每个角色的权限集（支持继承）                             |
 | `settings.yml`    | 岛屿默认设置：PVP、传送、生物生成、火势蔓延、爆炸破坏等开关                                                        |
 | `generator.yml`   | 岛屿刷石机配置：等级阈值、各维度概率权重表、深板岩替换开关、启用/禁用控制                                               |
+| `upgrades.yml`    | 岛屿升级配置：范围升级与刷石机升级的等级目标及费用                                                     |
 | `sign.yml`        | 岛屿出生点告示牌文本模板（支持 PAPI 变量）                                                               |
 | `schematics/`     | 岛屿结构文件（`.schem`），内置 `default.schem` / `default_nether.schem` / `default_the_end.schem` |
 
@@ -79,6 +81,9 @@
 | `permission <perm> <level>`                       | 修改权限所需的最低角色等级             |
 | `setbiome <biome>`                                | 设置岛屿整体生物群系                |
 | `setchunkbiome <biome>`                           | 设置当前区块生物群系                |
+| `upgrade`                                         | 查看岛屿升级信息                   |
+| `upgrade radius`                                  | 升级岛屿范围（消耗 Vault 货币）         |
+| `upgrade generator`                               | 升级刷石机等级（消耗 Vault 货币）        |
 
 `/is` 无参数时默认执行 `/is spawn`（可通过 `config.yml` 的 `default-island-command` 修改）。
 
@@ -120,6 +125,50 @@
 | 3  | +金矿 2%, 红石 3%, 钻石 0.7%, 绿宝石 0.3% | +下界金矿 5%, 下界石英 5%                          | +沙子 10%    |
 | 4  | 概率上调                                    | +镶金黑石 1%                                      | 沙子 20%     |
 | 5  | 概率继续上调                                 | +远古残骸 0.5%                                    | 沙子 30%     |
+
+## 升级系统
+
+在安装 Vault 经济插件的前提下，岛屿成员可通过消耗货币升级岛屿功能。
+
+### 命令
+
+| 命令                      | 说明         |
+|-------------------------|------------|
+| `/is upgrade`           | 查看当前升级信息  |
+| `/is upgrade radius`    | 升级岛屿范围    |
+| `/is upgrade generator` | 升级刷石机等级   |
+
+仅岛主可执行升级操作，权限位于 `MANAGEMENT` 类（`SET_GENERATOR` 级别）。
+
+### 配置文件 (`upgrades.yml`)
+
+```yaml
+# 岛屿范围升级
+island-radius-upgrades:
+  1:
+    radius: 10       # 目标半径（区块）
+    money: 10000.0   # 费用
+  2:
+    radius: 15
+    money: 20000.0
+
+# 刷石机等级升级
+generator-upgrades:
+  1:
+    generator-level: 2   # 目标等级
+    money: 15000.0
+  2:
+    generator-level: 3
+    money: 25000.0
+  3:
+    generator-level: 4
+    money: 50000.0
+  4:
+    generator-level: 5
+    money: 100000.0
+```
+
+升级采用阶梯配置，每个升级项包含目标值和费用。范围升级的目标半径不得超过 `config.yml` 中的 `island-max-radius`，刷石机等级不得超过 `generator.yml` 的最大等级。
 
 ## 权限系统
 
@@ -207,6 +256,10 @@ StarMSkyblock 拥有精细的权限体系，每种操作（如破坏方块、打
 | `%starmskyblock_permission_<perm>_level_<role>%`          | 某角色是否拥有某权限                                                        |
 | `%starmskyblock_haspermission_<perm>%`                    | 玩家是否拥有某权限（布尔值）                                                    |
 | `%starmskyblock_islandsettings_<setting>%`                | 岛屿设置的开关状态（yes/no）                                                 |
+| `%starmskyblock_upgrades_generator_next_level_money%`     | 刷石机下一级所需费用（已达最高级时提示）                                              |
+| `%starmskyblock_upgrades_island_radius_next_level_money%` | 范围下一级所需费用（已达最高级时提示）                                                |
+| `%starmskyblock_upgrades_generator_has_money%`            | 玩家是否有足够余额升级下一级刷石机（true/false）                                        |
+| `%starmskyblock_upgrades_island_radius_has_money%`        | 玩家是否有足够余额升级下一级范围（true/false）                                          |
 
 ## TrMenu 集成
 
@@ -239,6 +292,7 @@ StarMSkyblock
 │   ├── PermissionConfigManager.java — permissions.yml
 │   ├── SettingsConfigManager.java   — settings.yml
 │   ├── GeneratorConfigManager.java  — generator.yml（刷石机等级与概率权重）
+│   ├── UpgradeConfigManager.java    — upgrades.yml（升级等级与费用）
 │   └── SignConfigManager.java       — sign.yml
 ├── database/                   — SQLite 持久层
 │   ├── SQLiteManager.java      — 连接管理与表迁移
