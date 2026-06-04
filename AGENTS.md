@@ -54,6 +54,10 @@
 - `/is permission` 单独委托给 `IslandPermissionCommand`
 - 权限 12 域 + 设置 6 域，各自由独立 Manager 类处理对应 Bukkit 事件
 
+## Git Workflow
+
+- **每次任务完成立即提交 git。** 先 `git add -A` 暂存所有变更，再用 `git commit -m "type: 描述"` 提交。提交信息使用中文，遵循现有 commit history 的风格（如 `feat:` / `refactor:` / `docs:` / `fix:` 前缀）。
+
 ## README Reference
 
 `README.md`（327 行）是详细文档源，涵盖：
