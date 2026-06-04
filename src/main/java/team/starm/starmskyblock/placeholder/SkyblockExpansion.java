@@ -181,11 +181,79 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                 return String.valueOf(islandOpt.get().getGeneratorLevel());
             }
 
-            if (params.startsWith("generator_")) {
-                String dim = params.substring("generator_".length()).toLowerCase();
-                if (Set.of("normal", "end", "nether").contains(dim)) {
-                    return buildGeneratorDimensionString(player, dim);
+            if (params.startsWith("generator_level_next_")) {
+                String dim = params.substring("generator_level_next_".length()).toLowerCase();
+                if (!Set.of("normal", "nether", "end").contains(dim)) return "&f-";
+
+                Optional<Island> islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+                if (islandOpt.isEmpty()) return "&f-";
+
+                GeneratorConfigManager genConfig = plugin.getGeneratorConfigManager();
+                int currentLevel = islandOpt.get().getGeneratorLevel();
+                Optional<GeneratorConfigManager.GeneratorTier> nextTierOpt = genConfig.getNextTier(currentLevel);
+                if (nextTierOpt.isEmpty()) return "&f已达到最高等级";
+
+                GeneratorConfigManager.GeneratorTier nextTier = nextTierOpt.get();
+                Map<String, Double> rates = switch (dim) {
+                    case "normal" -> nextTier.normal();
+                    case "nether" -> nextTier.nether();
+                    case "end" -> nextTier.end();
+                    default -> Map.of();
+                };
+                if (rates.isEmpty()) return "&f-";
+                return buildDimensionRatesString(rates);
+            }
+
+            if (params.equalsIgnoreCase("generator_level_next")) {
+                Optional<Island> islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+                if (islandOpt.isEmpty()) return "&f-";
+
+                GeneratorConfigManager genConfig = plugin.getGeneratorConfigManager();
+                int currentLevel = islandOpt.get().getGeneratorLevel();
+                Optional<GeneratorConfigManager.GeneratorTier> nextTierOpt = genConfig.getNextTier(currentLevel);
+                if (nextTierOpt.isEmpty()) return "&f已达到最高等级";
+
+                return buildGeneratorLevelString(nextTierOpt.get());
+            }
+
+            if (params.startsWith("generator_level_")) {
+                String rest = params.substring("generator_level_".length());
+                String[] parts = rest.split("_", 2);
+                try {
+                    int level = Integer.parseInt(parts[0]);
+                    GeneratorConfigManager genConfig = plugin.getGeneratorConfigManager();
+                    if (level < 1 || level > genConfig.getMaxLevel()) return "&f-";
+
+                    GeneratorConfigManager.GeneratorTier tier = genConfig.getTier(level);
+
+                    if (parts.length == 1) {
+                        return buildGeneratorLevelString(tier);
+                    }
+
+                    String dim = parts[1].toLowerCase();
+                    Map<String, Double> rates = switch (dim) {
+                        case "normal" -> tier.normal();
+                        case "nether" -> tier.nether();
+                        case "end" -> tier.end();
+                        default -> null;
+                    };
+                    if (rates == null || rates.isEmpty()) return "&f-";
+                    return buildDimensionRatesString(rates);
+                } catch (NumberFormatException e) {
+                    return "&f-";
                 }
+            }
+
+            if (params.startsWith("generator_")) {
+                String rest = params.substring("generator_".length()).toLowerCase();
+
+                // 维度概率请求
+                if (Set.of("normal", "end", "nether").contains(rest)) {
+                    return buildGeneratorDimensionString(player, rest);
+                }
+
+                // 矿石启用状态请求
+                return getGeneratorOreStatus(player, rest);
             }
 
             if (params.regionMatches(
@@ -401,7 +469,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         GeneratorConfigManager.GeneratorTier tier = plugin.getGeneratorConfigManager()
                 .getTier(island.getGeneratorLevel());
 
-        Map<String, Integer> rates = switch (dim) {
+        Map<String, Double> rates = switch (dim) {
             case "normal" -> tier.normal();
             case "end" -> tier.end();
             case "nether" -> tier.nether();
@@ -411,13 +479,13 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
         Map<String, Boolean> enabledMap = new LinkedHashMap<>();
         Set<String> disabled = island.getDisabledGeneratorOres().get(dim);
-        int totalWeight = 0;
-        for (int w : rates.values()) totalWeight += w;
+        double totalWeight = 0;
+        for (double w : rates.values()) totalWeight += w;
 
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, Integer> entry : rates.entrySet()) {
+        for (Map.Entry<String, Double> entry : rates.entrySet()) {
             String material = entry.getKey();
-            int weight = entry.getValue();
+            double weight = entry.getValue();
             double pct = totalWeight > 0 ? (weight * 100.0 / totalWeight) : 0;
             boolean enabled = disabled == null || !disabled.contains(material);
 
@@ -429,6 +497,72 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         }
 
         return sb.toString();
+    }
+
+    private String buildGeneratorLevelString(GeneratorConfigManager.GeneratorTier tier) {
+
+        StringBuilder sb = new StringBuilder();
+        appendDimensionRates(sb, "主世界", tier.normal());
+        sb.append("\n");
+        appendDimensionRates(sb, "下界", tier.nether());
+        sb.append("\n");
+        appendDimensionRates(sb, "末地", tier.end());
+
+        return sb.toString();
+    }
+
+    private void appendDimensionRates(StringBuilder sb, String displayName, Map<String, Double> rates) {
+        if (rates.isEmpty()) return;
+        sb.append("&a▶ ").append(displayName);
+        double totalWeight = 0;
+        for (double w : rates.values()) totalWeight += w;
+        for (Map.Entry<String, Double> entry : rates.entrySet()) {
+            double pct = totalWeight > 0 ? (entry.getValue() * 100.0 / totalWeight) : 0;
+            sb.append("\n  &e").append(OreDisplayName.toChinese(entry.getKey()));
+            sb.append("&7: ").append(String.format("%.1f%%", pct));
+        }
+    }
+
+    private String buildDimensionRatesString(Map<String, Double> rates) {
+        double totalWeight = 0;
+        for (double w : rates.values()) totalWeight += w;
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, Double> entry : rates.entrySet()) {
+            double pct = totalWeight > 0 ? (entry.getValue() * 100.0 / totalWeight) : 0;
+            if (!sb.isEmpty()) sb.append("\n");
+            sb.append("&7- &f").append(OreDisplayName.toChinese(entry.getKey()));
+            sb.append("&7: ").append(String.format("%.1f%%", pct));
+        }
+        return sb.toString();
+    }
+
+    private String getGeneratorOreStatus(Player player, String oreName) {
+        Optional<Island> islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+        if (islandOpt.isEmpty()) return "false";
+
+        Island island = islandOpt.get();
+        GeneratorConfigManager genConfig = plugin.getGeneratorConfigManager();
+        GeneratorConfigManager.GeneratorTier tier = genConfig.getTier(island.getGeneratorLevel());
+
+        String dim = switch (player.getWorld().getEnvironment()) {
+            case NETHER -> "nether";
+            case THE_END -> "end";
+            default -> "normal";
+        };
+
+        Map<String, Double> rates = switch (dim) {
+            case "normal" -> tier.normal();
+            case "nether" -> tier.nether();
+            case "end" -> tier.end();
+            default -> Map.of();
+        };
+
+        String upper = oreName.toUpperCase();
+        String material = rates.containsKey(upper) ? upper : OreDisplayName.toMaterial(oreName);
+        if (material == null || !rates.containsKey(material)) return "false";
+
+        Set<String> disabled = island.getDisabledGeneratorOres().get(dim);
+        return (disabled == null || !disabled.contains(material)) ? "&a是" : "&c否";
     }
 
     private String getPlayerOwnRole(

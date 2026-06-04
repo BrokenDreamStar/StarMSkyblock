@@ -56,6 +56,7 @@ public class ConfigManager {
     private int teleportCountdown; // 岛屿传送倒计时（秒）
     private boolean useFawe; // 是否使用 FAWE 模式
     private String defaultIslandCommand; // /is 无参数时执行的子命令（默认 spawn）
+    private boolean obsidianToLava; // 是否允许空桶右键黑曜石转化为熔岩桶
 
     public ConfigManager(StarMSkyblock plugin) {
         this.plugin = plugin;
@@ -179,6 +180,8 @@ public class ConfigManager {
         this.useFawe = "fawe".equalsIgnoreCase(worldEditMode);
 
         this.defaultIslandCommand = config.getString("default-island-command", "spawn");
+
+        this.obsidianToLava = config.getBoolean("obsidian-to-lava", false);
     }
 
     // ==================== Getter 方法（按功能分类） ====================
@@ -339,6 +342,10 @@ public class ConfigManager {
 
     public String getDefaultIslandCommand() {
         return defaultIslandCommand;
+    }
+
+    public boolean isObsidianToLava() {
+        return obsidianToLava;
     }
 
     /**

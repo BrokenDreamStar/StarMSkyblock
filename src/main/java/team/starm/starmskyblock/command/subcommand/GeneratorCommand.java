@@ -18,7 +18,7 @@ import team.starm.starmskyblock.util.OreDisplayName;
 
 public class GeneratorCommand extends SubCommand {
 
-    private static final List<String> DIMENSIONS = List.of("normal", "end", "nether");
+    private static final List<String> DIMENSIONS = List.of("normal", "nether", "end");
     private static final List<String> TOGGLE_VALUES = List.of("true", "false", "toggle");
     private static final Map<String, String> DIMENSION_DISPLAY = new LinkedHashMap<>();
 
@@ -72,12 +72,54 @@ public class GeneratorCommand extends SubCommand {
             return true;
         }
 
-        // /is generator <维度> <矿石> <true/false/toggle> — 切换矿石
-        if (!DIMENSIONS.contains(dimension)) {
-            MessageUtil.sendMessage(player, "&c无效的维度！可选: normal, end, nether");
+        // /is generator <维度> all <true/false/toggle> — 批量切换所有矿石
+        if (args[2].equalsIgnoreCase("all")) {
+            if (!island.hasPermission(player.getUniqueId(), IslandPermission.SET_GENERATOR)) {
+                MessageUtil.sendMessage(player, "&c你没有权限管理刷石机！");
+                return true;
+            }
+
+            GeneratorConfigManager.GeneratorTier tier = plugin.getGeneratorConfigManager()
+                    .getTier(island.getGeneratorLevel());
+            Map<String, Double> rates = getDimensionRates(tier, dimension);
+            if (rates.isEmpty()) {
+                MessageUtil.sendMessage(player, "&c该维度没有可配置的矿石！");
+                return true;
+            }
+
+            String defaultOre = DIMENSION_DEFAULT_ORE.get(dimension);
+
+            int toggled = 0;
+            if (args.length < 4) {
+                MessageUtil.sendMessage(player, "&c用法: /is generator " + dimension + " all <true/false>");
+                return true;
+            }
+            Boolean enableAll;
+            if (args[3].equalsIgnoreCase("true")) {
+                enableAll = Boolean.TRUE;
+            } else if (args[3].equalsIgnoreCase("false")) {
+                enableAll = Boolean.FALSE;
+            } else {
+                MessageUtil.sendMessage(player, "&c无效的值！可选: true, false");
+                return true;
+            }
+
+            for (String mat : rates.keySet()) {
+                if (mat.equals(defaultOre)) continue;
+                island.toggleGeneratorOre(dimension, mat, enableAll);
+                toggled++;
+            }
+
+            String json = island.getDisabledGeneratorOresJson();
+            plugin.getIslandManager().updateIslandGeneratorDisabled(island.getId(), json);
+
+            String dimDisplay = DIMENSION_DISPLAY.getOrDefault(dimension, dimension);
+            String statusDisplay = enableAll ? "已全部启用" : "已全部禁用";
+            MessageUtil.sendMessage(player, "&a已将 " + dimDisplay + " 的 " + toggled + " 种矿石" + statusDisplay);
             return true;
         }
 
+        // /is generator <维度> <矿石> <true/false/toggle> — 切换单个矿石
         if (!island.hasPermission(player.getUniqueId(), IslandPermission.SET_GENERATOR)) {
             MessageUtil.sendMessage(player, "&c你没有权限管理刷石机！");
             return true;
@@ -85,7 +127,7 @@ public class GeneratorCommand extends SubCommand {
 
         GeneratorConfigManager.GeneratorTier tier = plugin.getGeneratorConfigManager()
                 .getTier(island.getGeneratorLevel());
-        Map<String, Integer> rates = getDimensionRates(tier, dimension);
+        Map<String, Double> rates = getDimensionRates(tier, dimension);
 
         String materialName = resolveOreName(args[2], rates);
         if (materialName == null) {
@@ -147,12 +189,15 @@ public class GeneratorCommand extends SubCommand {
 
             GeneratorConfigManager.GeneratorTier tier = plugin.getGeneratorConfigManager()
                     .getTier(island.getGeneratorLevel());
-            Map<String, Integer> rates = getDimensionRates(tier, dimension);
+            Map<String, Double> rates = getDimensionRates(tier, dimension);
             String defaultOre = DIMENSION_DEFAULT_ORE.get(dimension);
 
             String prefix = args[2];
             String upperPrefix = prefix.toUpperCase();
             List<String> result = new ArrayList<>();
+            if ("all".startsWith(upperPrefix)) {
+                result.add("all");
+            }
             for (String material : rates.keySet()) {
                 // 排除默认产物（不可禁用）
                 if (material.equals(defaultOre)) continue;
@@ -181,7 +226,7 @@ public class GeneratorCommand extends SubCommand {
      *
      * @return 对应的 Material 名，若未匹配则返回 null
      */
-    private String resolveOreName(String input, Map<String, Integer> rates) {
+    private String resolveOreName(String input, Map<String, Double> rates) {
         String upper = input.toUpperCase();
         if (rates.containsKey(upper)) return upper;
         String fromChinese = OreDisplayName.toMaterial(input);
@@ -198,7 +243,7 @@ public class GeneratorCommand extends SubCommand {
         for (String dim : DIMENSIONS) {
             if (targetDim != null && !dim.equals(targetDim)) continue;
 
-            Map<String, Integer> rates = getDimensionRates(tier, dim);
+            Map<String, Double> rates = getDimensionRates(tier, dim);
             if (rates.isEmpty()) continue;
 
             Map<String, Boolean> enabledMap = buildEnabledMap(island, dim, rates);
@@ -206,11 +251,11 @@ public class GeneratorCommand extends SubCommand {
             String display = DIMENSION_DISPLAY.getOrDefault(dim, dim);
             MessageUtil.sendMessage(player, "&b▶ " + dim + " &7(" + display + ")");
 
-            int totalWeight = rates.values().stream().mapToInt(Integer::intValue).sum();
+            double totalWeight = rates.values().stream().mapToDouble(Double::doubleValue).sum();
 
-            for (Map.Entry<String, Integer> entry : rates.entrySet()) {
+            for (Map.Entry<String, Double> entry : rates.entrySet()) {
                 String material = entry.getKey();
-                int weight = entry.getValue();
+                double weight = entry.getValue();
                 double pct = totalWeight > 0 ? (weight * 100.0 / totalWeight) : 0;
                 boolean enabled = enabledMap.getOrDefault(material, true);
 
@@ -227,7 +272,7 @@ public class GeneratorCommand extends SubCommand {
         MessageUtil.sendMessage(player, "&7使用 &e/is generator <维度> <矿石> <true/false/toggle> &7设置矿石是否生成");
     }
 
-    private Map<String, Boolean> buildEnabledMap(Island island, String dim, Map<String, Integer> rates) {
+    private Map<String, Boolean> buildEnabledMap(Island island, String dim, Map<String, Double> rates) {
         Map<String, Boolean> result = new LinkedHashMap<>();
         Set<String> disabled = island.getDisabledGeneratorOres().get(dim);
         for (String ore : rates.keySet()) {
@@ -236,7 +281,7 @@ public class GeneratorCommand extends SubCommand {
         return result;
     }
 
-    private Map<String, Integer> getDimensionRates(GeneratorConfigManager.GeneratorTier tier, String dimension) {
+    private Map<String, Double> getDimensionRates(GeneratorConfigManager.GeneratorTier tier, String dimension) {
         return switch (dimension) {
             case "normal" -> tier.normal();
             case "end" -> tier.end();

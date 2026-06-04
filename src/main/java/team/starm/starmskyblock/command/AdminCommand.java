@@ -156,8 +156,9 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (level <= 0) {
-            MessageUtil.sendMessage(sender, "&c等级必须大于0！");
+        int maxLevel = genConfig.getMaxLevel();
+        if (level < 1 || level > maxLevel) {
+            MessageUtil.sendMessage(sender, "&c等级必须在 1 ~ " + maxLevel + " 之间！");
             return true;
         }
 

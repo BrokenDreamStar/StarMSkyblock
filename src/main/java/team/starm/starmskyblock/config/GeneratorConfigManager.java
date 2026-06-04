@@ -26,9 +26,9 @@ public class GeneratorConfigManager {
     private TreeMap<Integer, GeneratorTier> tiers;
 
     public record GeneratorTier(int minLevel,
-                                Map<String, Integer> normal,
-                                Map<String, Integer> end,
-                                Map<String, Integer> nether) {}
+                                Map<String, Double> normal,
+                                Map<String, Double> end,
+                                Map<String, Double> nether) {}
 
     public GeneratorConfigManager(StarMSkyblock plugin) {
         this.plugin = plugin;
@@ -65,9 +65,9 @@ public class GeneratorConfigManager {
                     ConfigurationSection tierSection = levelsSection.getConfigurationSection(levelKey);
                     if (tierSection == null) continue;
 
-                    Map<String, Integer> normal = readRates(tierSection, "normal");
-                    Map<String, Integer> end = readRates(tierSection, "end");
-                    Map<String, Integer> nether = readRates(tierSection, "nether");
+                    Map<String, Double> normal = readRates(tierSection, "normal");
+                    Map<String, Double> end = readRates(tierSection, "end");
+                    Map<String, Double> nether = readRates(tierSection, "nether");
 
                     tiers.put(minLevel, new GeneratorTier(minLevel, normal, end, nether));
                 } catch (NumberFormatException ignored) {
@@ -76,22 +76,22 @@ public class GeneratorConfigManager {
         }
 
         if (tiers.isEmpty()) {
-            Map<String, Integer> cobbleOnly = new LinkedHashMap<>();
-            cobbleOnly.put("COBBLESTONE", 100);
-            Map<String, Integer> basaltOnly = new LinkedHashMap<>();
-            basaltOnly.put("BASALT", 100);
+            Map<String, Double> cobbleOnly = new LinkedHashMap<>();
+            cobbleOnly.put("COBBLESTONE", 100.0);
+            Map<String, Double> basaltOnly = new LinkedHashMap<>();
+            basaltOnly.put("BASALT", 100.0);
             tiers.put(1, new GeneratorTier(1, cobbleOnly, cobbleOnly, basaltOnly));
         }
 
         MessageUtil.consolePrint("刷石机配置已加载，共 " + tiers.size() + " 个等级阶");
     }
 
-    private Map<String, Integer> readRates(ConfigurationSection parent, String key) {
-        Map<String, Integer> result = new LinkedHashMap<>();
+    private Map<String, Double> readRates(ConfigurationSection parent, String key) {
+        Map<String, Double> result = new LinkedHashMap<>();
         ConfigurationSection section = parent.getConfigurationSection(key);
         if (section != null) {
             for (String material : section.getKeys(false)) {
-                result.put(material, section.getInt(material, 0));
+                result.put(material, section.getDouble(material, 0));
             }
         }
         return result;
@@ -107,6 +107,17 @@ public class GeneratorConfigManager {
 
     public int getDeepslateYThreshold() {
         return deepslateYThreshold;
+    }
+
+    public int getMaxLevel() {
+        if (tiers.isEmpty()) return 1;
+        return tiers.lastKey();
+    }
+
+    public java.util.Optional<GeneratorTier> getNextTier(int generatorLevel) {
+        Integer nextKey = tiers.higherKey(generatorLevel);
+        if (nextKey == null) return java.util.Optional.empty();
+        return java.util.Optional.of(tiers.get(nextKey));
     }
 
     public GeneratorTier getTier(int generatorLevel) {

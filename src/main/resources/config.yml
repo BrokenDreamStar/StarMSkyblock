@@ -93,3 +93,8 @@ default-island-command: spawn
 #   'fawe' - FastAsyncWorldEdit
 # 注意：若设置为 fawe 但服务器未安装 FAWE，会自动回退到标准 WorldEdit
 worldedit-mode: 'fawe'
+
+# 是否允许使用空桶右键黑曜石将其转化为熔岩桶
+# 启用后，玩家在空岛世界上用空桶右键黑曜石方块时，桶会被消耗，
+# 玩家将获得一个熔岩桶，黑曜石方块会被移除
+obsidian-to-lava: true

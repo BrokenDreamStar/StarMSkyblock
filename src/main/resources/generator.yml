@@ -6,17 +6,17 @@
 # levels 下的 key 为最低生成器等级门槛，取最高匹配等级。
 # 每个等级配置包含三种维度的替换表：
 #   normal — 主世界（生成圆石/石头时替换）
-#   end    — 末地（生成圆石/石头时替换）
 #   nether — 下界（生成玄武岩时替换）
+#   end    — 末地（生成圆石/石头时替换）
 #
 # 权重制：每个方块的数值代表相对权重，实际概率 = 该方块权重 / 总权重 × 100%
 
 # 是否启用
 enabled: true
 
-# Y0 以下深板岩替换（仅主世界维度生效）
+# 深板岩替换（仅主世界维度生效）
 # 当刷石机产物为圆石或石头且 Y < y-threshold 时，
-# 圆石 → 深板岩圆石，石头 → 深板岩
+# 圆石 → 深板岩圆石，石头 → 深板岩，矿石 → 深层变种
 deepslate:
   enabled: true
   y-threshold: 0
@@ -29,8 +29,7 @@ levels:
       COAL_ORE: 3
       COPPER_ORE: 2
     nether:
-      BASALT: 90
-      NETHERRACK: 10
+      BASALT: 100
     end:
       END_STONE: 100
 
@@ -43,9 +42,10 @@ levels:
       IRON_ORE: 3
       LAPIS_ORE: 2
     nether:
-      BASALT: 85
-      NETHER_QUARTZ_ORE: 10
+      BASALT: 80
+      NETHERRACK: 10
       SOUL_SOIL: 5
+      GLOWSTONE: 5
     end:
       END_STONE: 100
 
@@ -62,11 +62,15 @@ levels:
       DIAMOND_ORE: 0.7
       EMERALD_ORE: 0.3
     nether:
-      BASALT: 85
-      NETHER_QUARTZ_ORE: 10
+      BASALT: 70
+      NETHERRACK: 10
       SOUL_SOIL: 5
+      GLOWSTONE: 5
+      NETHER_GOLD_ORE: 5
+      NETHER_QUARTZ_ORE: 5
     end:
-      END_STONE: 100
+      END_STONE: 90
+      SAND: 10
 
   4:
     normal:
@@ -81,11 +85,16 @@ levels:
       DIAMOND_ORE: 1.4
       EMERALD_ORE: 0.6
     nether:
-      BASALT: 85
-      NETHER_QUARTZ_ORE: 10
+      BASALT: 65
+      NETHERRACK: 10
       SOUL_SOIL: 5
+      GLOWSTONE: 5
+      NETHER_GOLD_ORE: 7
+      NETHER_QUARTZ_ORE: 7
+      GILDED_BLACKSTONE: 1
     end:
-      END_STONE: 100
+      END_STONE: 80
+      SAND: 20
 
   5:
     normal:
@@ -100,8 +109,14 @@ levels:
       DIAMOND_ORE: 2.3
       EMERALD_ORE: 1.2
     nether:
-      BASALT: 85
-      NETHER_QUARTZ_ORE: 10
+      BASALT: 60.5
+      NETHERRACK: 10
       SOUL_SOIL: 5
+      GLOWSTONE: 5
+      NETHER_GOLD_ORE: 9
+      NETHER_QUARTZ_ORE: 9
+      GILDED_BLACKSTONE: 1
+      ANCIENT_DEBRIS: 0.5
     end:
-      END_STONE: 100
+      END_STONE: 70
+      SAND: 30

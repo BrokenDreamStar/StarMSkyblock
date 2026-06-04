@@ -22,12 +22,13 @@ public enum OreDisplayName {
     BASALT("玄武岩"),
     NETHERRACK("下界岩"),
     NETHER_QUARTZ_ORE("下界石英矿"),
-    NETHER_GOLD_ORE("下界金矿"),
+    NETHER_GOLD_ORE("下界金矿石"),
+    GILDED_BLACKSTONE("镶金黑石"),
     ANCIENT_DEBRIS("远古残骸"),
     GLOWSTONE("荧石"),
     SOUL_SOIL("灵魂土"),
-    MAGMA_BLOCK("岩浆块"),
-    END_STONE("末地石");
+    END_STONE("末地石"),
+    SAND("沙子");
 
     private final String chineseName;
 
@@ -43,10 +44,6 @@ public enum OreDisplayName {
 
     OreDisplayName(String chineseName) {
         this.chineseName = chineseName;
-    }
-
-    public String getChineseName() {
-        return chineseName;
     }
 
     /**

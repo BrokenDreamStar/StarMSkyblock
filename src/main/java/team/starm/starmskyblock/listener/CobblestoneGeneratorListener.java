@@ -153,7 +153,7 @@ public class CobblestoneGeneratorListener implements Listener {
      */
     private Material selectGeneratorMaterial(Island island, String worldName, Location loc) {
         GeneratorConfigManager.GeneratorTier tier = generatorConfig.getTier(island.getGeneratorLevel());
-        Map<String, Integer> rates = getDimensionRates(tier, worldName);
+        Map<String, Double> rates = getDimensionRates(tier, worldName);
         if (rates.isEmpty()) return null;
 
         Material selected = selectMaterial(rates);
@@ -175,7 +175,7 @@ public class CobblestoneGeneratorListener implements Listener {
         return false;
     }
 
-    private Map<String, Integer> getDimensionRates(GeneratorConfigManager.GeneratorTier tier, String worldName) {
+    private Map<String, Double> getDimensionRates(GeneratorConfigManager.GeneratorTier tier, String worldName) {
         if (worldManager.isNormalWorld(worldName)) {
             return tier.normal();
         } else if (worldManager.isEndWorld(worldName)) {
@@ -186,16 +186,16 @@ public class CobblestoneGeneratorListener implements Listener {
         return Map.of();
     }
 
-    private Material selectMaterial(Map<String, Integer> rates) {
-        int totalWeight = 0;
-        for (int w : rates.values()) {
+    private Material selectMaterial(Map<String, Double> rates) {
+        double totalWeight = 0;
+        for (double w : rates.values()) {
             totalWeight += w;
         }
         if (totalWeight <= 0) return null;
 
-        int random = ThreadLocalRandom.current().nextInt(totalWeight);
-        int cumulative = 0;
-        for (Map.Entry<String, Integer> entry : rates.entrySet()) {
+        double random = ThreadLocalRandom.current().nextDouble(totalWeight);
+        double cumulative = 0;
+        for (Map.Entry<String, Double> entry : rates.entrySet()) {
             cumulative += entry.getValue();
             if (random < cumulative) {
                 return Material.matchMaterial(entry.getKey());
