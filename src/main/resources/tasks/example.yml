@@ -38,28 +38,6 @@ categories:
           commands:
             - "eco give %player% 1000"
             - "msg %player% &a恭喜完成初级矿工任务！"
-        icons:
-          not-completed:
-            material: PAPER
-            name: "&a初级矿工 I"
-            lore:
-              - "&7破坏48个圆石和16个煤矿"
-              - ""
-              - "&6进度: &7{0}%"
-              - "&c✘ 未完成"
-          can-complete:
-            material: PAPER
-            name: "&a初级矿工 I"
-            lore:
-              - "&7破坏48个圆石和16个煤矿"
-              - ""
-              - "&a✔ 点击领取奖励"
-            glow: true
-          completed:
-            material: MAP
-            name: "&a初级矿工 I"
-            lore:
-              - "&a✔ 已完成"
 
       # 示例 2: 带前置任务 (required-missions)
       miner_2:
@@ -82,31 +60,6 @@ categories:
           commands:
             - "eco give %player% 5000"
             - "msg %player% &a中级矿工任务完成！"
-        icons:
-          locked:
-            material: PAPER
-            name: "&8中级矿工 II"
-            lore:
-              - "&c需要先完成初级矿工 I"
-          not-completed:
-            material: PAPER
-            name: "&a中级矿工 II"
-            lore:
-              - "&7破坏32个铁矿石和16个金矿石"
-              - ""
-              - "&6进度: &7{0}%"
-              - "&c✘ 未完成"
-          can-complete:
-            material: PAPER
-            name: "&a中级矿工 II"
-            glow: true
-            lore:
-              - "&a✔ 点击领取奖励"
-          completed:
-            material: MAP
-            name: "&a中级矿工 II"
-            lore:
-              - "&a✔ 已完成"
 
   # ==================== 狩猎类 ====================
   slayer:
@@ -129,26 +82,6 @@ categories:
         rewards:
           commands:
             - "eco give %player% 2000"
-        icons:
-          not-completed:
-            material: PAPER
-            name: "&c初级猎手 I"
-            lore:
-              - "&7击杀10个僵尸/骷髅/苦力怕"
-              - ""
-              - "&6进度: &7{0}%"
-              - "&c✘ 未完成"
-          can-complete:
-            material: PAPER
-            name: "&c初级猎手 I"
-            glow: true
-            lore:
-              - "&a✔ 点击领取奖励"
-          completed:
-            material: MAP
-            name: "&c初级猎手 I"
-            lore:
-              - "&a✔ 已完成"
 
   # ==================== 种植类 ====================
   farming:
@@ -174,26 +107,6 @@ categories:
         rewards:
           commands:
             - "eco give %player% 2500"
-        icons:
-          not-completed:
-            material: PAPER
-            name: "&a初级农夫 I"
-            lore:
-              - "&7收获32个小麦、16个胡萝卜/马铃薯"
-              - ""
-              - "&6进度: &7{0}%"
-              - "&c✘ 未完成"
-          can-complete:
-            material: PAPER
-            name: "&a初级农夫 I"
-            glow: true
-            lore:
-              - "&a✔ 点击领取奖励"
-          completed:
-            material: MAP
-            name: "&a初级农夫 I"
-            lore:
-              - "&a✔ 已完成"
 
   # ==================== 钓鱼类 ====================
   fishing:
@@ -216,26 +129,6 @@ categories:
         rewards:
           commands:
             - "eco give %player% 3000"
-        icons:
-          not-completed:
-            material: PAPER
-            name: "&b初级渔夫 I"
-            lore:
-              - "&7钓到10条鱼"
-              - ""
-              - "&6进度: &7{0}%"
-              - "&c✘ 未完成"
-          can-complete:
-            material: PAPER
-            name: "&b初级渔夫 I"
-            glow: true
-            lore:
-              - "&a✔ 点击领取奖励"
-          completed:
-            material: MAP
-            name: "&b初级渔夫 I"
-            lore:
-              - "&a✔ 已完成"
 
   # ==================== 合成类 ====================
   crafting:
@@ -258,26 +151,6 @@ categories:
         rewards:
           commands:
             - "eco give %player% 2000"
-        icons:
-          not-completed:
-            material: PAPER
-            name: "&d初级工匠 I"
-            lore:
-              - "&7合成16个熔炉/工作台/箱子"
-              - ""
-              - "&6进度: &7{0}%"
-              - "&c✘ 未完成"
-          can-complete:
-            material: PAPER
-            name: "&d初级工匠 I"
-            glow: true
-            lore:
-              - "&a✔ 点击领取奖励"
-          completed:
-            material: MAP
-            name: "&d初级工匠 I"
-            lore:
-              - "&a✔ 已完成"
 
   # ==================== 经济类 ====================
   earning:
@@ -298,26 +171,6 @@ categories:
         rewards:
           commands:
             - "eco give %player% 1000"
-        icons:
-          not-completed:
-            material: PAPER
-            name: "&6初级商人 I"
-            lore:
-              - "&7累计赚取5000金币"
-              - ""
-              - "&6进度: &7{0}%"
-              - "&c✘ 未完成"
-          can-complete:
-            material: PAPER
-            name: "&6初级商人 I"
-            glow: true
-            lore:
-              - "&a✔ 点击领取奖励"
-          completed:
-            material: MAP
-            name: "&6初级商人 I"
-            lore:
-              - "&a✔ 已完成"
 
   # ==================== 放置类 ====================
   builder:
@@ -343,23 +196,3 @@ categories:
         rewards:
           commands:
             - "eco give %player% 1500"
-        icons:
-          not-completed:
-            material: PAPER
-            name: "&3初级建筑师 I"
-            lore:
-              - "&7放置64个石头/石砖和64个橡木木板"
-              - ""
-              - "&6进度: &7{0}%"
-              - "&c✘ 未完成"
-          can-complete:
-            material: PAPER
-            name: "&3初级建筑师 I"
-            glow: true
-            lore:
-              - "&a✔ 点击领取奖励"
-          completed:
-            material: MAP
-            name: "&3初级建筑师 I"
-            lore:
-              - "&a✔ 已完成"

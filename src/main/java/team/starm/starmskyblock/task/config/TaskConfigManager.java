@@ -148,32 +148,9 @@ public class TaskConfigManager {
         List<String> cmdRewards = section.getStringList("rewards.commands");
         TaskReward rewards = new TaskReward(itemRewards, cmdRewards);
 
-        TaskDefinition.TaskIcons icons = parseIcons(section.getConfigurationSection("icons"));
-
         return new TaskDefinition(taskId, catId, name, taskType,
                 autoReward, resetAfterFinish, requiredMissions,
-                requirements, rewards, icons);
-    }
-
-    private TaskDefinition.TaskIcons parseIcons(ConfigurationSection iconSection) {
-        if (iconSection == null) {
-            return new TaskDefinition.TaskIcons(null, null, null);
-        }
-        return new TaskDefinition.TaskIcons(
-                parseIconData(iconSection.getConfigurationSection("not-completed")),
-                parseIconData(iconSection.getConfigurationSection("can-complete")),
-                parseIconData(iconSection.getConfigurationSection("completed"))
-        );
-    }
-
-    private TaskDefinition.IconData parseIconData(ConfigurationSection section) {
-        if (section == null) return null;
-        String material = section.getString("material", "PAPER");
-        String name = section.getString("name");
-        List<String> lore = section.getStringList("lore");
-        boolean glow = section.getBoolean("glow", false);
-        if (name == null && lore.isEmpty()) return null;
-        return new TaskDefinition.IconData(material, name, lore, glow);
+                requirements, rewards);
     }
 
     public Map<String, TaskCategory> getCategories() { return categories; }

@@ -3,7 +3,6 @@ package team.starm.starmskyblock.task;
 import team.starm.starmskyblock.task.reward.TaskReward;
 
 import java.util.List;
-import java.util.Map;
 
 public class TaskDefinition {
 
@@ -16,12 +15,11 @@ public class TaskDefinition {
     private final List<String> requiredMissionIds;
     private final List<RequirementGroup> requirements;
     private final TaskReward rewards;
-    private final TaskIcons icons;
 
     public TaskDefinition(String id, String categoryId, String name, TaskType taskType,
                           boolean autoReward, boolean resetAfterFinish,
                           List<String> requiredMissionIds, List<RequirementGroup> requirements,
-                          TaskReward rewards, TaskIcons icons) {
+                          TaskReward rewards) {
         this.id = id;
         this.categoryId = categoryId;
         this.name = name;
@@ -31,7 +29,6 @@ public class TaskDefinition {
         this.requiredMissionIds = requiredMissionIds;
         this.requirements = requirements;
         this.rewards = rewards;
-        this.icons = icons;
     }
 
     public String getId() { return id; }
@@ -43,7 +40,6 @@ public class TaskDefinition {
     public List<String> getRequiredMissionIds() { return requiredMissionIds; }
     public List<RequirementGroup> getRequirements() { return requirements; }
     public TaskReward getRewards() { return rewards; }
-    public TaskIcons getIcons() { return icons; }
 
     public static class RequirementGroup {
         private final List<String> types;
@@ -58,38 +54,4 @@ public class TaskDefinition {
         public int getAmount() { return amount; }
     }
 
-    public static class TaskIcons {
-        private final IconData notCompleted;
-        private final IconData canComplete;
-        private final IconData completed;
-
-        public TaskIcons(IconData notCompleted, IconData canComplete, IconData completed) {
-            this.notCompleted = notCompleted;
-            this.canComplete = canComplete;
-            this.completed = completed;
-        }
-
-        public IconData getNotCompleted() { return notCompleted; }
-        public IconData getCanComplete() { return canComplete; }
-        public IconData getCompleted() { return completed; }
-    }
-
-    public static class IconData {
-        private final String material;
-        private final String name;
-        private final List<String> lore;
-        private final boolean glow;
-
-        public IconData(String material, String name, List<String> lore, boolean glow) {
-            this.material = material;
-            this.name = name;
-            this.lore = lore;
-            this.glow = glow;
-        }
-
-        public String getMaterial() { return material; }
-        public String getName() { return name; }
-        public List<String> getLore() { return lore; }
-        public boolean isGlow() { return glow; }
-    }
 }
