@@ -82,9 +82,10 @@ public class CobblestoneGeneratorListener implements Listener {
             return;
         }
 
-        // —— 玄武岩生成器 ——
+        // —— 玄武岩生成器（仅下界生效，主世界/末地使用原版玄武岩生成逻辑） ——
         GeneratorType genType = GeneratorType.detect(toBlock);
         if (genType != GeneratorType.BASALT) return;
+        if (!worldManager.isNetherWorld(worldName)) return;
 
         Optional<Island> islandOpt = islandManager.getIslandAt(
                 toBlock.getX() >> 4, toBlock.getZ() >> 4);
