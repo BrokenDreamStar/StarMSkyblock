@@ -37,9 +37,13 @@ public class TaskConfigManager {
     }
 
     public void initialize() {
-        configFile = new File(plugin.getDataFolder(), "tasks.yml");
+        File tasksDir = new File(plugin.getDataFolder(), "tasks");
+        if (!tasksDir.exists()) tasksDir.mkdirs();
+
+        configFile = new File(tasksDir, "tasks.yml");
         if (!configFile.exists()) {
-            plugin.saveResource("tasks.yml", false);
+            plugin.saveResource("tasks/tasks.yml", false);
+            plugin.saveResource("tasks/example.yml", false);
         }
         reload();
     }
@@ -47,7 +51,7 @@ public class TaskConfigManager {
     public void reload() {
         config = YamlConfiguration.loadConfiguration(configFile);
 
-        InputStream defaultStream = plugin.getResource("tasks.yml");
+        InputStream defaultStream = plugin.getResource("tasks/tasks.yml");
         if (defaultStream != null) {
             YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(
                     new InputStreamReader(defaultStream, StandardCharsets.UTF_8));
