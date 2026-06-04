@@ -4,7 +4,7 @@ version: '${version}'
 main: team.starm.starmskyblock.StarMSkyblock
 api-version: '26.1.2'
 load: POSTWORLD
-softdepend: [ PlaceholderAPI, WorldEdit, TrMenu ]
+softdepend: [ PlaceholderAPI, WorldEdit, TrMenu, Vault ]
 
 authors: [ BrokenDream_Star,DeepSeek,Gemini,Grok ]
 website: https://starm.team/

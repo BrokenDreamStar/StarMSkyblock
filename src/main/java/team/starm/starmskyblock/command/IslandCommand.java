@@ -54,6 +54,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         subCommands.put("setchunkbiome", new SetChunkBiomeCommand(plugin));
         subCommands.put("setbiome", new SetBiomeCommand(plugin));
         subCommands.put("generator", new GeneratorCommand(plugin));
+        subCommands.put("upgrade", new UpgradeCommand(plugin));
 
         subCommands.put("help", new HelpCommand(plugin, this));
         subCommandNames.addAll(subCommands.keySet());
@@ -143,6 +144,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         MessageUtil.sendMessage(player, "&b/is setchunkbiome <生物群系> &f- 修改当前区块生物群系");
         MessageUtil.sendMessage(player, "&b/is setbiome <生物群系> &f- 修改整个岛屿生物群系");
         MessageUtil.sendMessage(player, "&b/is generator [维度] [矿石] [true/false/toggle] &f- 查看/控制刷石机矿石生成");
+        MessageUtil.sendMessage(player, "&b/is upgrade [radius|generator] &f- 升级岛屿范围或刷石机等级");
     }
 
     @Override

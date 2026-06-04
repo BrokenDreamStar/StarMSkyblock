@@ -15,6 +15,7 @@ import team.starm.starmskyblock.config.GeneratorConfigManager;
 import team.starm.starmskyblock.config.PermissionConfigManager;
 import team.starm.starmskyblock.config.SettingsConfigManager;
 import team.starm.starmskyblock.config.SignConfigManager;
+import team.starm.starmskyblock.config.UpgradeConfigManager;
 import team.starm.starmskyblock.database.IslandRepository;
 import team.starm.starmskyblock.database.PlayerRepository;
 import team.starm.starmskyblock.database.SQLiteManager;
@@ -58,6 +59,7 @@ public class StarMSkyblock extends JavaPlugin {
     private SettingsConfigManager settingsConfigManager;
     private SignConfigManager signConfigManager;
     private GeneratorConfigManager generatorConfigManager;
+    private UpgradeConfigManager upgradeConfigManager;
 
     // ========== 数据与生成 ==========
     private SQLiteManager sqliteManager;
@@ -74,6 +76,9 @@ public class StarMSkyblock extends JavaPlugin {
     private TeleportCountdownListener teleportCountdownListener;
 
     private SkyblockExpansion skyblockExpansion;
+
+    // Vault 经济
+    private net.milkbowl.vault.economy.Economy economy;
 
     /**
      * 插件启用入口。将初始化分解为独立步骤，保证依赖关系正确。
@@ -152,6 +157,9 @@ public class StarMSkyblock extends JavaPlugin {
 
         generatorConfigManager = new GeneratorConfigManager(this);
         generatorConfigManager.initialize();
+
+        upgradeConfigManager = new UpgradeConfigManager(this);
+        upgradeConfigManager.initialize();
     }
 
     private void initDatabase() {
@@ -207,6 +215,20 @@ public class StarMSkyblock extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("TrMenu") != null) {
             JavaScriptAgent.INSTANCE.putBinding("StarMSkyblockAPI", new StarMSkyblockHook());
             MessageUtil.consolePrint("已注册 TrMenu JS 物品源桥接");
+        }
+
+        setupVault();
+    }
+
+    private void setupVault() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            MessageUtil.consolePrint("未检测到 Vault，升级功能将不可用");
+            return;
+        }
+
+        // 立即尝试获取——未获取到时 getEconomy() 在命令执行时自动重试
+        if (getEconomy() != null) {
+            MessageUtil.consolePrint("已注册 Vault 经济系统: " + economy.getName());
         }
     }
 
@@ -296,6 +318,20 @@ public class StarMSkyblock extends JavaPlugin {
 
     public GeneratorConfigManager getGeneratorConfigManager() {
         return generatorConfigManager;
+    }
+
+    public UpgradeConfigManager getUpgradeConfigManager() {
+        return upgradeConfigManager;
+    }
+
+    public net.milkbowl.vault.economy.Economy getEconomy() {
+        if (economy == null) {
+            var rsp = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+            if (rsp != null && rsp.getPlugin().isEnabled()) {
+                economy = rsp.getProvider();
+            }
+        }
+        return economy;
     }
 
     public SQLiteManager getSqliteManager() {

@@ -16,7 +16,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import net.milkbowl.vault.economy.Economy;
 import team.starm.starmskyblock.config.GeneratorConfigManager;
+import team.starm.starmskyblock.config.UpgradeConfigManager;
 import team.starm.starmskyblock.util.OreDisplayName;
 
 public class SkyblockExpansion extends PlaceholderExpansion {
@@ -294,6 +296,50 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                     PermissionHandler.HAS_PERMISSION_PREFIX.length()
             )) {
                 return permissionHandler.handle(player, params);
+            }
+
+            if (params.equalsIgnoreCase("upgrades_generator_next_level_money")) {
+                var islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+                if (islandOpt.isEmpty()) return "&f-";
+                Island island = islandOpt.get();
+                UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
+                var next = upgradeConfig.getNextGeneratorUpgrade(island.getGeneratorLevel());
+                if (next.isEmpty()) return "&f已达到最高等级";
+                return String.valueOf((long) next.get().money());
+            }
+
+            if (params.equalsIgnoreCase("upgrades_island_radius_next_level_money")) {
+                var islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+                if (islandOpt.isEmpty()) return "&f-";
+                Island island = islandOpt.get();
+                UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
+                var next = upgradeConfig.getNextRadiusUpgrade(island.getRadius());
+                if (next.isEmpty()) return "&f已达到最高等级";
+                return String.valueOf((long) next.get().money());
+            }
+
+            if (params.equalsIgnoreCase("upgrades_generator_has_money")) {
+                var islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+                if (islandOpt.isEmpty()) return "false";
+                Island island = islandOpt.get();
+                UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
+                var next = upgradeConfig.getNextGeneratorUpgrade(island.getGeneratorLevel());
+                if (next.isEmpty()) return "false";
+                Economy economy = plugin.getEconomy();
+                if (economy == null) return "false";
+                return String.valueOf(economy.has(player, next.get().money()));
+            }
+
+            if (params.equalsIgnoreCase("upgrades_island_radius_has_money")) {
+                var islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+                if (islandOpt.isEmpty()) return "false";
+                Island island = islandOpt.get();
+                UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
+                var next = upgradeConfig.getNextRadiusUpgrade(island.getRadius());
+                if (next.isEmpty()) return "false";
+                Economy economy = plugin.getEconomy();
+                if (economy == null) return "false";
+                return String.valueOf(economy.has(player, next.get().money()));
             }
 
         } catch (Throwable throwable) {
