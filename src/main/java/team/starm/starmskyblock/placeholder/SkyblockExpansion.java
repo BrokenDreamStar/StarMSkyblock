@@ -265,6 +265,12 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                     String dim = rest.substring(0, underscoreIndex);
                     if (Set.of("normal", "nether", "end").contains(dim)) {
                         String oreName = rest.substring(underscoreIndex + 1);
+
+                        // 该维度所有矿石启用状态
+                        if (oreName.equals("all")) {
+                            return String.valueOf(isAllGeneratorOresEnabled(player, dim));
+                        }
+
                         if (booleanMode) {
                             return String.valueOf(isGeneratorOreEnabled(player, dim, oreName));
                         }
@@ -606,6 +612,32 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             sb.append("&7: ").append(String.format("%.1f%%", pct));
         }
         return sb.toString();
+    }
+
+    private boolean isAllGeneratorOresEnabled(Player player, String dim) {
+        Optional<Island> islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+        if (islandOpt.isEmpty()) return false;
+
+        Island island = islandOpt.get();
+        GeneratorConfigManager genConfig = plugin.getGeneratorConfigManager();
+        GeneratorConfigManager.GeneratorTier tier = genConfig.getTier(island.getGeneratorLevel());
+
+        Map<String, Double> rates = switch (dim) {
+            case "normal" -> tier.normal();
+            case "nether" -> tier.nether();
+            case "end" -> tier.end();
+            default -> Map.of();
+        };
+
+        if (rates.isEmpty()) return false;
+
+        Set<String> disabled = island.getDisabledGeneratorOres().get(dim);
+        if (disabled == null || disabled.isEmpty()) return true;
+
+        for (String material : rates.keySet()) {
+            if (disabled.contains(material)) return false;
+        }
+        return true;
     }
 
     private boolean isGeneratorOreEnabled(Player player, String dim, String oreName) {
