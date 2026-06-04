@@ -9,6 +9,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.command.subcommand.*;
+import team.starm.starmskyblock.task.command.TaskCommand;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
@@ -55,6 +56,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         subCommands.put("setbiome", new SetBiomeCommand(plugin));
         subCommands.put("generator", new GeneratorCommand(plugin));
         subCommands.put("upgrade", new UpgradeCommand(plugin));
+        subCommands.put("task", new TaskCommand(plugin));
 
         subCommands.put("help", new HelpCommand(plugin, this));
         subCommandNames.addAll(subCommands.keySet());

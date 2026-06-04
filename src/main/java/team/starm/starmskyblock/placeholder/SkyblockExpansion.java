@@ -9,6 +9,7 @@ import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.placeholder.handler.IslandListHandler;
 import team.starm.starmskyblock.placeholder.handler.PermissionHandler;
 import team.starm.starmskyblock.placeholder.handler.SettingsHandler;
+import team.starm.starmskyblock.task.placeholder.TaskPlaceholderHandler;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -28,12 +29,14 @@ public class SkyblockExpansion extends PlaceholderExpansion {
     private final IslandListHandler islandListHandler;
     private final PermissionHandler permissionHandler;
     private final SettingsHandler settingsHandler;
+    private final TaskPlaceholderHandler taskHandler;
 
     public SkyblockExpansion(StarMSkyblock plugin) {
         this.plugin = plugin;
         this.islandListHandler = new IslandListHandler(plugin);
         this.permissionHandler = new PermissionHandler(plugin);
         this.settingsHandler = new SettingsHandler(plugin);
+        this.taskHandler = new TaskPlaceholderHandler(plugin);
     }
 
     @Override
@@ -328,6 +331,16 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                     PermissionHandler.HAS_PERMISSION_PREFIX.length()
             )) {
                 return permissionHandler.handle(player, params);
+            }
+
+            if (params.regionMatches(
+                    true,
+                    0,
+                    TaskPlaceholderHandler.PREFIX,
+                    0,
+                    TaskPlaceholderHandler.PREFIX.length()
+            )) {
+                return taskHandler.handle(player, params);
             }
 
             if (params.equalsIgnoreCase("upgrades_generator_next_level_money")) {

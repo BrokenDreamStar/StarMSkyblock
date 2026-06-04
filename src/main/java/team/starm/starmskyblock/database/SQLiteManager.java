@@ -143,6 +143,7 @@ public class SQLiteManager {
     private void migrate() {
         migrateAddIslandColumns();
         migrateAddPlayerColumns();
+        migrateAddPlayerTasksColumn();
     }
 
     private void migrateAddIslandColumns() {
@@ -211,6 +212,25 @@ public class SQLiteManager {
             }
         } catch (SQLException e) {
             MessageUtil.consoleError("数据库迁移检查 players 列失败！");
+            e.printStackTrace();
+        }
+    }
+
+    private void migrateAddPlayerTasksColumn() {
+        try (Statement stmt = connection.createStatement()) {
+            var rs = stmt.executeQuery("PRAGMA table_info(players)");
+            boolean hasTasks = false;
+            while (rs.next()) {
+                String colName = rs.getString("name");
+                if ("tasks".equalsIgnoreCase(colName)) hasTasks = true;
+            }
+            rs.close();
+            if (!hasTasks) {
+                stmt.execute("ALTER TABLE players ADD COLUMN tasks TEXT DEFAULT '{}'");
+                MessageUtil.consolePrint("数据库迁移：已添加 tasks 列到 players 表。");
+            }
+        } catch (SQLException e) {
+            MessageUtil.consoleError("数据库迁移检查 players.tasks 列失败！");
             e.printStackTrace();
         }
     }

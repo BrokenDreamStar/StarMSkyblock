@@ -38,6 +38,8 @@ import team.starm.starmskyblock.util.SkullManager;
 import team.starm.starmskyblock.bridge.StarMSkyblockHook;
 import me.arasple.mc.trmenu.module.internal.script.js.JavaScriptAgent;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
+import team.starm.starmskyblock.task.TaskManager;
+import team.starm.starmskyblock.task.config.TaskConfigManager;
 
 /**
  * StarMSkyblock 插件的主入口类。
@@ -77,6 +79,10 @@ public class StarMSkyblock extends JavaPlugin {
 
     private SkyblockExpansion skyblockExpansion;
 
+    // ========== 任务系统 ==========
+    private TaskConfigManager taskConfigManager;
+    private TaskManager taskManager;
+
     // Vault 经济
     private net.milkbowl.vault.economy.Economy economy;
 
@@ -92,6 +98,7 @@ public class StarMSkyblock extends JavaPlugin {
         initConfigs();
         extractSchematics();
         initDatabase();
+        initTasks();
         initSchematicManager();
         initGridAndIslands();
         initWorlds();
@@ -168,6 +175,13 @@ public class StarMSkyblock extends JavaPlugin {
         playerRepo = new PlayerRepository(sqliteManager);
         playerRepo.warmUpPlayerNameCache();
         SkullManager.initDatabase(sqliteManager);
+    }
+
+    private void initTasks() {
+        taskConfigManager = new TaskConfigManager(this);
+        taskConfigManager.initialize();
+        taskManager = new TaskManager(this, taskConfigManager);
+        taskManager.init();
     }
 
     private void initSchematicManager() {
@@ -288,6 +302,10 @@ public class StarMSkyblock extends JavaPlugin {
      */
     @Override
     public void onDisable() {
+        if (taskManager != null) {
+            taskManager.saveAll();
+        }
+
         org.bukkit.Bukkit.getScheduler().cancelTasks(this);
 
         if (sqliteManager != null) {
@@ -376,6 +394,14 @@ public class StarMSkyblock extends JavaPlugin {
 
     public SkyblockExpansion getSkyblockExpansion() {
         return skyblockExpansion;
+    }
+
+    public TaskConfigManager getTaskConfigManager() {
+        return taskConfigManager;
+    }
+
+    public TaskManager getTaskManager() {
+        return taskManager;
     }
 
     /**

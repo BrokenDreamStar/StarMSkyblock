@@ -189,6 +189,43 @@ public class PlayerRepository {
         firstNetherJoinCache.remove(uuid);
     }
 
+    // ==================== 任务进度 ====================
+
+    public String loadTasks(UUID playerUuid) {
+        String sql = "SELECT tasks FROM players WHERE player_uuid = ?";
+        synchronized (dbLock) {
+            Connection conn = sqliteManager.getConnection();
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, playerUuid.toString());
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getString("tasks");
+                    }
+                }
+            } catch (SQLException e) {
+                MessageUtil.consoleError("加载任务数据失败！UUID: " + playerUuid);
+                e.printStackTrace();
+            }
+        }
+        return "{}";
+    }
+
+    public void saveTasks(UUID playerUuid, String tasksJson) {
+        String sql = "INSERT INTO players (player_uuid, player_name, tasks) VALUES (?, '', ?) " +
+                "ON CONFLICT(player_uuid) DO UPDATE SET tasks = excluded.tasks";
+        synchronized (dbLock) {
+            Connection conn = sqliteManager.getConnection();
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, playerUuid.toString());
+                pstmt.setString(2, tasksJson);
+                pstmt.executeUpdate();
+            } catch (SQLException e) {
+                MessageUtil.consoleError("保存任务数据失败！UUID: " + playerUuid);
+                e.printStackTrace();
+            }
+        }
+    }
+
     // ==================== 缓存管理 ====================
 
     public void clearCaches() {
