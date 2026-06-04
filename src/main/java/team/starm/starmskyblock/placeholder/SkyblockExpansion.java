@@ -254,7 +254,17 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                     return buildGeneratorDimensionString(player, rest);
                 }
 
-                // 矿石启用状态请求
+                // 维度+矿石启用状态请求 (e.g. generator_normal_coal_ore)
+                int underscoreIndex = rest.indexOf('_');
+                if (underscoreIndex > 0) {
+                    String dim = rest.substring(0, underscoreIndex);
+                    if (Set.of("normal", "nether", "end").contains(dim)) {
+                        String oreName = rest.substring(underscoreIndex + 1);
+                        return getGeneratorOreDimensionStatus(player, dim, oreName);
+                    }
+                }
+
+                // 矿石启用状态请求 (当前维度)
                 return getGeneratorOreStatus(player, rest);
             }
 
@@ -580,6 +590,29 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             sb.append("&7: ").append(String.format("%.1f%%", pct));
         }
         return sb.toString();
+    }
+
+    private String getGeneratorOreDimensionStatus(Player player, String dim, String oreName) {
+        Optional<Island> islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+        if (islandOpt.isEmpty()) return "&f-";
+
+        Island island = islandOpt.get();
+        GeneratorConfigManager genConfig = plugin.getGeneratorConfigManager();
+        GeneratorConfigManager.GeneratorTier tier = genConfig.getTier(island.getGeneratorLevel());
+
+        Map<String, Double> rates = switch (dim) {
+            case "normal" -> tier.normal();
+            case "nether" -> tier.nether();
+            case "end" -> tier.end();
+            default -> Map.of();
+        };
+
+        String upper = oreName.toUpperCase();
+        String material = rates.containsKey(upper) ? upper : OreDisplayName.toMaterial(oreName);
+        if (material == null || !rates.containsKey(material)) return "&f-";
+
+        Set<String> disabled = island.getDisabledGeneratorOres().get(dim);
+        return (disabled == null || !disabled.contains(material)) ? "&a是" : "&c否";
     }
 
     private String getGeneratorOreStatus(Player player, String oreName) {
