@@ -54,7 +54,7 @@ public class IslandCreateTask extends BukkitRunnable {
     @Override
     public void run() {
         try {
-            sendMessage("§a开始创建岛屿，请稍候...");
+            sendMessage("§a岛屿创建中，请稍候...");
 
             // Phase 1 (async): 创建岛屿数据
             sendMessage("§e正在分配岛屿位置...");

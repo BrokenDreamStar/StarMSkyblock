@@ -83,7 +83,7 @@ public class GeneratorConfigManager {
             tiers.put(1, new GeneratorTier(1, cobbleOnly, cobbleOnly, basaltOnly));
         }
 
-        MessageUtil.consolePrint("刷石机配置已加载，共 " + tiers.size() + " 个等级阶");
+        MessageUtil.consolePrint("已加载刷石机配置");
     }
 
     private Map<String, Double> readRates(ConfigurationSection parent, String key) {

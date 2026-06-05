@@ -14,12 +14,22 @@ public class TaskProgress {
     @SerializedName("claimed")
     private boolean claimed;
 
+    @SerializedName("notified")
+    private boolean notified;
+
     public TaskProgress() {}
 
     public TaskProgress(Map<String, Integer> progress, int completedCount, boolean claimed) {
         this.progress = progress;
         this.completedCount = completedCount;
         this.claimed = claimed;
+    }
+
+    public TaskProgress(Map<String, Integer> progress, int completedCount, boolean claimed, boolean notified) {
+        this.progress = progress;
+        this.completedCount = completedCount;
+        this.claimed = claimed;
+        this.notified = notified;
     }
 
     public Map<String, Integer> getProgress() { return progress; }
@@ -30,6 +40,9 @@ public class TaskProgress {
 
     public boolean isClaimed() { return claimed; }
     public void setClaimed(boolean claimed) { this.claimed = claimed; }
+
+    public boolean isNotified() { return notified; }
+    public void setNotified(boolean notified) { this.notified = notified; }
 
     public boolean isCompleted(TaskDefinition def) {
         if (progress == null) return false;

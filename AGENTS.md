@@ -53,6 +53,7 @@
 - 子命令模式: `IslandCommand` 通过 `Map<String, SubCommand>` 分发；每个子命令独立 class 在 `command/subcommand/`
 - `/is permission` 单独委托给 `IslandPermissionCommand`
 - 权限 12 域 + 设置 6 域，各自由独立 Manager 类处理对应 Bukkit 事件
+- **数据库 schema：禁止迁移代码。** 所有列必须直接写在 `CREATE TABLE` 语句中。新增列时直接修改建表 DDL 即可，不需要也不允许写 `ALTER TABLE ADD COLUMN` 迁移逻辑。旧数据库文件删除重建。
 
 ## Git Workflow
 

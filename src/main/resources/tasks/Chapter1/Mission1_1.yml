@@ -1,0 +1,13 @@
+name: '空岛 启动!'
+description: '制造刷石机并刷取一些圆石'
+task_required: []
+task_type: BLOCK_BREAK
+request:
+  1:
+    types:
+      - COBBLESTONE
+    amount: 64
+only-natural: true
+reward:
+  command:
+    - 'server: give %player_name% iron_ingot 3'

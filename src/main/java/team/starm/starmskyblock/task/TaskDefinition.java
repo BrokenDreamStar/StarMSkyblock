@@ -9,24 +9,24 @@ public class TaskDefinition {
     private final String id;
     private final String categoryId;
     private final String name;
+    private final String description;
     private final TaskType taskType;
-    private final boolean autoReward;
-    private final boolean resetAfterFinish;
-    private final List<String> requiredMissionIds;
+    private final List<String> requiredMissions;
+    private final boolean onlyNatural;
     private final List<RequirementGroup> requirements;
     private final TaskReward rewards;
 
-    public TaskDefinition(String id, String categoryId, String name, TaskType taskType,
-                          boolean autoReward, boolean resetAfterFinish,
-                          List<String> requiredMissionIds, List<RequirementGroup> requirements,
+    public TaskDefinition(String id, String categoryId, String name, String description,
+                          TaskType taskType, List<String> requiredMissions,
+                          boolean onlyNatural, List<RequirementGroup> requirements,
                           TaskReward rewards) {
         this.id = id;
         this.categoryId = categoryId;
         this.name = name;
+        this.description = description;
         this.taskType = taskType;
-        this.autoReward = autoReward;
-        this.resetAfterFinish = resetAfterFinish;
-        this.requiredMissionIds = requiredMissionIds;
+        this.requiredMissions = requiredMissions;
+        this.onlyNatural = onlyNatural;
         this.requirements = requirements;
         this.rewards = rewards;
     }
@@ -34,10 +34,10 @@ public class TaskDefinition {
     public String getId() { return id; }
     public String getCategoryId() { return categoryId; }
     public String getName() { return name; }
+    public String getDescription() { return description; }
     public TaskType getTaskType() { return taskType; }
-    public boolean isAutoReward() { return autoReward; }
-    public boolean isResetAfterFinish() { return resetAfterFinish; }
-    public List<String> getRequiredMissionIds() { return requiredMissionIds; }
+    public List<String> getRequiredMissionIds() { return requiredMissions; }
+    public boolean isOnlyNatural() { return onlyNatural; }
     public List<RequirementGroup> getRequirements() { return requirements; }
     public TaskReward getRewards() { return rewards; }
 

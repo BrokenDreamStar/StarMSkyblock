@@ -8,6 +8,7 @@ import team.starm.starmskyblock.task.TaskCategory;
 import team.starm.starmskyblock.task.TaskDefinition;
 import team.starm.starmskyblock.task.TaskManager;
 import team.starm.starmskyblock.task.TaskProgress;
+import team.starm.starmskyblock.task.TaskType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,15 @@ public class TaskCommand extends SubCommand {
             return true;
         }
 
+        if (sub.equals("submit")) {
+            if (args.length < 3) {
+                MessageUtil.sendMessage(player, "&c用法: /is task submit <任务ID>");
+                return true;
+            }
+            taskManager.submitItems(player, args[2]);
+            return true;
+        }
+
         if (sub.equals("claim")) {
             if (args.length < 3) {
                 MessageUtil.sendMessage(player, "&c用法: /is task claim <任务ID>");
@@ -55,7 +65,7 @@ public class TaskCommand extends SubCommand {
             return true;
         }
 
-        MessageUtil.sendMessage(player, "&c未知的子命令！可用: list, claim, info");
+        MessageUtil.sendMessage(player, "&c未知的子命令！可用: list, submit, claim, info");
         return true;
     }
 
@@ -73,8 +83,10 @@ public class TaskCommand extends SubCommand {
 
             for (TaskDefinition def : cat.getTasks()) {
                 TaskProgress prog = taskManager.getPlayerProgressMap(uuid).get(def.getId());
-                boolean completed = prog != null && prog.getCompletedCount() > 0 && prog.isClaimed();
-                boolean canComplete = prog != null && !prog.isClaimed() && prog.isCompleted(def);
+                boolean completed = prog != null && prog.isClaimed();
+                boolean canComplete = def.getTaskType() == TaskType.ITEM
+                        ? false
+                        : (prog != null && !prog.isClaimed() && prog.isCompleted(def));
                 boolean locked = !taskManager.isTaskUnlocked(uuid, def.getId());
 
                 String icon;
@@ -96,6 +108,7 @@ public class TaskCommand extends SubCommand {
         }
 
         MessageUtil.sendMessage(player, "");
+        MessageUtil.sendMessage(player, "&e/is task submit <任务ID> &7- 提交物品（ITEM 类型）");
         MessageUtil.sendMessage(player, "&e/is task claim <任务ID> &7- 领取奖励");
         MessageUtil.sendMessage(player, "&e/is task info <任务ID> &7- 查看任务详情");
     }
@@ -111,8 +124,14 @@ public class TaskCommand extends SubCommand {
         TaskProgress prog = taskManager.getPlayerProgressMap(uuid).get(taskId);
 
         MessageUtil.sendMessage(player, "&a=== 任务详情: " + def.getName() + " ===");
-        MessageUtil.sendMessage(player, "  &7分类: " + def.getCategoryId());
+        MessageUtil.sendMessage(player, "  &7章节: " + def.getCategoryId());
         MessageUtil.sendMessage(player, "  &7类型: " + def.getTaskType().name());
+        if (!def.getDescription().isEmpty()) {
+            MessageUtil.sendMessage(player, "  &7描述: &f" + def.getDescription());
+        }
+        if (def.isOnlyNatural()) {
+            MessageUtil.sendMessage(player, "  &7计分方式: &e仅自然生成方块");
+        }
 
         if (!def.getRequiredMissionIds().isEmpty()) {
             boolean unlocked = taskManager.isTaskUnlocked(uuid, taskId);
@@ -138,7 +157,7 @@ public class TaskCommand extends SubCommand {
         if (prog != null && !prog.isClaimed() && prog.isCompleted(def)) {
             MessageUtil.sendMessage(player, "  &a✔ 可领取奖励！使用 /is task claim " + taskId);
         } else if (prog != null && prog.isClaimed()) {
-            MessageUtil.sendMessage(player, "  &a✔ 已完成 (已领取)");
+            MessageUtil.sendMessage(player, "  &a✔ 已完成");
         } else {
             MessageUtil.sendMessage(player, "  &c✘ 未完成");
         }
@@ -146,7 +165,8 @@ public class TaskCommand extends SubCommand {
         if (!def.getRewards().isEmpty()) {
             MessageUtil.sendMessage(player, "  &7奖励:");
             for (String cmd : def.getRewards().commands()) {
-                MessageUtil.sendMessage(player, "    &e" + cmd.replace("%player%", player.getName()));
+                MessageUtil.sendMessage(player, "    &e" + cmd.replace("%player_name%", player.getName())
+                        .replace("%player%", player.getName()));
             }
         }
     }
@@ -154,10 +174,12 @@ public class TaskCommand extends SubCommand {
     @Override
     public List<String> onTabComplete(Player player, String[] args) {
         if (args.length == 2) {
-            return filterPrefix(List.of("list", "claim", "info"), args[1]);
+            return filterPrefix(List.of("list", "submit", "claim", "info"), args[1]);
         }
 
-        if (args.length == 3 && (args[1].equalsIgnoreCase("claim") || args[1].equalsIgnoreCase("info"))) {
+        if (args.length == 3 && (args[1].equalsIgnoreCase("submit")
+                || args[1].equalsIgnoreCase("claim")
+                || args[1].equalsIgnoreCase("info"))) {
             TaskManager taskManager = plugin.getTaskManager();
             return filterPrefix(new ArrayList<>(taskManager.getTaskConfig().getTaskIndex().keySet()), args[2]);
         }

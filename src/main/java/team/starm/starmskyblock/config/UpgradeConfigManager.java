@@ -81,7 +81,7 @@ public class UpgradeConfigManager {
         }
         Collections.sort(generatorUpgrades, (a, b) -> Integer.compare(a.tier(), b.tier()));
 
-        MessageUtil.consolePrint("升级配置已加载，岛屿范围升级 " + radiusUpgrades.size() + " 级，刷石机升级 " + generatorUpgrades.size() + " 级");
+        MessageUtil.consolePrint("已加载升级配置");
     }
 
     public Optional<RadiusUpgrade> getNextRadiusUpgrade(int currentRadius) {

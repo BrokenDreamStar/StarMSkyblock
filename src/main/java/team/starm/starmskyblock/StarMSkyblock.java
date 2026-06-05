@@ -39,7 +39,7 @@ import team.starm.starmskyblock.bridge.StarMSkyblockHook;
 import me.arasple.mc.trmenu.module.internal.script.js.JavaScriptAgent;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 import team.starm.starmskyblock.task.TaskManager;
-import team.starm.starmskyblock.task.config.TaskConfigManager;
+import team.starm.starmskyblock.task.config.TaskConfigScanner;
 
 /**
  * StarMSkyblock 插件的主入口类。
@@ -80,7 +80,7 @@ public class StarMSkyblock extends JavaPlugin {
     private SkyblockExpansion skyblockExpansion;
 
     // ========== 任务系统 ==========
-    private TaskConfigManager taskConfigManager;
+    private TaskConfigScanner taskConfigScanner;
     private TaskManager taskManager;
 
     // Vault 经济
@@ -178,9 +178,9 @@ public class StarMSkyblock extends JavaPlugin {
     }
 
     private void initTasks() {
-        taskConfigManager = new TaskConfigManager(this);
-        taskConfigManager.initialize();
-        taskManager = new TaskManager(this, taskConfigManager);
+        taskConfigScanner = new TaskConfigScanner(this);
+        taskConfigScanner.initialize();
+        taskManager = new TaskManager(this, taskConfigScanner);
         taskManager.init();
     }
 
@@ -396,8 +396,8 @@ public class StarMSkyblock extends JavaPlugin {
         return skyblockExpansion;
     }
 
-    public TaskConfigManager getTaskConfigManager() {
-        return taskConfigManager;
+    public TaskConfigScanner getTaskConfigManager() {
+        return taskConfigScanner;
     }
 
     public TaskManager getTaskManager() {

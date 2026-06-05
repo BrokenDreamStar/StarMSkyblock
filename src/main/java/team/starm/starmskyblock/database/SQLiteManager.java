@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * SQLite 数据库管理器 —— 负责连接管理、表结构创建/迁移、事务支持和皮肤纹理持久化。
+ * SQLite 数据库管理器 —— 负责连接管理、表结构创建、事务支持和皮肤纹理持久化。
  * 玩家相关的缓存和查询已移至 PlayerRepository。
  */
 public class SQLiteManager {
@@ -49,7 +49,6 @@ public class SQLiteManager {
                 connection = DriverManager.getConnection(url);
                 applyPragmas();
                 createTables(isNewDatabase);
-                migrate();
                 MessageUtil.consolePrint("SQLite 数据库连接成功！");
             } catch (ClassNotFoundException | SQLException e) {
                 MessageUtil.consoleError("无法连接到 SQLite 数据库！");
@@ -82,7 +81,9 @@ public class SQLiteManager {
                     settings TEXT DEFAULT '{}',
                     home_data TEXT DEFAULT '{}',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    nether_unlocked INTEGER DEFAULT 0
+                    nether_unlocked INTEGER DEFAULT 0,
+                    generator_level INTEGER DEFAULT 1,
+                    generator_disabled TEXT DEFAULT '{}'
                 );""";
 
         String createMembersTable = """
@@ -99,7 +100,8 @@ public class SQLiteManager {
                     player_uuid VARCHAR(36) PRIMARY KEY,
                     player_name VARCHAR(16) NOT NULL,
                     border_enabled BOOLEAN DEFAULT 1,
-                    first_nether_join BOOLEAN DEFAULT 1
+                    first_nether_join BOOLEAN DEFAULT 1,
+                    tasks TEXT DEFAULT '{}'
                 );""";
 
         String createCoopsTable = """
@@ -136,101 +138,6 @@ public class SQLiteManager {
             }
         } catch (SQLException e) {
             MessageUtil.consoleError("创建数据库表失败！");
-            e.printStackTrace();
-        }
-    }
-
-    private void migrate() {
-        migrateAddIslandColumns();
-        migrateAddPlayerColumns();
-        migrateAddPlayerTasksColumn();
-    }
-
-    private void migrateAddIslandColumns() {
-        try (Statement stmt = connection.createStatement()) {
-            var rs = stmt.executeQuery("PRAGMA table_info(islands)");
-            boolean hasLevel = false;
-            boolean hasSettings = false;
-            boolean hasPermissions = false;
-            boolean hasNetherUnlocked = false;
-            boolean hasGeneratorLevel = false;
-            boolean hasGeneratorDisabled = false;
-            while (rs.next()) {
-                String colName = rs.getString("name");
-                if ("level".equalsIgnoreCase(colName)) hasLevel = true;
-                if ("settings".equalsIgnoreCase(colName)) hasSettings = true;
-                if ("permissions".equalsIgnoreCase(colName)) hasPermissions = true;
-                if ("nether_unlocked".equalsIgnoreCase(colName)) hasNetherUnlocked = true;
-                if ("generator_level".equalsIgnoreCase(colName)) hasGeneratorLevel = true;
-                if ("generator_disabled".equalsIgnoreCase(colName)) hasGeneratorDisabled = true;
-            }
-            rs.close();
-            if (!hasLevel) {
-                stmt.execute("ALTER TABLE islands ADD COLUMN level INTEGER DEFAULT 1");
-                MessageUtil.consolePrint("数据库迁移：已添加 level 列到 islands 表。");
-            }
-            if (!hasSettings) {
-                stmt.execute("ALTER TABLE islands ADD COLUMN settings TEXT DEFAULT '{}'");
-                MessageUtil.consolePrint("数据库迁移：已添加 settings 列到 islands 表。");
-            }
-            if (!hasPermissions) {
-                stmt.execute("ALTER TABLE islands ADD COLUMN permissions TEXT DEFAULT '{}'");
-                MessageUtil.consolePrint("数据库迁移：已添加 permissions 列到 islands 表。");
-            }
-            if (!hasNetherUnlocked) {
-                stmt.execute("ALTER TABLE islands ADD COLUMN nether_unlocked INTEGER DEFAULT 0");
-                MessageUtil.consolePrint("数据库迁移：已添加 nether_unlocked 列到 islands 表。");
-            }
-            if (!hasGeneratorLevel) {
-                stmt.execute("ALTER TABLE islands ADD COLUMN generator_level INTEGER DEFAULT 1");
-                MessageUtil.consolePrint("数据库迁移：已添加 generator_level 列到 islands 表。");
-            }
-            if (!hasGeneratorDisabled) {
-                stmt.execute("ALTER TABLE islands ADD COLUMN generator_disabled TEXT DEFAULT '{}'");
-                MessageUtil.consolePrint("数据库迁移：已添加 generator_disabled 列到 islands 表。");
-            }
-
-            stmt.execute("DROP TABLE IF EXISTS island_permissions");
-        } catch (SQLException e) {
-            MessageUtil.consoleError("数据库迁移检查 islands 列失败！");
-            e.printStackTrace();
-        }
-    }
-
-    private void migrateAddPlayerColumns() {
-        try (Statement stmt = connection.createStatement()) {
-            var rs = stmt.executeQuery("PRAGMA table_info(players)");
-            boolean hasFirstNetherJoin = false;
-            while (rs.next()) {
-                String colName = rs.getString("name");
-                if ("first_nether_join".equalsIgnoreCase(colName)) hasFirstNetherJoin = true;
-            }
-            rs.close();
-            if (!hasFirstNetherJoin) {
-                stmt.execute("ALTER TABLE players ADD COLUMN first_nether_join BOOLEAN DEFAULT 1");
-                MessageUtil.consolePrint("数据库迁移：已添加 first_nether_join 列到 players 表。");
-            }
-        } catch (SQLException e) {
-            MessageUtil.consoleError("数据库迁移检查 players 列失败！");
-            e.printStackTrace();
-        }
-    }
-
-    private void migrateAddPlayerTasksColumn() {
-        try (Statement stmt = connection.createStatement()) {
-            var rs = stmt.executeQuery("PRAGMA table_info(players)");
-            boolean hasTasks = false;
-            while (rs.next()) {
-                String colName = rs.getString("name");
-                if ("tasks".equalsIgnoreCase(colName)) hasTasks = true;
-            }
-            rs.close();
-            if (!hasTasks) {
-                stmt.execute("ALTER TABLE players ADD COLUMN tasks TEXT DEFAULT '{}'");
-                MessageUtil.consolePrint("数据库迁移：已添加 tasks 列到 players 表。");
-            }
-        } catch (SQLException e) {
-            MessageUtil.consoleError("数据库迁移检查 players.tasks 列失败！");
             e.printStackTrace();
         }
     }
