@@ -283,6 +283,7 @@ public class StarMSkyblock extends JavaPlugin {
     private void registerCommands() {
         if (getCommand("isadmin") != null) {
             AdminCommand adminCmd = new AdminCommand(this);
+            adminCmd.registerCommands();
             getCommand("isadmin").setExecutor(adminCmd);
             getCommand("isadmin").setTabCompleter(adminCmd);
         }

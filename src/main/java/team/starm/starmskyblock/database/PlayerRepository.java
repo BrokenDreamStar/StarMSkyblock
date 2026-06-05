@@ -101,6 +101,35 @@ public class PlayerRepository {
         playerNameCache.remove(uuid);
     }
 
+    public Optional<UUID> getUUID(String playerName) {
+        synchronized (dbLock) {
+            for (Map.Entry<UUID, String> entry : playerNameCache.entrySet()) {
+                if (entry.getValue().equalsIgnoreCase(playerName)) {
+                    return Optional.of(entry.getKey());
+                }
+            }
+        }
+
+        String sql = "SELECT player_uuid FROM players WHERE LOWER(player_name) = ?";
+        synchronized (dbLock) {
+            Connection conn = sqliteManager.getConnection();
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, playerName.toLowerCase());
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        UUID uuid = UUID.fromString(rs.getString("player_uuid"));
+                        playerNameCache.put(uuid, playerName);
+                        return Optional.of(uuid);
+                    }
+                }
+            } catch (SQLException e) {
+                MessageUtil.consoleError("通过玩家名称查询UUID失败！");
+                e.printStackTrace();
+            }
+        }
+        return Optional.empty();
+    }
+
     // ==================== 边界开关 ====================
 
     public boolean isBorderEnabled(UUID playerUuid) {

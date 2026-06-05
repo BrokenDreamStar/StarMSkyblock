@@ -7,172 +7,76 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jspecify.annotations.NonNull;
 import team.starm.starmskyblock.StarMSkyblock;
-import team.starm.starmskyblock.island.Island;
-import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.command.subcommand.AdminSubCommand;
+import team.starm.starmskyblock.command.subcommand.SetGeneratorCommand;
+import team.starm.starmskyblock.command.subcommand.SetRadiusCommand;
+import team.starm.starmskyblock.command.subcommand.SetTaskCommand;
 import team.starm.starmskyblock.message.MessageUtil;
 
-import team.starm.starmskyblock.config.GeneratorConfigManager;
-
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-/**
- * 管理员命令处理器 — /isadmin。
- * 提供服务器管理员对岛屿的后台管理功能。
- * 当前支持：setradius（修改岛屿半径）、setgenerator（设置刷石机等级）。
- * 需要 skyblock.admin 权限。
- */
 public class AdminCommand implements CommandExecutor, TabCompleter {
 
     private final StarMSkyblock plugin;
+    private final Map<String, AdminSubCommand> subCommands = new LinkedHashMap<>();
+    private final List<String> subCommandNames = new ArrayList<>();
 
     public AdminCommand(StarMSkyblock plugin) {
         this.plugin = plugin;
     }
 
+    public void registerCommands() {
+        subCommands.put("setradius", new SetRadiusCommand(plugin));
+        subCommands.put("setgenerator", new SetGeneratorCommand(plugin));
+        subCommands.put("settask", new SetTaskCommand(plugin));
+        subCommandNames.addAll(subCommands.keySet());
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player player)) {
-            MessageUtil.sendMessage(sender, "&c只有玩家才能执行该命令！");
+        if (!sender.hasPermission("skyblock.admin")) {
+            MessageUtil.sendMessage(sender, "&c你没有权限执行此命令！");
             return true;
         }
 
-        // 提取 -s 静默标记
-        boolean silent = args.length > 0 && (args[args.length - 1].equals("-s"));
-        if (silent) {
+        boolean silent = false;
+        Player player = sender instanceof Player ? (Player) sender : null;
+
+        if (player != null && args.length > 0 && args[args.length - 1].equals("-s")) {
+            silent = true;
             args = java.util.Arrays.copyOf(args, args.length - 1);
             MessageUtil.setSilent(player.getUniqueId(), true);
         }
 
         try {
-            return handleCommand(sender, args);
+            if (args.length == 0) {
+                sendUsage(sender);
+                return true;
+            }
+
+            AdminSubCommand sub = subCommands.get(args[0].toLowerCase());
+            if (sub != null) {
+                return sub.execute(sender, args);
+            }
+
+            sendUsage(sender);
+            return true;
         } finally {
-            if (silent) {
+            if (silent && player != null) {
                 MessageUtil.setSilent(player.getUniqueId(), false);
             }
         }
-    }
-
-    /**
-     * 命令路由。当前支持：setradius、setgenerator。
-     */
-    private boolean handleCommand(CommandSender sender, String[] args) {
-        if (args.length == 0) {
-            sendUsage(sender);
-            return true;
-        }
-
-        String subCmd = args[0].toLowerCase();
-
-        if (subCmd.equals("setradius")) {
-            return handleSetRadius(sender, args);
-        } else if (subCmd.equals("setgenerator")) {
-            return handleSetGenerator(sender, args);
-        }
-
-        sendUsage(sender);
-        return true;
     }
 
     private void sendUsage(CommandSender sender) {
         MessageUtil.sendMessage(sender, "&c用法:");
         MessageUtil.sendMessage(sender, "&c  /isadmin setradius <岛屿ID> <新半径>");
         MessageUtil.sendMessage(sender, "&c  /isadmin setgenerator <岛屿ID> <等级>");
-    }
-
-    private boolean handleSetRadius(CommandSender sender, String[] args) {
-        if (args.length != 3) {
-            MessageUtil.sendMessage(sender, "&c用法: /isadmin setradius <岛屿ID> <新半径>");
-            return true;
-        }
-
-        int islandId;
-        try {
-            islandId = Integer.parseInt(args[1]);
-        } catch (NumberFormatException e) {
-            MessageUtil.sendMessage(sender, "&c岛屿ID必须是整数！");
-            return true;
-        }
-
-        int newRadius;
-        try {
-            newRadius = Integer.parseInt(args[2]);
-        } catch (NumberFormatException e) {
-            MessageUtil.sendMessage(sender, "&c新半径必须是整数！");
-            return true;
-        }
-
-        int maxRadius = plugin.getConfigManager().getIslandMaxRadius();
-        if (newRadius > maxRadius) {
-            MessageUtil.sendMessage(sender, "&c新的半径不能超过配置文件中的最大半径限制: " + maxRadius);
-            return true;
-        }
-
-        if (newRadius <= 0) {
-            MessageUtil.sendMessage(sender, "&c半径必须大于0！");
-            return true;
-        }
-
-        IslandManager islandManager = plugin.getIslandManager();
-        Optional<Island> optionalIsland = islandManager.getIsland(islandId);
-
-        if (optionalIsland.isEmpty()) {
-            MessageUtil.sendMessage(sender, "&c找不到ID为 " + islandId + " 的岛屿！");
-            return true;
-        }
-
-        Island island = optionalIsland.get();
-        islandManager.updateIslandRadius(island.getId(), newRadius);
-        MessageUtil.sendMessage(sender, "&a成功将岛屿 &e#" + islandId + " &a的半径修改为 &e" + newRadius + " &a区块。");
-        return true;
-    }
-
-    private boolean handleSetGenerator(CommandSender sender, String[] args) {
-        if (args.length != 3) {
-            MessageUtil.sendMessage(sender, "&c用法: /isadmin setgenerator <岛屿ID> <等级>");
-            return true;
-        }
-
-        int islandId;
-        try {
-            islandId = Integer.parseInt(args[1]);
-        } catch (NumberFormatException e) {
-            MessageUtil.sendMessage(sender, "&c岛屿ID必须是整数！");
-            return true;
-        }
-
-        int level;
-        try {
-            level = Integer.parseInt(args[2]);
-        } catch (NumberFormatException e) {
-            MessageUtil.sendMessage(sender, "&c刷石机等级必须是整数！");
-            return true;
-        }
-
-        GeneratorConfigManager genConfig = plugin.getGeneratorConfigManager();
-        if (!genConfig.isEnabled()) {
-            MessageUtil.sendMessage(sender, "&c刷石机功能未启用！");
-            return true;
-        }
-
-        int maxLevel = genConfig.getMaxLevel();
-        if (level < 1 || level > maxLevel) {
-            MessageUtil.sendMessage(sender, "&c等级必须在 1 ~ " + maxLevel + " 之间！");
-            return true;
-        }
-
-        IslandManager islandManager = plugin.getIslandManager();
-        Optional<Island> optionalIsland = islandManager.getIsland(islandId);
-
-        if (optionalIsland.isEmpty()) {
-            MessageUtil.sendMessage(sender, "&c找不到ID为 " + islandId + " 的岛屿！");
-            return true;
-        }
-
-        islandManager.updateIslandGeneratorLevel(islandId, level);
-        MessageUtil.sendMessage(sender, "&a成功将岛屿 &e#" + islandId + " &a的刷石机等级设置为 &e" + level);
-        return true;
+        MessageUtil.sendMessage(sender, "&c  /isadmin settask <玩家> <章节ID> <任务ID> complete|reset");
     }
 
     @Override
@@ -183,14 +87,14 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             String prefix = args[0].toLowerCase();
-            List<String> matches = new ArrayList<>();
-            if ("setradius".startsWith(prefix)) {
-                matches.add("setradius");
-            }
-            if ("setgenerator".startsWith(prefix)) {
-                matches.add("setgenerator");
-            }
-            return matches;
+            return subCommandNames.stream()
+                    .filter(name -> name.startsWith(prefix))
+                    .collect(Collectors.toList());
+        }
+
+        AdminSubCommand sub = subCommands.get(args[0].toLowerCase());
+        if (sub != null) {
+            return sub.onTabComplete(sender, args);
         }
 
         return new ArrayList<>();

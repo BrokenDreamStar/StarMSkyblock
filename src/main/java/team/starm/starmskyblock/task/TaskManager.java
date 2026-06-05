@@ -384,4 +384,41 @@ public class TaskManager {
     public TaskConfigScanner getTaskConfig() {
         return taskConfig;
     }
+
+    public void adminForceComplete(UUID uuid, String taskId) {
+        ensureLoaded(uuid);
+
+        TaskDefinition def = taskConfig.getTask(taskId);
+        if (def == null) return;
+
+        TaskProgress prog = getOrCreateProgress(uuid, taskId);
+        for (TaskDefinition.RequirementGroup req : def.getRequirements()) {
+            for (String type : req.getTypes()) {
+                prog.getProgress().put(type.toUpperCase(), req.getAmount());
+            }
+        }
+        prog.setClaimed(true);
+        prog.setNotified(true);
+        markDirty(uuid);
+        savePlayerProgress(uuid);
+
+        if (Bukkit.getPlayer(uuid) == null) {
+            playerProgress.remove(uuid);
+        }
+    }
+
+    public void adminResetTask(UUID uuid, String taskId) {
+        ensureLoaded(uuid);
+
+        Map<String, TaskProgress> progressMap = playerProgress.get(uuid);
+        if (progressMap != null) {
+            progressMap.remove(taskId);
+            markDirty(uuid);
+            savePlayerProgress(uuid);
+        }
+
+        if (Bukkit.getPlayer(uuid) == null) {
+            playerProgress.remove(uuid);
+        }
+    }
 }
