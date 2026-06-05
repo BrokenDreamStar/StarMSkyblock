@@ -4,21 +4,17 @@ task_type: ITEM
 request:
   1:
     types:
-      - BASALT
-    amount: 128
+      - CRIMSON_STEM
+    amount: 64
   2:
     types:
-      - NETHERRACK
-    amount: 32
-  3:
-    types:
-      - GLOWSTONE
-    amount: 8
+      - WARPED_STEM
+    amount: 64
 reward:
   item:
-    - material: BLAZE_SPAWN_EGG
-      amount: 2
-    - material: SPAWNER
+    - material: RED_MUSHROOM
+      amount: 1
+    - material: BROWN_MUSHROOM
       amount: 1
   command:
     - 'server: money give %player_name% 5000'

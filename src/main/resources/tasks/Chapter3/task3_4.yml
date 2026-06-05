@@ -1,0 +1,22 @@
+name: '杀'
+description: '击杀一些下界生物'
+task_type: ENTITY_KILL
+request:
+  1:
+    types:
+      - ZOMBIFIED_PIGLIN
+    amount: 32
+  2:
+    types:
+      - BLAZE
+    amount: 32
+  3:
+    types:
+      - MAGMA_CUBE
+    amount: 32
+reward:
+  item:
+    - material: SPAWNER
+      amount: 1
+  command:
+    - 'server: money give %player_name% 10000'

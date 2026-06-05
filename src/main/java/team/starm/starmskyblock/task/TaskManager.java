@@ -172,6 +172,11 @@ public class TaskManager {
                 continue;
             }
 
+            String categoryId = def.getCategoryId();
+            if (!isChapterUnlocked(uuid, categoryId)) {
+                continue;
+            }
+
             Map<String, Integer> pMap = prog.getProgress();
             if (pMap == null) {
                 pMap = new HashMap<>();
@@ -209,6 +214,12 @@ public class TaskManager {
 
         if (!def.getRequiredMissionIds().isEmpty() && !hasCompletedRequired(uuid, def)) {
             MessageUtil.sendMessage(player, "&c请先完成前置任务！");
+            return false;
+        }
+
+        String categoryId = def.getCategoryId();
+        if (!isChapterUnlocked(uuid, categoryId)) {
+            MessageUtil.sendMessage(player, "&c请先完成前置章节！");
             return false;
         }
 
