@@ -93,6 +93,14 @@ public class TaskConfigScanner {
             ConfigurationSection chapterSection = chaptersSection.getConfigurationSection(chapterKey);
             if (chapterSection == null) continue;
 
+            int chapterNumber;
+            try {
+                chapterNumber = Integer.parseInt(chapterKey);
+            } catch (NumberFormatException e) {
+                MessageUtil.consoleWarn("章节 key 不是有效数字: " + chapterKey);
+                continue;
+            }
+
             String directory = chapterSection.getString("directory", "");
             if (directory.isEmpty()) {
                 MessageUtil.consoleWarn("章节 " + chapterKey + " 缺少 directory 字段");
@@ -110,6 +118,7 @@ public class TaskConfigScanner {
             }
 
             List<TaskDefinition> tasks = new ArrayList<>();
+            int missionIndex = 1;
 
             for (String taskName : taskNames) {
                 File missionFile = new File(chapterDir, taskName + ".yml");
@@ -119,23 +128,24 @@ public class TaskConfigScanner {
                 }
 
                 String missionId = directory + "/" + taskName;
-                TaskDefinition def = parseMissionFile(missionFile, directory, missionId);
+                TaskDefinition def = parseMissionFile(missionFile, directory, missionId, missionIndex);
                 if (def != null) {
                     tasks.add(def);
                     taskIndex.put(missionId, def);
                     typeIndex.computeIfAbsent(def.getTaskType(), k -> new ArrayList<>()).add(def);
+                    missionIndex++;
                 }
             }
 
             if (!tasks.isEmpty()) {
-                categories.put(directory, new TaskCategory(directory, chapterName, 0, tasks));
+                categories.put(directory, new TaskCategory(directory, chapterNumber, chapterName, tasks));
             }
         }
 
         MessageUtil.consolePrint("已加载任务配置 共" + categories.size() + "个章节 " + taskIndex.size() + "个任务");
     }
 
-    private TaskDefinition parseMissionFile(File file, String categoryId, String missionId) {
+    private TaskDefinition parseMissionFile(File file, String categoryId, String missionId, int missionNumber) {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
 
         String name = config.getString("name");
@@ -181,7 +191,7 @@ public class TaskConfigScanner {
 
         TaskReward rewards = new TaskReward(rewardCommands);
 
-        return new TaskDefinition(missionId, categoryId, name, description,
+        return new TaskDefinition(missionId, categoryId, missionNumber, name, description,
                 taskType, requiredMissions, onlyNatural, requirements, rewards);
     }
 
@@ -211,5 +221,38 @@ public class TaskConfigScanner {
     public TaskDefinition getTask(String id) { return taskIndex.get(id); }
     public List<TaskDefinition> getTasksByType(TaskType type) {
         return typeIndex.getOrDefault(type, Collections.emptyList());
+    }
+
+    public TaskDefinition getTaskByChapterAndMission(int chapterNumber, int missionNumber) {
+        for (TaskCategory cat : categories.values()) {
+            if (cat.getChapterNumber() == chapterNumber) {
+                for (TaskDefinition def : cat.getTasks()) {
+                    if (def.getMissionNumber() == missionNumber) {
+                        return def;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public TaskCategory getCategoryByChapterNumber(int chapterNumber) {
+        for (TaskCategory cat : categories.values()) {
+            if (cat.getChapterNumber() == chapterNumber) {
+                return cat;
+            }
+        }
+        return null;
+    }
+
+    public int getChapterNumberByTaskId(String taskId) {
+        TaskDefinition def = taskIndex.get(taskId);
+        if (def == null) return 0;
+        for (TaskCategory cat : categories.values()) {
+            if (cat.getTasks().contains(def)) {
+                return cat.getChapterNumber();
+            }
+        }
+        return 0;
     }
 }

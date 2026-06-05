@@ -87,9 +87,9 @@
 | `upgrade radius`                                  | 升级岛屿范围（消耗 Vault 货币）         |
 | `upgrade generator`                               | 升级刷石机等级（消耗 Vault 货币）        |
 | `task list [章节]`                                | 查看任务列表及进度                   |
-| `task info <任务ID>`                              | 查看任务详情                      |
-| `task submit <任务ID>`                            | 提交物品完成 ITEM 类型任务             |
-| `task claim <任务ID>`                             | 领取已完成任务的奖励                  |
+| `task info <章节> <任务>`                          | 查看任务详情                      |
+| `task submit <章节> <任务>`                        | 提交物品完成 ITEM 类型任务             |
+| `task claim <章节> <任务>`                         | 领取已完成任务的奖励                  |
 
 `/is` 无参数时默认执行 `/is spawn`（可通过 `config.yml` 的 `default-island-command` 修改）。
 
@@ -185,9 +185,9 @@ generator-upgrades:
 | 命令                                 | 说明                           |
 |-------------------------------------|------------------------------|
 | `/is task list [章节]`               | 列出所有任务或指定章节任务，显示状态与进度百分比 |
-| `/is task info <任务ID>`              | 查看任务详情：名称、类型、需求、前置、奖励     |
-| `/is task submit <任务ID>`            | 提交背包物品（仅 `ITEM` 类型任务）       |
-| `/is task claim <任务ID>`             | 领取已完成的奖励                    |
+| `/is task info <章节> <任务>`          | 查看任务详情：名称、类型、需求、前置、奖励     |
+| `/is task submit <章节> <任务>`        | 提交背包物品（仅 `ITEM` 类型任务）       |
+| `/is task claim <章节> <任务>`         | 领取已完成的奖励                    |
 
 ### 任务类型
 

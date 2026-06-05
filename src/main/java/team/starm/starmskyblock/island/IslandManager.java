@@ -186,7 +186,8 @@ public class IslandManager {
         memberToIslandIndex.put(ownerId, islandId);
         addToGridIndex(island);
 
-        MessageUtil.consolePrint("岛屿已创建并保存至数据库！ID: " + islandId + "，中心区块坐标: " + location);
+        String playerName = (owner != null) ? owner.getName() : ownerId.toString();
+        MessageUtil.consolePrint("玩家" + playerName + "已创建岛屿 ID:" + islandId + " 中心区块坐标: " + location);
 
         return island;
     }

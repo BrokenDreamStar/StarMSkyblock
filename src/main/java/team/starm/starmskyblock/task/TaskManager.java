@@ -184,8 +184,10 @@ public class TaskManager {
             if (!prog.isClaimed() && !prog.isNotified() && prog.isCompleted(def)) {
                 prog.setNotified(true);
                 markDirty(uuid);
+                int ch = taskConfig.getChapterNumberByTaskId(def.getId());
+                int ms = def.getMissionNumber();
                 MessageUtil.sendMessage(player, "&a任务 &e" + def.getName() + " &a已完成！使用 &e/is task claim "
-                        + def.getId() + " &a领取奖励。");
+                        + ch + " " + ms + " &a领取奖励。");
             }
         }
     }
@@ -260,7 +262,9 @@ public class TaskManager {
         }
 
         markDirty(uuid);
-        MessageUtil.sendMessage(player, "&a✔ 已提交物品！使用 &e/is task claim " + taskId + " &a领取奖励。");
+        int ch = taskConfig.getChapterNumberByTaskId(def.getId());
+        int ms = def.getMissionNumber();
+        MessageUtil.sendMessage(player, "&a✔ 已提交物品！使用 &e/is task claim " + ch + " " + ms + " &a领取奖励。");
         return true;
     }
 

@@ -8,6 +8,7 @@ public class TaskDefinition {
 
     private final String id;
     private final String categoryId;
+    private final int missionNumber;
     private final String name;
     private final String description;
     private final TaskType taskType;
@@ -16,12 +17,13 @@ public class TaskDefinition {
     private final List<RequirementGroup> requirements;
     private final TaskReward rewards;
 
-    public TaskDefinition(String id, String categoryId, String name, String description,
+    public TaskDefinition(String id, String categoryId, int missionNumber, String name, String description,
                           TaskType taskType, List<String> requiredMissions,
                           boolean onlyNatural, List<RequirementGroup> requirements,
                           TaskReward rewards) {
         this.id = id;
         this.categoryId = categoryId;
+        this.missionNumber = missionNumber;
         this.name = name;
         this.description = description;
         this.taskType = taskType;
@@ -33,6 +35,7 @@ public class TaskDefinition {
 
     public String getId() { return id; }
     public String getCategoryId() { return categoryId; }
+    public int getMissionNumber() { return missionNumber; }
     public String getName() { return name; }
     public String getDescription() { return description; }
     public TaskType getTaskType() { return taskType; }
