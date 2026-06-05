@@ -1,7 +1,7 @@
 Chapters:
   1:
     directory: Chapter1
-    name: '第一章 · 初入空岛'
+    name: '序章 初临空岛'
     tasks:
       - task1_1
       - task1_2
@@ -9,3 +9,24 @@ Chapters:
       - task1_4
       - task1_5
       - task1_6
+  2:
+    directory: Chapter2
+    name: '第一章 空岛生存'
+    tasks:
+      - task2_1
+      - task2_2
+      - task2_3
+      - task2_4
+      - task2_5
+      - task2_6
+      - task2_7
+  3:
+    directory: Chapter3
+    name: '第二章 地狱空荡荡'
+    tasks:
+      - task3_1
+      - task3_2
+      - task3_3
+      - task3_4
+      - task3_5
+      - task3_6

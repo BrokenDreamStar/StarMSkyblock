@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.PotionMeta;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.database.PlayerRepository;
 import team.starm.starmskyblock.message.MessageUtil;
@@ -226,7 +227,9 @@ public class TaskManager {
                 Material mat = Material.matchMaterial(type);
                 if (mat == null) continue;
                 for (ItemStack item : inv.all(mat).values()) {
-                    if (item != null) hasAmount += item.getAmount();
+                    if (item != null && matchesPotionRequirement(item, req.getPotionType())) {
+                        hasAmount += item.getAmount();
+                    }
                 }
             }
             if (hasAmount < req.getAmount()) {
@@ -245,6 +248,7 @@ public class TaskManager {
                 for (ItemStack item : inv.all(mat).values()) {
                     if (remaining <= 0) break;
                     if (item == null) continue;
+                    if (!matchesPotionRequirement(item, req.getPotionType())) continue;
                     int toRemove = Math.min(remaining, item.getAmount());
                     item.setAmount(item.getAmount() - toRemove);
                     remaining -= toRemove;
@@ -258,7 +262,11 @@ public class TaskManager {
         }
 
         for (TaskDefinition.RequirementGroup req : def.getRequirements()) {
-            prog.getProgress().merge(req.getTypes().get(0), req.getAmount(), Integer::sum);
+            String key = req.getTypes().get(0);
+            if (req.getPotionType() != null) {
+                key = key + ":" + req.getPotionType().toUpperCase();
+            }
+            prog.getProgress().merge(key, req.getAmount(), Integer::sum);
         }
 
         markDirty(uuid);
@@ -385,6 +393,13 @@ public class TaskManager {
         return taskConfig;
     }
 
+    private static boolean matchesPotionRequirement(ItemStack item, String potionType) {
+        if (potionType == null) return true;
+        if (!(item.getItemMeta() instanceof PotionMeta meta)) return false;
+        if (meta.getBasePotionType() == null) return false;
+        return meta.getBasePotionType().name().equalsIgnoreCase(potionType);
+    }
+
     public void adminForceComplete(UUID uuid, String taskId) {
         ensureLoaded(uuid);
 
@@ -394,7 +409,11 @@ public class TaskManager {
         TaskProgress prog = getOrCreateProgress(uuid, taskId);
         for (TaskDefinition.RequirementGroup req : def.getRequirements()) {
             for (String type : req.getTypes()) {
-                prog.getProgress().put(type.toUpperCase(), req.getAmount());
+                String key = type.toUpperCase();
+                if (req.getPotionType() != null) {
+                    key = key + ":" + req.getPotionType().toUpperCase();
+                }
+                prog.getProgress().put(key, req.getAmount());
             }
         }
         prog.setClaimed(true);

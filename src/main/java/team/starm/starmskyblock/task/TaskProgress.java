@@ -49,7 +49,11 @@ public class TaskProgress {
         for (TaskDefinition.RequirementGroup req : def.getRequirements()) {
             int total = 0;
             for (String type : req.getTypes()) {
-                total += progress.getOrDefault(type.toUpperCase(), 0);
+                String key = type.toUpperCase();
+                if (req.getPotionType() != null) {
+                    key = key + ":" + req.getPotionType().toUpperCase();
+                }
+                total += progress.getOrDefault(key, 0);
             }
             if (total < req.getAmount()) return false;
         }
@@ -64,7 +68,11 @@ public class TaskProgress {
             totalWeight += req.getAmount();
             int total = 0;
             for (String type : req.getTypes()) {
-                total += progress.getOrDefault(type.toUpperCase(), 0);
+                String key = type.toUpperCase();
+                if (req.getPotionType() != null) {
+                    key = key + ":" + req.getPotionType().toUpperCase();
+                }
+                total += progress.getOrDefault(key, 0);
             }
             completedWeight += Math.min(total, req.getAmount());
         }

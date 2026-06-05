@@ -1,0 +1,19 @@
+name: '铜头铁臂'
+description: '合成铜头盔和铁胸甲'
+task_required: []
+task_type: CRAFTING
+request:
+  1:
+    types:
+      - COPPER_HELMET
+    amount: 1
+  2:
+    types:
+      - IRON_CHESTPLATE
+    amount: 1
+reward:
+  command:
+    - 'server: lce itemcollection give skyblockreward task2_1_1 %player_name%'
+    - 'server: lce itemcollection give skyblockreward task2_1_2 %player_name%'
+    - 'server: lce itemcollection give skyblockreward task2_1_3 %player_name%'
+    - 'server: lce itemcollection give skyblockreward task2_1_4 %player_name%'

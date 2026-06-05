@@ -1,0 +1,25 @@
+name: '菇菇嘎嘎'
+description: '种植并砍伐诡异菌和绯红菌'
+task_required: []
+task_type: ITEM
+request:
+  1:
+    types:
+      - BASALT
+    amount: 128
+  2:
+    types:
+      - NETHERRACK
+    amount: 32
+  3:
+    types:
+      - GLOWSTONE
+    amount: 8
+reward:
+  item:
+    - material: BLAZE_SPAWN_EGG
+      amount: 2
+    - material: SPAWNER
+      amount: 1
+  command:
+    - 'server: money give %player_name% 5000'

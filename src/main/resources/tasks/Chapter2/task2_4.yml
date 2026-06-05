@@ -1,0 +1,17 @@
+name: '农夫乐事'
+description: '种田!'
+task_required: []
+task_type: BLOCK_PLACE
+request:
+  1:
+    types: POTATOES
+      -
+    amount: 32
+  2:
+    types:
+      - CARROTS
+    amount: 32
+reward:
+  item:
+    - material: SLEEP_SPAWN_EGG
+      amount: 2

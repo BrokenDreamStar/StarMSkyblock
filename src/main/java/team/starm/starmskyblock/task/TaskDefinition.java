@@ -47,14 +47,21 @@ public class TaskDefinition {
     public static class RequirementGroup {
         private final List<String> types;
         private final int amount;
+        private final String potionType;
 
         public RequirementGroup(List<String> types, int amount) {
+            this(types, amount, null);
+        }
+
+        public RequirementGroup(List<String> types, int amount, String potionType) {
             this.types = types;
             this.amount = amount;
+            this.potionType = potionType;
         }
 
         public List<String> getTypes() { return types; }
         public int getAmount() { return amount; }
+        public String getPotionType() { return potionType; }
     }
 
 }

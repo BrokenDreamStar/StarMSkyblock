@@ -1,0 +1,17 @@
+name: '屠夫'
+description: '繁殖一些动物'
+task_required: []
+task_type: ITEM
+request:
+  1:
+    types:
+      - BEEF
+    amount: 16
+  2:
+    types:
+      - MUTTON
+    amount: 16
+reward:
+  item:
+    - material: PIG_SPAWN_EGG
+      amount: 2

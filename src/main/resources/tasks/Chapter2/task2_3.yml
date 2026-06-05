@@ -1,0 +1,25 @@
+name: '怪物猎人'
+description: '击杀一些怪物'
+task_required: []
+task_type: ENTITY_KILL
+request:
+  1:
+    types:
+      - SKELETON
+    amount: 32
+  2:
+    types:
+      - ZOMBIE
+    amount: 32
+  3:
+    types:
+      - CREEPER
+    amount: 16
+reward:
+  item:
+    - material: CARROT
+      amount: 1
+    - material: POTATO
+      amount: 1
+  command:
+    - 'server: money %player_name% 3000'

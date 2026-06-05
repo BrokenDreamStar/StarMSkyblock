@@ -1,0 +1,19 @@
+name: '让我们更深入些'
+description: '建造地狱门并进入下界'
+task_required: []
+task_type: BLOCK_PLACE
+request:
+  1:
+    types:
+      - OBSIDIAN
+    amount: 10
+reward:
+  item:
+    - material: BLUE_ICE
+      amount: 2
+    - material: SOUL_SOIL
+      amount: 1
+    - material: DIAMOND_PICKAXE
+      amount: 1
+  command:
+    - 'server: money give %player_name% 5000'

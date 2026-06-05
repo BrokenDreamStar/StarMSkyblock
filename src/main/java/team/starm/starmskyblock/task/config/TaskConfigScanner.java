@@ -184,8 +184,9 @@ public class TaskConfigScanner {
                 if (entry == null) continue;
                 List<String> types = entry.getStringList("types");
                 int amount = entry.getInt("amount", 1);
+                String potionType = entry.getString("potion_type", null);
                 if (!types.isEmpty()) {
-                    requirements.add(new TaskDefinition.RequirementGroup(types, amount));
+                    requirements.add(new TaskDefinition.RequirementGroup(types, amount, potionType));
                 }
             }
         }

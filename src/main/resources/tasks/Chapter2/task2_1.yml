@@ -1,0 +1,18 @@
+name: '铁器时代'
+description: '升级你的刷石机 使得刷石机可以生成铁矿 获取一些铁'
+task_required: []
+task_type: BLOCK_BREAK
+request:
+  1:
+    types:
+      - IRON_ORE
+    amount: 32
+only-natural: true
+reward:
+  item:
+    - material: POINTED_DRIPSTONE
+      amount: 5
+    - material: POINTED_BLOCK
+      amount: 5
+  command:
+    - 'server: money give %player_name% 2000'
