@@ -12,6 +12,8 @@ Chapters:
   2:
     directory: Chapter2
     name: '第一章 空岛生存'
+    required:
+      - Chapter1
     tasks:
       - task2_1
       - task2_2
@@ -23,6 +25,8 @@ Chapters:
   3:
     directory: Chapter3
     name: '第二章 地狱空荡荡'
+    required:
+      - Chapter2
     tasks:
       - task3_1
       - task3_2

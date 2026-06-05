@@ -114,6 +114,8 @@ public class TaskConfigScanner {
             List<String> taskNames = chapterSection.getStringList("tasks");
             if (taskNames.isEmpty()) continue;
 
+            List<String> requiredChapters = chapterSection.getStringList("required");
+
             File chapterDir = new File(tasksDir, directory);
             if (!chapterDir.exists() || !chapterDir.isDirectory()) {
                 MessageUtil.consoleWarn("章节目录不存在: " + directory);
@@ -141,7 +143,7 @@ public class TaskConfigScanner {
             }
 
             if (!tasks.isEmpty()) {
-                categories.put(directory, new TaskCategory(directory, chapterNumber, chapterName, tasks));
+                categories.put(directory, new TaskCategory(directory, chapterNumber, chapterName, tasks, requiredChapters));
             }
         }
 

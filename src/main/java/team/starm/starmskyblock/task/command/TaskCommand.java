@@ -100,31 +100,36 @@ public class TaskCommand extends SubCommand {
         for (TaskCategory cat : categories.values()) {
             if (chapterFilter > 0 && cat.getChapterNumber() != chapterFilter) continue;
 
+            boolean chapterLocked = !taskManager.isChapterUnlocked(uuid, cat.getId());
+            String chapterIcon = chapterLocked ? "&8🔒" : "&b▶";
             MessageUtil.sendMessage(player, "");
-            MessageUtil.sendMessage(player, "  &b▶ " + cat.getName() + " &7(ID:" + cat.getChapterNumber() + ")");
+            MessageUtil.sendMessage(player, "  " + chapterIcon + " " + cat.getName() + " &7(ID:" + cat.getChapterNumber() + ")");
 
             for (TaskDefinition def : cat.getTasks()) {
-                TaskProgress prog = taskManager.getPlayerProgressMap(uuid).get(def.getId());
-                boolean completed = prog != null && prog.isClaimed();
-                boolean canComplete = def.getTaskType() == TaskType.ITEM
-                        ? false
-                        : (prog != null && !prog.isClaimed() && prog.isCompleted(def));
-                boolean locked = !taskManager.isTaskUnlocked(uuid, def.getId());
+                boolean locked = chapterLocked || !taskManager.isTaskUnlocked(uuid, def.getId());
 
                 String icon;
                 if (locked) {
                     icon = "&8🔒";
-                } else if (completed) {
-                    icon = "&a✔";
-                } else if (canComplete) {
-                    icon = "&e⚠";
                 } else {
-                    icon = "&7✘";
+                    TaskProgress prog = taskManager.getPlayerProgressMap(uuid).get(def.getId());
+                    boolean completed = prog != null && prog.isClaimed();
+                    boolean canComplete = def.getTaskType() == TaskType.ITEM
+                            ? false
+                            : (prog != null && !prog.isClaimed() && prog.isCompleted(def));
+                    if (completed) {
+                        icon = "&a✔";
+                    } else if (canComplete) {
+                        icon = "&e⚠";
+                    } else {
+                        icon = "&7✘";
+                    }
                 }
 
                 int missionNum = def.getMissionNumber();
                 int chapterNum = cat.getChapterNumber();
-                int pct = prog != null ? (int) Math.round(prog.getProgressPercent(def) * 100) : 0;
+                TaskProgress prog = taskManager.getPlayerProgressMap(uuid).get(def.getId());
+                int pct = (prog != null && !locked) ? (int) Math.round(prog.getProgressPercent(def) * 100) : 0;
                 MessageUtil.sendMessage(player, "    &f" + missionNum + ": " + def.getName()
                         + " &7[" + pct + "%] " + icon);
             }

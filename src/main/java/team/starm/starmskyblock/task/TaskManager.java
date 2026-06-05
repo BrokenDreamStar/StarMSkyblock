@@ -379,6 +379,19 @@ public class TaskManager {
         return prog.isClaimed();
     }
 
+    public boolean isChapterUnlocked(UUID uuid, String categoryId) {
+        TaskCategory cat = taskConfig.getCategories().get(categoryId);
+        if (cat == null || cat.getRequiredChapters().isEmpty()) return true;
+        for (String reqId : cat.getRequiredChapters()) {
+            TaskCategory reqCat = taskConfig.getCategories().get(reqId);
+            if (reqCat == null) continue;
+            for (TaskDefinition def : reqCat.getTasks()) {
+                if (!isTaskCompleted(uuid, def.getId())) return false;
+            }
+        }
+        return true;
+    }
+
     private void ensureLoaded(UUID uuid) {
         if (!playerProgress.containsKey(uuid)) {
             loadPlayerProgress(uuid);
