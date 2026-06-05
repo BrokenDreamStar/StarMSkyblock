@@ -45,6 +45,8 @@
 | `generator.yml`   | 岛屿刷石机配置：等级阈值、各维度概率权重表、深板岩替换开关、启用/禁用控制                                               |
 | `upgrades.yml`    | 岛屿升级配置：范围升级与刷石机升级的等级目标及费用                                                     |
 | `sign.yml`        | 岛屿出生点告示牌文本模板（支持 PAPI 变量）                                                               |
+| `tasks/tasks.yml` | 任务章节注册文件                                                                               |
+| `tasks/<Chapter>/` | 章节任务定义文件（`.yml`），如 `Chapter1/Mission1_1.yml`                                           |
 | `schematics/`     | 岛屿结构文件（`.schem`），内置 `default.schem` / `default_nether.schem` / `default_the_end.schem` |
 
 ## 命令
@@ -84,6 +86,10 @@
 | `upgrade`                                         | 查看岛屿升级信息                   |
 | `upgrade radius`                                  | 升级岛屿范围（消耗 Vault 货币）         |
 | `upgrade generator`                               | 升级刷石机等级（消耗 Vault 货币）        |
+| `task list [章节]`                                | 查看任务列表及进度                   |
+| `task info <任务ID>`                              | 查看任务详情                      |
+| `task submit <任务ID>`                            | 提交物品完成 ITEM 类型任务             |
+| `task claim <任务ID>`                             | 领取已完成任务的奖励                  |
 
 `/is` 无参数时默认执行 `/is spawn`（可通过 `config.yml` 的 `default-island-command` 修改）。
 
@@ -169,6 +175,78 @@ generator-upgrades:
 ```
 
 升级采用阶梯配置，每个升级项包含目标值和费用。范围升级的目标半径不得超过 `config.yml` 中的 `island-max-radius`，刷石机等级不得超过 `generator.yml` 的最大等级。
+
+## 任务系统
+
+玩家可通过完成任务获取奖励。任务按章节组织，每个任务由 YAML 配置文件定义。
+
+### 命令
+
+| 命令                                 | 说明                           |
+|-------------------------------------|------------------------------|
+| `/is task list [章节]`               | 列出所有任务或指定章节任务，显示状态与进度百分比 |
+| `/is task info <任务ID>`              | 查看任务详情：名称、类型、需求、前置、奖励     |
+| `/is task submit <任务ID>`            | 提交背包物品（仅 `ITEM` 类型任务）       |
+| `/is task claim <任务ID>`             | 领取已完成的奖励                    |
+
+### 任务类型
+
+| 类型           | 说明              | 自动跟踪   |
+|--------------|-----------------|--------|
+| `BLOCK_BREAK` | 破坏方块            | ✅ 事件监听 |
+| `BLOCK_PLACE` | 放置方块            | ✅ 事件监听 |
+| `ITEM`        | 提交物品（手动）        | ❌ 需 `/is task submit` |
+| `ENTITY_KILL` | 击杀实体            | ✅ 事件监听 |
+| `FARMING`     | 种植/收获农作物        | ✅ 事件监听 |
+| `FISHING`     | 钓鱼              | ✅ 事件监听 |
+| `CRAFTING`    | 合成物品            | ✅ 事件监听 |
+| `EARN_MONEY`  | 赚钱（Vault 经济）    | ✅ 定时检查 |
+
+### 任务状态
+
+| 状态    | 说明             | 图标 |
+|-------|----------------|----|
+| 锁定    | 前置任务未完成        | 🔒 |
+| 进行中   | 前置已完成，进度未满     | ✘  |
+| 可领取   | 进度已满，奖励待领取     | ⚠  |
+| 已完成   | 奖励已领取          | ✔  |
+
+### 配置文件格式
+
+任务配置位于 `tasks/tasks.yml`，注册章节与任务列表：
+
+```yaml
+Chapters:
+  1:
+    directory: Chapter1
+    name: "第一章 · 初入空岛"
+    tasks:
+      - Mission1_1
+      - Mission1_2
+      - Mission1_3
+```
+
+每个任务文件（如 `tasks/Chapter1/Mission1_1.yml`）定义具体内容：
+
+```yaml
+name: '空岛 启动!'
+description: '制造刷石机并刷取一些圆石'
+task_type: BLOCK_BREAK
+only-natural: true
+request:
+  1:
+    types: [COBBLESTONE]
+    amount: 64
+reward:
+  command:
+    - 'server: give %player_name% iron_ingot 3'
+```
+
+- `task_type` — 任务类型
+- `task_required` — 前置任务 ID 列表（支持字符串或列表）
+- `only-natural` — 仅统计自然生成的方块（`BLOCK_BREAK` 专用）
+- `request` — 需求组（同组 types 为"或"关系，不同组为"与"关系）
+- `reward.command` — 奖励命令列表，支持 `server:`（控制台执行，默认）和 `player:`（玩家执行）前缀，变量 `%player_name%` 自动替换
 
 ## 权限系统
 
@@ -295,7 +373,7 @@ StarMSkyblock
 │   ├── UpgradeConfigManager.java    — upgrades.yml（升级等级与费用）
 │   └── SignConfigManager.java       — sign.yml
 ├── database/                   — SQLite 持久层
-│   ├── SQLiteManager.java      — 连接管理与表迁移
+│   ├── SQLiteManager.java      — 连接管理与建表
 │   ├── IslandRepository.java   — 岛屿 CRUD
 │   └── PlayerRepository.java   — 玩家数据
 ├── generator/                  — 世界生成与结构
@@ -311,6 +389,27 @@ StarMSkyblock
 │   ├── IslandDeleteTask.java   — 异步岛屿删除
 │   ├── InvitationManager.java  — 邀请管理（含 5 分钟过期）
 │   └── IslandSerializer.java   — JSON 序列化
+├── task/                       — 任务系统
+│   ├── TaskType.java           — 任务类型枚举
+│   ├── TaskDefinition.java     — 任务定义（需求组、前置、奖励）
+│   ├── TaskCategory.java       — 章节定义
+│   ├── TaskProgress.java       — 玩家进度（JSON 持久化）
+│   ├── TaskManager.java        — 核心管理器（进度跟踪、监听器注册、自动保存）
+│   ├── config/
+│   │   └── TaskConfigScanner.java — 扫描 tasks/ 目录加载任务配置
+│   ├── command/
+│   │   └── TaskCommand.java    — /is task 子命令
+│   ├── listener/
+│   │   ├── BaseTaskListener.java       — 监听器抽象基类
+│   │   ├── BlockBreakTaskListener.java — 破坏方块跟踪
+│   │   ├── BlockPlaceTaskListener.java — 放置方块跟踪
+│   │   ├── EntityKillTaskListener.java — 击杀实体跟踪
+│   │   ├── FarmingTaskListener.java    — 种植/收获跟踪
+│   │   ├── FishingTaskListener.java    — 钓鱼跟踪
+│   │   ├── CraftingTaskListener.java   — 合成跟踪
+│   │   └── MoneyTaskListener.java      — 赚钱跟踪
+│   └── reward/
+│       └── TaskReward.java     — 奖励命令模型
 ├── listener/                   — Bukkit 事件监听
 │   ├── BorderListener.java     — 动态世界边界
 │   ├── CobblestoneGeneratorListener.java — 刷石机矿石替换（权重随机、深板岩、启用/禁用）
@@ -371,7 +470,7 @@ StarMSkyblock
 | `islands`        | 岛屿数据（ID、名称、所属者、坐标、半径、设置、权限、刷石机禁用列表等） |
 | `island_members` | 成员关联（UUID、角色、加入时间）           |
 | `island_coops`   | 合作者关联                        |
-| `players`        | 玩家数据（边界偏好、首次进入下界标志）          |
+| `players`        | 玩家数据（边界偏好、首次进入下界标志、任务进度 JSON） |
 | `player_stats`   | 玩家统计（岛屿删除次数）                 |
 | `skin_textures`  | 皮肤纹理缓存                       |
 
