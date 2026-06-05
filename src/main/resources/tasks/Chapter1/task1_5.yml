@@ -1,6 +1,5 @@
 name: '糖'
 description: '种植甜菜根或甘蔗来制糖'
-task_required: []
 task_type: ITEM
 request:
   1:

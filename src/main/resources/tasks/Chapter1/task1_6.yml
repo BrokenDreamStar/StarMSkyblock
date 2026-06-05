@@ -1,6 +1,5 @@
 name: '我们群主敢用'
 description: '种植并收获一些仙人掌'
-task_required: []
 task_type: ITEM
 request:
   1:

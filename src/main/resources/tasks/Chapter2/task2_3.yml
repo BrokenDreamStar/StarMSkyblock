@@ -1,6 +1,5 @@
 name: '怪物猎人'
 description: '击杀一些怪物'
-task_required: []
 task_type: ENTITY_KILL
 request:
   1:

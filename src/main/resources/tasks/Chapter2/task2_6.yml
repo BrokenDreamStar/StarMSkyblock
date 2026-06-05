@@ -1,6 +1,5 @@
 name: '钟乳石'
 description: '当滴水石块上方为水源 下方为滴水石锥 且滴水石锥正下方为非流体方块时 滴水石锥会生长'
-task_required: []
 task_type: ITEM
 request:
   1:

@@ -1,6 +1,5 @@
 name: '下界刷石机'
 description: '建造玄武岩刷石机并刷取一些下界方块'
-task_required: []
 task_type: BLOCK_BREAK
 request:
   1:

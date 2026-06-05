@@ -1,6 +1,5 @@
 name: '菇菇嘎嘎'
 description: '种植并砍伐诡异菌和绯红菌'
-task_required: []
 task_type: ITEM
 request:
   1:

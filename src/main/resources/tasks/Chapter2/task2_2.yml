@@ -1,6 +1,5 @@
 name: '铜头铁臂'
 description: '合成铜头盔和铁胸甲'
-task_required: []
 task_type: CRAFTING
 request:
   1:

@@ -1,6 +1,5 @@
 name: '屠夫'
 description: '繁殖一些动物'
-task_required: []
 task_type: ITEM
 request:
   1:

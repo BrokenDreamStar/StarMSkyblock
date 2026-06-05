@@ -1,6 +1,5 @@
 name: '吃瓜群众'
 description: '种植并收获一些西瓜和南瓜'
-task_required: []
 task_type: ITEM
 request:
   1:

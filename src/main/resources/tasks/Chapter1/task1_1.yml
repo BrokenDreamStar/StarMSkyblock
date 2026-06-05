@@ -1,6 +1,5 @@
 name: '空岛 启动!'
 description: '制造刷石机并刷取一些圆石'
-task_required: []
 task_type: BLOCK_BREAK
 request:
   1:

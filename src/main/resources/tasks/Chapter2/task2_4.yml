@@ -1,6 +1,5 @@
 name: '农夫乐事'
 description: '种田!'
-task_required: []
 task_type: BLOCK_PLACE
 request:
   1:

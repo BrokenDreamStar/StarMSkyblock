@@ -1,6 +1,5 @@
 name: '让我们更深入些'
 description: '建造地狱门并进入下界'
-task_required: []
 task_type: BLOCK_PLACE
 request:
   1:

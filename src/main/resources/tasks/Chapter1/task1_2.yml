@@ -1,6 +1,5 @@
 name: '会掉树苗吗?'
 description: '种植并砍伐一些树'
-task_required: []
 task_type: ITEM
 request:
   1:

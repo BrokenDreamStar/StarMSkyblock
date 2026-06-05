@@ -1,6 +1,5 @@
 name: '无限岩浆'
 description: '当方块上方为岩浆源 下方为滴水石锥 且滴水石锥正下方为炼药锅时 炼药锅会缓慢装满岩浆'
-task_required: []
 task_type: ITEM
 request:
   1:
