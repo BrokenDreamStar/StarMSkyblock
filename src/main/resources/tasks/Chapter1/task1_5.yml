@@ -1,14 +1,15 @@
-name: '要致富先撸树'
-description: '种植并砍伐一些树'
+name: '糖'
+description: '种植甜菜根或甘蔗来制糖'
 task_required: []
 task_type: ITEM
 request:
   1:
     types:
-      - OAK_LOG
-      - SPRUCE_LOG
-      - CHERRY_LOG
+      - SUGAR
     amount: 32
 reward:
+  item:
+    - material: SAND
+      amount: 32
   command:
     - 'server: money %player_name% 1000'

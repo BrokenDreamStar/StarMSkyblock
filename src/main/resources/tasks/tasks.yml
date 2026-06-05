@@ -1,8 +1,11 @@
 Chapters:
   1:
     directory: Chapter1
-    name: "第一章 · 初入空岛"
+    name: '第一章 · 初入空岛'
     tasks:
-      - Mission1_1
-      - Mission1_2
-      - Mission1_3
+      - task1_1
+      - task1_2
+      - task1_3
+      - task1_4
+      - task1_5
+      - task1_6

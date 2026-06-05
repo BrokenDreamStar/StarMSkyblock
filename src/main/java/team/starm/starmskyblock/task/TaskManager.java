@@ -304,6 +304,16 @@ public class TaskManager {
             return true;
         }
 
+        for (TaskReward.ItemReward itemReward : rewards.items()) {
+            Material mat = Material.matchMaterial(itemReward.material());
+            if (mat == null) continue;
+            ItemStack item = new ItemStack(mat, itemReward.amount());
+            Map<Integer, ItemStack> remaining = player.getInventory().addItem(item);
+            for (ItemStack drop : remaining.values()) {
+                player.getWorld().dropItemNaturally(player.getLocation(), drop);
+            }
+        }
+
         for (String cmd : rewards.commands()) {
             if (cmd == null || cmd.isEmpty()) continue;
             String parsed = cmd.replace("%player_name%", player.getName())
@@ -329,9 +339,18 @@ public class TaskManager {
         if (progressMap == null) return false;
 
         for (String reqId : def.getRequiredMissionIds()) {
-            TaskProgress reqProg = progressMap.get(reqId);
-            if (reqProg == null || !reqProg.isClaimed()) {
-                return false;
+            if (taskConfig.isChapterId(reqId)) {
+                for (String chapterTaskId : taskConfig.getChapterTaskIds(reqId)) {
+                    TaskProgress reqProg = progressMap.get(chapterTaskId);
+                    if (reqProg == null || !reqProg.isClaimed()) {
+                        return false;
+                    }
+                }
+            } else {
+                TaskProgress reqProg = progressMap.get(reqId);
+                if (reqProg == null || !reqProg.isClaimed()) {
+                    return false;
+                }
             }
         }
         return true;

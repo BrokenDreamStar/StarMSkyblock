@@ -1,0 +1,15 @@
+name: '我们群主敢用'
+description: '种植并收获一些仙人掌'
+task_required: []
+task_type: ITEM
+request:
+  1:
+    types:
+      - CACTUS
+    amount: 32
+reward:
+  item:
+    - material: COW_SPAWN_EGG
+      amount: 2
+  command:
+    - 'server: money %player_name% 1000'

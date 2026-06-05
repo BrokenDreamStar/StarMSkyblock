@@ -1,0 +1,15 @@
+name: '开垦荒地'
+description: '通过击杀骷髅或堆肥获得骨粉 对草方块使用骨粉生成草 破坏草获得一些小麦种子并种植'
+task_required: []
+task_type: BLOCK_PLACE
+request:
+  1:
+    types:
+      - WHEAT
+    amount: 16
+reward:
+  item:
+    - material: DIRT
+      amount: 32
+  command:
+    - 'server: money %player_name% 1000'

@@ -1,0 +1,19 @@
+name: '吃瓜群众'
+description: '种植并收获一些西瓜和南瓜'
+task_required: []
+task_type: ITEM
+request:
+  1:
+    types:
+      - MELON_SLICE
+    amount: 32
+  2:
+    types:
+      - PUMPKIN
+    amount: 16
+reward:
+  item:
+    - material: PUMPKIN_PIE
+      amount: 32
+  command:
+    - 'server: money %player_name% 1000'

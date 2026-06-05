@@ -32,9 +32,12 @@ public class TaskConfigScanner {
 
     private static final String[] BUILTIN_TASKS = {
         "tasks.yml",
-        "Chapter1/Mission1_1.yml",
-        "Chapter1/Mission1_2.yml",
-        "Chapter1/Mission1_3.yml"
+        "Chapter1/task1_1.yml",
+        "Chapter1/task1_2.yml",
+        "Chapter1/task1_3.yml",
+        "Chapter1/task1_4.yml",
+        "Chapter1/task1_5.yml",
+        "Chapter1/task1_6.yml"
     };
 
     public TaskConfigScanner(StarMSkyblock plugin) {
@@ -188,8 +191,9 @@ public class TaskConfigScanner {
         }
 
         List<String> rewardCommands = parseRewardCommands(config);
+        List<TaskReward.ItemReward> rewardItems = parseRewardItems(config);
 
-        TaskReward rewards = new TaskReward(rewardCommands);
+        TaskReward rewards = new TaskReward(rewardCommands, rewardItems);
 
         return new TaskDefinition(missionId, categoryId, missionNumber, name, description,
                 taskType, requiredMissions, onlyNatural, requirements, rewards);
@@ -212,6 +216,22 @@ public class TaskConfigScanner {
         if (rewardSection == null) return Collections.emptyList();
         List<String> cmds = rewardSection.getStringList("command");
         return cmds != null ? cmds : Collections.emptyList();
+    }
+
+    private List<TaskReward.ItemReward> parseRewardItems(YamlConfiguration config) {
+        ConfigurationSection rewardSection = config.getConfigurationSection("reward");
+        if (rewardSection == null) return Collections.emptyList();
+        List<Map<?, ?>> itemList = rewardSection.getMapList("item");
+        if (itemList == null) return Collections.emptyList();
+        List<TaskReward.ItemReward> items = new ArrayList<>();
+        for (Map<?, ?> map : itemList) {
+            Object matObj = map.get("material");
+            if (matObj == null) continue;
+            String material = matObj.toString();
+            int amount = map.containsKey("amount") ? ((Number) map.get("amount")).intValue() : 1;
+            items.add(new TaskReward.ItemReward(material, amount));
+        }
+        return items;
     }
 
     public Map<String, TaskCategory> getCategories() { return categories; }
@@ -254,5 +274,15 @@ public class TaskConfigScanner {
             }
         }
         return 0;
+    }
+
+    public boolean isChapterId(String id) {
+        return categories.containsKey(id);
+    }
+
+    public List<String> getChapterTaskIds(String chapterId) {
+        TaskCategory cat = categories.get(chapterId);
+        if (cat == null) return Collections.emptyList();
+        return cat.getTasks().stream().map(TaskDefinition::getId).toList();
     }
 }
