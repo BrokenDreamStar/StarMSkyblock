@@ -23,16 +23,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import team.starm.starmskyblock.message.MessageUtil;
 
 public class SchematicManager {
 
     private final File schematicFolder;
-    private final Map<String, Clipboard> schematicCache = new HashMap<>();
-    private final Map<String, List<BlockVector3>> signOffsetCache = new HashMap<>();
+    private final Map<String, Clipboard> schematicCache = new ConcurrentHashMap<>();
+    private final Map<String, List<BlockVector3>> signOffsetCache = new ConcurrentHashMap<>();
     private final boolean faweMode;
     private final boolean faweAvailable;
 
@@ -114,60 +114,90 @@ public class SchematicManager {
             return null;
         }
 
-        try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
-            Clipboard clipboard = reader.read();
+        Clipboard clipboard = readSchematicWithFallback(file, format, fileName);
+        if (clipboard == null) {
+            return null;
+        }
 
-            BlockVector3 min = clipboard.getRegion().getMinimumPoint();
-            BlockVector3 max = clipboard.getRegion().getMaximumPoint();
-            int minY = min.y();
+        BlockVector3 min = clipboard.getRegion().getMinimumPoint();
+        BlockVector3 max = clipboard.getRegion().getMaximumPoint();
+        int minY = min.y();
 
-            BlockVector3 bedrockLoc = null;
-            List<BlockVector3> signPositions = new ArrayList<>();
+        BlockVector3 bedrockLoc = null;
+        List<BlockVector3> signPositions = new ArrayList<>();
 
-            for (int y = minY; y <= Math.min(minY + 5, max.y()); y++) {
-                for (int x = min.x(); x <= max.x(); x++) {
-                    for (int z = min.z(); z <= max.z(); z++) {
-                        BlockVector3 pos = BlockVector3.at(x, y, z);
-                        BlockType type = clipboard.getBlock(pos).getBlockType();
-                        if (type.equals(BlockTypes.BEDROCK) && bedrockLoc == null) {
-                            bedrockLoc = pos;
-                        }
-                        if (isSignBlockType(type)) {
-                            signPositions.add(pos);
-                        }
-                    }
-                }
-            }
-
-            if (bedrockLoc == null) {
-                for (BlockVector3 pos : clipboard.getRegion()) {
+        for (int y = minY; y <= Math.min(minY + 5, max.y()); y++) {
+            for (int x = min.x(); x <= max.x(); x++) {
+                for (int z = min.z(); z <= max.z(); z++) {
+                    BlockVector3 pos = BlockVector3.at(x, y, z);
                     BlockType type = clipboard.getBlock(pos).getBlockType();
-                    if (type.equals(BlockTypes.BEDROCK)) {
+                    if (type.equals(BlockTypes.BEDROCK) && bedrockLoc == null) {
                         bedrockLoc = pos;
-                        break;
+                    }
+                    if (isSignBlockType(type)) {
+                        signPositions.add(pos);
                     }
                 }
             }
+        }
 
-            if (bedrockLoc != null) {
-                clipboard.setOrigin(bedrockLoc);
-                List<BlockVector3> relativeSigns = new ArrayList<>(signPositions.size());
-                for (BlockVector3 signPos : signPositions) {
-                    relativeSigns.add(signPos.subtract(bedrockLoc));
+        if (bedrockLoc == null) {
+            for (BlockVector3 pos : clipboard.getRegion()) {
+                BlockType type = clipboard.getBlock(pos).getBlockType();
+                if (type.equals(BlockTypes.BEDROCK)) {
+                    bedrockLoc = pos;
+                    break;
                 }
-                signOffsetCache.put(fileName, relativeSigns);
-            } else {
-                MessageUtil.consoleWarn("在结构文件 " + fileName + " 中未找到基岩方块！将使用默认原点进行粘贴。");
-                signOffsetCache.put(fileName, signPositions);
             }
+        }
 
-            schematicCache.put(fileName, clipboard);
-            return clipboard;
+        if (bedrockLoc != null) {
+            clipboard.setOrigin(bedrockLoc);
+            List<BlockVector3> relativeSigns = new ArrayList<>(signPositions.size());
+            for (BlockVector3 signPos : signPositions) {
+                relativeSigns.add(signPos.subtract(bedrockLoc));
+            }
+            signOffsetCache.put(fileName, relativeSigns);
+        } else {
+            MessageUtil.consoleWarn("在结构文件 " + fileName + " 中未找到基岩方块！将使用默认原点进行粘贴。");
+            signOffsetCache.put(fileName, signPositions);
+        }
+
+        schematicCache.put(fileName, clipboard);
+        return clipboard;
+    }
+
+    /**
+     * 尝试读取 schematic 文件，遇到 FAWE FastSchematicReaderV3 不兼容时自动回退
+     * 到标准 Sponge v2 格式。
+     */
+    private Clipboard readSchematicWithFallback(File file, ClipboardFormat primaryFormat, String fileName) {
+        // 首次尝试
+        try (ClipboardReader reader = primaryFormat.getReader(new FileInputStream(file))) {
+            return reader.read();
+        } catch (NullPointerException e) {
+            // FAWE FastSchematicReaderV3 可能因无法解析的方块类型抛出 NPE
+            // 尝试回退到 Sponge（v2）格式
         } catch (IOException e) {
             MessageUtil.consoleError("读取结构文件时发生错误: " + fileName);
             e.printStackTrace();
             return null;
         }
+
+        // 回退：用 Sponge 格式重试
+        ClipboardFormat spongeFormat = ClipboardFormats.findByAlias("sponge");
+        if (spongeFormat != null && !spongeFormat.getName().equals(primaryFormat.getName())) {
+            try (ClipboardReader reader = spongeFormat.getReader(new FileInputStream(file))) {
+                MessageUtil.consoleWarn("FAWE 格式读取失败，已自动回退到 Sponge 格式: " + fileName);
+                return reader.read();
+            } catch (Exception fallbackException) {
+                MessageUtil.consoleError("FAWE 格式和 Sponge 回退格式均无法读取结构文件: " + fileName);
+                fallbackException.printStackTrace();
+            }
+        } else {
+            MessageUtil.consoleError("FAWE 格式读取失败且无可用回退格式: " + fileName);
+        }
+        return null;
     }
 
     @SuppressWarnings("removal")
