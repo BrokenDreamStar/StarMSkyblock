@@ -15,10 +15,9 @@ request:
       - CREEPER
     amount: 16
 reward:
+  money: 3000
   item:
     - material: CARROT
       amount: 1
     - material: POTATO
       amount: 1
-  command:
-    - 'server: money %player_name% 3000'

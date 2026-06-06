@@ -150,8 +150,16 @@ public class TaskManager {
         if (player == null) return;
         UUID uuid = player.getUniqueId();
 
-        List<TaskDefinition> tasks = taskConfig.getTasksByType(taskType);
-        if (tasks.isEmpty()) return;
+        String upperKey = key.toUpperCase();
+        Collection<TaskDefinition> tasks;
+        if (taskType == TaskType.BLOCK_BREAK || taskType == TaskType.BLOCK_PLACE) {
+            tasks = taskConfig.getTasksByMaterial(upperKey);
+            if (tasks.isEmpty()) return;
+        } else {
+            List<TaskDefinition> typeTasks = taskConfig.getTasksByType(taskType);
+            if (typeTasks.isEmpty()) return;
+            tasks = typeTasks;
+        }
 
         ensureLoaded(uuid);
 
@@ -183,7 +191,6 @@ public class TaskManager {
                 prog.setProgress(pMap);
             }
 
-            String upperKey = key.toUpperCase();
             pMap.merge(upperKey, amount, Integer::sum);
             markDirty(uuid);
 
@@ -318,9 +325,17 @@ public class TaskManager {
         TaskReward rewards = def.getRewards();
         if (rewards.isEmpty()) {
             prog.setClaimed(true);
+            prog.getProgress().clear();
             markDirty(player.getUniqueId());
             MessageUtil.sendMessage(player, "&a✔ 任务 &e" + def.getName() + " &a已完成！");
             return true;
+        }
+
+        if (rewards.money() > 0) {
+            net.milkbowl.vault.economy.Economy econ = plugin.getEconomy();
+            if (econ != null) {
+                econ.depositPlayer(player, rewards.money());
+            }
         }
 
         for (TaskReward.ItemReward itemReward : rewards.items()) {
@@ -348,6 +363,7 @@ public class TaskManager {
         }
 
         prog.setClaimed(true);
+        prog.getProgress().clear();
         markDirty(player.getUniqueId());
         MessageUtil.sendMessage(player, "&a✔ 已领取任务 &e" + def.getName() + " &a的奖励！");
         return true;
@@ -442,6 +458,7 @@ public class TaskManager {
         }
         prog.setClaimed(true);
         prog.setNotified(true);
+        prog.getProgress().clear();
         markDirty(uuid);
         savePlayerProgress(uuid);
 

@@ -7,8 +7,7 @@ request:
       - POINTED_DRIPSTONE
     amount: 10
 reward:
+  money: 3000
   item:
     - material: LAVA_BUCKET
       amount: 2
-  command:
-    - 'server: money %player_name% 3000'

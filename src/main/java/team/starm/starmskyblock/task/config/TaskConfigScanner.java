@@ -16,9 +16,11 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class TaskConfigScanner {
 
@@ -29,6 +31,8 @@ public class TaskConfigScanner {
     private Map<String, TaskCategory> categories;
     private Map<String, TaskDefinition> taskIndex;
     private Map<TaskType, List<TaskDefinition>> typeIndex;
+    /** 材料→任务索引：用于 BLOCK_BREAK/BLOCK_PLACE 快速查找相关任务 */
+    private Map<String, Set<TaskDefinition>> materialTaskIndex;
 
     private static final String[] BUILTIN_TASKS = {
         "tasks.yml",
@@ -79,6 +83,7 @@ public class TaskConfigScanner {
         categories = new LinkedHashMap<>();
         taskIndex = new LinkedHashMap<>();
         typeIndex = new LinkedHashMap<>();
+        materialTaskIndex = new LinkedHashMap<>();
 
         if (!configFile.exists()) {
             MessageUtil.consoleWarn("未找到 tasks/tasks.yml 配置文件");
@@ -148,6 +153,17 @@ public class TaskConfigScanner {
         }
 
         MessageUtil.consolePrint("已加载任务配置 共" + categories.size() + "个章节 " + taskIndex.size() + "个任务");
+
+        // 构建材料→任务索引，加速 BLOCK_BREAK/BLOCK_PLACE 事件处理
+        for (TaskDefinition def : taskIndex.values()) {
+            TaskType type = def.getTaskType();
+            if (type != TaskType.BLOCK_BREAK && type != TaskType.BLOCK_PLACE) continue;
+            for (TaskDefinition.RequirementGroup req : def.getRequirements()) {
+                for (String mat : req.getTypes()) {
+                    materialTaskIndex.computeIfAbsent(mat.toUpperCase(), k -> new HashSet<>()).add(def);
+                }
+            }
+        }
     }
 
     private TaskDefinition parseMissionFile(File file, String categoryId, String missionId, int missionNumber) {
@@ -193,10 +209,11 @@ public class TaskConfigScanner {
             }
         }
 
+        double rewardMoney = parseRewardMoney(config);
         List<String> rewardCommands = parseRewardCommands(config);
         List<TaskReward.ItemReward> rewardItems = parseRewardItems(config);
 
-        TaskReward rewards = new TaskReward(rewardCommands, rewardItems);
+        TaskReward rewards = new TaskReward(rewardMoney, rewardCommands, rewardItems);
 
         return new TaskDefinition(missionId, categoryId, missionNumber, name, description,
                 taskType, requiredMissions, onlyNatural, requirements, rewards);
@@ -212,6 +229,12 @@ public class TaskConfigScanner {
             return List.of(val);
         }
         return Collections.emptyList();
+    }
+
+    private double parseRewardMoney(YamlConfiguration config) {
+        ConfigurationSection rewardSection = config.getConfigurationSection("reward");
+        if (rewardSection == null) return 0;
+        return rewardSection.getDouble("money", 0);
     }
 
     private List<String> parseRewardCommands(YamlConfiguration config) {
@@ -240,10 +263,15 @@ public class TaskConfigScanner {
     public Map<String, TaskCategory> getCategories() { return categories; }
     public Map<String, TaskDefinition> getTaskIndex() { return taskIndex; }
     public Map<TaskType, List<TaskDefinition>> getTypeIndex() { return typeIndex; }
+    public Map<String, Set<TaskDefinition>> getMaterialTaskIndex() { return materialTaskIndex; }
 
     public TaskDefinition getTask(String id) { return taskIndex.get(id); }
     public List<TaskDefinition> getTasksByType(TaskType type) {
         return typeIndex.getOrDefault(type, Collections.emptyList());
+    }
+    /** 根据材料名获取关联的 BLOCK_BREAK/BLOCK_PLACE 任务集合 */
+    public Set<TaskDefinition> getTasksByMaterial(String material) {
+        return materialTaskIndex.getOrDefault(material, Collections.emptySet());
     }
 
     public TaskDefinition getTaskByChapterAndMission(int chapterNumber, int missionNumber) {

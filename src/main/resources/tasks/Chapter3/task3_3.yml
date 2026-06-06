@@ -11,10 +11,9 @@ request:
       - WARPED_STEM
     amount: 64
 reward:
+  money: 5000
   item:
     - material: RED_MUSHROOM
       amount: 1
     - material: BROWN_MUSHROOM
       amount: 1
-  command:
-    - 'server: money give %player_name% 5000'

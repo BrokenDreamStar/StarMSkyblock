@@ -7,10 +7,9 @@ request:
       - LAVA_BUCKET
     amount: 8
 reward:
+  money: 5000
   item:
     - material: FLINT_AND_STEEL
       amount: 1
     - material: OBSIDIAN
       amount: 14
-  command:
-    - 'server: money %player_name% 5000'

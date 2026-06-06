@@ -7,8 +7,7 @@ request:
       - SUGAR
     amount: 32
 reward:
+  money: 1000
   item:
     - material: SAND
       amount: 32
-  command:
-    - 'server: money %player_name% 1000'

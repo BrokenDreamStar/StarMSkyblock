@@ -8,10 +8,9 @@ request:
     amount: 32
 only-natural: true
 reward:
+  money: 2000
   item:
     - material: POINTED_DRIPSTONE
       amount: 5
     - material: POINTED_BLOCK
       amount: 5
-  command:
-    - 'server: money give %player_name% 2000'

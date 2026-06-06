@@ -15,8 +15,7 @@ request:
       - MAGMA_CUBE
     amount: 32
 reward:
+  money: 10000
   item:
     - material: SPAWNER
       amount: 1
-  command:
-    - 'server: money give %player_name% 10000'

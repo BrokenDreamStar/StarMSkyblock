@@ -7,6 +7,7 @@ request:
       - OBSIDIAN
     amount: 10
 reward:
+  money: 5000
   item:
     - material: BLUE_ICE
       amount: 2
@@ -14,5 +15,3 @@ reward:
       amount: 1
     - material: DIAMOND_PICKAXE
       amount: 1
-  command:
-    - 'server: money give %player_name% 5000'

@@ -15,10 +15,9 @@ request:
       - GLOWSTONE
     amount: 8
 reward:
+  money: 5000
   item:
     - material: BLAZE_SPAWN_EGG
       amount: 2
     - material: SPAWNER
       amount: 1
-  command:
-    - 'server: money give %player_name% 5000'

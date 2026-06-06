@@ -8,6 +8,6 @@ request:
     amount: 128
 only-natural: true
 reward:
+  money: 1000
   command:
-    - 'server: money give %player_name% 1000'
     - 'server: lce itemcollection give skyblockreward task1_1_1 %player_name%'

@@ -7,8 +7,7 @@ request:
       - CACTUS
     amount: 32
 reward:
+  money: 1000
   item:
     - material: COW_SPAWN_EGG
       amount: 2
-  command:
-    - 'server: money %player_name% 1000'
