@@ -99,8 +99,9 @@
 
 | 子命令                                    | 说明          |
 |----------------------------------------|-------------|
-| `setradius <islandId> <radius>`        | 修改指定岛屿的半径 |
-| `setgenerator <islandId> <level>`      | 设置指定岛屿的刷石机等级 |
+| `setradius <islandId> <radius>`                 | 修改指定岛屿的半径 |
+| `setgenerator <islandId> <level>`               | 设置指定岛屿的刷石机等级 |
+| `settask <player> <章节> <任务> complete\|reset` | 强制完成或重置指定玩家的任务 |
 
 ## 刷石机系统
 
@@ -175,6 +176,100 @@ generator-upgrades:
 ```
 
 升级采用阶梯配置，每个升级项包含目标值和费用。范围升级的目标半径不得超过 `config.yml` 中的 `island-max-radius`，刷石机等级不得超过 `generator.yml` 的最大等级。
+
+## 传送门系统
+
+StarMSkyblock 完全接管了空岛世界内的下界传送门和末地传送门逻辑，确保跨维度传送始终落在岛屿范围内。
+
+### 下界传送门
+
+#### 坐标计算：相对岛屿中心偏移缩放
+
+原版 Minecraft 使用绝对坐标缩放（主世界坐标 ÷8 → 下界，下界坐标 ×8 → 主世界）。由于空岛使用乌拉姆螺旋分布在远离世界原点 (0,0) 的位置（例如岛屿 1 的中心区块在 (38, 0)），绝对坐标缩放会导致下界目标偏移到岛屿范围之外的虚空区域。
+
+因此插件改用**相对岛屿中心的偏移缩放**：
+
+```
+主世界 → 下界:  下界目标 = 岛屿中心区块Block坐标 + (玩家坐标 - 岛屿中心区块Block坐标) / 8.0
+下界 → 主世界:  主世界目标 = 岛屿中心区块Block坐标 + (玩家坐标 - 岛屿中心区块Block坐标) * 8.0
+```
+
+其中岛屿中心区块 Block 坐标为 `(centerChunkX * 16 + 8, centerChunkZ * 16 + 8)`，即中心区块的正中心点。三个维度的岛屿结构粘贴在**相同的区块坐标**处，因此岛屿中心坐标在三世界通用。
+
+这种设计保证了：
+- 岛内任意位置的传送门目标始终落在岛屿范围内
+- 岛内传送门之间的 1:8 相对空间关系完整保留（双维度机器的传送门链接不受影响）
+- `event.getTo()`（原版计算的目标）会被完全覆盖，确保不会落入虚空
+
+#### 传送流程
+
+**主世界 → 下界**（`handleToNether`）：
+
+1. 定位玩家所属岛屿（先按 owner/member 查找，再按区块位置查找 coops/访客）
+2. 如果非成员且岛屿未解锁下界 → 取消传送，提示"该岛屿尚未解锁下界"
+3. 如果是岛屿成员且**首次进入下界**（`firstNetherJoin` 标记）：
+   - 取消传送门事件（`event.setCancelled(true)`）
+   - 直接 `player.teleport()` 到岛屿下界出生点（中心区块 + 配置的传送偏移）
+   - 清除首次进入标记，解锁岛屿下界
+4. 非首次进入：计算目标位置 → 边界检查 → 设置传送目标 → 尝试解锁下界
+
+**下界 → 主世界**（`handleFromNether`）：
+
+1. 计算目标位置（偏移 ×8）→ 边界检查 → 设置传送目标
+2. 无首次进入逻辑，直接按坐标换算
+
+#### 边界检查
+
+传送门目标位置经过**三级边界检查**（`checkIslandBounds`）：
+
+| 检查结果 | 条件 | 提示消息 |
+|---------|------|---------|
+| 通过 | `isChunkWithinIsland` → true（目标在已解锁半径内） | 无，正常传送 |
+| 拦截 | `isChunkWithinMaxRange` → true 但 `isChunkWithinIsland` → false | `无法创建传送门：目标位置岛屿区域未解锁！` |
+| 拦截 | 两者均 false | `无法创建传送门：目标位置超出你的岛屿范围！` |
+
+- `isChunkWithinIsland`：`abs(chunkX - centerChunkX) <= radius`，radius 为当前已解锁半径
+- `isChunkWithinMaxRange`：`abs(chunkX - centerChunkX) <= maxRadius`，maxRadius 为服务器配置的最大可扩展半径
+
+#### 非玩家实体传送门（`onEntityPortal`）
+
+非玩家实体（生物、矿车、掉落物等）进入下界传送门时：
+
+1. 按实体所在区块查找所属岛屿（`getIslandAt` → `getIslandAtMaxRange`）
+2. 岛屿未找到 → 取消事件，阻止传送
+3. 末地传送门 → 传送到岛屿出生点
+4. 下界未解锁 → 阻止进入
+5. 计算目标位置（同上偏移缩放）→ 边界检查
+6. 超出范围 → 取消事件，并**通知岛屿所有在线成员**（包括岛主）实体试图越界传送
+
+#### 下界解锁机制
+
+- 岛屿首次有成员通过下界传送门进入下界时，`netherUnlocked` 标记置为 `true` 并持久化到数据库
+- 下界未解锁时：非成员和实体均被阻止进入
+- 解锁后：任何有传送门权限的玩家均可使用
+
+### 末地传送门
+
+末地传送门处理相对简单——直接传送到岛屿出生点，不进行坐标缩放：
+
+**进入末地**（主世界/下界的 END_PORTAL）：
+- 岛屿成员 → 传送到岛屿在末地的出生点（`getIslandLocation`）
+- 非成员 → 传送到末地世界出生点附近 `(100, 50, 0)`
+
+**离开末地**（末地的 END_PORTAL）：
+- 岛屿成员 → 传送到岛屿在主世界的出生点
+- 非成员 → 传送到主世界世界出生点
+
+末地传送门事件会被取消（`event.setCancelled(true)`），改用 `player.teleport()` 直接传送。
+
+#### Paper 兼容：末地返回主世界
+
+Paper 服务端在末地维度**不会触发** `PlayerPortalEvent`（即使玩家站在末地传送门内）。因此插件额外监听 `EntityPortalEnterEvent`：
+
+1. 检测玩家踏入末地世界中的 `END_PORTAL` 方块
+2. 设置 2 秒冷却防止重复触发
+3. 直接 `player.teleport()` 到目标位置
+4. 设置传送门冷却 40 tick，并在下一 tick 二次确认传送成功
 
 ## 任务系统
 
@@ -258,8 +353,22 @@ reward:
 - `task_type` — 任务类型
 - `task_required` — 前置任务 ID 列表（支持字符串或列表）
 - `only-natural` — 仅统计自然生成的方块（`BLOCK_BREAK` 专用）
-- `request` — 需求组（同组 types 为"或"关系，不同组为"与"关系）
+- `request` — 需求组（同组 types 为"或"关系，不同组为"与"关系），每组可指定 `potion_type`（仅 `ITEM` 类型有效，匹配药水效果）
 - `reward.command` — 奖励命令列表，支持 `server:`（控制台执行，默认）和 `player:`（玩家执行）前缀，变量 `%player_name%` 自动替换
+
+### ITEM 类型与药水效果
+
+`ITEM` 类型任务支持可选的 `potion_type` 字段，用于要求提交特定药水效果的物品（如要求提交"跳跃药水"而非任意药水）：
+
+```yaml
+name: '药水商人'
+task_type: ITEM
+request:
+  1:
+    types: [POTION]
+    amount: 3
+    potion_type: JUMP
+```
 
 ## 权限系统
 
