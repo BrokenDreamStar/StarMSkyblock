@@ -7,7 +7,6 @@ build/
 *.iml
 .vscode/
 .claude
-CLAUDE.md
 
 # Environment
 *.log
