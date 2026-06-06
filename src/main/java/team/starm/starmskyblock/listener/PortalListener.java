@@ -127,15 +127,9 @@ public class PortalListener implements Listener {
             return;
         }
 
-        Location targetLoc = event.getTo();
-        if (targetLoc == null) {
-            targetLoc = fromNormal
-                    ? calculateNetherPortalLocation(from, targetWorld)
-                    : calculateOverworldPortalLocation(from, targetWorld);
-        } else {
-            targetLoc = new Location(targetWorld, targetLoc.getX(), targetLoc.getY(), targetLoc.getZ(),
-                    targetLoc.getYaw(), targetLoc.getPitch());
-        }
+        Location targetLoc = fromNormal
+                ? calculateNetherPortalLocation(from, targetWorld, island)
+                : calculateOverworldPortalLocation(from, targetWorld, island);
 
         String boundsMsg = checkIslandBounds(targetLoc, island);
         if (boundsMsg != null) {
@@ -226,13 +220,7 @@ public class PortalListener implements Listener {
             return;
         }
 
-        Location targetLoc = event.getTo();
-        if (targetLoc == null) {
-            targetLoc = calculateNetherPortalLocation(event.getFrom(), targetWorld);
-        } else {
-            targetLoc = new Location(targetWorld, targetLoc.getX(), targetLoc.getY(), targetLoc.getZ(),
-                    targetLoc.getYaw(), targetLoc.getPitch());
-        }
+        Location targetLoc = calculateNetherPortalLocation(event.getFrom(), targetWorld, island);
         String msg = checkIslandBounds(targetLoc, island);
         if (msg != null) {
             player.sendMessage(msg);
@@ -248,13 +236,7 @@ public class PortalListener implements Listener {
         World targetWorld = worldManager.getOrCreateSkyblockWorld();
         if (targetWorld == null) return;
 
-        Location targetLoc = event.getTo();
-        if (targetLoc == null) {
-            targetLoc = calculateOverworldPortalLocation(event.getFrom(), targetWorld);
-        } else {
-            targetLoc = new Location(targetWorld, targetLoc.getX(), targetLoc.getY(), targetLoc.getZ(),
-                    targetLoc.getYaw(), targetLoc.getPitch());
-        }
+        Location targetLoc = calculateOverworldPortalLocation(event.getFrom(), targetWorld, island);
         String msg = checkIslandBounds(targetLoc, island);
         if (msg != null) {
             player.sendMessage(msg);
@@ -264,15 +246,36 @@ public class PortalListener implements Listener {
         event.setTo(targetLoc);
     }
 
-    /** 下界坐标 → 主世界坐标的 1:8 换算 */
-    private Location calculateNetherPortalLocation(Location from, World targetWorld) {
-        return new Location(targetWorld, from.getX() / 8.0, from.getY(), from.getZ() / 8.0,
+    /**
+     * 计算主世界 → 下界的传送门目标位置。
+     * 基于岛屿中心坐标的相对偏移进行 1:8 缩放，而非绝对坐标缩放，
+     * 以避免因岛屿远离世界原点导致目标位置超出岛屿范围。
+     */
+    private Location calculateNetherPortalLocation(Location from, World targetWorld, Island island) {
+        double centerBlockX = island.getCenterChunkX() * 16.0 + 8.0;
+        double centerBlockZ = island.getCenterChunkZ() * 16.0 + 8.0;
+        double offsetX = from.getX() - centerBlockX;
+        double offsetZ = from.getZ() - centerBlockZ;
+        return new Location(targetWorld,
+                centerBlockX + offsetX / 8.0,
+                from.getY(),
+                centerBlockZ + offsetZ / 8.0,
                 from.getYaw(), from.getPitch());
     }
 
-    /** 主世界坐标 → 下界坐标的 8:1 换算 */
-    private Location calculateOverworldPortalLocation(Location from, World targetWorld) {
-        return new Location(targetWorld, from.getX() * 8.0, from.getY(), from.getZ() * 8.0,
+    /**
+     * 计算下界 → 主世界的传送门目标位置。
+     * 基于岛屿中心坐标的相对偏移进行 8:1 缩放。
+     */
+    private Location calculateOverworldPortalLocation(Location from, World targetWorld, Island island) {
+        double centerBlockX = island.getCenterChunkX() * 16.0 + 8.0;
+        double centerBlockZ = island.getCenterChunkZ() * 16.0 + 8.0;
+        double offsetX = from.getX() - centerBlockX;
+        double offsetZ = from.getZ() - centerBlockZ;
+        return new Location(targetWorld,
+                centerBlockX + offsetX * 8.0,
+                from.getY(),
+                centerBlockZ + offsetZ * 8.0,
                 from.getYaw(), from.getPitch());
     }
 
