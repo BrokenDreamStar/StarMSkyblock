@@ -181,10 +181,15 @@ public class PortalListener implements Listener {
         if (optionalIsland.isPresent()) {
             island = optionalIsland.get();
             // 非成员从主世界进入下界：检查岛屿是否解锁下界
+            // 岛屿成员可通过以触发自动解锁(handleToNether 中的 tryUnlockNether)
             if (fromNormal && !island.isNetherUnlocked()) {
-                player.sendMessage("§c该岛屿尚未解锁下界，无法进入！");
-                event.setCancelled(true);
-                return;
+                IslandPermissionLevel role = island.getMemberRole(player.getUniqueId());
+                boolean isMemberOrOwner = role.getPermissionLevel() >= IslandPermissionLevel.MEMBER.getPermissionLevel();
+                if (!isMemberOrOwner) {
+                    player.sendMessage("§c该岛屿尚未解锁下界，无法进入！");
+                    event.setCancelled(true);
+                    return;
+                }
             }
         } else {
             // 2. 回退：传送门不在任何岛屿范围时，按玩家关联查找
