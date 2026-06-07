@@ -18,6 +18,7 @@ import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.database.PlayerRepository;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
@@ -196,6 +197,11 @@ public class PortalListener implements Listener {
         }
 
         if (fromNormal) {
+            if (!island.hasPermission(player.getUniqueId(), IslandPermission.ENTER_NETHER_PORTAL)) {
+                player.sendMessage("§c你没有进入下界传送门的权限！");
+                event.setCancelled(true);
+                return;
+            }
             handleToNether(event, player, island);
         } else if (fromNether) {
             handleFromNether(event, player, island);
@@ -312,6 +318,15 @@ public class PortalListener implements Listener {
         String worldName = fromWorld.getName();
 
         Optional<Island> optionalIsland = islandManager.getIslandByPlayer(player.getUniqueId());
+
+        // 进入末地传送门权限检查
+        if (worldManager.isNormalWorld(worldName) || worldManager.isNetherWorld(worldName)) {
+            if (optionalIsland.isPresent() && !optionalIsland.get().hasPermission(player.getUniqueId(), IslandPermission.ENTER_END_PORTAL)) {
+                player.sendMessage("§c你没有进入末地传送门的权限！");
+                event.setCancelled(true);
+                return;
+            }
+        }
 
         World targetWorld = null;
         Location targetLoc;
