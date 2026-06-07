@@ -168,28 +168,29 @@ public class PortalListener implements Listener {
         boolean fromNether = worldManager.isNetherWorld(worldName);
         if (!fromNormal && !fromNether) return;
 
-        // 1. 先按玩家关联查找（owner / member）
-        Optional<Island> optionalIsland = islandManager.getIslandByPlayer(player.getUniqueId());
-        Island island = null;
+        // 1. 先按传送门所在区块位置查找岛屿
+        int chunkX = event.getFrom().getChunk().getX();
+        int chunkZ = event.getFrom().getChunk().getZ();
+        Optional<Island> optionalIsland = islandManager.getIslandAt(chunkX, chunkZ);
+        if (optionalIsland.isEmpty()) {
+            optionalIsland = islandManager.getIslandAtMaxRange(chunkX, chunkZ);
+        }
 
+        Island island = null;
         if (optionalIsland.isPresent()) {
             island = optionalIsland.get();
-        } else {
-            // 2. 合作者/访客：按区块位置查找
-            int chunkX = event.getFrom().getChunk().getX();
-            int chunkZ = event.getFrom().getChunk().getZ();
-            optionalIsland = islandManager.getIslandAt(chunkX, chunkZ);
-            if (optionalIsland.isEmpty()) {
-                optionalIsland = islandManager.getIslandAtMaxRange(chunkX, chunkZ);
-            }
-            if (optionalIsland.isEmpty()) return;
-
-            island = optionalIsland.get();
-
-            // 3. 非成员从主世界进入下界：检查岛屿是否解锁下界
+            // 非成员从主世界进入下界：检查岛屿是否解锁下界
             if (fromNormal && !island.isNetherUnlocked()) {
                 player.sendMessage("§c该岛屿尚未解锁下界，无法进入！");
                 event.setCancelled(true);
+                return;
+            }
+        } else {
+            // 2. 回退：传送门不在任何岛屿范围时，按玩家关联查找
+            optionalIsland = islandManager.getIslandByPlayer(player.getUniqueId());
+            if (optionalIsland.isPresent()) {
+                island = optionalIsland.get();
+            } else {
                 return;
             }
         }
