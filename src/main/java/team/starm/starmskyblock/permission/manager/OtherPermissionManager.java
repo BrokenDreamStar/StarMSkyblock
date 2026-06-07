@@ -3,6 +3,7 @@ package team.starm.starmskyblock.permission.manager;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.type.CaveVines;
@@ -18,15 +19,20 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerPortalEvent;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.event.raid.RaidTriggerEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import team.starm.starmskyblock.config.ConfigManager;
+import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.BasePermissionManager;
 import team.starm.starmskyblock.tag.ItemTags;
+
+import java.util.Optional;
 
 /**
  * 其它权限管理器
@@ -225,6 +231,59 @@ public class OtherPermissionManager extends BasePermissionManager {
         if (!checkPermission(loc, player.getUniqueId(), IslandPermission.SPAWN_EGG_USE)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.SPAWN_EGG_USE);
+        }
+    }
+
+    /**
+     * 监听玩家进入传送门事件
+     * <p>
+     * 在 LOW 优先级处理，先于 PortalListener 的 NORMAL 优先级执行。
+     * 检查 ENTER_NETHER_PORTAL 和 ENTER_END_PORTAL 权限，
+     * 未通过时取消事件并发送权限拒绝消息。
+     * </p>
+     */
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    public void onPlayerPortal(PlayerPortalEvent event) {
+        Player player = event.getPlayer();
+        TeleportCause cause = event.getCause();
+
+        if (cause != TeleportCause.NETHER_PORTAL && cause != TeleportCause.END_PORTAL) {
+            return;
+        }
+
+        Location from = event.getFrom();
+        World fromWorld = from.getWorld();
+        if (fromWorld == null) return;
+
+        // 只在空岛世界进行检查
+        String worldName = fromWorld.getName();
+        boolean isSkyblockWorld = worldName.equals(configManager.getWorldNameNormal())
+                || worldName.equals(configManager.getWorldNameNether())
+                || worldName.equals(configManager.getWorldNameEnd());
+        if (!isSkyblockWorld) return;
+
+        // 查找传送门所在岛屿
+        int chunkX = from.getChunk().getX();
+        int chunkZ = from.getChunk().getZ();
+        Optional<Island> optionalIsland = islandManager.getIslandAt(chunkX, chunkZ);
+        if (optionalIsland.isEmpty()) {
+            optionalIsland = islandManager.getIslandAtMaxRange(chunkX, chunkZ);
+        }
+        if (optionalIsland.isEmpty()) {
+            // 回退：按玩家关联查找
+            optionalIsland = islandManager.getIslandByPlayer(player.getUniqueId());
+        }
+        if (optionalIsland.isEmpty()) return;
+
+        IslandPermission permission = (cause == TeleportCause.NETHER_PORTAL)
+                ? IslandPermission.ENTER_NETHER_PORTAL
+                : IslandPermission.ENTER_END_PORTAL;
+
+        if (!optionalIsland.get().hasPermission(player.getUniqueId(), permission)) {
+            event.setCancelled(true);
+            lastCheckWasAreaLocked = false;
+            lastCheckWasPublicArea = false;
+            sendDenyMessage(player, permission);
         }
     }
 
