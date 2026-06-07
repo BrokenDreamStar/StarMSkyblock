@@ -149,11 +149,9 @@ public enum IslandPermission {
     ARMOR_STAND_DAMAGE("攻击盔甲架"),
     ARMOR_STAND_INTERACT("与盔甲架交互"),
 
-    // ====================== 传送门 ======================
+    // ====================== 其它 ======================
     ENTER_NETHER_PORTAL("进入下界传送门"),
     ENTER_END_PORTAL("进入末地传送门"),
-
-    // ====================== 其它 ======================
     SPAWN_EGG_USE("使用刷怪蛋"),
     FARMLAND_TRAMPLE("踩踏耕地"),
     TURTLE_EGG_TRAMPLE("踩踏海龟蛋"),
