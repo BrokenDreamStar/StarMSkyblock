@@ -233,7 +233,7 @@ public class TaskManager {
 
         Map<String, TaskProgress> progressMap = playerProgress.get(uuid);
         TaskProgress prog = progressMap.get(taskId);
-        if (prog != null && prog.isClaimed()) {
+        if (prog != null && (prog.isClaimed() || prog.isCompleted(def))) {
             MessageUtil.sendMessage(player, "&c该任务已完成！");
             return false;
         }
