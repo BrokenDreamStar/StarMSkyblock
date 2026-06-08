@@ -8,7 +8,7 @@ request:
     amount: 3
     potion_type: POISON
 reward:
-  money: 10000
+  money: 8000
   item:
     - material: WITHER_SKELETON_SPAWN_EGG
       amount: 2

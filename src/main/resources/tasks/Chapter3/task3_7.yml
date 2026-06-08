@@ -1,0 +1,17 @@
+name: '万物基于刷石机'
+description: '将刷石机升级到3级 使其可以生成更多矿石'
+task_type: BLOCK_BREAK
+request:
+  1:
+    types:
+      - NETHER_GOLD_ORE
+    amount: 32
+  2:
+    types:
+      - NETHER_QUARTZ_ORE
+    amount: 32
+only-natural: true
+reward:
+  money: 10000
+  command:
+    - 'server: lce itemcollection give skyblockreward task3_7_1 %player_name%'

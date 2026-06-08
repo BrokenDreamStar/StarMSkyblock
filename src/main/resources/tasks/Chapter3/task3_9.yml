@@ -1,0 +1,13 @@
+name: '啊宝宝你是一个香香软软小恶魂'
+description: '合成一个失水恶魂'
+task_type: CRAFTING
+request:
+  1:
+    types:
+      - DRIED_GHAST
+    amount: 1
+reward:
+  money: 10000
+  item:
+    - material: WHITE_HARNESS
+      amount: 1

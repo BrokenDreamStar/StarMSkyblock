@@ -7,7 +7,7 @@ request:
       - CACTUS
     amount: 32
 reward:
-  money: 1000
+  money: 1500
   item:
     - material: COW_SPAWN_EGG
       amount: 2

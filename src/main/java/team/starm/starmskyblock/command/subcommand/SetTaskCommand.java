@@ -11,7 +11,6 @@ import team.starm.starmskyblock.task.config.TaskConfigScanner;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -24,17 +23,25 @@ public class SetTaskCommand extends AdminSubCommand {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (args.length != 5) {
-            MessageUtil.sendMessage(sender, "&c用法: /isadmin settask <玩家> <章节ID> <任务ID> complete|reset");
+            MessageUtil.sendMessage(sender, "&c用法: /isadmin settask <玩家> <章节编号> <任务编号> complete|reset");
             return true;
         }
 
         String playerName = args[1];
-        String chapterId = args[2];
-        String taskName = args[3];
         String action = args[4].toLowerCase();
 
         if (!action.equals("complete") && !action.equals("reset")) {
             MessageUtil.sendMessage(sender, "&c操作必须是 complete 或 reset！");
+            return true;
+        }
+
+        int chapterNumber;
+        int missionNumber;
+        try {
+            chapterNumber = Integer.parseInt(args[2]);
+            missionNumber = Integer.parseInt(args[3]);
+        } catch (NumberFormatException e) {
+            MessageUtil.sendMessage(sender, "&c章节编号和任务编号必须是数字！");
             return true;
         }
 
@@ -44,23 +51,22 @@ public class SetTaskCommand extends AdminSubCommand {
             return true;
         }
 
-        String fullTaskId = chapterId + "/" + taskName;
-
         TaskConfigScanner taskConfig = plugin.getTaskManager().getTaskConfig();
-        TaskDefinition def = taskConfig.getTask(fullTaskId);
+        TaskDefinition def = taskConfig.getTaskByChapterAndMission(chapterNumber, missionNumber);
         if (def == null) {
-            MessageUtil.sendMessage(sender, "&c找不到任务 " + fullTaskId + "！");
+            MessageUtil.sendMessage(sender, "&c找不到章节 " + chapterNumber + " 的第 " + missionNumber + " 个任务！");
             return true;
         }
 
+        String fullTaskId = def.getId();
         TaskManager taskManager = plugin.getTaskManager();
 
         if (action.equals("complete")) {
             taskManager.adminForceComplete(targetUuid, fullTaskId);
-            MessageUtil.sendMessage(sender, "&a已强制完成玩家 &e" + playerName + " &a的任务 &e" + def.getName() + " &a(" + fullTaskId + ")");
+            MessageUtil.sendMessage(sender, "&a已强制完成玩家 &e" + playerName + " &a的任务 &e" + def.getName() + " &a(第" + chapterNumber + "章 第" + missionNumber + "个)");
         } else {
             taskManager.adminResetTask(targetUuid, fullTaskId);
-            MessageUtil.sendMessage(sender, "&a已重置玩家 &e" + playerName + " &a的任务 &e" + def.getName() + " &a(" + fullTaskId + ")");
+            MessageUtil.sendMessage(sender, "&a已重置玩家 &e" + playerName + " &a的任务 &e" + def.getName() + " &a(第" + chapterNumber + "章 第" + missionNumber + "个)");
         }
 
         return true;
@@ -71,8 +77,7 @@ public class SetTaskCommand extends AdminSubCommand {
         if (online != null) {
             return online.getUniqueId();
         }
-        Optional<UUID> offline = plugin.getPlayerRepo().getUUID(name);
-        return offline.orElse(null);
+        return null;
     }
 
     @Override
@@ -86,26 +91,29 @@ public class SetTaskCommand extends AdminSubCommand {
         }
 
         if (args.length == 3) {
-            String prefix = args[2].toLowerCase();
-            return plugin.getTaskManager().getTaskConfig().getCategories().keySet().stream()
-                    .filter(id -> id.toLowerCase().startsWith(prefix))
+            String prefix = args[2];
+            return plugin.getTaskManager().getTaskConfig().getCategories().values().stream()
+                    .map(cat -> String.valueOf(cat.getChapterNumber()))
+                    .filter(n -> n.startsWith(prefix))
+                    .sorted()
                     .collect(Collectors.toList());
         }
 
         if (args.length == 4) {
-            String chapterId = args[2];
-            String prefix = args[3].toLowerCase();
-            var category = plugin.getTaskManager().getTaskConfig().getCategories().get(chapterId);
-            if (category != null) {
-                List<String> taskNames = new ArrayList<>();
-                for (TaskDefinition def : category.getTasks()) {
-                    String id = def.getId();
-                    String shortName = id.substring(id.indexOf('/') + 1);
-                    taskNames.add(shortName);
+            String prefix = args[3];
+            try {
+                int chapterNumber = Integer.parseInt(args[2]);
+                var category = plugin.getTaskManager().getTaskConfig().getCategoryByChapterNumber(chapterNumber);
+                if (category != null) {
+                    List<String> missionNumbers = new ArrayList<>();
+                    for (TaskDefinition def : category.getTasks()) {
+                        missionNumbers.add(String.valueOf(def.getMissionNumber()));
+                    }
+                    return missionNumbers.stream()
+                            .filter(n -> n.startsWith(prefix))
+                            .collect(Collectors.toList());
                 }
-                return taskNames.stream()
-                        .filter(n -> n.toLowerCase().startsWith(prefix))
-                        .collect(Collectors.toList());
+            } catch (NumberFormatException ignored) {
             }
         }
 

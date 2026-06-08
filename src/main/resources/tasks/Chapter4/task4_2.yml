@@ -1,0 +1,13 @@
+name: '屠龙'
+description: '在资源末地复活并击杀末影龙'
+task_type: ENTITY_KILL
+request:
+  1:
+    types:
+      - ENDER_DRAGON
+    amount: 1
+reward:
+  money: 12000
+  item:
+    - material: DRAGON_EGG
+      amount: 1

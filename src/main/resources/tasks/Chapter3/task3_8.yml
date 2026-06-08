@@ -1,0 +1,29 @@
+name: '以物易物'
+description: '与猪灵交易'
+task_type: ITEM
+request:
+  1:
+    types:
+      - SOUL_SAND
+    amount: 8
+  2:
+    types:
+      - GRAVEL
+    amount: 8
+  3:
+    types:
+      - SPECTRAL_ARROW
+    amount: 8
+  4:
+    types:
+      - CRYING_OBSIDIAN
+    amount: 4
+  5:
+    types:
+      - ENDER_PEARL
+    amount: 4
+reward:
+  money: 10000
+  item:
+    - material: NETHERITE_UPGRADE_SMITHING_TEMPLATE
+      amount: 1

@@ -1,0 +1,13 @@
+name: '猎头屑'
+description: '击杀凋灵骷髅获得一个凋灵骷髅头'
+task_type: ITEM
+request:
+  1:
+    types:
+      - WITHER_SKELETON_SKULL
+    amount: 1
+reward:
+  money: 10000
+  item:
+    - material: SPAWNER
+      amount: 1

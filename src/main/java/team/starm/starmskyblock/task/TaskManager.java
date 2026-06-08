@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -456,14 +457,79 @@ public class TaskManager {
                 prog.getProgress().put(key, req.getAmount());
             }
         }
+
+        giveForceCompleteRewards(uuid, def, prog);
+
+        if (Bukkit.getPlayer(uuid) == null) {
+            playerProgress.remove(uuid);
+        }
+    }
+
+    private void giveForceCompleteRewards(UUID uuid, TaskDefinition def, TaskProgress prog) {
+        TaskReward rewards = def.getRewards();
+
         prog.setClaimed(true);
         prog.setNotified(true);
         prog.getProgress().clear();
         markDirty(uuid);
         savePlayerProgress(uuid);
 
-        if (Bukkit.getPlayer(uuid) == null) {
-            playerProgress.remove(uuid);
+        boolean online = false;
+        Player player = Bukkit.getPlayer(uuid);
+        String playerName = null;
+        if (player != null) {
+            online = true;
+            playerName = player.getName();
+        } else {
+            playerName = Bukkit.getOfflinePlayer(uuid).getName();
+            if (playerName == null) playerName = uuid.toString().substring(0, 8);
+        }
+
+        if (rewards.isEmpty()) {
+            if (online) {
+                MessageUtil.sendMessage(player, "&a✔ 任务 &e" + def.getName() + " &a已完成（管理员强制完成）！");
+            }
+            return;
+        }
+
+        if (rewards.money() > 0) {
+            net.milkbowl.vault.economy.Economy econ = plugin.getEconomy();
+            if (econ != null) {
+                OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
+                econ.depositPlayer(offlinePlayer, rewards.money());
+            }
+        }
+
+        if (online) {
+            for (TaskReward.ItemReward itemReward : rewards.items()) {
+                Material mat = Material.matchMaterial(itemReward.material());
+                if (mat == null) continue;
+                ItemStack item = new ItemStack(mat, itemReward.amount());
+                Map<Integer, ItemStack> remaining = player.getInventory().addItem(item);
+                for (ItemStack drop : remaining.values()) {
+                    player.getWorld().dropItemNaturally(player.getLocation(), drop);
+                }
+            }
+        }
+
+        for (String cmd : rewards.commands()) {
+            if (cmd == null || cmd.isEmpty()) continue;
+            String parsed = cmd.replace("%player_name%", playerName)
+                    .replace("%player%", playerName);
+
+            if (parsed.startsWith("server:")) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed.substring("server:".length()).trim());
+            } else if (parsed.startsWith("player:")) {
+                if (online) {
+                    player.performCommand(parsed.substring("player:".length()).trim());
+                }
+            } else {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed);
+            }
+        }
+
+        if (online) {
+            MessageUtil.sendMessage(player, "&a✔ 任务 &e" + def.getName() + " &a已完成（管理员强制完成）！奖励已发放。");
         }
     }
 

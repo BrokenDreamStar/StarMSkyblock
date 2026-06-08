@@ -1,0 +1,12 @@
+name: '进入末地'
+description: '在主世界放置末地传送门'
+task_type: BLOCK_PLACE
+request:
+  1:
+    types:
+      - END_PORTAL_FRAME
+    amount: 9
+reward:
+  money: 12000
+  command:
+    - 'server: lp user %player_name% permission set multiverse.access.resource_the_end true'

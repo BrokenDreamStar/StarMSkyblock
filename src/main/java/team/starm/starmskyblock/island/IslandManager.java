@@ -13,6 +13,7 @@ import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -47,8 +48,8 @@ public class IslandManager {
     private final Map<Long, Integer> islandGridIndex = new ConcurrentHashMap<>();
     /** 成员反向索引：玩家 UUID → 所在岛屿 ID */
     private final Map<UUID, Integer> memberToIslandIndex = new ConcurrentHashMap<>();
-    /** 合作者反向索引：玩家 UUID → 可访问的岛屿 ID 列表 */
-    private final Map<UUID, java.util.List<Integer>> coopToIslandsIndex = new ConcurrentHashMap<>();
+    /** 合作者反向索引：玩家 UUID → 可访问的岛屿 ID 集合 */
+    private final Map<UUID, Set<Integer>> coopToIslandsIndex = new ConcurrentHashMap<>();
     /** 删除次数缓存（玩家 UUID → 已删除次数），避免频繁查库 */
     private final Map<UUID, Integer> deleteCountCache = new ConcurrentHashMap<>();
     /** 下一个可用岛屿 ID（自增） */
@@ -140,7 +141,7 @@ public class IslandManager {
                 UUID coopUuid = row.playerUuid();
                 island.addCoop(coopUuid);
                 coopToIslandsIndex.computeIfAbsent(coopUuid,
-                        k -> java.util.Collections.synchronizedList(new java.util.ArrayList<>())).add(row.islandId());
+                        k -> ConcurrentHashMap.newKeySet()).add(row.islandId());
             }
         }
 
@@ -220,7 +221,7 @@ public class IslandManager {
 
     /** 查询某玩家以合作者身份可访问的所有岛屿列表 */
     public java.util.List<Island> getIslandsByCoop(UUID playerUuid) {
-        java.util.List<Integer> ids = coopToIslandsIndex.get(playerUuid);
+        Set<Integer> ids = coopToIslandsIndex.get(playerUuid);
         if (ids == null || ids.isEmpty()) {
             return java.util.Collections.emptyList();
         }
@@ -401,9 +402,9 @@ public class IslandManager {
 
         if (wasCoop) {
             island.removeCoop(memberUuid);
-            java.util.List<Integer> coopIslands = coopToIslandsIndex.get(memberUuid);
+            Set<Integer> coopIslands = coopToIslandsIndex.get(memberUuid);
             if (coopIslands != null) {
-                coopIslands.remove((Integer) islandId);
+                coopIslands.remove(islandId);
                 if (coopIslands.isEmpty()) {
                     coopToIslandsIndex.remove(memberUuid);
                 }
@@ -441,7 +442,7 @@ public class IslandManager {
 
             island.addCoop(playerUuid);
             coopToIslandsIndex.computeIfAbsent(playerUuid,
-                    k -> java.util.Collections.synchronizedList(new java.util.ArrayList<>())).add(islandId);
+                    k -> ConcurrentHashMap.newKeySet()).add(islandId);
             return true;
         }
         return false;
@@ -454,9 +455,9 @@ public class IslandManager {
             islandRepo.deleteCoop(islandId, playerUuid);
 
             island.removeCoop(playerUuid);
-            java.util.List<Integer> coopIslands = coopToIslandsIndex.get(playerUuid);
+            Set<Integer> coopIslands = coopToIslandsIndex.get(playerUuid);
             if (coopIslands != null) {
-                coopIslands.remove((Integer) islandId);
+                coopIslands.remove(islandId);
                 if (coopIslands.isEmpty()) {
                     coopToIslandsIndex.remove(playerUuid);
                 }
@@ -604,9 +605,9 @@ public class IslandManager {
         }
         memberToIslandIndex.remove(island.getOwnerId());
         for (UUID coopUuid : island.getCoops()) {
-            java.util.List<Integer> coopIslands = coopToIslandsIndex.get(coopUuid);
+            Set<Integer> coopIslands = coopToIslandsIndex.get(coopUuid);
             if (coopIslands != null) {
-                coopIslands.remove((Integer) island.getId());
+                coopIslands.remove(island.getId());
                 if (coopIslands.isEmpty()) {
                     coopToIslandsIndex.remove(coopUuid);
                 }

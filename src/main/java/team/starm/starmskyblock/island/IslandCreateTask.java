@@ -225,6 +225,7 @@ public class IslandCreateTask extends BukkitRunnable {
                 Location spawnLocation = new Location(world, teleportX, teleportY, teleportZ);
                 player.teleport(spawnLocation);
                 player.sendMessage("§a已自动传送到你的岛屿！");
+
             }
 
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {

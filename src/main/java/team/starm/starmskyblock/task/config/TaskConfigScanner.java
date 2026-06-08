@@ -53,7 +53,16 @@ public class TaskConfigScanner {
         "Chapter3/task3_2.yml",
         "Chapter3/task3_3.yml",
         "Chapter3/task3_4.yml",
-        "Chapter3/task3_5.yml"
+        "Chapter3/task3_5.yml",
+        "Chapter3/task3_6.yml",
+        "Chapter3/task3_7.yml",
+        "Chapter3/task3_8.yml",
+        "Chapter3/task3_9.yml",
+        "Chapter3/task3_10.yml",
+        "Chapter4/task4_1.yml",
+        "Chapter4/task4_2.yml",
+        "Chapter4/task4_3.yml",
+        "Chapter4/task4_4.yml"
     };
 
     public TaskConfigScanner(StarMSkyblock plugin) {

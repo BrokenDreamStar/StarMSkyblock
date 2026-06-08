@@ -15,7 +15,7 @@ request:
       - MAGMA_CUBE
     amount: 32
 reward:
-  money: 10000
+  money: 8000
   item:
     - material: SPAWNER
       amount: 1

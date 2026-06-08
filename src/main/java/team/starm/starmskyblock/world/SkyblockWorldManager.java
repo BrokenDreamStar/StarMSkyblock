@@ -106,6 +106,18 @@ public class SkyblockWorldManager {
                     world.setSpawnLocation(0, 80, 0);
                 }
 
+                if (Bukkit.getPluginManager().isPluginEnabled("Multiverse-Core")) {
+                    String envArg = switch (environment) {
+                        case NETHER -> "nether";
+                        case THE_END -> "end";
+                        default -> "normal";
+                    };
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "mv import " + worldName + " " + envArg + " -g " + plugin.getName());
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "mv modify set generator " + plugin.getName() + " " + worldName);
+                }
+
                 if (environment == World.Environment.THE_END) {
                     disableEnderDragonFight(world);
                 }

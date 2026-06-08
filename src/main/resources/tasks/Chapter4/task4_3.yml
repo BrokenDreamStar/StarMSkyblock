@@ -1,0 +1,13 @@
+name: '生蚝'
+description: '击杀一些潜影贝'
+task_type: ENTITY_KILL
+request:
+  1:
+    types:
+      - SHULKER
+    amount: 5
+reward:
+  money: 12000
+  item:
+    - material: SHULKER_SPAWN_EGG
+      amount: 2

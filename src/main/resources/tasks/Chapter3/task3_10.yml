@@ -1,0 +1,13 @@
+name: '!?强强?!'
+description: '合成一个下界合金锭'
+task_type: CRAFTING
+request:
+  1:
+    types:
+      - NETHERITE_INGOT
+    amount: 1
+reward:
+  money: 12000
+  item:
+    - material: END_PORTAL_FRAME
+      amount: 9

@@ -62,12 +62,14 @@ levels:
       DIAMOND_ORE: 0.7
       EMERALD_ORE: 0.3
     nether:
-      BASALT: 70
+      BASALT: 69
       NETHERRACK: 10
       SOUL_SOIL: 5
       GLOWSTONE: 5
       NETHER_GOLD_ORE: 5
       NETHER_QUARTZ_ORE: 5
+      GILDED_BLACKSTONE: 0.8
+      ANCIENT_DEBRIS: 0.2
     end:
       END_STONE: 90
       SAND: 10
@@ -85,13 +87,14 @@ levels:
       DIAMOND_ORE: 1.4
       EMERALD_ORE: 0.6
     nether:
-      BASALT: 65
+      BASALT: 64.5
       NETHERRACK: 10
       SOUL_SOIL: 5
       GLOWSTONE: 5
       NETHER_GOLD_ORE: 7
       NETHER_QUARTZ_ORE: 7
       GILDED_BLACKSTONE: 1
+      ANCIENT_DEBRIS: 0.5
     end:
       END_STONE: 80
       SAND: 20
@@ -109,14 +112,14 @@ levels:
       DIAMOND_ORE: 2.3
       EMERALD_ORE: 1.2
     nether:
-      BASALT: 60.5
+      BASALT: 60
       NETHERRACK: 10
       SOUL_SOIL: 5
       GLOWSTONE: 5
       NETHER_GOLD_ORE: 9
       NETHER_QUARTZ_ORE: 9
       GILDED_BLACKSTONE: 1
-      ANCIENT_DEBRIS: 0.5
+      ANCIENT_DEBRIS: 1
     end:
       END_STONE: 70
       SAND: 30

@@ -3,22 +3,22 @@
 island-radius-upgrades:
   1:
     radius: 10
-    money: 10000.0
+    money: 10000
   2:
     radius: 15
-    money: 20000.0
+    money: 20000
 
 # 刷石机等级升级（目标等级不得超过 generator.yml 中的最大等级）
 generator-upgrades:
   1:
     generator-level: 2
-    money: 15000.0
+    money: 6000
   2:
     generator-level: 3
-    money: 25000.0
+    money: 25000
   3:
     generator-level: 4
-    money: 50000.0
+    money: 50000
   4:
     generator-level: 5
-    money: 100000.0
+    money: 100000

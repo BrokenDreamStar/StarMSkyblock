@@ -57,6 +57,7 @@ public class ConfigManager {
     private boolean useFawe; // 是否使用 FAWE 模式
     private String defaultIslandCommand; // /is 无参数时执行的子命令（默认 spawn）
     private boolean obsidianToLava; // 是否允许空桶右键黑曜石转化为熔岩桶
+    private boolean setRespawnOnJoin; // 创建或加入岛屿时是否自动设置重生点
 
     public ConfigManager(StarMSkyblock plugin) {
         this.plugin = plugin;
@@ -182,6 +183,7 @@ public class ConfigManager {
         this.defaultIslandCommand = config.getString("default-island-command", "spawn");
 
         this.obsidianToLava = config.getBoolean("obsidian-to-lava", false);
+        this.setRespawnOnJoin = config.getBoolean("set-respawn-on-join", true);
     }
 
     // ==================== Getter 方法（按功能分类） ====================
@@ -346,6 +348,13 @@ public class ConfigManager {
 
     public boolean isObsidianToLava() {
         return obsidianToLava;
+    }
+
+    /**
+     * @return 创建或加入岛屿时是否自动将重生点设为岛屿传送点
+     */
+    public boolean isSetRespawnOnJoin() {
+        return setRespawnOnJoin;
     }
 
     /**

@@ -5,7 +5,7 @@ request:
   1:
     types:
       - WHEAT
-    amount: 16
+    amount: 8
 reward:
   money: 1000
   item:

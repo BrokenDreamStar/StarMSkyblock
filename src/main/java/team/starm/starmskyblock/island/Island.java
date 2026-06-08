@@ -1,5 +1,6 @@
 package team.starm.starmskyblock.island;
 
+import com.google.gson.Gson;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -128,6 +129,8 @@ public class Island {
      * 各项权限的最低等级要求（权限 → 最低等级数值）
      */
     private final Map<IslandPermission, Integer> permissionMinLevels = new HashMap<>();
+
+    private static final Gson GSON = new Gson();
 
     /**
      * 刷石机已禁用的矿石（维度名 → 禁用矿石 Material 名集合）
@@ -284,7 +287,7 @@ public class Island {
 
     public String getDisabledGeneratorOresJson() {
         if (disabledGeneratorOres.isEmpty()) return "{}";
-        return new com.google.gson.Gson().toJson(disabledGeneratorOres);
+        return GSON.toJson(disabledGeneratorOres);
     }
 
     @SuppressWarnings("unchecked")
@@ -292,7 +295,7 @@ public class Island {
         disabledGeneratorOres.clear();
         if (json == null || json.isEmpty() || json.equals("{}")) return;
         try {
-            Map<String, Object> raw = new com.google.gson.Gson().fromJson(json, Map.class);
+            Map<String, Object> raw = GSON.fromJson(json, Map.class);
             if (raw == null) return;
             for (var entry : raw.entrySet()) {
                 if (entry.getValue() instanceof java.util.List<?> list) {

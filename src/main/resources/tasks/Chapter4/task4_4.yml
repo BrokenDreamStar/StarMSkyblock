@@ -1,0 +1,12 @@
+name: '天空极为极限'
+description: '探索资源末地寻找鞘翅'
+task_type: ITEM
+request:
+  1:
+    types:
+      - ELYTRA
+    amount: 1
+reward:
+  money: 12000
+  command:
+    - 'server: lp user %player_name% permission set starmtool.fly true'

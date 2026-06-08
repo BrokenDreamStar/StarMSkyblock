@@ -2,10 +2,12 @@ package team.starm.starmskyblock.task.placeholder;
 
 import org.bukkit.entity.Player;
 import team.starm.starmskyblock.StarMSkyblock;
+import team.starm.starmskyblock.task.TaskCategory;
 import team.starm.starmskyblock.task.TaskDefinition;
 import team.starm.starmskyblock.task.TaskManager;
 import team.starm.starmskyblock.task.TaskProgress;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 
@@ -26,41 +28,53 @@ public class TaskPlaceholderHandler {
 
             String rest = params.substring(PREFIX.length());
 
-            if (rest.endsWith("_progress")) {
-                String taskId = rest.substring(0, rest.length() - "_progress".length());
-                return getProgress(player, taskId);
-            }
-
-            if (rest.endsWith("_completed")) {
-                String taskId = rest.substring(0, rest.length() - "_completed".length());
-                return isCompleted(player, taskId) ? "是" : "否";
-            }
-
-            if (rest.endsWith("_count")) {
-                String taskId = rest.substring(0, rest.length() - "_count".length());
-                return String.valueOf(getCompletedCount(player, taskId));
+            // _percentage_ and _value_ use indexOf — check before endsWith patterns
+            int pctIdx = rest.indexOf("_percentage_");
+            if (pctIdx > 0) {
+                String id = rest.substring(0, pctIdx);
+                String key = rest.substring(pctIdx + "_percentage_".length()).toUpperCase();
+                TaskDefinition def = resolveTask(id);
+                if (def != null) return getPercentage(player, def, key);
             }
 
             int valueIdx = rest.indexOf("_value_");
             if (valueIdx > 0) {
-                String taskId = rest.substring(0, valueIdx);
+                String id = rest.substring(0, valueIdx);
                 String key = rest.substring(valueIdx + "_value_".length()).toUpperCase();
-                return getValue(player, taskId, key);
+                TaskDefinition def = resolveTask(id);
+                if (def != null) return getValue(player, def, key);
             }
 
-            int pctIdx = rest.indexOf("_percentage_");
-            if (pctIdx > 0) {
-                String taskId = rest.substring(0, pctIdx);
-                String key = rest.substring(pctIdx + "_percentage_".length()).toUpperCase();
-                return getPercentage(player, taskId, key);
+            // Global counts (exact match, no prefix)
+            if (rest.equals("completed_count")) {
+                return String.valueOf(getTotalCompletedCount(player));
             }
 
-            if (rest.endsWith("_completed_count")) {
-                return null;
+            if (rest.equals("total_count")) {
+                return String.valueOf(taskManager.getTaskConfig().getTaskIndex().size());
             }
 
-            if (rest.endsWith("_total_count")) {
-                return null;
+            // endsWith checks
+            if (rest.endsWith("_progress")) {
+                String id = rest.substring(0, rest.length() - "_progress".length());
+                TaskDefinition def = resolveTask(id);
+                if (def != null) return getProgress(player, def);
+                TaskCategory cat = resolveChapter(id);
+                if (cat != null) return String.valueOf(getChapterProgress(player, cat));
+            }
+
+            if (rest.endsWith("_completed")) {
+                String id = rest.substring(0, rest.length() - "_completed".length());
+                TaskDefinition def = resolveTask(id);
+                if (def != null) return isCompleted(player, def) ? "true" : "false";
+                TaskCategory cat = resolveChapter(id);
+                if (cat != null) return isChapterCompleted(player, cat) ? "true" : "false";
+            }
+
+            if (rest.endsWith("_count")) {
+                String id = rest.substring(0, rest.length() - "_count".length());
+                TaskDefinition def = resolveTask(id);
+                if (def != null) return String.valueOf(getCompletedCount(player, def));
             }
 
         } catch (Throwable ignored) {}
@@ -68,46 +82,98 @@ public class TaskPlaceholderHandler {
         return null;
     }
 
-    private boolean isCompleted(Player player, String taskId) {
-        if (player == null) return false;
-        return plugin.getTaskManager().isTaskCompleted(player.getUniqueId(), taskId);
+    private TaskDefinition resolveTask(String id) {
+        String[] parts = id.split("_");
+        if (parts.length != 2) return null;
+        try {
+            int chapter = Integer.parseInt(parts[0]);
+            int mission = Integer.parseInt(parts[1]);
+            return plugin.getTaskManager().getTaskConfig().getTaskByChapterAndMission(chapter, mission);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
-    private String getProgress(Player player, String taskId) {
-        if (player == null) return "0";
+    private TaskCategory resolveChapter(String id) {
+        try {
+            int chapter = Integer.parseInt(id);
+            return plugin.getTaskManager().getTaskConfig().getCategoryByChapterNumber(chapter);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private boolean isCompleted(Player player, TaskDefinition def) {
+        if (player == null || def == null) return false;
+        return plugin.getTaskManager().isTaskCompleted(player.getUniqueId(), def.getId());
+    }
+
+    private boolean isChapterCompleted(Player player, TaskCategory category) {
+        if (player == null || category == null) return false;
+        UUID uuid = player.getUniqueId();
+        for (TaskDefinition task : category.getTasks()) {
+            if (!plugin.getTaskManager().isTaskCompleted(uuid, task.getId())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private int getTotalCompletedCount(Player player) {
+        if (player == null) return 0;
+        UUID uuid = player.getUniqueId();
+        Collection<TaskDefinition> allTasks = plugin.getTaskManager().getTaskConfig().getTaskIndex().values();
+        int count = 0;
+        for (TaskDefinition task : allTasks) {
+            if (plugin.getTaskManager().isTaskCompleted(uuid, task.getId())) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private String getProgress(Player player, TaskDefinition def) {
+        if (player == null || def == null) return "0";
         UUID uuid = player.getUniqueId();
         TaskManager taskManager = plugin.getTaskManager();
-        TaskDefinition def = taskManager.getTaskConfig().getTask(taskId);
-        if (def == null) return "0";
-
-        TaskProgress prog = taskManager.getPlayerProgressMap(uuid).get(taskId);
+        TaskProgress prog = taskManager.getPlayerProgressMap(uuid).get(def.getId());
         if (prog == null) return "0";
-
         return String.valueOf((int) Math.round(prog.getProgressPercent(def) * 100));
     }
 
-    private int getCompletedCount(Player player, String taskId) {
-        if (player == null) return 0;
-        TaskProgress prog = plugin.getTaskManager().getPlayerProgressMap(player.getUniqueId()).get(taskId);
+    private int getChapterProgress(Player player, TaskCategory category) {
+        if (player == null || category == null || category.getTasks().isEmpty()) return 0;
+        UUID uuid = player.getUniqueId();
+        TaskManager taskManager = plugin.getTaskManager();
+        double total = 0;
+        for (TaskDefinition task : category.getTasks()) {
+            TaskProgress prog = taskManager.getPlayerProgressMap(uuid).get(task.getId());
+            if (prog != null) {
+                total += prog.getProgressPercent(task);
+            }
+        }
+        return (int) Math.round(total / category.getTasks().size() * 100);
+    }
+
+    private int getCompletedCount(Player player, TaskDefinition def) {
+        if (player == null || def == null) return 0;
+        TaskProgress prog = plugin.getTaskManager().getPlayerProgressMap(player.getUniqueId()).get(def.getId());
         return prog != null ? prog.getCompletedCount() : 0;
     }
 
-    private String getValue(Player player, String taskId, String key) {
-        if (player == null) return "0";
+    private String getValue(Player player, TaskDefinition def, String key) {
+        if (player == null || def == null) return "0";
         UUID uuid = player.getUniqueId();
-        TaskProgress prog = plugin.getTaskManager().getPlayerProgressMap(uuid).get(taskId);
+        TaskProgress prog = plugin.getTaskManager().getPlayerProgressMap(uuid).get(def.getId());
         if (prog == null || prog.getProgress() == null) return "0";
         return String.valueOf(prog.getProgress().getOrDefault(key, 0));
     }
 
-    private String getPercentage(Player player, String taskId, String key) {
-        if (player == null) return "0";
+    private String getPercentage(Player player, TaskDefinition def, String key) {
+        if (player == null || def == null) return "0";
         UUID uuid = player.getUniqueId();
         TaskManager taskManager = plugin.getTaskManager();
-        TaskDefinition def = taskManager.getTaskConfig().getTask(taskId);
-        if (def == null) return "0";
-
-        TaskProgress prog = taskManager.getPlayerProgressMap(uuid).get(taskId);
+        TaskProgress prog = taskManager.getPlayerProgressMap(uuid).get(def.getId());
         if (prog == null || prog.getProgress() == null) return "0";
 
         for (TaskDefinition.RequirementGroup req : def.getRequirements()) {

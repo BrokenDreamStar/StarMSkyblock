@@ -29,6 +29,7 @@ import team.starm.starmskyblock.listener.CobblestoneGeneratorListener;
 import team.starm.starmskyblock.listener.EndProtectionListener;
 import team.starm.starmskyblock.listener.ObsidianToLavaListener;
 import team.starm.starmskyblock.listener.PortalListener;
+import team.starm.starmskyblock.listener.RespawnListener;
 import team.starm.starmskyblock.listener.TeleportCountdownListener;
 import team.starm.starmskyblock.setting.IslandSettingManager;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
@@ -278,6 +279,9 @@ public class StarMSkyblock extends JavaPlugin {
                     new ObsidianToLavaListener(islandManager, configManager), this);
 //            MessageUtil.consolePrint("已注册黑曜石转熔岩监听器");
         }
+
+        getServer().getPluginManager().registerEvents(
+                new RespawnListener(islandManager, configManager, worldManager), this);
     }
 
     private void registerCommands() {

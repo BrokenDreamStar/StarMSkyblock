@@ -7,7 +7,7 @@ request:
       - SUGAR
     amount: 32
 reward:
-  money: 1000
+  money: 1500
   item:
     - material: SAND
       amount: 32

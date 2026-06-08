@@ -18,10 +18,10 @@ import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 岛屿边界监听器 —— 为每个玩家动态创建并更新 WorldBorder，使其视觉上限定在岛屿范围内。
@@ -42,6 +42,8 @@ public class BorderListener implements Listener {
             return size() > 1000;
         }
     };
+    /** 岛屿边界缓存：islandId → CachedBorder，避免每次跨区块移动都创建 WorldBorder 对象 */
+    private final Map<Integer, CachedBorder> islandBorderCache = new ConcurrentHashMap<>();
 
     public BorderListener(IslandManager islandManager, SkyblockWorldManager worldManager, PlayerRepository playerRepo) {
         this.islandManager = islandManager;
@@ -139,25 +141,32 @@ public class BorderListener implements Listener {
         Optional<Island> currentIsland = islandManager.getIslandAtMaxRange(
                 location.getChunk().getX(), location.getChunk().getZ());
         currentIsland.ifPresentOrElse(
-                island -> player.setWorldBorder(createIslandBorder(island)),
+                island -> player.setWorldBorder(getOrCreateIslandBorder(island)),
                 () -> player.setWorldBorder(null));
     }
 
-    /** 根据岛屿参数创建一个正方形 WorldBorder（中心 + 边长） */
-    public static WorldBorder createIslandBorder(Island island) {
-        int radiusChunks = island.getRadius();
+    /** 根据岛屿参数获取缓存的 WorldBorder（中心 + 边长），半径不变时复用缓存对象 */
+    public WorldBorder getOrCreateIslandBorder(Island island) {
+        int radius = island.getRadius();
+        CachedBorder cached = islandBorderCache.get(island.getId());
+        if (cached != null && cached.radius == radius) {
+            return cached.border;
+        }
+        WorldBorder border = createIslandBorder(island, radius);
+        islandBorderCache.put(island.getId(), new CachedBorder(radius, border));
+        return border;
+    }
+
+    private static WorldBorder createIslandBorder(Island island, int radiusChunks) {
         double sideLength = (radiusChunks * 2 + 1) * 16.0;
-
-        int centerChunkX = island.getCenterChunkX();
-        int centerChunkZ = island.getCenterChunkZ();
-        double centerX = centerChunkX * 16.0 + 8.0;
-        double centerZ = centerChunkZ * 16.0 + 8.0;
-
+        double centerX = island.getCenterChunkX() * 16.0 + 8.0;
+        double centerZ = island.getCenterChunkZ() * 16.0 + 8.0;
         WorldBorder border = Bukkit.createWorldBorder();
         border.setCenter(centerX, centerZ);
         border.setSize(sideLength);
         border.setWarningDistance(0);
-
         return border;
     }
+
+    private record CachedBorder(int radius, WorldBorder border) {}
 }
