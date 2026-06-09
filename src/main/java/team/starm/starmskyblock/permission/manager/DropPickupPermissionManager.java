@@ -1,10 +1,19 @@
 package team.starm.starmskyblock.permission.manager;
 
+import java.util.UUID;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Tag;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BundleMeta;
 
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
@@ -56,6 +65,79 @@ public class DropPickupPermissionManager extends BasePermissionManager {
         if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_PICKUP)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.ITEM_PICKUP);
+        }
+    }
+
+    /**
+     * 监听玩家右键收纳袋事件
+     * <p>
+     * 当玩家在岛屿区域内右键打开收纳袋（Bundle）时，检查是否拥有 ITEM_DROP 权限。
+     * 收纳袋取出的物品若因背包满无法放入会直接掉落，需与丢弃物品权限同步约束。
+     * 使用 LOWEST 优先级确保在容器权限处理前拦截。
+     * </p>
+     */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onBundleInteract(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+
+        ItemStack item = event.getItem();
+        if (item == null || !Tag.ITEMS_BUNDLES.isTagged(item.getType())) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)) {
+            event.setCancelled(true);
+            sendDenyMessage(player, IslandPermission.ITEM_DROP);
+        }
+    }
+
+    /**
+     * 监听掉落物生成事件，拦截收纳袋溢出物品
+     * <p>
+     * 当玩家在无 ITEM_DROP 权限区域右键收纳袋时，Paper 会在事件触发前
+     * 自动提取物品。若背包已满，物品会以掉落物形式生成。此监听器捕获
+     * 该掉落物并退还回收纳袋，防止物品丢失。
+     * 通过 Item.getThrower() 获取来源玩家，精准定位。
+     * </p>
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onItemSpawn(ItemSpawnEvent event) {
+        UUID throwerUuid = event.getEntity().getThrower();
+        if (throwerUuid == null) {
+            return;
+        }
+
+        Player player = Bukkit.getPlayer(throwerUuid);
+        if (player == null || !player.isOnline()) {
+            return;
+        }
+
+        String worldName = player.getWorld().getName();
+        if (!worldName.equals(configManager.getWorldNameNormal())
+                && !worldName.equals(configManager.getWorldNameNether())
+                && !worldName.equals(configManager.getWorldNameEnd())) {
+            return;
+        }
+
+        // 检查玩家是否手持收纳袋
+        ItemStack hand = player.getInventory().getItemInMainHand();
+        if (!Tag.ITEMS_BUNDLES.isTagged(hand.getType())) {
+            hand = player.getInventory().getItemInOffHand();
+            if (!Tag.ITEMS_BUNDLES.isTagged(hand.getType())) {
+                return;
+            }
+        }
+
+        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)) {
+            event.setCancelled(true);
+            BundleMeta meta = (BundleMeta) hand.getItemMeta();
+            if (meta != null) {
+                meta.addItem(event.getEntity().getItemStack().clone());
+                hand.setItemMeta(meta);
+            }
         }
     }
 
