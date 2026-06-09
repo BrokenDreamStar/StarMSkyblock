@@ -1,7 +1,6 @@
 package team.starm.starmskyblock.permission.manager;
 
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.entity.Player;
@@ -49,10 +48,6 @@ public class DropPickupPermissionManager extends BasePermissionManager {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         Player player = event.getPlayer();
-        // 创造模式物品来源为创造物品栏（非玩家背包），取消事件会导致物品凭空消失
-        if (player.getGameMode() == GameMode.CREATIVE) {
-            return;
-        }
         if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.ITEM_DROP);
