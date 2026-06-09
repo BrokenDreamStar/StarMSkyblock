@@ -6,8 +6,10 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
@@ -15,8 +17,10 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BundleMeta;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
@@ -35,9 +39,12 @@ public class DropPickupPermissionManager extends BasePermissionManager {
 
     /** 最近被拒绝的收纳袋交互记录（玩家UUID → 时间戳），用于 ItemSpawnEvent 兜底返还 */
     private final Map<UUID, Long> deniedBundleInteractions = new HashMap<>();
+    /** 插件主类实例，用于调度任务 */
+    private final JavaPlugin plugin;
 
-    public DropPickupPermissionManager(IslandManager islandManager, ConfigManager configManager) {
+    public DropPickupPermissionManager(IslandManager islandManager, ConfigManager configManager, JavaPlugin plugin) {
         super(islandManager, configManager);
+        this.plugin = plugin;
     }
 
     /**
@@ -95,10 +102,55 @@ public class DropPickupPermissionManager extends BasePermissionManager {
 
         Player player = event.getPlayer();
         if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)) {
+            event.setUseItemInHand(Event.Result.DENY);
+            event.setUseInteractedBlock(Event.Result.DENY);
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.ITEM_DROP);
-            // Paper 在事件前已提取物品，记录玩家用于后续 ItemSpawnEvent 兜底返还
             deniedBundleInteractions.put(player.getUniqueId(), System.currentTimeMillis());
+
+            // 背包满时临时替换物品为 AIR，彻底阻止 Paper 提取收纳袋物品
+            if (player.getInventory().firstEmpty() == -1) {
+                EquipmentSlot hand = event.getHand() != null ? event.getHand() : EquipmentSlot.HAND;
+                ItemStack savedBundle = hand == EquipmentSlot.HAND
+                        ? player.getInventory().getItemInMainHand().clone()
+                        : player.getInventory().getItemInOffHand().clone();
+                if (hand == EquipmentSlot.HAND) {
+                    player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
+                } else {
+                    player.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
+                }
+                final EquipmentSlot finalHand = hand;
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (finalHand == EquipmentSlot.HAND) {
+                        player.getInventory().setItemInMainHand(savedBundle);
+                    } else {
+                        player.getInventory().setItemInOffHand(savedBundle);
+                    }
+                    player.updateInventory();
+                });
+            }
+        }
+    }
+
+    /**
+     * HIGHEST 优先级重新断言，防止其他插件或 Paper 内部重置取消状态
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
+    public void onBundleInteractReenforce(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+
+        ItemStack item = event.getItem();
+        if (item == null || !Tag.ITEMS_BUNDLES.isTagged(item.getType())) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)) {
+            event.setUseItemInHand(Event.Result.DENY);
+            event.setUseInteractedBlock(Event.Result.DENY);
+            event.setCancelled(true);
         }
     }
 

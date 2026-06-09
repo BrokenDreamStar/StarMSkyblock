@@ -71,7 +71,7 @@ public class IslandPermissionManager extends BasePermissionManager implements Li
         super(islandManager, configManager);
 
         this.managementManager = new ManagementPermissionManager(islandManager, configManager);
-        this.pickupManager = new DropPickupPermissionManager(islandManager, configManager);
+        this.pickupManager = new DropPickupPermissionManager(islandManager, configManager, plugin);
         this.blockManager = new BuildPermissionManager(islandManager, configManager);
         this.workblockManager = new WorkblockPermissionManager(islandManager, configManager);
         this.containerManager = new ContainerPermissionManager(islandManager, configManager);
