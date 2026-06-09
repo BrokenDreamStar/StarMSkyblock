@@ -86,6 +86,7 @@ public class DropPickupPermissionManager extends BasePermissionManager {
      * <p>
      * 当玩家在岛屿区域内右键打开收纳袋（Bundle）时，检查是否拥有 ITEM_DROP 权限。
      * 收纳袋取出的物品若因背包满无法放入会直接掉落，需与丢弃物品权限同步约束。
+     * 有空间时仅提示，不阻止提取；背包满时阻止并返还物品。
      * 使用 LOWEST 优先级确保在容器权限处理前拦截。
      * </p>
      */
@@ -102,14 +103,17 @@ public class DropPickupPermissionManager extends BasePermissionManager {
 
         Player player = event.getPlayer();
         if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)) {
-            event.setUseItemInHand(Event.Result.DENY);
-            event.setUseInteractedBlock(Event.Result.DENY);
-            event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.ITEM_DROP);
-            deniedBundleInteractions.put(player.getUniqueId(), System.currentTimeMillis());
 
-            // 背包满时临时替换物品为 AIR，彻底阻止 Paper 提取收纳袋物品
+            // 背包未满时，物品可正常进入背包，不阻止交互
             if (player.getInventory().firstEmpty() == -1) {
+                // 背包满时：阻止 Paper 继续处理收纳袋
+                event.setUseItemInHand(Event.Result.DENY);
+                event.setUseInteractedBlock(Event.Result.DENY);
+                event.setCancelled(true);
+                deniedBundleInteractions.put(player.getUniqueId(), System.currentTimeMillis());
+
+                // 临时替换物品为 AIR，彻底阻止 Paper 提取
                 EquipmentSlot hand = event.getHand() != null ? event.getHand() : EquipmentSlot.HAND;
                 ItemStack savedBundle = hand == EquipmentSlot.HAND
                         ? player.getInventory().getItemInMainHand().clone()
@@ -133,7 +137,7 @@ public class DropPickupPermissionManager extends BasePermissionManager {
     }
 
     /**
-     * HIGHEST 优先级重新断言，防止其他插件或 Paper 内部重置取消状态
+     * HIGHEST 优先级重新断言，仅背包满时阻止
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onBundleInteractReenforce(PlayerInteractEvent event) {
@@ -147,7 +151,8 @@ public class DropPickupPermissionManager extends BasePermissionManager {
         }
 
         Player player = event.getPlayer();
-        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)) {
+        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)
+                && player.getInventory().firstEmpty() == -1) {
             event.setUseItemInHand(Event.Result.DENY);
             event.setUseInteractedBlock(Event.Result.DENY);
             event.setCancelled(true);
