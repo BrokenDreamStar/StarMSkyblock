@@ -669,7 +669,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         };
 
         String upper = oreName.toUpperCase();
-        String material = rates.containsKey(upper) ? upper : OreDisplayName.toMaterial(oreName);
+        String material = rates.containsKey(upper) ? upper : null;
         if (material == null || !rates.containsKey(material)) return false;
 
         Set<String> disabled = island.getDisabledGeneratorOres().get(dim);
@@ -692,7 +692,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         };
 
         String upper = oreName.toUpperCase();
-        String material = rates.containsKey(upper) ? upper : OreDisplayName.toMaterial(oreName);
+        String material = rates.containsKey(upper) ? upper : null;
         if (material == null || !rates.containsKey(material)) return "&f-";
 
         Set<String> disabled = island.getDisabledGeneratorOres().get(dim);
@@ -721,7 +721,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         };
 
         String upper = oreName.toUpperCase();
-        String material = rates.containsKey(upper) ? upper : OreDisplayName.toMaterial(oreName);
+        String material = rates.containsKey(upper) ? upper : null;
         if (material == null || !rates.containsKey(material)) return "false";
 
         Set<String> disabled = island.getDisabledGeneratorOres().get(dim);

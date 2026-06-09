@@ -1,10 +1,13 @@
 package team.starm.starmskyblock.command.subcommand;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.config.GeneratorConfigManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.message.MessageUtil;
+import team.starm.starmskyblock.message.NameTranslator;
 import team.starm.starmskyblock.permission.IslandPermission;
 
 import java.util.ArrayList;
@@ -13,8 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-import team.starm.starmskyblock.util.OreDisplayName;
 
 public class GeneratorCommand extends SubCommand {
 
@@ -138,8 +139,11 @@ public class GeneratorCommand extends SubCommand {
         // 禁止禁用维度默认产物
         String defaultOre = DIMENSION_DEFAULT_ORE.get(dimension);
         if (materialName.equals(defaultOre)) {
-            String defaultDisplay = OreDisplayName.toChinese(defaultOre);
-            MessageUtil.sendMessage(player, "&c" + defaultDisplay + " 是 " + dimension + " 维度的默认产物，无法禁用！");
+            String dimDisplay = DIMENSION_DISPLAY.getOrDefault(dimension, dimension);
+            MessageUtil.sendMessage(player, Component.textOfChildren(
+                    NameTranslator.translatable(defaultOre).color(NamedTextColor.YELLOW),
+                    MessageUtil.parse(" &c是 " + dimDisplay + " 维度的默认产物，无法禁用！")
+            ));
             return true;
         }
 
@@ -162,9 +166,12 @@ public class GeneratorCommand extends SubCommand {
         String json = island.getDisabledGeneratorOresJson();
         plugin.getIslandManager().updateIslandGeneratorDisabled(island.getId(), json);
 
-        String displayName = OreDisplayName.toChinese(materialName);
-        String status = result ? "&a启用" : "&c禁用";
-        MessageUtil.sendMessage(player, "&a刷石机 " + dimension + " 维度的 " + displayName + " 已" + status);
+        String dimDisplay = DIMENSION_DISPLAY.getOrDefault(dimension, dimension);
+        MessageUtil.sendMessage(player, Component.textOfChildren(
+                MessageUtil.parse("&a刷石机 " + dimDisplay + " 维度的 "),
+                NameTranslator.translatable(materialName).color(NamedTextColor.YELLOW),
+                MessageUtil.parse(result ? " &a已启用" : " &c已禁用")
+        ));
         return true;
     }
 
@@ -201,9 +208,8 @@ public class GeneratorCommand extends SubCommand {
             for (String material : rates.keySet()) {
                 // 排除默认产物（不可禁用）
                 if (material.equals(defaultOre)) continue;
-                String chinese = OreDisplayName.toChinese(material);
-                if (chinese.startsWith(prefix) || material.toUpperCase().startsWith(upperPrefix)) {
-                    result.add(chinese);
+                if (material.toUpperCase().startsWith(upperPrefix)) {
+                    result.add(material);
                 }
             }
             return result;
@@ -229,8 +235,6 @@ public class GeneratorCommand extends SubCommand {
     private String resolveOreName(String input, Map<String, Double> rates) {
         String upper = input.toUpperCase();
         if (rates.containsKey(upper)) return upper;
-        String fromChinese = OreDisplayName.toMaterial(input);
-        if (fromChinese != null && rates.containsKey(fromChinese)) return fromChinese;
         return null;
     }
 
@@ -259,13 +263,14 @@ public class GeneratorCommand extends SubCommand {
                 double pct = totalWeight > 0 ? (weight * 100.0 / totalWeight) : 0;
                 boolean enabled = enabledMap.getOrDefault(material, true);
 
-                String displayName = OreDisplayName.toChinese(material);
-
-                String statusIcon = enabled ? "&a✓" : "&c✗";
-                String line = String.format("  &e%s&7: %.1f%%  %s",
-                        displayName, pct, statusIcon);
-
-                MessageUtil.sendMessage(player, line);
+                MessageUtil.sendMessage(player, Component.textOfChildren(
+                        Component.text("  "),
+                        NameTranslator.translatable(material).color(NamedTextColor.YELLOW),
+                        Component.text(": ", NamedTextColor.GRAY),
+                        Component.text(String.format("%.1f%%", pct), NamedTextColor.GRAY),
+                        Component.text("  "),
+                        enabled ? Component.text("✓", NamedTextColor.GREEN) : Component.text("✗", NamedTextColor.RED)
+                ));
             }
         }
 

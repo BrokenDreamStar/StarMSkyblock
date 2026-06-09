@@ -33,12 +33,10 @@ public enum OreDisplayName {
     private final String chineseName;
 
     private static final Map<String, String> MATERIAL_TO_CHINESE = new HashMap<>();
-    private static final Map<String, String> CHINESE_TO_MATERIAL = new HashMap<>();
 
     static {
         for (OreDisplayName ore : values()) {
             MATERIAL_TO_CHINESE.put(ore.name(), ore.chineseName);
-            CHINESE_TO_MATERIAL.put(ore.chineseName, ore.name());
         }
     }
 
@@ -51,12 +49,5 @@ public enum OreDisplayName {
      */
     public static String toChinese(String materialName) {
         return MATERIAL_TO_CHINESE.getOrDefault(materialName, materialName);
-    }
-
-    /**
-     * 根据中文名反查 Material 枚举名，未找到则返回 null。
-     */
-    public static String toMaterial(String chineseName) {
-        return CHINESE_TO_MATERIAL.get(chineseName);
     }
 }
