@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.entity.Player;
@@ -37,8 +38,8 @@ import team.starm.starmskyblock.permission.BasePermissionManager;
  */
 public class DropPickupPermissionManager extends BasePermissionManager {
 
-    /** 最近被拒绝的收纳袋交互记录（玩家UUID → 时间戳），用于 ItemSpawnEvent 兜底返还 */
-    private final Map<UUID, Long> deniedBundleInteractions = new HashMap<>();
+    /** 等待退还的收纳袋溢出计数（玩家UUID → 待返还次数），每次被拒交互最多退还 1 次 */
+    private final Map<UUID, Integer> pendingBundleRefunds = new HashMap<>();
     /** 插件主类实例，用于调度任务 */
     private final JavaPlugin plugin;
 
@@ -57,6 +58,10 @@ public class DropPickupPermissionManager extends BasePermissionManager {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         Player player = event.getPlayer();
+        // 创造模式物品来源为创造物品栏（非玩家背包），取消事件会导致物品凭空消失
+        if (player.getGameMode() == GameMode.CREATIVE) {
+            return;
+        }
         if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.ITEM_DROP);
@@ -111,7 +116,7 @@ public class DropPickupPermissionManager extends BasePermissionManager {
                 event.setUseItemInHand(Event.Result.DENY);
                 event.setUseInteractedBlock(Event.Result.DENY);
                 event.setCancelled(true);
-                deniedBundleInteractions.put(player.getUniqueId(), System.currentTimeMillis());
+                pendingBundleRefunds.put(player.getUniqueId(), 1);
 
                 // 临时替换物品为 AIR，彻底阻止 Paper 提取
                 EquipmentSlot hand = event.getHand() != null ? event.getHand() : EquipmentSlot.HAND;
@@ -164,13 +169,14 @@ public class DropPickupPermissionManager extends BasePermissionManager {
      * <p>
      * 当玩家在无 ITEM_DROP 权限区域右键收纳袋时，Paper 在 PlayerInteractEvent
      * 触发前就已提取物品。若背包满，提取的物品会以掉落物形式生成。
-     * 此监听器通过在 onBundleInteract 中记录的拒绝记录，匹配并拦截这些掉落物，
-     * 使用 BundleMeta API 将物品返还回收纳袋。
+     * 此监听器通过 pendingBundleRefunds 计数匹配并拦截这些掉落物，
+     * 使用 BundleMeta API 将物品返还回收纳袋。计数用完即移除，避免误拦截
+     * 其他来源的掉落物（如 /give 命令溢出）。
      * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemSpawn(ItemSpawnEvent event) {
-        if (deniedBundleInteractions.isEmpty()) {
+        if (pendingBundleRefunds.isEmpty()) {
             return;
         }
 
@@ -181,14 +187,10 @@ public class DropPickupPermissionManager extends BasePermissionManager {
             return;
         }
 
-        long now = System.currentTimeMillis();
-        Iterator<Map.Entry<UUID, Long>> iter = deniedBundleInteractions.entrySet().iterator();
-
+        Iterator<Map.Entry<UUID, Integer>> iter = pendingBundleRefunds.entrySet().iterator();
         while (iter.hasNext()) {
-            Map.Entry<UUID, Long> entry = iter.next();
-
-            // 清除超过 2 秒的过期记录
-            if (now - entry.getValue() > 2000) {
+            Map.Entry<UUID, Integer> entry = iter.next();
+            if (entry.getValue() <= 0) {
                 iter.remove();
                 continue;
             }
@@ -200,15 +202,12 @@ public class DropPickupPermissionManager extends BasePermissionManager {
                 continue;
             }
 
-            // 检查玩家是否手持收纳袋（主手或副手）
             boolean isMainHand = Tag.ITEMS_BUNDLES.isTagged(player.getInventory().getItemInMainHand().getType());
             boolean isOffHand = Tag.ITEMS_BUNDLES.isTagged(player.getInventory().getItemInOffHand().getType());
             if (!isMainHand && !isOffHand) {
-                iter.remove();
                 continue;
             }
 
-            // 二次权限检查，确认玩家当前仍在无权限区域
             if (!checkPermission(event.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)) {
                 event.setCancelled(true);
 
@@ -218,7 +217,6 @@ public class DropPickupPermissionManager extends BasePermissionManager {
                 if (meta != null) {
                     meta.addItem(event.getEntity().getItemStack().clone());
                     hand.setItemMeta(meta);
-                    // 确保 ItemStack 修改持久化到玩家背包
                     if (isMainHand) {
                         player.getInventory().setItemInMainHand(hand);
                     } else {
@@ -227,7 +225,12 @@ public class DropPickupPermissionManager extends BasePermissionManager {
                 }
             }
 
-            iter.remove();
+            int remaining = entry.getValue() - 1;
+            if (remaining <= 0) {
+                iter.remove();
+            } else {
+                entry.setValue(remaining);
+            }
             break;
         }
     }
