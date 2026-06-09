@@ -2,6 +2,8 @@ package team.starm.starmskyblock.task;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -12,6 +14,7 @@ import org.bukkit.inventory.meta.PotionMeta;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.database.PlayerRepository;
 import team.starm.starmskyblock.message.MessageUtil;
+import team.starm.starmskyblock.message.NameTranslator;
 import team.starm.starmskyblock.task.config.TaskConfigScanner;
 import team.starm.starmskyblock.task.reward.TaskReward;
 
@@ -252,8 +255,18 @@ public class TaskManager {
                 }
             }
             if (hasAmount < req.getAmount()) {
-                String typesStr = String.join(", ", req.getTypes());
-                MessageUtil.sendMessage(player, "&c物品不足！需要 &e" + typesStr + " &cx " + req.getAmount());
+                Component typesComponent = Component.empty();
+                for (int i = 0; i < req.getTypes().size(); i++) {
+                    if (i > 0) typesComponent = typesComponent.append(Component.text(", "));
+                    typesComponent = typesComponent.append(
+                            NameTranslator.translatable(req.getTypes().get(i)).color(NamedTextColor.YELLOW));
+                }
+                MessageUtil.sendMessage(player, Component.textOfChildren(
+                        MessageUtil.parse("&c物品不足！需要 "),
+                        typesComponent,
+                        MessageUtil.parse(" &cx "),
+                        Component.text(req.getAmount(), NamedTextColor.RED)
+                ));
                 return false;
             }
         }

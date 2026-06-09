@@ -1,5 +1,6 @@
 package team.starm.starmskyblock.message;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
@@ -65,6 +66,15 @@ public class MessageUtil {
         if (message == null) return;
         if (sender instanceof Player player && SILENT_PLAYERS.contains(player.getUniqueId())) return;
         sender.sendMessage(colorize(message));
+    }
+
+    /**
+     * 直接发送 Adventure Component（静默模式下自动跳过玩家消息）
+     * 用于需要 Client-Side 翻译（如 TranslatableComponent）的场景
+     */
+    public static void sendMessage(@NotNull CommandSender sender, @NotNull Component message) {
+        if (sender instanceof Player player && SILENT_PLAYERS.contains(player.getUniqueId())) return;
+        ((Audience) sender).sendMessage(message);
     }
 
     public static void setSilent(@NotNull UUID playerUuid, boolean silent) {
