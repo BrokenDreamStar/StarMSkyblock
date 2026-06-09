@@ -1,10 +1,5 @@
 package team.starm.starmskyblock.permission.manager;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
-
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -15,12 +10,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityPickupItemEvent;
-import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import team.starm.starmskyblock.config.ConfigManager;
@@ -38,8 +31,6 @@ import team.starm.starmskyblock.permission.BasePermissionManager;
  */
 public class DropPickupPermissionManager extends BasePermissionManager {
 
-    /** 等待退还的收纳袋溢出计数（玩家UUID → 待返还次数），每次被拒交互最多退还 1 次 */
-    private final Map<UUID, Integer> pendingBundleRefunds = new HashMap<>();
     /** 插件主类实例，用于调度任务 */
     private final JavaPlugin plugin;
 
@@ -116,7 +107,6 @@ public class DropPickupPermissionManager extends BasePermissionManager {
                 event.setUseItemInHand(Event.Result.DENY);
                 event.setUseInteractedBlock(Event.Result.DENY);
                 event.setCancelled(true);
-                pendingBundleRefunds.put(player.getUniqueId(), 1);
 
                 // 临时替换物品为 AIR，彻底阻止 Paper 提取
                 EquipmentSlot hand = event.getHand() != null ? event.getHand() : EquipmentSlot.HAND;
@@ -161,77 +151,6 @@ public class DropPickupPermissionManager extends BasePermissionManager {
             event.setUseItemInHand(Event.Result.DENY);
             event.setUseInteractedBlock(Event.Result.DENY);
             event.setCancelled(true);
-        }
-    }
-
-    /**
-     * 监听掉落物生成事件，拦截收纳袋溢出的丢失物品
-     * <p>
-     * 当玩家在无 ITEM_DROP 权限区域右键收纳袋时，Paper 在 PlayerInteractEvent
-     * 触发前就已提取物品。若背包满，提取的物品会以掉落物形式生成。
-     * 此监听器通过 pendingBundleRefunds 计数匹配并拦截这些掉落物，
-     * 使用 BundleMeta API 将物品返还回收纳袋。计数用完即移除，避免误拦截
-     * 其他来源的掉落物（如 /give 命令溢出）。
-     * </p>
-     */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onItemSpawn(ItemSpawnEvent event) {
-        if (pendingBundleRefunds.isEmpty()) {
-            return;
-        }
-
-        String worldName = event.getLocation().getWorld().getName();
-        if (!worldName.equals(configManager.getWorldNameNormal())
-                && !worldName.equals(configManager.getWorldNameNether())
-                && !worldName.equals(configManager.getWorldNameEnd())) {
-            return;
-        }
-
-        Iterator<Map.Entry<UUID, Integer>> iter = pendingBundleRefunds.entrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry<UUID, Integer> entry = iter.next();
-            if (entry.getValue() <= 0) {
-                iter.remove();
-                continue;
-            }
-
-            Player player = Bukkit.getPlayer(entry.getKey());
-            if (player == null || !player.isOnline()
-                    || !player.getWorld().equals(event.getLocation().getWorld())
-                    || player.getLocation().distanceSquared(event.getLocation()) >= 9) {
-                continue;
-            }
-
-            boolean isMainHand = Tag.ITEMS_BUNDLES.isTagged(player.getInventory().getItemInMainHand().getType());
-            boolean isOffHand = Tag.ITEMS_BUNDLES.isTagged(player.getInventory().getItemInOffHand().getType());
-            if (!isMainHand && !isOffHand) {
-                continue;
-            }
-
-            if (!checkPermission(event.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)) {
-                event.setCancelled(true);
-
-                ItemStack hand = isMainHand ? player.getInventory().getItemInMainHand()
-                                            : player.getInventory().getItemInOffHand();
-                BundleMeta meta = (BundleMeta) hand.getItemMeta();
-                if (meta != null) {
-                    meta.addItem(event.getEntity().getItemStack().clone());
-                    hand.setItemMeta(meta);
-                    if (isMainHand) {
-                        player.getInventory().setItemInMainHand(hand);
-                    } else {
-                        player.getInventory().setItemInOffHand(hand);
-                    }
-                }
-            }
-
-            int remaining = entry.getValue() - 1;
-            if (remaining <= 0) {
-                iter.remove();
-            } else {
-                entry.setValue(remaining);
-            }
-            break;
         }
     }
 
