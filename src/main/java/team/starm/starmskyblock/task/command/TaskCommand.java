@@ -3,6 +3,7 @@ package team.starm.starmskyblock.task.command;
 import org.bukkit.entity.Player;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.command.subcommand.SubCommand;
+import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.message.MessageUtil;
 import team.starm.starmskyblock.task.TaskCategory;
 import team.starm.starmskyblock.task.TaskDefinition;
@@ -13,6 +14,7 @@ import team.starm.starmskyblock.task.TaskType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -25,6 +27,12 @@ public class TaskCommand extends SubCommand {
     @Override
     public boolean execute(Player player, String[] args) {
         TaskManager taskManager = plugin.getTaskManager();
+
+        Optional<Island> islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+        if (islandOpt.isEmpty()) {
+            MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+            return true;
+        }
 
         if (args.length == 1) {
             showTaskList(player, taskManager, -1);
