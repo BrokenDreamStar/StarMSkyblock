@@ -11,9 +11,7 @@ import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.generator.VoidChunkGenerator;
 import team.starm.starmskyblock.message.MessageUtil;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import team.starm.starmskyblock.util.reflection.EnderDragonReflection;
 
 /**
  * 空岛世界管理器。
@@ -186,42 +184,7 @@ public class SkyblockWorldManager {
             MessageUtil.consoleWarn("无法通过 API 标记末影龙为已击败: " + e.getMessage());
         }
 
-        try {
-            Method getHandle = null;
-            Class<?> clazz = world.getClass();
-            while (clazz != null && getHandle == null) {
-                try {
-                    getHandle = clazz.getDeclaredMethod("getHandle");
-                } catch (NoSuchMethodException ignored) {
-                    clazz = clazz.getSuperclass();
-                }
-            }
-
-            if (getHandle != null) {
-                getHandle.setAccessible(true);
-                Object serverLevel = getHandle.invoke(world);
-
-                Field dragonFightField = null;
-                try {
-                    dragonFightField = serverLevel.getClass().getDeclaredField("dragonFight");
-                } catch (NoSuchFieldException e) {
-                    for (Field f : serverLevel.getClass().getDeclaredFields()) {
-                        String typeName = f.getType().getSimpleName().toLowerCase();
-                        if (typeName.contains("dragon") || typeName.contains("fight")) {
-                            dragonFightField = f;
-                            break;
-                        }
-                    }
-                }
-
-                if (dragonFightField != null) {
-                    dragonFightField.setAccessible(true);
-                    dragonFightField.set(serverLevel, null);
-                }
-            }
-        } catch (Exception e) {
-            MessageUtil.consoleWarn("无法通过反射禁用末地龙战系统: " + e.getMessage());
-        }
+        EnderDragonReflection.disableDragonFight(world);
 
         world.getEntities().forEach(entity -> {
             if (entity.getType() == EntityType.ENDER_DRAGON || entity.getType() == EntityType.END_CRYSTAL) {

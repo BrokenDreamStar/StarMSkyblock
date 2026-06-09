@@ -71,6 +71,12 @@ public class TaskPlaceholderHandler {
                 if (cat != null) return isChapterCompleted(player, cat) ? "true" : "false";
             }
 
+            if (rest.endsWith("_claimed")) {
+                String id = rest.substring(0, rest.length() - "_claimed".length());
+                TaskDefinition def = resolveTask(id);
+                if (def != null) return isClaimed(player, def) ? "true" : "false";
+            }
+
             if (rest.endsWith("_count")) {
                 String id = rest.substring(0, rest.length() - "_count".length());
                 TaskDefinition def = resolveTask(id);
@@ -104,6 +110,15 @@ public class TaskPlaceholderHandler {
     }
 
     private boolean isCompleted(Player player, TaskDefinition def) {
+        if (player == null || def == null) return false;
+        UUID uuid = player.getUniqueId();
+        TaskManager taskManager = plugin.getTaskManager();
+        TaskProgress prog = taskManager.getPlayerProgressMap(uuid).get(def.getId());
+        if (prog == null) return false;
+        return prog.isCompleted(def) && !prog.isClaimed();
+    }
+
+    private boolean isClaimed(Player player, TaskDefinition def) {
         if (player == null || def == null) return false;
         return plugin.getTaskManager().isTaskCompleted(player.getUniqueId(), def.getId());
     }

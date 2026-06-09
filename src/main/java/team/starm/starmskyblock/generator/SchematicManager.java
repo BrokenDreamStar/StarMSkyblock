@@ -21,12 +21,12 @@ import org.bukkit.World;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import team.starm.starmskyblock.message.MessageUtil;
+import team.starm.starmskyblock.util.reflection.FaweReflection;
 
 public class SchematicManager {
 
@@ -36,13 +36,7 @@ public class SchematicManager {
     private final boolean faweMode;
     private final boolean faweAvailable;
 
-    // 反射缓存 — FAWE 特有的 EditSessionBuilder 方法
-    private Method newBuilderMethod;
-    private Method builderWorldMethod;
-    private Method builderFastmodeMethod;
-    private Method builderCheckMemoryMethod;
-    private Method builderBuildMethod;
-    private Method flushQueueMethod;
+    private FaweReflection faweReflection;
 
     public SchematicManager(File schematicFolder, boolean faweMode) {
         this.schematicFolder = schematicFolder;
@@ -54,7 +48,7 @@ public class SchematicManager {
         }
 
         if (faweMode && faweAvailable) {
-            initFaweReflection();
+            faweReflection = new FaweReflection();
             MessageUtil.consolePrint("FAWE 模式已启用 — 使用 FastAsyncWorldEdit 高性能引擎");
         } else if (faweMode && !faweAvailable) {
             MessageUtil.consoleWarn("配置为 FAWE 模式但服务器未安装 FAWE，已自动回退到标准 WorldEdit");
@@ -67,32 +61,6 @@ public class SchematicManager {
             return true;
         } catch (ClassNotFoundException e) {
             return false;
-        }
-    }
-
-    private void initFaweReflection() {
-        try {
-            newBuilderMethod = WorldEdit.class.getMethod("newEditSessionBuilder");
-            Object builder = newBuilderMethod.invoke(WorldEdit.getInstance());
-            Class<?> builderClass = builder.getClass();
-
-            builderWorldMethod = builderClass.getMethod("world", com.sk89q.worldedit.world.World.class);
-
-            try {
-                builderFastmodeMethod = builderClass.getMethod("fastmode", boolean.class);
-            } catch (NoSuchMethodException ignored) {}
-
-            try {
-                builderCheckMemoryMethod = builderClass.getMethod("checkMemory", boolean.class);
-            } catch (NoSuchMethodException ignored) {}
-
-            builderBuildMethod = builderClass.getMethod("build");
-
-            try {
-                flushQueueMethod = EditSession.class.getMethod("flushQueue");
-            } catch (NoSuchMethodException ignored) {}
-        } catch (Exception e) {
-            MessageUtil.consoleWarn("FAWE 反射初始化失败: " + e.getMessage());
         }
     }
 
@@ -179,8 +147,7 @@ public class SchematicManager {
             // FAWE FastSchematicReaderV3 可能因无法解析的方块类型抛出 NPE
             // 尝试回退到 Sponge（v2）格式
         } catch (IOException e) {
-            MessageUtil.consoleError("读取结构文件时发生错误: " + fileName);
-            e.printStackTrace();
+            MessageUtil.consoleError("读取结构文件时发生错误: " + fileName, e);
             return null;
         }
 
@@ -191,8 +158,7 @@ public class SchematicManager {
                 MessageUtil.consoleWarn("FAWE 格式读取失败，已自动回退到 Sponge 格式: " + fileName);
                 return reader.read();
             } catch (Exception fallbackException) {
-                MessageUtil.consoleError("FAWE 格式和 Sponge 回退格式均无法读取结构文件: " + fileName);
-                fallbackException.printStackTrace();
+                MessageUtil.consoleError("FAWE 格式和 Sponge 回退格式均无法读取结构文件: " + fileName, fallbackException);
             }
         } else {
             MessageUtil.consoleError("FAWE 格式读取失败且无可用回退格式: " + fileName);
@@ -215,32 +181,18 @@ public class SchematicManager {
      * 创建 EditSession，FAWE 模式下启用 fastmode + 跳过内存检查。
      */
     private EditSession createEditSession(com.sk89q.worldedit.world.World weWorld) {
-        if (!faweMode || !faweAvailable || newBuilderMethod == null) {
-            return WorldEdit.getInstance().newEditSession(weWorld);
+        if (faweMode && faweAvailable && faweReflection != null && faweReflection.isAvailable()) {
+            return faweReflection.createEditSession(weWorld);
         }
-        try {
-            Object builder = newBuilderMethod.invoke(WorldEdit.getInstance());
-            builder = builderWorldMethod.invoke(builder, weWorld);
-            if (builderFastmodeMethod != null) {
-                builder = builderFastmodeMethod.invoke(builder, true);
-            }
-            if (builderCheckMemoryMethod != null) {
-                builder = builderCheckMemoryMethod.invoke(builder, false);
-            }
-            return (EditSession) builderBuildMethod.invoke(builder);
-        } catch (Exception e) {
-            return WorldEdit.getInstance().newEditSession(weWorld);
-        }
+        return WorldEdit.getInstance().newEditSession(weWorld);
     }
 
     /**
      * FAWE 模式下显式刷新队列，确保所有变更被提交。
      */
     private void flushIfFawe(EditSession session) {
-        if (faweMode && faweAvailable && flushQueueMethod != null) {
-            try {
-                flushQueueMethod.invoke(session);
-            } catch (Exception ignored) {}
+        if (faweMode && faweAvailable && faweReflection != null) {
+            faweReflection.flush(session);
         }
     }
 
@@ -264,8 +216,7 @@ public class SchematicManager {
             flushIfFawe(editSession);
             return true;
         } catch (WorldEditException e) {
-            MessageUtil.consoleError("粘贴岛屿结构时发生 WorldEdit 错误！");
-            e.printStackTrace();
+            MessageUtil.consoleError("粘贴岛屿结构时发生 WorldEdit 错误！", e);
             return false;
         }
     }
@@ -300,8 +251,7 @@ public class SchematicManager {
             flushIfFawe(editSession);
             return true;
         } catch (Exception e) {
-            MessageUtil.consoleError("清空区域方块时发生 WorldEdit 错误！");
-            e.printStackTrace();
+            MessageUtil.consoleError("清空区域方块时发生 WorldEdit 错误！", e);
             return false;
         }
     }

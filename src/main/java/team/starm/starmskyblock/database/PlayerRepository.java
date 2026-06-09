@@ -18,7 +18,7 @@ import java.util.UUID;
 public class PlayerRepository {
 
     private final SQLiteManager sqliteManager;
-    private final Object dbLock;
+    private final java.util.concurrent.locks.ReentrantReadWriteLock dbLock;
 
     private final Map<UUID, String> playerNameCache = createBoundedCache(2000);
     private final Map<UUID, Boolean> firstNetherJoinCache = createBoundedCache(2000);
@@ -32,7 +32,8 @@ public class PlayerRepository {
 
     public void warmUpPlayerNameCache() {
         String sql = "SELECT player_uuid, player_name FROM players";
-        synchronized (dbLock) {
+        dbLock.readLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(sql)) {
@@ -45,9 +46,10 @@ public class PlayerRepository {
                 }
                 MessageUtil.consolePrint("已预加载 " + count + " 个玩家名称到缓存");
             } catch (SQLException e) {
-                MessageUtil.consoleError("预加载玩家名称缓存失败！");
-                e.printStackTrace();
+                MessageUtil.consoleError("预加载玩家名称缓存失败！", e);
             }
+        } finally {
+            dbLock.readLock().unlock();
         }
     }
 
@@ -56,7 +58,8 @@ public class PlayerRepository {
     public void savePlayerName(UUID uuid, String playerName) {
         String sql = "INSERT INTO players (player_uuid, player_name) VALUES (?, ?) " +
                 "ON CONFLICT(player_uuid) DO UPDATE SET player_name = excluded.player_name";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             playerNameCache.put(uuid, playerName);
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -64,21 +67,26 @@ public class PlayerRepository {
                 pstmt.setString(2, playerName);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("保存玩家名称失败！UUID: " + uuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("保存玩家名称失败！UUID: " + uuid, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
     public Optional<String> getPlayerName(UUID uuid) {
-        synchronized (dbLock) {
+        dbLock.readLock().lock();
+        try {
             String cached = playerNameCache.get(uuid);
             if (cached != null) {
                 return Optional.of(cached);
             }
+        } finally {
+            dbLock.readLock().unlock();
         }
         String sql = "SELECT player_name FROM players WHERE player_uuid = ?";
-        synchronized (dbLock) {
+        dbLock.readLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, uuid.toString());
@@ -90,9 +98,10 @@ public class PlayerRepository {
                     }
                 }
             } catch (SQLException e) {
-                MessageUtil.consoleError("获取玩家名称失败！UUID: " + uuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("获取玩家名称失败！UUID: " + uuid, e);
             }
+        } finally {
+            dbLock.readLock().unlock();
         }
         return Optional.empty();
     }
@@ -102,16 +111,20 @@ public class PlayerRepository {
     }
 
     public Optional<UUID> getUUID(String playerName) {
-        synchronized (dbLock) {
+        dbLock.readLock().lock();
+        try {
             for (Map.Entry<UUID, String> entry : playerNameCache.entrySet()) {
                 if (entry.getValue().equalsIgnoreCase(playerName)) {
                     return Optional.of(entry.getKey());
                 }
             }
+        } finally {
+            dbLock.readLock().unlock();
         }
 
         String sql = "SELECT player_uuid FROM players WHERE LOWER(player_name) = ?";
-        synchronized (dbLock) {
+        dbLock.readLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, playerName.toLowerCase());
@@ -123,9 +136,10 @@ public class PlayerRepository {
                     }
                 }
             } catch (SQLException e) {
-                MessageUtil.consoleError("通过玩家名称查询UUID失败！");
-                e.printStackTrace();
+                MessageUtil.consoleError("通过玩家名称查询UUID失败！", e);
             }
+        } finally {
+            dbLock.readLock().unlock();
         }
         return Optional.empty();
     }
@@ -134,7 +148,8 @@ public class PlayerRepository {
 
     public boolean isBorderEnabled(UUID playerUuid) {
         String sql = "SELECT border_enabled FROM players WHERE player_uuid = ?";
-        synchronized (dbLock) {
+        dbLock.readLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, playerUuid.toString());
@@ -144,9 +159,10 @@ public class PlayerRepository {
                     }
                 }
             } catch (SQLException e) {
-                MessageUtil.consoleError("获取边界开关状态失败！UUID: " + playerUuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("获取边界开关状态失败！UUID: " + playerUuid, e);
             }
+        } finally {
+            dbLock.readLock().unlock();
         }
         return true;
     }
@@ -154,30 +170,36 @@ public class PlayerRepository {
     public void setBorderEnabled(UUID playerUuid, boolean enabled) {
         String sql = "INSERT INTO players (player_uuid, player_name, border_enabled) VALUES (?, '', ?) " +
                 "ON CONFLICT(player_uuid) DO UPDATE SET border_enabled = excluded.border_enabled";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, playerUuid.toString());
                 pstmt.setBoolean(2, enabled);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("保存边界开关状态失败！UUID: " + playerUuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("保存边界开关状态失败！UUID: " + playerUuid, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
     // ==================== 首次下界 ====================
 
     public boolean isFirstNetherJoin(UUID playerUuid) {
-        synchronized (dbLock) {
+        dbLock.readLock().lock();
+        try {
             Boolean cached = firstNetherJoinCache.get(playerUuid);
             if (cached != null) {
                 return cached;
             }
+        } finally {
+            dbLock.readLock().unlock();
         }
         String sql = "SELECT first_nether_join FROM players WHERE player_uuid = ?";
-        synchronized (dbLock) {
+        dbLock.readLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, playerUuid.toString());
@@ -189,18 +211,20 @@ public class PlayerRepository {
                     }
                 }
             } catch (SQLException e) {
-                MessageUtil.consoleError("获取首次进入下界状态失败！UUID: " + playerUuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("获取首次进入下界状态失败！UUID: " + playerUuid, e);
             }
             firstNetherJoinCache.put(playerUuid, true);
             return true;
+        } finally {
+            dbLock.readLock().unlock();
         }
     }
 
     public void setFirstNetherJoin(UUID playerUuid, boolean firstJoin) {
         String sql = "INSERT INTO players (player_uuid, player_name, first_nether_join) VALUES (?, '', ?) " +
                 "ON CONFLICT(player_uuid) DO UPDATE SET first_nether_join = excluded.first_nether_join";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             firstNetherJoinCache.put(playerUuid, firstJoin);
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -208,9 +232,10 @@ public class PlayerRepository {
                 pstmt.setBoolean(2, firstJoin);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("保存首次进入下界状态失败！UUID: " + playerUuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("保存首次进入下界状态失败！UUID: " + playerUuid, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
@@ -222,7 +247,8 @@ public class PlayerRepository {
 
     public String loadTasks(UUID playerUuid) {
         String sql = "SELECT tasks FROM players WHERE player_uuid = ?";
-        synchronized (dbLock) {
+        dbLock.readLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, playerUuid.toString());
@@ -232,9 +258,10 @@ public class PlayerRepository {
                     }
                 }
             } catch (SQLException e) {
-                MessageUtil.consoleError("加载任务数据失败！UUID: " + playerUuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("加载任务数据失败！UUID: " + playerUuid, e);
             }
+        } finally {
+            dbLock.readLock().unlock();
         }
         return "{}";
     }
@@ -242,16 +269,39 @@ public class PlayerRepository {
     public void saveTasks(UUID playerUuid, String tasksJson) {
         String sql = "INSERT INTO players (player_uuid, player_name, tasks) VALUES (?, '', ?) " +
                 "ON CONFLICT(player_uuid) DO UPDATE SET tasks = excluded.tasks";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, playerUuid.toString());
                 pstmt.setString(2, tasksJson);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("保存任务数据失败！UUID: " + playerUuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("保存任务数据失败！UUID: " + playerUuid, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
+        }
+    }
+
+    public void batchSaveTasks(Map<UUID, String> playerTasks) {
+        if (playerTasks == null || playerTasks.isEmpty()) return;
+        String sql = "INSERT INTO players (player_uuid, player_name, tasks) VALUES (?, '', ?) " +
+                "ON CONFLICT(player_uuid) DO UPDATE SET tasks = excluded.tasks";
+        try {
+            sqliteManager.executeInTransaction(conn -> {
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    for (Map.Entry<UUID, String> entry : playerTasks.entrySet()) {
+                        pstmt.setString(1, entry.getKey().toString());
+                        pstmt.setString(2, entry.getValue());
+                        pstmt.addBatch();
+                    }
+                    pstmt.executeBatch();
+                }
+                return null;
+            });
+        } catch (SQLException e) {
+            MessageUtil.consoleError("批量保存任务数据失败！", e);
         }
     }
 

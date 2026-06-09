@@ -140,13 +140,13 @@ public class SkullManager {
                             try {
                                 return (String) property.getClass().getMethod("getValue").invoke(property);
                             } catch (Exception ex) {
-                                ex.printStackTrace();
+                                MessageUtil.consoleError("从 Property 对象反射获取值失败", ex);
                             }
                         }
                     }
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
+                MessageUtil.consoleError("从头颅 SkullMeta 中提取纹理失败", ex);
                 return null;
             }
         }
@@ -183,7 +183,7 @@ public class SkullManager {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+                MessageUtil.consoleError("用 base64 纹理创建头颅时发生反射错误", ex);
         }
         headItem.setItemMeta(skull);
         return headItem;
@@ -272,7 +272,7 @@ public class SkullManager {
                 return GameProfile.class.getConstructor(UUID.class, String.class, PropertyMap.class)
                         .newInstance(UUID.randomUUID(), "Skull", propertyMap);
             } catch (Exception ex) {
-                ex.printStackTrace();
+                MessageUtil.consoleError("使用兼容 PropertyMap 构造器创建 GameProfile 失败", ex);
             }
         }
         return null;
@@ -292,7 +292,7 @@ public class SkullManager {
             try {
                 return (PropertyMap) profile.getClass().getMethod("properties").invoke(profile);
             } catch (Exception ex) {
-                ex.printStackTrace();
+                MessageUtil.consoleError("跨版本反射获取 GameProfile PropertyMap 失败", ex);
             }
         }
         return null;

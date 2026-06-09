@@ -64,8 +64,7 @@ public class SignConfigManager {
             try {
                 signConfig.save(signFile);
             } catch (IOException e) {
-                MessageUtil.consoleError("保存告示牌配置文件失败");
-                e.printStackTrace();
+                MessageUtil.consoleError("保存告示牌配置文件失败", e);
             }
         }
     }

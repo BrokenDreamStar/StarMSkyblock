@@ -1,6 +1,6 @@
 package team.starm.starmskyblock.permission;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -10,6 +10,7 @@ import org.bukkit.event.Listener;
 
 import org.bukkit.entity.Player;
 
+import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
@@ -35,7 +36,12 @@ public abstract class BasePermissionManager implements Listener {
     /** 配置管理器，用于获取世界名称和消息冷却时间等配置 */
     protected final ConfigManager configManager;
     /** 记录每个玩家最近一次收到权限拒绝消息的时间戳，用于消息冷却防刷屏 */
-    protected final Map<UUID, Long> lastDenyMessageTime = new HashMap<>();
+    protected final Map<UUID, Long> lastDenyMessageTime = new LinkedHashMap<>(256, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<UUID, Long> eldest) {
+            return size() > 256;
+        }
+    };
     /** 上次权限检查结果：是否因为区域未锁定而拒绝 */
     protected boolean lastCheckWasAreaLocked = false;
     /** 上次权限检查结果：是否因为处于公共区域而拒绝 */
@@ -76,10 +82,7 @@ public abstract class BasePermissionManager implements Listener {
      * 统一的权限检查方法（使用最大岛屿范围）
      */
     public boolean checkPermission(Location location, UUID uuid, IslandPermission permission) {
-        String worldName = location.getWorld().getName();
-        if (!worldName.equals(configManager.getWorldNameNormal()) &&
-                !worldName.equals(configManager.getWorldNameNether()) &&
-                !worldName.equals(configManager.getWorldNameEnd())) {
+        if (!StarMSkyblock.getInstance().getWorldManager().isSkyblockWorldName(location.getWorld().getName())) {
             return true;
         }
 

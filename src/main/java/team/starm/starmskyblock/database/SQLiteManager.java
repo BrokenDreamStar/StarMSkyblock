@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * SQLite 数据库管理器 —— 负责连接管理、表结构创建、事务支持和皮肤纹理持久化。
@@ -20,14 +21,15 @@ public class SQLiteManager {
 
     private final File dataFolder;
     private Connection connection;
-    private final Object dbLock = new Object();
+    private final ReentrantReadWriteLock dbLock = new ReentrantReadWriteLock();
 
     public SQLiteManager(File dataFolder) {
         this.dataFolder = dataFolder;
     }
 
     public void init() {
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             if (connection != null) {
                 try { connection.close(); } catch (SQLException ignored) {}
             }
@@ -51,9 +53,10 @@ public class SQLiteManager {
                 createTables(isNewDatabase);
                 MessageUtil.consolePrint("SQLite 数据库连接成功！");
             } catch (ClassNotFoundException | SQLException e) {
-                MessageUtil.consoleError("无法连接到 SQLite 数据库！");
-                e.printStackTrace();
+                MessageUtil.consoleError("无法连接到 SQLite 数据库！", e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
@@ -137,14 +140,13 @@ public class SQLiteManager {
                 MessageUtil.consolePrint("数据库表结构检查成功！");
             }
         } catch (SQLException e) {
-            MessageUtil.consoleError("创建数据库表失败！");
-            e.printStackTrace();
+            MessageUtil.consoleError("创建数据库表失败！", e);
         }
     }
 
     // ==================== 公共同步锁与连接 ====================
 
-    public Object getDbLock() {
+    public ReentrantReadWriteLock getDbLock() {
         return dbLock;
     }
 
@@ -160,7 +162,8 @@ public class SQLiteManager {
     }
 
     public <T> T executeInTransaction(TransactionCallback<T> callback) throws SQLException {
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             connection.setAutoCommit(false);
             try {
                 T result = callback.execute(connection);
@@ -172,6 +175,8 @@ public class SQLiteManager {
             } finally {
                 connection.setAutoCommit(true);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
@@ -179,22 +184,25 @@ public class SQLiteManager {
 
     public void saveSkinTexture(UUID uuid, String texture) {
         String sql = "INSERT OR REPLACE INTO skin_textures (uuid, texture) VALUES (?, ?)";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
                 pstmt.setString(1, uuid.toString());
                 pstmt.setString(2, texture);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("保存皮肤纹理失败！UUID: " + uuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("保存皮肤纹理失败！UUID: " + uuid, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
     public Map<UUID, String> loadAllSkinTextures() {
         Map<UUID, String> result = new java.util.HashMap<>();
         String sql = "SELECT uuid, texture FROM skin_textures";
-        synchronized (dbLock) {
+        dbLock.readLock().lock();
+        try {
             try (Statement stmt = connection.createStatement();
                  ResultSet rs = stmt.executeQuery(sql)) {
                 while (rs.next()) {
@@ -203,9 +211,10 @@ public class SQLiteManager {
                     result.put(uuid, texture);
                 }
             } catch (SQLException e) {
-                MessageUtil.consoleError("加载皮肤纹理缓存失败！");
-                e.printStackTrace();
+                MessageUtil.consoleError("加载皮肤纹理缓存失败！", e);
             }
+        } finally {
+            dbLock.readLock().unlock();
         }
         return result;
     }
@@ -213,15 +222,18 @@ public class SQLiteManager {
     // ==================== 连接管理 ====================
 
     public void close() {
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             try {
                 if (connection != null && !connection.isClosed()) {
                     connection.close();
                     MessageUtil.consolePrint("&cSQLite 数据库已关闭。");
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                MessageUtil.consoleError("关闭数据库连接时发生错误", e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 }

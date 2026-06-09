@@ -70,8 +70,7 @@ public class SettingsConfigManager {
             try {
                 settingsConfig.save(settingsFile);
             } catch (IOException e) {
-                MessageUtil.consoleError("保存设置配置文件失败");
-                e.printStackTrace();
+                MessageUtil.consoleError("保存设置配置文件失败", e);
             }
         }
     }

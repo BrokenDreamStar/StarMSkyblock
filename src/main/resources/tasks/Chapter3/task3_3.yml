@@ -1,6 +1,6 @@
 name: '菇菇嘎嘎'
 description: '种植并砍伐诡异菌和绯红菌'
-task_type: ITEM
+task_type: BLOCK_BREAK
 request:
   1:
     types:

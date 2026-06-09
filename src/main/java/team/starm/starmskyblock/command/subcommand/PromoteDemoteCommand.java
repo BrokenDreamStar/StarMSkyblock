@@ -8,6 +8,7 @@ import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.permission.manager.ManagementPermissionManager;
 import team.starm.starmskyblock.message.MessageUtil;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -107,5 +108,25 @@ public class PromoteDemoteCommand extends SubCommand {
             MessageUtil.sendMessage(player, "&c操作失败，请稍后重试。");
         }
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(Player player, String[] args) {
+        if (args.length == 2) {
+            var islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+            if (islandOpt.isEmpty()) return List.of();
+            Island island = islandOpt.get();
+            IslandPermissionLevel executorRole = island.getMemberRole(player.getUniqueId());
+            String prefix = args[1].toLowerCase();
+            return island.getMembers().entrySet().stream()
+                    .filter(e -> e.getValue().getPermissionLevel() < executorRole.getPermissionLevel())
+                    .map(e -> {
+                        var name = plugin.getPlayerRepo().getPlayerName(e.getKey());
+                        return name.orElse(e.getKey().toString());
+                    })
+                    .filter(name -> name.toLowerCase().startsWith(prefix))
+                    .toList();
+        }
+        return List.of();
     }
 }

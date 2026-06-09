@@ -3,6 +3,8 @@ package team.starm.starmskyblock.message;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -32,6 +34,7 @@ import team.starm.starmskyblock.message.color.ColorUtils;
  */
 public class MessageUtil {
 
+    private static final Logger LOGGER = LogManager.getLogger("StarMSkyblock");
     private static final Set<UUID> SILENT_PLAYERS = ConcurrentHashMap.newKeySet();
 
     private static final String LOG_PREFIX = "&7[<gradient:#14bcfe:#495aff>&lStarM Skyblock</gradient>&7]&r";
@@ -122,6 +125,18 @@ public class MessageUtil {
     public static void consoleError(@Nullable String text) {
         if (text == null) return;
         Bukkit.getConsoleSender().sendMessage(colorize(LOG_PREFIX + "&c[ERROR] " + text));
+    }
+
+    /**
+     * 向控制台打印彩色错误日志并附带异常堆栈（通过 Log4j 输出到服务器日志文件）
+     */
+    public static void consoleError(@Nullable String text, @Nullable Throwable throwable) {
+        if (text != null) {
+            consoleError(text);
+        }
+        if (throwable != null) {
+            LOGGER.error(stripColor(text != null ? text : "Error"), throwable);
+        }
     }
 
     /**

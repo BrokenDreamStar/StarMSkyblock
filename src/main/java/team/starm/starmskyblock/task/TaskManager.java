@@ -103,11 +103,18 @@ public class TaskManager {
     }
 
     private void scheduleAutoSave() {
-        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-            for (UUID uuid : dirtyPlayers.keySet()) {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::saveAllDirty, 6000L, 6000L);
+        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::evictStaleProgress, 12000L, 12000L);
+    }
+
+    private void evictStaleProgress() {
+        for (UUID uuid : new java.util.HashSet<>(playerProgress.keySet())) {
+            if (Bukkit.getPlayer(uuid) == null) {
                 savePlayerProgress(uuid);
+                playerProgress.remove(uuid);
+                dirtyPlayers.remove(uuid);
             }
-        }, 6000L, 6000L);
+        }
     }
 
     public void loadPlayerProgress(UUID uuid) {
@@ -130,9 +137,30 @@ public class TaskManager {
         dirtyPlayers.remove(uuid);
     }
 
+    public void saveAllDirty() {
+        if (dirtyPlayers.isEmpty()) return;
+        Map<UUID, String> toSave = new HashMap<>();
+        for (UUID uuid : new java.util.HashSet<>(dirtyPlayers.keySet())) {
+            Map<String, TaskProgress> progress = playerProgress.get(uuid);
+            if (progress != null) {
+                toSave.put(uuid, gson.toJson(progress));
+            }
+            dirtyPlayers.remove(uuid);
+        }
+        if (!toSave.isEmpty()) {
+            playerRepo.batchSaveTasks(toSave);
+        }
+    }
+
     public void saveAll() {
-        for (UUID uuid : playerProgress.keySet()) {
-            savePlayerProgress(uuid);
+        Map<UUID, String> toSave = new HashMap<>();
+        for (Map.Entry<UUID, Map<String, TaskProgress>> entry : playerProgress.entrySet()) {
+            UUID uuid = entry.getKey();
+            toSave.put(uuid, gson.toJson(entry.getValue()));
+            dirtyPlayers.remove(uuid);
+        }
+        if (!toSave.isEmpty()) {
+            playerRepo.batchSaveTasks(toSave);
         }
     }
 

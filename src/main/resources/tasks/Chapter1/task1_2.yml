@@ -17,8 +17,5 @@ request:
     amount: 32
 reward:
   money: 1000
-  item:
-    - material: OAK_SAPLING
-      amount: 16
   command:
     - 'server: lce itemcollection give skyblockreward task1_2_1 %player_name%'

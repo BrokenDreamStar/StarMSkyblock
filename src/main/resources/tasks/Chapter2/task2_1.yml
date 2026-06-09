@@ -11,6 +11,6 @@ reward:
   money: 2000
   item:
     - material: POINTED_DRIPSTONE
-      amount: 5
+      amount: 1
     - material: POINTED_BLOCK
-      amount: 5
+      amount: 1

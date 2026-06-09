@@ -438,8 +438,7 @@ public class StarMSkyblock extends JavaPlugin {
                 Files.copy(inputStream, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 MessageUtil.consolePrint("已创建schematics文件: " + fileName);
             } catch (IOException e) {
-                MessageUtil.consoleError("创建schematics文件时发生错误: " + fileName);
-                e.printStackTrace();
+                MessageUtil.consoleError("创建schematics文件时发生错误: " + fileName, e);
             }
         }
     }

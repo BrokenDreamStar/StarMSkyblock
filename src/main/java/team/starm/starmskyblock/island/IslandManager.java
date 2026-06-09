@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 岛屿管理器 —— 核心业务层，负责岛屿的 CRUD、成员管理、区块查询和权限持久化。
@@ -52,8 +53,10 @@ public class IslandManager {
     private final Map<UUID, Set<Integer>> coopToIslandsIndex = new ConcurrentHashMap<>();
     /** 删除次数缓存（玩家 UUID → 已删除次数），避免频繁查库 */
     private final Map<UUID, Integer> deleteCountCache = new ConcurrentHashMap<>();
+    /** 岛屿名称索引（名称小写 → 岛屿 ID 集合），实现 O(1) 名称查询 */
+    private final Map<String, Set<Integer>> islandNameIndex = new ConcurrentHashMap<>();
     /** 下一个可用岛屿 ID（自增） */
-    private int nextIslandId = 0;
+    private final AtomicInteger nextIslandId = new AtomicInteger(0);
 
     public IslandManager(ConfigManager configManager, PermissionConfigManager permissionConfigManager,
             SettingsConfigManager settingsConfigManager, GridManager gridManager,
@@ -117,13 +120,14 @@ public class IslandManager {
             islandsByOwner.put(row.ownerUuid(), island);
             memberToIslandIndex.put(row.ownerUuid(), id);
             addToGridIndex(island);
+            addToNameIndex(island);
 
             if (id > maxId) {
                 maxId = id;
             }
         }
 
-        nextIslandId = maxId + 1;
+        nextIslandId.set(maxId + 1);
 
         for (IslandRepository.MemberRow row : islandRepo.loadAllMembers()) {
             Island island = islandsById.get(row.islandId());
@@ -153,7 +157,7 @@ public class IslandManager {
             throw new IllegalStateException("该玩家已经拥有一个岛屿！");
         }
 
-        int islandId = nextIslandId++;
+        int islandId = nextIslandId.getAndIncrement();
         int defaultRadius = configManager.getIslandRadius();
 
         Island island = new Island(islandId, ownerId, defaultRadius, schematicId, name);
@@ -186,6 +190,7 @@ public class IslandManager {
         islandsByOwner.put(ownerId, island);
         memberToIslandIndex.put(ownerId, islandId);
         addToGridIndex(island);
+        addToNameIndex(island);
 
         String playerName = (owner != null) ? owner.getName() : ownerId.toString();
         MessageUtil.consolePrint("玩家" + playerName + "已创建岛屿 ID:" + islandId + " 中心区块坐标: " + location);
@@ -247,19 +252,19 @@ public class IslandManager {
 
     /** 根据岛屿名称查询岛屿（名称不区分大小写，返回第一个匹配项） */
     public Optional<Island> getIslandByName(String islandName) {
-        for (Island island : islandsById.values()) {
-            if (island.getName() != null && island.getName().equalsIgnoreCase(islandName)) {
-                return Optional.of(island);
-            }
-        }
-        return Optional.empty();
+        Set<Integer> ids = islandNameIndex.get(islandName.toLowerCase());
+        if (ids == null || ids.isEmpty()) return Optional.empty();
+        return Optional.ofNullable(islandsById.get(ids.iterator().next()));
     }
 
     /** 根据岛屿名称查询所有匹配的岛屿（可能存在同名岛屿） */
     public java.util.List<Island> getIslandsByName(String islandName) {
-        java.util.List<Island> result = new java.util.ArrayList<>();
-        for (Island island : islandsById.values()) {
-            if (island.getName() != null && island.getName().equalsIgnoreCase(islandName)) {
+        Set<Integer> ids = islandNameIndex.get(islandName.toLowerCase());
+        if (ids == null || ids.isEmpty()) return java.util.Collections.emptyList();
+        java.util.List<Island> result = new java.util.ArrayList<>(ids.size());
+        for (Integer id : ids) {
+            Island island = islandsById.get(id);
+            if (island != null) {
                 result.add(island);
             }
         }
@@ -322,8 +327,15 @@ public class IslandManager {
     public boolean updateIslandName(int id, String newName) {
         Island island = islandsById.get(id);
         if (island != null) {
+            String oldName = island.getName();
             islandRepo.updateName(id, newName);
             island.setName(newName);
+            if (oldName != null && !oldName.isEmpty()) {
+                removeFromNameIndex(oldName, id);
+            }
+            if (newName != null && !newName.isEmpty()) {
+                addToNameIndex(island);
+            }
             return true;
         }
         return false;
@@ -543,28 +555,64 @@ public class IslandManager {
 
     /** 将岛屿加入网格空间索引（用于 O(1) 区块 → 岛屿反向查询） */
     private void addToGridIndex(Island island) {
-        int gx = island.getCenterChunkX() / gridManager.getGridCellSize();
-        int gz = island.getCenterChunkZ() / gridManager.getGridCellSize();
+        int gx = Math.floorDiv(island.getCenterChunkX(), gridManager.getGridCellSize());
+        int gz = Math.floorDiv(island.getCenterChunkZ(), gridManager.getGridCellSize());
         long key = (((long) gx) << 32) | (gz & 0xffffffffL);
         islandGridIndex.put(key, island.getId());
     }
 
     /** 从网格空间索引中移除岛屿 */
     private void removeFromGridIndex(Island island) {
-        int gx = island.getCenterChunkX() / gridManager.getGridCellSize();
-        int gz = island.getCenterChunkZ() / gridManager.getGridCellSize();
+        int gx = Math.floorDiv(island.getCenterChunkX(), gridManager.getGridCellSize());
+        int gz = Math.floorDiv(island.getCenterChunkZ(), gridManager.getGridCellSize());
         long key = (((long) gx) << 32) | (gz & 0xffffffffL);
         islandGridIndex.remove(key);
     }
 
+    /** 将岛屿加入名称索引 */
+    private void addToNameIndex(Island island) {
+        String name = island.getName();
+        if (name != null && !name.isEmpty()) {
+            islandNameIndex.computeIfAbsent(name.toLowerCase(),
+                    k -> ConcurrentHashMap.newKeySet()).add(island.getId());
+        }
+    }
+
+    /** 从名称索引中移除指定岛屿 */
+    private void removeFromNameIndex(Island island) {
+        String name = island.getName();
+        if (name != null && !name.isEmpty()) {
+            Set<Integer> ids = islandNameIndex.get(name.toLowerCase());
+            if (ids != null) {
+                ids.remove(island.getId());
+                if (ids.isEmpty()) {
+                    islandNameIndex.remove(name.toLowerCase());
+                }
+            }
+        }
+    }
+
+    /** 从名称索引中移除指定名称的特定 ID */
+    private void removeFromNameIndex(String name, int islandId) {
+        if (name != null && !name.isEmpty()) {
+            Set<Integer> ids = islandNameIndex.get(name.toLowerCase());
+            if (ids != null) {
+                ids.remove(islandId);
+                if (ids.isEmpty()) {
+                    islandNameIndex.remove(name.toLowerCase());
+                }
+            }
+        }
+    }
+
     /**
      * 根据区块坐标 O(1) 查找所属岛屿（在当前半径内）。
-     * 使用除法和四舍五入将区块坐标映射到网格单元，再通过 gridIndex 定位。
+     * 使用 floorDiv 将区块坐标映射到网格单元，与 addToGridIndex 一致的空间索引计算。
      */
     public Optional<Island> getIslandAt(int chunkX, int chunkZ) {
         int cellSize = gridManager.getGridCellSize();
-        int gx = (int) Math.round((double) chunkX / cellSize);
-        int gz = (int) Math.round((double) chunkZ / cellSize);
+        int gx = Math.floorDiv(chunkX, cellSize);
+        int gz = Math.floorDiv(chunkZ, cellSize);
         long key = (((long) gx) << 32) | (gz & 0xffffffffL);
         Integer id = islandGridIndex.get(key);
         if (id != null) {
@@ -582,8 +630,8 @@ public class IslandManager {
      */
     public Optional<Island> getIslandAtMaxRange(int chunkX, int chunkZ) {
         int cellSize = gridManager.getGridCellSize();
-        int gx = (int) Math.round((double) chunkX / cellSize);
-        int gz = (int) Math.round((double) chunkZ / cellSize);
+        int gx = Math.floorDiv(chunkX, cellSize);
+        int gz = Math.floorDiv(chunkZ, cellSize);
         long key = (((long) gx) << 32) | (gz & 0xffffffffL);
         Integer id = islandGridIndex.get(key);
         if (id != null) {
@@ -613,6 +661,8 @@ public class IslandManager {
                 }
             }
         }
+        deleteCountCache.remove(island.getOwnerId());
+        removeFromNameIndex(island);
     }
 
     /** 从数据库删除岛屿（含成员和合作者级联删除），保留内存索引 */
@@ -629,6 +679,23 @@ public class IslandManager {
         islandsById.remove(island.getId());
         islandsByOwner.remove(island.getOwnerId());
         removeFromGridIndex(island);
+
+        for (UUID memberUuid : island.getMembers().keySet()) {
+            memberToIslandIndex.remove(memberUuid);
+        }
+        memberToIslandIndex.remove(island.getOwnerId());
+
+        for (UUID coopUuid : island.getCoops()) {
+            Set<Integer> coopIslands = coopToIslandsIndex.get(coopUuid);
+            if (coopIslands != null) {
+                coopIslands.remove(island.getId());
+                if (coopIslands.isEmpty()) {
+                    coopToIslandsIndex.remove(coopUuid);
+                }
+            }
+        }
+        deleteCountCache.remove(island.getOwnerId());
+        removeFromNameIndex(island);
 
         return true;
     }

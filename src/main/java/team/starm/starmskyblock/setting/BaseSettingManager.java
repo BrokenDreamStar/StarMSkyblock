@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.event.Listener;
 
+import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
@@ -44,11 +45,7 @@ public abstract class BaseSettingManager implements Listener {
      * @return true=设置已启用/不适用，false=设置被禁用（调用方应取消事件）
      */
     public boolean checkSetting(Location location, IslandSetting setting) {
-        // 只处理空岛世界的区块，非空岛世界（如主城、资源世界）一律放行
-        String worldName = location.getWorld().getName();
-        if (!worldName.equals(configManager.getWorldNameNormal())
-                && !worldName.equals(configManager.getWorldNameNether())
-                && !worldName.equals(configManager.getWorldNameEnd())) {
+        if (!StarMSkyblock.getInstance().getWorldManager().isSkyblockWorldName(location.getWorld().getName())) {
             return true;
         }
 
@@ -73,10 +70,7 @@ public abstract class BaseSettingManager implements Listener {
         World world = location.getWorld();
         if (world == null) return null;
 
-        String worldName = world.getName();
-        if (!worldName.equals(configManager.getWorldNameNormal())
-                && !worldName.equals(configManager.getWorldNameNether())
-                && !worldName.equals(configManager.getWorldNameEnd())) {
+        if (!StarMSkyblock.getInstance().getWorldManager().isSkyblockWorldName(world.getName())) {
             return null;
         }
 

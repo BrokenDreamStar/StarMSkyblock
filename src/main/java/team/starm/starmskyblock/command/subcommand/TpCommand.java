@@ -10,6 +10,7 @@ import team.starm.starmskyblock.setting.IslandSetting;
 import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class TpCommand extends SubCommand {
@@ -131,5 +132,30 @@ public class TpCommand extends SubCommand {
             MessageUtil.sendMessage(player, "  &e#" + island.getId() + " &7- &f" + ownerName);
         }
         MessageUtil.sendMessage(player, "&7使用 &e/is tp <名称> <ID> &7指定具体岛屿");
+    }
+
+    @Override
+    public List<String> onTabComplete(Player player, String[] args) {
+        if (args.length == 2) {
+            String prefix = args[1].toLowerCase();
+            return plugin.getIslandManager().getAllIslands().stream()
+                    .map(Island::getName)
+                    .filter(Objects::nonNull)
+                    .filter(name -> !name.isEmpty())
+                    .distinct()
+                    .filter(name -> name.toLowerCase().startsWith(prefix))
+                    .toList();
+        }
+        if (args.length == 3) {
+            var matches = plugin.getIslandManager().getIslandsByName(args[1]);
+            if (matches.size() > 1) {
+                String prefix = args[2];
+                return matches.stream()
+                        .map(i -> String.valueOf(i.getId()))
+                        .filter(id -> id.startsWith(prefix))
+                        .toList();
+            }
+        }
+        return List.of();
     }
 }

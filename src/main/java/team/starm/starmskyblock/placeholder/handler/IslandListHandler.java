@@ -7,6 +7,7 @@ import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
 
+import team.starm.starmskyblock.message.MessageUtil;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -95,7 +96,7 @@ public class IslandListHandler {
             return handleListItem(player, params);
 
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            MessageUtil.consoleError("处理岛屿列表占位符时发生错误", throwable);
         }
 
         return null;
@@ -194,7 +195,7 @@ public class IslandListHandler {
             };
 
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            MessageUtil.consoleError("处理岛屿列表项占位符时发生错误", throwable);
         }
 
         return null;

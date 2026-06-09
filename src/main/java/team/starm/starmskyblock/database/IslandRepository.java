@@ -13,12 +13,12 @@ import java.util.UUID;
 
 /**
  * 岛屿数据访问层 —— 封装所有岛屿相关的数据库操作。
- * 每个方法内部自行管理 {@code synchronized (dbLock)} 同步。
+ * 每个方法内部自行管理 {@code ReentrantReadWriteLock} 同步。
  */
 public class IslandRepository {
 
     private final SQLiteManager sqliteManager;
-    private final Object dbLock;
+    private final java.util.concurrent.locks.ReentrantReadWriteLock dbLock;
 
     public IslandRepository(SQLiteManager sqliteManager) {
         this.sqliteManager = sqliteManager;
@@ -41,7 +41,8 @@ public class IslandRepository {
     public List<IslandRow> loadAllIslands() {
         String sql = "SELECT id, owner_uuid, name, level, radius, center_x, center_z, permissions, settings, home_data, created_at, nether_unlocked, generator_level, generator_disabled FROM islands";
         List<IslandRow> rows = new ArrayList<>();
-        synchronized (dbLock) {
+        dbLock.readLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(sql)) {
@@ -64,9 +65,10 @@ public class IslandRepository {
                     ));
                 }
             } catch (SQLException e) {
-                MessageUtil.consoleError("加载岛屿数据失败！");
-                e.printStackTrace();
+                MessageUtil.consoleError("加载岛屿数据失败！", e);
             }
+        } finally {
+            dbLock.readLock().unlock();
         }
         return rows;
     }
@@ -74,7 +76,8 @@ public class IslandRepository {
     public List<MemberRow> loadAllMembers() {
         String sql = "SELECT island_id, player_uuid, role FROM island_members";
         List<MemberRow> rows = new ArrayList<>();
-        synchronized (dbLock) {
+        dbLock.readLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(sql)) {
@@ -86,9 +89,10 @@ public class IslandRepository {
                     ));
                 }
             } catch (SQLException e) {
-                MessageUtil.consoleError("加载岛屿成员数据失败！");
-                e.printStackTrace();
+                MessageUtil.consoleError("加载岛屿成员数据失败！", e);
             }
+        } finally {
+            dbLock.readLock().unlock();
         }
         return rows;
     }
@@ -96,7 +100,8 @@ public class IslandRepository {
     public List<CoopRow> loadAllCoops() {
         String sql = "SELECT island_id, player_uuid FROM island_coops";
         List<CoopRow> rows = new ArrayList<>();
-        synchronized (dbLock) {
+        dbLock.readLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(sql)) {
@@ -107,9 +112,10 @@ public class IslandRepository {
                     ));
                 }
             } catch (SQLException e) {
-                MessageUtil.consoleError("加载岛屿合作者数据失败！");
-                e.printStackTrace();
+                MessageUtil.consoleError("加载岛屿合作者数据失败！", e);
             }
+        } finally {
+            dbLock.readLock().unlock();
         }
         return rows;
     }
@@ -125,7 +131,8 @@ public class IslandRepository {
                              int centerX, int centerZ, String permissionsJson, String settingsJson,
                              int generatorLevel) {
         String sql = "INSERT INTO islands (id, name, owner_uuid, level, radius, center_x, center_z, permissions, settings, generator_level, generator_disabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, id);
@@ -141,144 +148,163 @@ public class IslandRepository {
                 pstmt.setString(11, "{}");
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("保存新岛屿到数据库失败！");
-                e.printStackTrace();
+                MessageUtil.consoleError("保存新岛屿到数据库失败！", e);
                 throw new RuntimeException("数据库错误，无法创建岛屿");
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
     public void updateRadius(int id, int newRadius) {
         String sql = "UPDATE islands SET radius = ? WHERE id = ?";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, newRadius);
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("更新岛屿半径到数据库失败！ID: " + id);
-                e.printStackTrace();
+                MessageUtil.consoleError("更新岛屿半径到数据库失败！ID: " + id, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
     public void updateNetherUnlocked(int id, boolean unlocked) {
         String sql = "UPDATE islands SET nether_unlocked = ? WHERE id = ?";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, unlocked ? 1 : 0);
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("更新岛屿下界解锁状态到数据库失败！ID: " + id);
-                e.printStackTrace();
+                MessageUtil.consoleError("更新岛屿下界解锁状态到数据库失败！ID: " + id, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
     public void updateName(int id, String newName) {
         String sql = "UPDATE islands SET name = ? WHERE id = ?";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, newName != null ? newName : "");
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("更新岛屿名称到数据库失败！ID: " + id);
-                e.printStackTrace();
+                MessageUtil.consoleError("更新岛屿名称到数据库失败！ID: " + id, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
     public void updateGeneratorLevel(int id, int generatorLevel) {
         String sql = "UPDATE islands SET generator_level = ? WHERE id = ?";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, generatorLevel);
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("更新岛屿刷石机等级到数据库失败！ID: " + id);
-                e.printStackTrace();
+                MessageUtil.consoleError("更新岛屿刷石机等级到数据库失败！ID: " + id, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
     public void updateGeneratorDisabled(int id, String json) {
         String sql = "UPDATE islands SET generator_disabled = ? WHERE id = ?";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, json);
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("更新岛屿刷石机禁用矿石到数据库失败！ID: " + id);
-                e.printStackTrace();
+                MessageUtil.consoleError("更新岛屿刷石机禁用矿石到数据库失败！ID: " + id, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
     public void updateHomeData(int id, String json) {
         String sql = "UPDATE islands SET home_data = ? WHERE id = ?";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, json);
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("更新岛屿自定义传送点到数据库失败！ID: " + id);
-                e.printStackTrace();
+                MessageUtil.consoleError("更新岛屿自定义传送点到数据库失败！ID: " + id, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
     public void clearHomeData(int id) {
         String sql = "UPDATE islands SET home_data = '{}' WHERE id = ?";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, id);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("清除岛屿自定义传送点到数据库失败！ID: " + id);
-                e.printStackTrace();
+                MessageUtil.consoleError("清除岛屿自定义传送点到数据库失败！ID: " + id, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
     public void updateSettings(int id, String json) {
         String sql = "UPDATE islands SET settings = ? WHERE id = ?";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, json);
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("更新岛屿设置到数据库失败！ID: " + id);
-                e.printStackTrace();
+                MessageUtil.consoleError("更新岛屿设置到数据库失败！ID: " + id, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
     public void savePermissions(int id, String json) {
         String sql = "UPDATE islands SET permissions = ? WHERE id = ?";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, json);
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("保存权限数据失败！岛屿ID: " + id);
-                e.printStackTrace();
+                MessageUtil.consoleError("保存权限数据失败！岛屿ID: " + id, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
@@ -286,7 +312,8 @@ public class IslandRepository {
 
     public void addMember(int islandId, UUID memberUuid, String role) {
         String sql = "INSERT INTO island_members (island_id, player_uuid, role) VALUES (?, ?, ?)";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, islandId);
@@ -294,9 +321,10 @@ public class IslandRepository {
                 pstmt.setString(3, role);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("添加成员到岛屿失败！岛屿ID: " + islandId + ", 成员UUID: " + memberUuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("添加成员到岛屿失败！岛屿ID: " + islandId + ", 成员UUID: " + memberUuid, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
@@ -310,52 +338,59 @@ public class IslandRepository {
 
     public void deleteCoop(int islandId, UUID playerUuid) {
         String sql = "DELETE FROM island_coops WHERE island_id = ? AND player_uuid = ?";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, islandId);
                 pstmt.setString(2, playerUuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("删除合作者失败！岛屿ID: " + islandId + ", 玩家UUID: " + playerUuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("删除合作者失败！岛屿ID: " + islandId + ", 玩家UUID: " + playerUuid, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
     public void addCoop(int islandId, UUID playerUuid) {
         String sql = "INSERT INTO island_coops (island_id, player_uuid) VALUES (?, ?)";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, islandId);
                 pstmt.setString(2, playerUuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("添加合作者到岛屿失败！岛屿ID: " + islandId + ", 玩家UUID: " + playerUuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("添加合作者到岛屿失败！岛屿ID: " + islandId + ", 玩家UUID: " + playerUuid, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
     public void removeMember(int islandId, UUID memberUuid) {
         String sql = "DELETE FROM island_members WHERE island_id = ? AND player_uuid = ?";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, islandId);
                 pstmt.setString(2, memberUuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("从岛屿移除成员失败！岛屿ID: " + islandId + ", 成员UUID: " + memberUuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("从岛屿移除成员失败！岛屿ID: " + islandId + ", 成员UUID: " + memberUuid, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
     public void updateMemberRole(int islandId, UUID memberUuid, String newRole) {
         String sql = "UPDATE island_members SET role = ? WHERE island_id = ? AND player_uuid = ?";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, newRole);
@@ -363,9 +398,10 @@ public class IslandRepository {
                 pstmt.setString(3, memberUuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("更新成员权限组失败！岛屿ID: " + islandId + ", 成员UUID: " + memberUuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("更新成员权限组失败！岛屿ID: " + islandId + ", 成员UUID: " + memberUuid, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 
@@ -390,8 +426,7 @@ public class IslandRepository {
                 return null;
             });
         } catch (SQLException e) {
-            MessageUtil.consoleError("从数据库删除岛屿失败！ID: " + islandId);
-            e.printStackTrace();
+            MessageUtil.consoleError("从数据库删除岛屿失败！ID: " + islandId, e);
         }
     }
 
@@ -420,8 +455,7 @@ public class IslandRepository {
                 return null;
             });
         } catch (SQLException e) {
-            MessageUtil.consoleError("合作者转成员失败！岛屿ID: " + islandId + ", 玩家UUID: " + playerUuid);
-            e.printStackTrace();
+            MessageUtil.consoleError("合作者转成员失败！岛屿ID: " + islandId + ", 玩家UUID: " + playerUuid, e);
         }
     }
 
@@ -429,7 +463,8 @@ public class IslandRepository {
 
     public int getDeleteCount(UUID playerUuid) {
         String sql = "SELECT delete_count FROM player_stats WHERE player_uuid = ?";
-        synchronized (dbLock) {
+        dbLock.readLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, playerUuid.toString());
@@ -439,9 +474,10 @@ public class IslandRepository {
                     }
                 }
             } catch (SQLException e) {
-                MessageUtil.consoleError("获取玩家删除岛屿次数失败！UUID: " + playerUuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("获取玩家删除岛屿次数失败！UUID: " + playerUuid, e);
             }
+        } finally {
+            dbLock.readLock().unlock();
         }
         return 0;
     }
@@ -449,15 +485,17 @@ public class IslandRepository {
     public void incrementDeleteCount(UUID playerUuid) {
         String sql = "INSERT INTO player_stats (player_uuid, delete_count) VALUES (?, 1) " +
                 "ON CONFLICT(player_uuid) DO UPDATE SET delete_count = delete_count + 1";
-        synchronized (dbLock) {
+        dbLock.writeLock().lock();
+        try {
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, playerUuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                MessageUtil.consoleError("增加玩家删除岛屿次数失败！UUID: " + playerUuid);
-                e.printStackTrace();
+                MessageUtil.consoleError("增加玩家删除岛屿次数失败！UUID: " + playerUuid, e);
             }
+        } finally {
+            dbLock.writeLock().unlock();
         }
     }
 

@@ -9,6 +9,7 @@ import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.placeholder.handler.IslandListHandler;
 import team.starm.starmskyblock.placeholder.handler.PermissionHandler;
 import team.starm.starmskyblock.placeholder.handler.SettingsHandler;
+import team.starm.starmskyblock.message.MessageUtil;
 import team.starm.starmskyblock.task.placeholder.TaskPlaceholderHandler;
 
 import java.util.LinkedHashMap;
@@ -388,7 +389,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             }
 
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            MessageUtil.consoleError("处理 PlaceholderAPI 请求时发生错误", throwable);
         }
 
         return null;

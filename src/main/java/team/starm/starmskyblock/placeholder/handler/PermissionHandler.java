@@ -7,6 +7,7 @@ import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
 
+import team.starm.starmskyblock.message.MessageUtil;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -117,7 +118,7 @@ public class PermissionHandler {
             }
 
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            MessageUtil.consoleError("处理权限占位符时发生错误", throwable);
         }
 
         return null;

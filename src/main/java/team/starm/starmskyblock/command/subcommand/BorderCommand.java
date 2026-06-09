@@ -3,6 +3,8 @@ package team.starm.starmskyblock.command.subcommand;
 import org.bukkit.entity.Player;
 import team.starm.starmskyblock.message.MessageUtil;
 
+import java.util.List;
+
 public class BorderCommand extends SubCommand {
 
     public BorderCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
@@ -44,5 +46,16 @@ public class BorderCommand extends SubCommand {
 
         borderListener.updatePlayerBorder(player);
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(Player player, String[] args) {
+        if (args.length == 2) {
+            String prefix = args[1].toLowerCase();
+            return List.of("true", "false", "toggle").stream()
+                    .filter(v -> v.startsWith(prefix))
+                    .toList();
+        }
+        return List.of();
     }
 }

@@ -1,15 +1,15 @@
 name: '屠夫'
 description: '繁殖并击杀一些动物'
-task_type: ITEM
+task_type: ENTITY_KILL
 request:
   1:
     types:
-      - BEEF
-    amount: 16
+      - SLEEP
+    amount: 8
   2:
     types:
-      - MUTTON
-    amount: 16
+      - COW
+    amount: 8
 reward:
   item:
     - material: PIG_SPAWN_EGG

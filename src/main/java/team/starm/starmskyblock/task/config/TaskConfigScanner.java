@@ -91,8 +91,7 @@ public class TaskConfigScanner {
                 Files.copy(is, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 created++;
             } catch (IOException e) {
-                MessageUtil.consoleWarn("创建任务文件失败: tasks/" + path);
-                e.printStackTrace();
+                MessageUtil.consoleError("创建任务文件失败: tasks/" + path, e);
             }
         }
         if (created > 0) {

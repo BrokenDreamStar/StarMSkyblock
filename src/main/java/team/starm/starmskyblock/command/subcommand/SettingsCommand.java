@@ -7,6 +7,8 @@ import team.starm.starmskyblock.permission.manager.ManagementPermissionManager;
 import team.starm.starmskyblock.setting.IslandSetting;
 import team.starm.starmskyblock.message.MessageUtil;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 public class SettingsCommand extends SubCommand {
@@ -89,5 +91,23 @@ public class SettingsCommand extends SubCommand {
         }
         MessageUtil.sendMessage(player, "&7使用 &e/is settings <设置项> <true|false> &7来修改设置。");
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(Player player, String[] args) {
+        if (args.length == 2) {
+            String prefix = args[1].toLowerCase();
+            return Arrays.stream(IslandSetting.values())
+                    .map(IslandSetting::getConfigKey)
+                    .filter(key -> key.startsWith(prefix))
+                    .toList();
+        }
+        if (args.length == 3) {
+            String prefix = args[2].toLowerCase();
+            return List.of("true", "false").stream()
+                    .filter(v -> v.startsWith(prefix))
+                    .toList();
+        }
+        return List.of();
     }
 }

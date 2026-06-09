@@ -6,6 +6,7 @@ import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.setting.IslandSetting;
 
+import team.starm.starmskyblock.message.MessageUtil;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,7 +36,7 @@ public class SettingsHandler {
             );
 
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            MessageUtil.consoleError("处理设置占位符时发生错误", throwable);
         }
 
         return null;

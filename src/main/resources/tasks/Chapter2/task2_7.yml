@@ -5,7 +5,7 @@ request:
   1:
     types:
       - LAVA_BUCKET
-    amount: 8
+    amount: 10
 reward:
   money: 5000
   item:

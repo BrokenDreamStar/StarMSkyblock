@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.md_5.bungee.api.ChatColor;
+import team.starm.starmskyblock.message.MessageUtil;
 
 import org.bukkit.Bukkit;
 
@@ -174,7 +175,7 @@ public class ColorUtils
             }
             return content;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            MessageUtil.consoleError("颜色文本解析时发生错误", ex);
             return text;
         }
     }

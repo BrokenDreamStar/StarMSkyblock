@@ -127,8 +127,7 @@ public class IslandDeleteTask extends BukkitRunnable {
                             }
                         }
                     } catch (Exception e) {
-                        MessageUtil.consoleError("在主线程中清理实体时发生错误！");
-                        e.printStackTrace();
+                        MessageUtil.consoleError("在主线程中清理实体时发生错误！", e);
                         Player player = Bukkit.getPlayer(playerUuid);
                         if (player != null && player.isOnline()) {
                             player.sendMessage("§c删除岛屿时发生意外错误，请联系管理员！");
@@ -138,8 +137,7 @@ public class IslandDeleteTask extends BukkitRunnable {
             }.runTask(plugin);
 
         } catch (Exception e) {
-            MessageUtil.consoleError("异步删除岛屿时发生错误！");
-            e.printStackTrace();
+            MessageUtil.consoleError("异步删除岛屿时发生错误！", e);
             new BukkitRunnable() {
                 @Override
                 public void run() {

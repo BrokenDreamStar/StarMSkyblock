@@ -1,20 +1,13 @@
 package team.starm.starmskyblock.command;
 
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.command.subcommand.*;
 import team.starm.starmskyblock.task.command.TaskCommand;
-import team.starm.starmskyblock.island.Island;
-import team.starm.starmskyblock.island.IslandManager;
-import team.starm.starmskyblock.permission.IslandPermissionLevel;
-import team.starm.starmskyblock.setting.IslandSetting;
-import team.starm.starmskyblock.util.SkyblockBiome;
 import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.*;
@@ -162,161 +155,20 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
                     .collect(Collectors.toList());
         }
 
-        if (args.length == 2 && args[0].equalsIgnoreCase("list")) {
-            return filterPrefix(List.of("next", "prev", "home"), args[1]);
+        String sub = args[0].toLowerCase();
+        SubCommand subCommand = subCommands.get(sub);
+        if (subCommand != null) {
+            return subCommand.onTabComplete(player, args);
         }
 
-        if (args.length == 2 && args[0].equalsIgnoreCase("border")) {
-            return filterPrefix(List.of("true", "false", "toggle"), args[1]);
-        }
-
-        if (args.length == 2 && args[0].equalsIgnoreCase("settings")) {
-            return filterPrefix(
-                    Arrays.stream(IslandSetting.values()).map(IslandSetting::getConfigKey).toList(),
-                    args[1]);
-        }
-
-        if (args.length == 3 && args[0].equalsIgnoreCase("settings")) {
-            return filterPrefix(List.of("true", "false"), args[2]);
-        }
-
-        if (args.length == 2 && args[0].equalsIgnoreCase("setchunkbiome")) {
-            SkyblockBiome.Dimension dim = player.getWorld().getEnvironment() == World.Environment.NETHER
-                    ? SkyblockBiome.Dimension.NETHER
-                    : SkyblockBiome.Dimension.OVERWORLD;
-            return filterPrefix(SkyblockBiome.displayNamesFor(dim), args[1]);
-        }
-
-        if (args.length == 2 && args[0].equalsIgnoreCase("setbiome")) {
-            SkyblockBiome.Dimension dim = player.getWorld().getEnvironment() == World.Environment.NETHER
-                    ? SkyblockBiome.Dimension.NETHER
-                    : SkyblockBiome.Dimension.OVERWORLD;
-            return filterPrefix(SkyblockBiome.displayNamesFor(dim), args[1]);
-        }
-
-        if (args.length == 2 && args[0].equalsIgnoreCase("coop")) {
-            return filterPrefix(List.of("add", "remove"), args[1]);
-        }
-
-        if (args.length == 3 && args[0].equalsIgnoreCase("coop") && args[1].equalsIgnoreCase("add")) {
-            var islandManager = plugin.getIslandManager();
-            var optionalIsland = islandManager.getIsland(player.getUniqueId());
-            if (optionalIsland.isPresent()) {
-                Island island = optionalIsland.get();
-                return Bukkit.getOnlinePlayers().stream()
-                        .map(Player::getName)
-                        .filter(name -> {
-                            Player p = Bukkit.getPlayer(name);
-                            if (p == null || p.getUniqueId().equals(player.getUniqueId())) return false;
-                            if (island.isCoop(p.getUniqueId())) return false;
-                            return islandManager.getIslandByPlayer(p.getUniqueId()).isPresent();
-                        })
-                        .filter(name -> name.toLowerCase().startsWith(args[2].toLowerCase()))
-                        .collect(Collectors.toList());
+        if (sub.equals("permission")) {
+            List<String> permissionCompletions = permissionCommand.onTabComplete(args);
+            if (permissionCompletions != null) {
+                return permissionCompletions;
             }
-        }
-
-        if (args.length == 3 && args[0].equalsIgnoreCase("coop") && args[1].equalsIgnoreCase("remove")) {
-            var optionalIsland = plugin.getIslandManager().getIsland(player.getUniqueId());
-            if (optionalIsland.isPresent()) {
-                return optionalIsland.get().getCoops().stream()
-                        .map(Bukkit::getPlayer)
-                        .filter(Objects::nonNull)
-                        .map(Player::getName)
-                        .filter(name -> name.toLowerCase().startsWith(args[2].toLowerCase()))
-                        .collect(Collectors.toList());
-            }
-        }
-
-        if (args.length == 2 && args[0].equalsIgnoreCase("team")) {
-            return filterPrefix(List.of("list", "invite", "remove", "accept", "decline"), args[1]);
-        }
-
-        if (args.length == 3 && args[0].equalsIgnoreCase("team") && args[1].equalsIgnoreCase("invite")) {
-            var optionalIsland = plugin.getIslandManager().getIsland(player.getUniqueId());
-            if (optionalIsland.isPresent()) {
-                Island island = optionalIsland.get();
-                return filterPrefix(Bukkit.getOnlinePlayers().stream()
-                        .map(Player::getName)
-                        .filter(name -> {
-                            Player p = Bukkit.getPlayer(name);
-                            if (p == null || p.getUniqueId().equals(player.getUniqueId())) return false;
-                            return island.getMemberRole(p.getUniqueId()) == IslandPermissionLevel.VISITOR;
-                        })
-                        .toList(), args[2]);
-            }
-        }
-
-        if (args[0].equalsIgnoreCase("generator")) {
-            return plugin.getGeneratorConfigManager().isEnabled()
-                    ? subCommands.get("generator").onTabComplete(player, args)
-                    : List.of();
-        }
-
-        if (args.length == 2 && args[0].equalsIgnoreCase("tp")) {
-            return filterPrefix(plugin.getIslandManager().getAllIslands().stream()
-                    .map(Island::getName)
-                    .filter(name -> name != null && !name.isEmpty())
-                    .distinct()
-                    .toList(), args[1]);
-        }
-
-        if (args.length == 3 && args[0].equalsIgnoreCase("tp")) {
-            String name = args[1];
-            var matches = plugin.getIslandManager().getIslandsByName(name);
-            if (matches.size() > 1) {
-                return filterPrefix(matches.stream()
-                        .map(i -> String.valueOf(i.getId()))
-                        .toList(), args[2]);
-            }
-        }
-
-        if (args.length == 2) {
-            String cmd = args[0].toLowerCase();
-            if (cmd.equals("promote") || cmd.equals("demote")) {
-                var optionalIsland = plugin.getIslandManager().getIsland(player.getUniqueId());
-                if (optionalIsland.isPresent()) {
-                    Island island = optionalIsland.get();
-                    IslandPermissionLevel executorRole = island.getMemberRole(player.getUniqueId());
-                    return filterPrefix(island.getMembers().entrySet().stream()
-                            .filter(e -> e.getValue().getPermissionLevel() < executorRole.getPermissionLevel())
-                            .map(e -> getPlayerName(e.getKey()))
-                            .filter(Objects::nonNull)
-                            .toList(), args[1]);
-                }
-            }
-        }
-
-        if (args.length == 3 && args[0].equalsIgnoreCase("team") && args[1].equalsIgnoreCase("remove")) {
-            var optionalIsland = plugin.getIslandManager().getIsland(player.getUniqueId());
-            if (optionalIsland.isPresent()) {
-                Island island = optionalIsland.get();
-                IslandPermissionLevel executorRole = island.getMemberRole(player.getUniqueId());
-                return filterPrefix(island.getMembers().entrySet().stream()
-                        .filter(e -> e.getValue().getPermissionLevel() < executorRole.getPermissionLevel())
-                        .map(e -> getPlayerName(e.getKey()))
-                        .filter(Objects::nonNull)
-                        .toList(), args[2]);
-            }
-        }
-
-        List<String> permissionCompletions = permissionCommand.onTabComplete(args);
-        if (permissionCompletions != null) {
-            return permissionCompletions;
         }
 
         return new ArrayList<>();
     }
 
-    private String getPlayerName(java.util.UUID uuid) {
-        var name = plugin.getPlayerRepo().getPlayerName(uuid);
-        return name.orElse(uuid.toString());
-    }
-
-    private static List<String> filterPrefix(List<String> options, String prefix) {
-        String lower = prefix.toLowerCase();
-        return options.stream()
-                .filter(s -> s != null && s.toLowerCase().startsWith(lower))
-                .collect(Collectors.toList());
-    }
 }

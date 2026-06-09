@@ -7,6 +7,8 @@ import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.manager.ManagementPermissionManager;
 import team.starm.starmskyblock.message.MessageUtil;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -140,5 +142,43 @@ public class CoopCommand extends SubCommand {
             MessageUtil.sendMessage(player, "&c操作失败，请稍后重试。");
         }
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(Player player, String[] args) {
+        if (args.length == 2) {
+            String prefix = args[1].toLowerCase();
+            return List.of("add", "remove").stream()
+                    .filter(v -> v.startsWith(prefix))
+                    .toList();
+        }
+        if (args.length == 3) {
+            String sub = args[1].toLowerCase();
+            var islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+            if (islandOpt.isEmpty()) return List.of();
+            Island island = islandOpt.get();
+            String prefix = args[2].toLowerCase();
+            if (sub.equals("add")) {
+                return Bukkit.getOnlinePlayers().stream()
+                        .map(Player::getName)
+                        .filter(name -> {
+                            Player p = Bukkit.getPlayer(name);
+                            if (p == null || p.getUniqueId().equals(player.getUniqueId())) return false;
+                            if (island.isCoop(p.getUniqueId())) return false;
+                            return plugin.getIslandManager().getIslandByPlayer(p.getUniqueId()).isPresent();
+                        })
+                        .filter(name -> name.toLowerCase().startsWith(prefix))
+                        .toList();
+            }
+            if (sub.equals("remove")) {
+                return island.getCoops().stream()
+                        .map(Bukkit::getPlayer)
+                        .filter(Objects::nonNull)
+                        .map(Player::getName)
+                        .filter(name -> name.toLowerCase().startsWith(prefix))
+                        .toList();
+            }
+        }
+        return List.of();
     }
 }

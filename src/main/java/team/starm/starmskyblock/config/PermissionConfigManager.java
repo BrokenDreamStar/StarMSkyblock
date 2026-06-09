@@ -181,8 +181,7 @@ public class PermissionConfigManager {
             try {
                 permissionsConfig.save(permissionsFile);
             } catch (IOException e) {
-                MessageUtil.consoleError("保存权限配置文件失败");
-                e.printStackTrace();
+                MessageUtil.consoleError("保存权限配置文件失败", e);
             }
         }
     }

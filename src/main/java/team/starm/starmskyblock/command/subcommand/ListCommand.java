@@ -3,6 +3,8 @@ package team.starm.starmskyblock.command.subcommand;
 import org.bukkit.entity.Player;
 import team.starm.starmskyblock.message.MessageUtil;
 
+import java.util.List;
+
 public class ListCommand extends SubCommand {
 
     public ListCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
@@ -54,5 +56,16 @@ public class ListCommand extends SubCommand {
         }
 
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(Player player, String[] args) {
+        if (args.length == 2) {
+            String prefix = args[1].toLowerCase();
+            return List.of("next", "prev", "home").stream()
+                    .filter(v -> v.startsWith(prefix))
+                    .toList();
+        }
+        return List.of();
     }
 }

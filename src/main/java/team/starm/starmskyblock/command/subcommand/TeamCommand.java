@@ -9,6 +9,7 @@ import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.permission.manager.ManagementPermissionManager;
 import team.starm.starmskyblock.message.MessageUtil;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -200,5 +201,45 @@ public class TeamCommand extends SubCommand {
             MessageUtil.sendMessage(player, "&c移除失败，该玩家可能不是岛屿成员。");
         }
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(Player player, String[] args) {
+        if (args.length == 2) {
+            String prefix = args[1].toLowerCase();
+            return List.of("list", "invite", "remove", "accept", "decline").stream()
+                    .filter(v -> v.startsWith(prefix))
+                    .toList();
+        }
+        if (args.length == 3) {
+            String sub = args[1].toLowerCase();
+            var islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+            if (islandOpt.isEmpty()) return List.of();
+            Island island = islandOpt.get();
+            String prefix = args[2].toLowerCase();
+            if (sub.equals("invite")) {
+                return Bukkit.getOnlinePlayers().stream()
+                        .map(Player::getName)
+                        .filter(name -> {
+                            Player p = Bukkit.getPlayer(name);
+                            if (p == null || p.getUniqueId().equals(player.getUniqueId())) return false;
+                            return island.getMemberRole(p.getUniqueId()) == IslandPermissionLevel.VISITOR;
+                        })
+                        .filter(name -> name.toLowerCase().startsWith(prefix))
+                        .toList();
+            }
+            if (sub.equals("remove")) {
+                IslandPermissionLevel executorRole = island.getMemberRole(player.getUniqueId());
+                return island.getMembers().entrySet().stream()
+                        .filter(e -> e.getValue().getPermissionLevel() < executorRole.getPermissionLevel())
+                        .map(e -> {
+                            var name = plugin.getPlayerRepo().getPlayerName(e.getKey());
+                            return name.orElse(e.getKey().toString());
+                        })
+                        .filter(name -> name.toLowerCase().startsWith(prefix))
+                        .toList();
+            }
+        }
+        return List.of();
     }
 }
