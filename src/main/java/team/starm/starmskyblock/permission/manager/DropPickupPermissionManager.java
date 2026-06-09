@@ -1,5 +1,8 @@
 package team.starm.starmskyblock.permission.manager;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -29,6 +32,9 @@ import team.starm.starmskyblock.permission.BasePermissionManager;
  * </p>
  */
 public class DropPickupPermissionManager extends BasePermissionManager {
+
+    /** 最近被拒绝的收纳袋交互记录（玩家UUID → 时间戳），用于 ItemSpawnEvent 兜底返还 */
+    private final Map<UUID, Long> deniedBundleInteractions = new HashMap<>();
 
     public DropPickupPermissionManager(IslandManager islandManager, ConfigManager configManager) {
         super(islandManager, configManager);
@@ -91,53 +97,81 @@ public class DropPickupPermissionManager extends BasePermissionManager {
         if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)) {
             event.setCancelled(true);
             sendDenyMessage(player, IslandPermission.ITEM_DROP);
+            // Paper 在事件前已提取物品，记录玩家用于后续 ItemSpawnEvent 兜底返还
+            deniedBundleInteractions.put(player.getUniqueId(), System.currentTimeMillis());
         }
     }
 
     /**
-     * 监听掉落物生成事件，拦截收纳袋溢出物品
+     * 监听掉落物生成事件，拦截收纳袋溢出的丢失物品
      * <p>
-     * 当玩家在无 ITEM_DROP 权限区域右键收纳袋时，Paper 会在事件触发前
-     * 自动提取物品。若背包已满，物品会以掉落物形式生成。此监听器捕获
-     * 该掉落物并退还回收纳袋，防止物品丢失。
-     * 通过 Item.getThrower() 获取来源玩家，精准定位。
+     * 当玩家在无 ITEM_DROP 权限区域右键收纳袋时，Paper 在 PlayerInteractEvent
+     * 触发前就已提取物品。若背包满，提取的物品会以掉落物形式生成。
+     * 此监听器通过在 onBundleInteract 中记录的拒绝记录，匹配并拦截这些掉落物，
+     * 使用 BundleMeta API 将物品返还回收纳袋。
      * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemSpawn(ItemSpawnEvent event) {
-        UUID throwerUuid = event.getEntity().getThrower();
-        if (throwerUuid == null) {
+        if (deniedBundleInteractions.isEmpty()) {
             return;
         }
 
-        Player player = Bukkit.getPlayer(throwerUuid);
-        if (player == null || !player.isOnline()) {
-            return;
-        }
-
-        String worldName = player.getWorld().getName();
+        String worldName = event.getLocation().getWorld().getName();
         if (!worldName.equals(configManager.getWorldNameNormal())
                 && !worldName.equals(configManager.getWorldNameNether())
                 && !worldName.equals(configManager.getWorldNameEnd())) {
             return;
         }
 
-        // 检查玩家是否手持收纳袋
-        ItemStack hand = player.getInventory().getItemInMainHand();
-        if (!Tag.ITEMS_BUNDLES.isTagged(hand.getType())) {
-            hand = player.getInventory().getItemInOffHand();
-            if (!Tag.ITEMS_BUNDLES.isTagged(hand.getType())) {
-                return;
-            }
-        }
+        long now = System.currentTimeMillis();
+        Iterator<Map.Entry<UUID, Long>> iter = deniedBundleInteractions.entrySet().iterator();
 
-        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)) {
-            event.setCancelled(true);
-            BundleMeta meta = (BundleMeta) hand.getItemMeta();
-            if (meta != null) {
-                meta.addItem(event.getEntity().getItemStack().clone());
-                hand.setItemMeta(meta);
+        while (iter.hasNext()) {
+            Map.Entry<UUID, Long> entry = iter.next();
+
+            // 清除超过 2 秒的过期记录
+            if (now - entry.getValue() > 2000) {
+                iter.remove();
+                continue;
             }
+
+            Player player = Bukkit.getPlayer(entry.getKey());
+            if (player == null || !player.isOnline()
+                    || !player.getWorld().equals(event.getLocation().getWorld())
+                    || player.getLocation().distanceSquared(event.getLocation()) >= 9) {
+                continue;
+            }
+
+            // 检查玩家是否手持收纳袋（主手或副手）
+            boolean isMainHand = Tag.ITEMS_BUNDLES.isTagged(player.getInventory().getItemInMainHand().getType());
+            boolean isOffHand = Tag.ITEMS_BUNDLES.isTagged(player.getInventory().getItemInOffHand().getType());
+            if (!isMainHand && !isOffHand) {
+                iter.remove();
+                continue;
+            }
+
+            // 二次权限检查，确认玩家当前仍在无权限区域
+            if (!checkPermission(event.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)) {
+                event.setCancelled(true);
+
+                ItemStack hand = isMainHand ? player.getInventory().getItemInMainHand()
+                                            : player.getInventory().getItemInOffHand();
+                BundleMeta meta = (BundleMeta) hand.getItemMeta();
+                if (meta != null) {
+                    meta.addItem(event.getEntity().getItemStack().clone());
+                    hand.setItemMeta(meta);
+                    // 确保 ItemStack 修改持久化到玩家背包
+                    if (isMainHand) {
+                        player.getInventory().setItemInMainHand(hand);
+                    } else {
+                        player.getInventory().setItemInOffHand(hand);
+                    }
+                }
+            }
+
+            iter.remove();
+            break;
         }
     }
 
