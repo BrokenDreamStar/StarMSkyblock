@@ -1,0 +1,109 @@
+Title: '岛屿刷石机设置-末地'
+
+Options:
+  Arguments: false
+  Min-Click-Delay: 200
+
+Events:
+  Open:
+    - 'delay: 3'
+    - 'update: X;A;B'
+    - 'refresh: X;A;B'
+
+Layout:
+  - '!#######<'
+  - '#AB     #'
+  - '########X'
+
+Icons:
+  '!':
+    display:
+      material: BOOK
+      name: '&6&l说明'
+      lore:
+        - '&e当矿石被禁用时'
+        - '&e该矿石在生成时会被替换为默认产物'
+        - '&e不会因为禁用而提升其它矿石生成概率'
+        - ''
+        - '&f默认产物:'
+        - '&a主世界-圆石&7,&c下界-玄武岩&7,&e末地-末地石'
+
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6&l返回'
+    actions:
+      all:
+        - 'menu: Generator'
+
+  'X':
+    update: 20
+    refresh: 20
+    display:
+      material: BARRIER
+      name: '&c&l禁用全部矿石'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator end all false -s'
+        - 'delay: 3'
+        - 'update: X;A'
+        - 'refresh: X;A'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_end_all% == "false"'
+        display:
+          material: STRUCTURE VOID
+          name: '&a&l启用全部矿石'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator end all true -s'
+            - 'delay: 3'
+            - 'update: X;A'
+            - 'refresh: X;A'
+
+  'A':
+    display:
+      material: END_STONE
+      name: '&e&l末地石'
+      shiny: 'true'
+      lore:
+        - '&b是否生成: &a是'
+
+  'B':
+    update: 20
+    refresh: 20
+    display:
+      material: SAND
+      name: '&e&l沙子'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_end_SAND%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator end SAND toggle -s'
+        - 'delay: 3'
+        - 'update: B;X'
+        - 'refresh: B;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_level% <= "2"'
+        display:
+          material: AIR
+      - condition: 'check papi %starmskyblock_generator_end_SAND_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator end SAND toggle -s'
+            - 'delay: 3'
+            - 'update: B;X'
+            - 'refresh: B;X'

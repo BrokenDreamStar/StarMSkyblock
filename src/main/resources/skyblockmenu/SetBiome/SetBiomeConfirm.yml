@@ -1,0 +1,47 @@
+Title: '修改岛屿生物群系'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '##A###B##'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: SetBiome{0}'
+
+  'A':
+    display:
+      material: LIME_CONCRETE
+      name: '&a&l确认'
+      lore:
+        - '&e确认将&l整个岛屿&e的生物群系修改为{1}'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setbiome {2} confirm -s'
+
+  'B':
+    display:
+      material: RED_CONCRETE
+      name: '&c&l取消'
+      lore:
+        - '&e取消修改岛屿生物群系'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'

@@ -1,0 +1,38 @@
+Title: '创建岛屿'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#A      #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: IslandMenu'
+
+  'A':
+    display:
+      material: GRASS_BLOCK
+      name: '&a&l经典'
+      lore:
+        - '&a最经典的岛屿'
+        - ''
+        - '&e左键点击创建该岛屿'
+        - '&b右键点击预览该岛屿'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: CreateConfirm default'

@@ -7,6 +7,7 @@ import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.message.MessageUtil;
 import net.milkbowl.vault.economy.Economy;
 
+import java.util.List;
 import java.util.Optional;
 
 public class UpgradeCommand extends SubCommand {
@@ -47,6 +48,17 @@ public class UpgradeCommand extends SubCommand {
             default -> showUpgradeInfo(player, island, economy);
         }
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(Player player, String[] args) {
+        if (args.length == 2) {
+            String prefix = args[1].toLowerCase();
+            return List.of("radius", "generator").stream()
+                    .filter(v -> v.startsWith(prefix))
+                    .toList();
+        }
+        return List.of();
     }
 
     private void showUpgradeInfo(Player player, Island island, Economy economy) {

@@ -1,0 +1,681 @@
+Title: '第二章 地狱空荡荡'
+
+Options:
+  Arguments: false
+  Min-Click-Delay: 200
+
+Events:
+  Open:
+    - 'delay: 5'
+    - 'refresh: A;B;C;D;E;F;G;H;I;J'
+    - 'update: A;B;C;D;E;F;G;H;I;J'
+
+Layout:
+  - '########<'
+  - '#ABCDEFG#'
+  - '#HIJ    #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: Tasks'
+
+  'A':
+    display:
+      material: OBSIDIAN
+      name: '&c&l让我们更深入些'
+      lore:
+        - '&f建造地狱门并进入下界'
+        - ''
+        - '&6要求:'
+        - ' - &f放置 黑曜石 x10'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x5000'
+        - ' - &f蓝冰 x2'
+        - ' - &f灵魂土 x1'
+        - ' - &f钻石镐 x1'
+        - ''
+        - '&b进度: %starmskyblock_task_3_1_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_3_1_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f建造地狱门并进入下界'
+            - ''
+            - '&6要求:'
+            - ' - &f放置 黑曜石 x10'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x5000'
+            - ' - &f蓝冰 x2'
+            - ' - &f灵魂土 x1'
+            - ' - &f钻石镐 x1'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 3 1'
+            - 'delay: 3'
+            - 'refresh: A'
+            - 'update: A'
+      - condition: 'check papi %starmskyblock_task_3_1_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f建造地狱门并进入下界'
+            - ''
+            - '&6要求:'
+            - ' - &f放置 黑曜石 x10'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x5000'
+            - ' - &f蓝冰 x2'
+            - ' - &f灵魂土 x1'
+            - ' - &f钻石镐 x1'
+            - ''
+            - '&2&l奖励已领取'
+
+  'B':
+    display:
+      material: BASALT
+      name: '&c&l下界刷石机'
+      lore:
+        - '&f建造玄武岩刷石机并刷取一些下界方块'
+        - ''
+        - '&6要求:'
+        - ' - &f采集 玄武岩 x128'
+        - ' - &f采集 下界岩 x32'
+        - ' - &f采集 荧石 x8'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x5000'
+        - ' - &f烈焰人刷怪蛋 x2'
+        - ' - &f刷怪笼 x1'
+        - ''
+        - '&b进度: %starmskyblock_task_3_2_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_3_2_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f建造玄武岩刷石机并刷取一些下界方块'
+            - ''
+            - '&6要求:'
+            - ' - &f采集 玄武岩 x128'
+            - ' - &f采集 下界岩 x32'
+            - ' - &f采集 荧石 x8'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x5000'
+            - ' - &f烈焰人刷怪蛋 x2'
+            - ' - &f刷怪笼 x1'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 3 2'
+            - 'delay: 3'
+            - 'refresh: B'
+            - 'update: B'
+      - condition: 'check papi %starmskyblock_task_3_2_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f建造玄武岩刷石机并刷取一些下界方块'
+            - ''
+            - '&6要求:'
+            - ' - &f采集 玄武岩 x128'
+            - ' - &f采集 下界岩 x32'
+            - ' - &f采集 荧石 x8'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x5000'
+            - ' - &f烈焰人刷怪蛋 x2'
+            - ' - &f刷怪笼 x1'
+            - ''
+            - '&2&l奖励已领取'
+
+  'C':
+    display:
+      material: CRIMSON_STEM
+      name: '&c&l菇菇嘎嘎'
+      lore:
+        - '&f种植并砍伐诡异菌和绯红菌'
+        - ''
+        - '&6要求:'
+        - ' - &f砍伐 绯红菌柄 x64'
+        - ' - &f砍伐 诡异菌柄 x64'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x5000'
+        - ' - &f红色蘑菇 x1'
+        - ' - &f棕色蘑菇 x1'
+        - ''
+        - '&b进度: %starmskyblock_task_3_3_progress%  %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_3_3_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f种植并砍伐诡异菌和绯红菌'
+            - ''
+            - '&6要求:'
+            - ' - &f砍伐 绯红菌柄 x64'
+            - ' - &f砍伐 诡异菌柄 x64'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x5000'
+            - ' - &f红色蘑菇 x1'
+            - ' - &f棕色蘑菇 x1'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 3 3'
+            - 'delay: 3'
+            - 'refresh: C'
+            - 'update: C'
+      - condition: 'check papi %starmskyblock_task_3_3_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f种植并砍伐诡异菌和绯红菌'
+            - ''
+            - '&6要求:'
+            - ' - &f砍伐 绯红菌柄 x64'
+            - ' - &f砍伐 诡异菌柄 x64'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x5000'
+            - ' - &f红色蘑菇 x1'
+            - ' - &f棕色蘑菇 x1'
+            - ''
+            - '&2奖励已领取'
+
+  'D':
+    display:
+      material: BLAZE_SPAWN_EGG
+      name: '&c&l杀'
+      lore:
+        - '&f击杀一些下界生物'
+        - ''
+        - '&6要求:'
+        - ' - &f击杀 僵尸猪灵 x32'
+        - ' - &f击杀 烈焰人 x32'
+        - ' - &f击杀 岩浆怪 x32'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x8000'
+        - ' - &f刷怪笼 x1'
+        - ''
+        - '&b进度: %starmskyblock_task_3_4_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_3_4_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f击杀一些下界生物'
+            - ''
+            - '&6要求:'
+            - ' - &f击杀 僵尸猪灵 x32'
+            - ' - &f击杀 烈焰人 x32'
+            - ' - &f击杀 岩浆怪 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x8000'
+            - ' - &f刷怪笼 x1'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 3 4'
+            - 'delay: 3'
+            - 'refresh: D'
+            - 'update: D'
+      - condition: 'check papi %starmskyblock_task_3_4_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f击杀一些下界生物'
+            - ''
+            - '&6要求:'
+            - ' - &f击杀 僵尸猪灵 x32'
+            - ' - &f击杀 烈焰人 x32'
+            - ' - &f击杀 岩浆怪 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x8000'
+            - ' - &f刷怪笼 x1'
+            - ''
+            - '&2&l奖励已领取'
+
+  'E':
+    display:
+      material: POTION
+      name: '&c&l绝命毒师'
+      lore:
+        - '&f种植下界疣然后酿造一些剧毒药水'
+        - ''
+        - '&6要求:'
+        - ' - &f剧毒药水 x3'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x8000'
+        - ' - &f凋灵骷髅刷怪蛋 x2'
+        - ''
+        - '&b进度: 0 %'
+        - ''
+        - '&e点击提交物品'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is task submit 3 5'
+        - 'delay: 3'
+        - 'refresh: E'
+        - 'update: E'
+    icons:
+      - condition: 'check papi %starmskyblock_task_3_5_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f种植下界疣然后酿造一些剧毒药水'
+            - ''
+            - '&6要求:'
+            - ' - &f剧毒药水 x3'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x8000'
+            - ' - &f凋灵骷髅刷怪蛋 x2'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 3 5'
+            - 'delay: 3'
+            - 'refresh: E'
+            - 'update: E'
+      - condition: 'check papi %starmskyblock_task_3_5_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f种植下界疣然后酿造一些剧毒药水'
+            - ''
+            - '&6要求:'
+            - ' - &f剧毒药水 x3'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x8000'
+            - ' - &f凋灵骷髅刷怪蛋 x2'
+            - ''
+            - '&2奖励已领取'
+
+  'F':
+    display:
+      material: WITHER_SKELETON_SKULL
+      name: '&c&l猎头屑'
+      lore:
+        - '&f击杀凋灵骷髅获得一个凋灵骷髅头'
+        - ''
+        - '&6要求:'
+        - ' - &f凋灵骷髅头颅 x1'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x10000'
+        - ' - &f刷怪笼 x1'
+        - ''
+        - '&b进度: 0 %'
+        - ''
+        - '&e点击提交物品'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is task submit 3 6'
+        - 'delay: 3'
+        - 'refresh: F'
+        - 'update: F'
+    icons:
+      - condition: 'check papi %starmskyblock_task_3_6_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f击杀凋灵骷髅获得一个凋灵骷髅头'
+            - ''
+            - '&6要求:'
+            - ' - &f凋灵骷髅头颅 x1'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x10000'
+            - ' - &f刷怪笼 x1'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 3 6'
+            - 'delay: 3'
+            - 'refresh: F'
+            - 'update: F'
+      - condition: 'check papi %starmskyblock_task_3_6_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f击杀凋灵骷髅获得一个凋灵骷髅头'
+            - ''
+            - '&6要求:'
+            - ' - &f凋灵骷髅头颅 x1'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x10000'
+            - ' - &f刷怪笼 x1'
+            - ''
+            - '&2奖励已领取'
+
+  'G':
+    display:
+      material: NETHER_GOLD_ORE
+      name: '&c&l万物基于刷石机'
+      lore:
+        - '&f将刷石机升级到3级'
+        - '&f使其可以生成更多矿石'
+        - ''
+        - '&6要求:'
+        - ' - &f挖掘 下界金矿石 x32'
+        - ' - &f挖掘 下界石英矿石 x32'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x10000'
+        - ''
+        - '&b进度: %starmskyblock_task_3_7_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_3_7_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f将刷石机升级到3级'
+            - '&f使其可以生成更多矿石'
+            - ''
+            - '&6要求:'
+            - ' - &f挖掘 下界金矿石 x32'
+            - ' - &f挖掘 下界石英矿石 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x10000'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 3 7'
+            - 'delay: 3'
+            - 'refresh: G'
+            - 'update: G'
+      - condition: 'check papi %starmskyblock_task_3_7_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f将刷石机升级到3级'
+            - '&f使其可以生成更多矿石'
+            - ''
+            - '&6要求:'
+            - ' - &f挖掘 下界金矿石 x32'
+            - ' - &f挖掘 下界石英矿石 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x10000'
+            - ''
+            - '&2&l奖励已领取'
+
+  'H':
+    display:
+      material: ENDER_PEARL
+      name: '&c&l以物易物'
+      lore:
+        - '&f与猪灵交易'
+        - ''
+        - '&6要求:'
+        - ' - &f灵魂沙 x8'
+        - ' - &f沙砾 x8'
+        - ' - &f光灵箭 x8'
+        - ' - &f哭诉黑曜石 x4'
+        - ' - &f末影珍珠 x4'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x10000'
+        - ' - &f下界合金升级锻造模板 x1'
+        - ''
+        - '&b进度: 0 %'
+        - ''
+        - '&e点击提交物品'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is task submit 3 8'
+        - 'delay: 3'
+        - 'refresh: H'
+        - 'update: H'
+    icons:
+      - condition: 'check papi %starmskyblock_task_3_8_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f与猪灵交易'
+            - ''
+            - '&6要求:'
+            - ' - &f灵魂沙 x8'
+            - ' - &f沙砾 x8'
+            - ' - &f光灵箭 x8'
+            - ' - &f哭诉黑曜石 x4'
+            - ' - &f末影珍珠 x4'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x10000'
+            - ' - &f下界合金升级锻造模板 x1'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 3 8'
+            - 'delay: 3'
+            - 'refresh: H'
+            - 'update: H'
+      - condition: 'check papi %starmskyblock_task_3_8_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f与猪灵交易'
+            - ''
+            - '&6要求:'
+            - ' - &f灵魂沙 x8'
+            - ' - &f沙砾 x8'
+            - ' - &f光灵箭 x8'
+            - ' - &f哭诉黑曜石 x4'
+            - ' - &f末影珍珠 x4'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x10000'
+            - ' - &f下界合金升级锻造模板 x1'
+            - ''
+            - '&2奖励已领取'
+
+  'I':
+    display:
+      material: DRIED_GHAST
+      name: '&c&l啊宝宝你是一个香香软软小恶魂'
+      lore:
+        - '&f合成一个失水恶魂'
+        - ''
+        - '&6要求:'
+        - ' - &f合成 失水恶魂 x1'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x10000'
+        - ' - &f白色鞍 x1'
+        - ''
+        - '&b进度: %starmskyblock_task_3_9_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_3_9_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f合成一个失水恶魂'
+            - ''
+            - '&6要求:'
+            - ' - &f合成 失水恶魂 x1'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x10000'
+            - ' - &f白色鞍 x1'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 3 9'
+            - 'delay: 3'
+            - 'refresh: I'
+            - 'update: I'
+      - condition: 'check papi %starmskyblock_task_3_9_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f合成一个失水恶魂'
+            - ''
+            - '&6要求:'
+            - ' - &f合成 失水恶魂 x1'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x10000'
+            - ' - &f白色鞍 x1'
+            - ''
+            - '&2&l奖励已领取'
+
+  'J':
+    display:
+      material: NETHERITE_INGOT
+      name: '&c&l!?强强?!'
+      lore:
+        - '&f合成一个下界合金锭'
+        - ''
+        - '&6要求:'
+        - ' - &f合成 下界合金锭 x1'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x12000'
+        - ' - &f末地传送框架 x9'
+        - ''
+        - '&b进度: %starmskyblock_task_3_10_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_3_10_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f合成一个下界合金锭'
+            - ''
+            - '&6要求:'
+            - ' - &f合成 下界合金锭 x1'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x12000'
+            - ' - &f末地传送框架 x9'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 3 10'
+            - 'delay: 3'
+            - 'refresh: J'
+            - 'update: J'
+      - condition: 'check papi %starmskyblock_task_3_10_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f合成一个下界合金锭'
+            - ''
+            - '&6要求:'
+            - ' - &f合成 下界合金锭 x1'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x12000'
+            - ' - &f末地传送框架 x9'
+            - ''
+            - '&2&l奖励已领取'

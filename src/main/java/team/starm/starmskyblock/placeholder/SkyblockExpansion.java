@@ -90,15 +90,13 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             }
 
             IslandManager islandManager = plugin.getIslandManager();
-
-            int chunkX = player.getLocation().getChunk().getX();
-            int chunkZ = player.getLocation().getChunk().getZ();
+            LazyContext ctx = new LazyContext(player, islandManager);
 
             if (params.equalsIgnoreCase("island_name_here")) {
                 if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
                     return "公共区域";
                 }
-                return getIslandName(islandManager, chunkX, chunkZ);
+                return getIslandName(islandManager, ctx.chunkX(), ctx.chunkZ());
             }
 
             if (params.equalsIgnoreCase("island_name")) {
@@ -109,7 +107,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                 if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
                     return IslandPermissionLevel.VISITOR.getDisplayName();
                 }
-                return getPlayerRole(islandManager, chunkX, chunkZ, player.getUniqueId());
+                return getPlayerRole(islandManager, ctx.chunkX(), ctx.chunkZ(), player.getUniqueId());
             }
 
             if (params.equalsIgnoreCase("role")) {
@@ -120,14 +118,14 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                 if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
                     return "&f-";
                 }
-                return getIslandLevelHere(islandManager, chunkX, chunkZ);
+                return getIslandLevelHere(islandManager, ctx.chunkX(), ctx.chunkZ());
             }
 
             if (params.equalsIgnoreCase("generator_level_here")) {
                 if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
                     return "&f-";
                 }
-                return getGeneratorLevelHere(islandManager, chunkX, chunkZ);
+                return getGeneratorLevelHere(islandManager, ctx.chunkX(), ctx.chunkZ());
             }
 
             if (params.equalsIgnoreCase("dimension")) {
@@ -140,19 +138,21 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             }
 
             if (params.equalsIgnoreCase("own_island")) {
-                Optional<Island> islandOpt =
-                        islandManager.getIslandByPlayer(player.getUniqueId());
+                Optional<Island> islandOpt = ctx.playerIsland();
                 if (islandOpt.isEmpty()) {
                     return "false";
                 }
                 Island island = islandOpt.get();
-                return String.valueOf(island.isChunkWithinIsland(chunkX, chunkZ));
+                return String.valueOf(island.isChunkWithinIsland(ctx.chunkX(), ctx.chunkZ()));
+            }
+
+            if (params.equalsIgnoreCase("has_island")) {
+                return String.valueOf(ctx.playerIsland().isPresent());
             }
 
             if (params.equalsIgnoreCase("creationtime")) {
 
-                Optional<Island> islandOpt =
-                        islandManager.getIslandByPlayer(player.getUniqueId());
+                Optional<Island> islandOpt = ctx.playerIsland();
 
                 if (islandOpt.isEmpty()) {
                     return null;
@@ -165,8 +165,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
             if (params.equalsIgnoreCase("level")) {
 
-                Optional<Island> islandOpt =
-                        islandManager.getIslandByPlayer(player.getUniqueId());
+                Optional<Island> islandOpt = ctx.playerIsland();
 
                 if (islandOpt.isEmpty()) {
                     return "&f-";
@@ -177,8 +176,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
             if (params.equalsIgnoreCase("generator_level")) {
 
-                Optional<Island> islandOpt =
-                        islandManager.getIslandByPlayer(player.getUniqueId());
+                Optional<Island> islandOpt = ctx.playerIsland();
 
                 if (islandOpt.isEmpty()) {
                     return "&f-";
@@ -191,7 +189,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                 String dim = params.substring("generator_level_next_".length()).toLowerCase();
                 if (!Set.of("normal", "nether", "end").contains(dim)) return "&f-";
 
-                Optional<Island> islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+                Optional<Island> islandOpt = ctx.playerIsland();
                 if (islandOpt.isEmpty()) return "&f-";
 
                 GeneratorConfigManager genConfig = plugin.getGeneratorConfigManager();
@@ -211,7 +209,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             }
 
             if (params.equalsIgnoreCase("generator_level_next")) {
-                Optional<Island> islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+                Optional<Island> islandOpt = ctx.playerIsland();
                 if (islandOpt.isEmpty()) return "&f-";
 
                 GeneratorConfigManager genConfig = plugin.getGeneratorConfigManager();
@@ -258,40 +256,36 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                     rest = rest.substring(0, rest.length() - "_boolean".length());
                 }
 
-                // 维度概率请求
                 if (Set.of("normal", "end", "nether").contains(rest)) {
-                    return buildGeneratorDimensionString(player, rest);
+                    return buildGeneratorDimensionString(ctx.playerIsland(), player, rest);
                 }
 
-                // 维度+矿石启用状态请求 (e.g. generator_normal_coal_ore)
                 int underscoreIndex = rest.indexOf('_');
                 if (underscoreIndex > 0) {
                     String dim = rest.substring(0, underscoreIndex);
                     if (Set.of("normal", "nether", "end").contains(dim)) {
                         String oreName = rest.substring(underscoreIndex + 1);
 
-                        // 该维度所有矿石启用状态
                         if (oreName.equals("all")) {
-                            return String.valueOf(isAllGeneratorOresEnabled(player, dim));
+                            return String.valueOf(isAllGeneratorOresEnabled(ctx.playerIsland(), player, dim));
                         }
 
                         if (booleanMode) {
-                            return String.valueOf(isGeneratorOreEnabled(player, dim, oreName));
+                            return String.valueOf(isGeneratorOreEnabled(ctx.playerIsland(), player, dim, oreName));
                         }
-                        return getGeneratorOreDimensionStatus(player, dim, oreName);
+                        return getGeneratorOreDimensionStatus(ctx.playerIsland(), player, dim, oreName);
                     }
                 }
 
-                // 矿石启用状态请求 (当前维度)
                 if (booleanMode) {
                     String dim = switch (player.getWorld().getEnvironment()) {
                         case NETHER -> "nether";
                         case THE_END -> "end";
                         default -> "normal";
                     };
-                    return String.valueOf(isGeneratorOreEnabled(player, dim, rest));
+                    return String.valueOf(isGeneratorOreEnabled(ctx.playerIsland(), player, dim, rest));
                 }
-                return getGeneratorOreStatus(player, rest);
+                return getGeneratorOreStatus(ctx.playerIsland(), player, rest);
             }
 
             if (params.regionMatches(
@@ -345,7 +339,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             }
 
             if (params.equalsIgnoreCase("upgrades_generator_next_level_money")) {
-                var islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+                var islandOpt = ctx.playerIsland();
                 if (islandOpt.isEmpty()) return "&f-";
                 Island island = islandOpt.get();
                 UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
@@ -355,7 +349,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             }
 
             if (params.equalsIgnoreCase("upgrades_island_radius_next_level_money")) {
-                var islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+                var islandOpt = ctx.playerIsland();
                 if (islandOpt.isEmpty()) return "&f-";
                 Island island = islandOpt.get();
                 UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
@@ -365,7 +359,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             }
 
             if (params.equalsIgnoreCase("upgrades_generator_has_money")) {
-                var islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+                var islandOpt = ctx.playerIsland();
                 if (islandOpt.isEmpty()) return "false";
                 Island island = islandOpt.get();
                 UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
@@ -377,7 +371,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             }
 
             if (params.equalsIgnoreCase("upgrades_island_radius_has_money")) {
-                var islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+                var islandOpt = ctx.playerIsland();
                 if (islandOpt.isEmpty()) return "false";
                 Island island = islandOpt.get();
                 UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
@@ -553,8 +547,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         return null;
     }
 
-    private String buildGeneratorDimensionString(Player player, String dim) {
-        Optional<Island> islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+    private String buildGeneratorDimensionString(Optional<Island> islandOpt, Player player, String dim) {
         if (islandOpt.isEmpty()) return "&f-";
 
         Island island = islandOpt.get();
@@ -628,8 +621,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         return sb.toString();
     }
 
-    private boolean isAllGeneratorOresEnabled(Player player, String dim) {
-        Optional<Island> islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+    private boolean isAllGeneratorOresEnabled(Optional<Island> islandOpt, Player player, String dim) {
         if (islandOpt.isEmpty()) return false;
 
         Island island = islandOpt.get();
@@ -654,8 +646,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         return true;
     }
 
-    private boolean isGeneratorOreEnabled(Player player, String dim, String oreName) {
-        Optional<Island> islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+    private boolean isGeneratorOreEnabled(Optional<Island> islandOpt, Player player, String dim, String oreName) {
         if (islandOpt.isEmpty()) return false;
 
         Island island = islandOpt.get();
@@ -677,8 +668,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         return disabled == null || !disabled.contains(material);
     }
 
-    private String getGeneratorOreDimensionStatus(Player player, String dim, String oreName) {
-        Optional<Island> islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+    private String getGeneratorOreDimensionStatus(Optional<Island> islandOpt, Player player, String dim, String oreName) {
         if (islandOpt.isEmpty()) return "&f-";
 
         Island island = islandOpt.get();
@@ -700,8 +690,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         return (disabled == null || !disabled.contains(material)) ? "&a是" : "&c否";
     }
 
-    private String getGeneratorOreStatus(Player player, String oreName) {
-        Optional<Island> islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
+    private String getGeneratorOreStatus(Optional<Island> islandOpt, Player player, String oreName) {
         if (islandOpt.isEmpty()) return "false";
 
         Island island = islandOpt.get();
@@ -760,5 +749,42 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         }
 
         return IslandPermissionLevel.VISITOR.getColor() + IslandPermissionLevel.VISITOR.getDisplayName();
+    }
+
+    private static final class LazyContext {
+        final Player player;
+        final IslandManager islandManager;
+        private int chunkX;
+        private int chunkZ;
+        private boolean chunkResolved;
+        private Optional<Island> playerIsland;
+
+        LazyContext(Player player, IslandManager islandManager) {
+            this.player = player;
+            this.islandManager = islandManager;
+        }
+
+        int chunkX() {
+            if (!chunkResolved) resolveChunk();
+            return chunkX;
+        }
+
+        int chunkZ() {
+            if (!chunkResolved) resolveChunk();
+            return chunkZ;
+        }
+
+        private void resolveChunk() {
+            chunkX = player.getLocation().getChunk().getX();
+            chunkZ = player.getLocation().getChunk().getZ();
+            chunkResolved = true;
+        }
+
+        Optional<Island> playerIsland() {
+            if (playerIsland == null) {
+                playerIsland = islandManager.getIslandByPlayer(player.getUniqueId());
+            }
+            return playerIsland;
+        }
     }
 }

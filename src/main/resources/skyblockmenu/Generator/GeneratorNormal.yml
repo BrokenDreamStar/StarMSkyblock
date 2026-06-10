@@ -1,0 +1,366 @@
+Title: '岛屿刷石机设置-主世界'
+
+Options:
+  Arguments: false
+  Min-Click-Delay: 200
+
+Events:
+  Open:
+    - 'delay: 3'
+    - 'update: X;B;C;D;E;F;G;H;I;J'
+    - 'refresh: X;B;C;D;E;F;G;H;I;J'
+
+Layout:
+  - '!#######<'
+  - '#ABCDEFG#'
+  - '#HIJ    #'
+  - '~#######X'
+
+Icons:
+  '!':
+    display:
+      material: BOOK
+      name: '&6&l说明'
+      lore:
+        - '&e当矿石被禁用时'
+        - '&e该矿石在生成时会被替换为默认产物'
+        - '&e不会因为禁用而提升其它矿石生成概率'
+        - ''
+        - '&f默认产物:'
+        - '&a主世界-圆石&7,&c下界-玄武岩&7,&e末地-末地石'
+
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6&l返回'
+    actions:
+      all:
+        - 'menu: Generator'
+
+  '~':
+    display:
+      material: DEEPSLATE
+      name: '&7&l深板岩替换'
+      lore:
+        - '&e在主世界Y0以下(不含Y0)'
+        - '&e生成的石头会变为深板岩'
+        - '&e生成的圆石会变为深板岩圆石'
+        - '&e生成的矿石会变为深层变种'
+
+  'X':
+    update: 20
+    refresh: 20
+    display:
+      material: BARRIER
+      name: '&c&l禁用全部矿石'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator normal all false -s'
+        - 'delay: 3'
+        - 'update: X;B;C;D;E;F;G;H;I;J'
+        - 'refresh: X;B;C;D;E;F;G;H;I;J'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_normal_all% == "false"'
+        display:
+          material: STRUCTURE VOID
+          name: '&a&l启用全部矿石'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator normal all true -s'
+            - 'delay: 3'
+            - 'update: X;B;C;D;E;F;G;H;I;J'
+            - 'refresh: X;B;C;D;E;F;G;H;I;J'
+  'A':
+    display:
+      material: COBBLESTONE
+      name: '&7&l圆石'
+      shiny: 'true'
+      lore:
+        - '&b是否生成: &a是'
+
+  'B':
+    update: 20
+    refresh: 20
+    display:
+      material: STONE
+      name: '&7&l石头'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_normal_STONE%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator normal STONE toggle -s'
+        - 'delay: 3'
+        - 'update: B;X'
+        - 'refresh: B;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_normal_STONE_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator normal STONE toggle -s'
+            - 'delay: 3'
+            - 'update: B;X'
+            - 'refresh: B;X'
+
+  'C':
+    update: 20
+    refresh: 20
+    display:
+      material: COAL_ORE
+      name: '&8&l煤矿石'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_normal_COAL_ORE%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator normal COAL_ORE toggle -s'
+        - 'delay: 3'
+        - 'update: C;X'
+        - 'refresh: C;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_normal_COAL_ORE_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator normal COAL_ORE toggle -s'
+            - 'delay: 3'
+            - 'update: C;X'
+            - 'refresh: C;X'
+
+  'D':
+    update: 20
+    refresh: 20
+    display:
+      material: COPPER_ORE
+      name: '&3&l铜矿石'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_normal_COPPER_ORE%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator normal COPPER_ORE toggle -s'
+        - 'delay: 3'
+        - 'update: D;X'
+        - 'refresh: D;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_normal_COPPER_ORE_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator normal COPPER_ORE toggle -s'
+            - 'delay: 3'
+            - 'update: D;X'
+            - 'refresh: D;X'
+
+  'E':
+    update: 20
+    refresh: 20
+    display:
+      material: IRON_ORE
+      name: '&6&l铁矿石'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_normal_IRON_ORE%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator normal IRON_ORE toggle -s'
+        - 'delay: 3'
+        - 'update: E;X'
+        - 'refresh: E;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_level% <= "1"'
+        display:
+          material: AIR
+      - condition: 'check papi %starmskyblock_generator_normal_IRON_ORE_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator normal IRON_ORE toggle -s'
+            - 'delay: 3'
+            - 'update: E;X'
+            - 'refresh: E;X'
+
+  'F':
+    update: 20
+    refresh: 20
+    display:
+      material: LAPIS_ORE
+      name: '&9&l青金石矿石'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_normal_LAPIS_ORE%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator normal LAPIS_ORE toggle -s'
+        - 'delay: 3'
+        - 'update: F;X'
+        - 'refresh: F;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_level% <= "1"'
+        display:
+          material: AIR
+      - condition: 'check papi %starmskyblock_generator_normal_LAPIS_ORE_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator normal LAPIS_ORE toggle -s'
+            - 'delay: 3'
+            - 'update: F;X'
+            - 'refresh: F;X'
+
+  'G':
+    update: 20
+    refresh: 20
+    display:
+      material: GOLD_ORE
+      name: '&e&l金矿石'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_normal_GOLD_ORE%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator normal GOLD_ORE toggle -s'
+        - 'delay: 3'
+        - 'update: G;X'
+        - 'refresh: G;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_level% <= "2"'
+        display:
+          material: AIR
+      - condition: 'check papi %starmskyblock_generator_normal_GOLD_ORE_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator normal GOLD_ORE toggle -s'
+            - 'delay: 3'
+            - 'update: G;X'
+            - 'refresh: G;X'
+
+  'H':
+    update: 20
+    refresh: 20
+    display:
+      material: REDSTONE_ORE
+      name: '&c&l红石矿石'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_normal_REDSTONE_ORE%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator normal REDSTONE_ORE toggle -s'
+        - 'delay: 3'
+        - 'update: H;X'
+        - 'refresh: H;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_level% <= "2"'
+        display:
+          material: AIR
+      - condition: 'check papi %starmskyblock_generator_normal_REDSTONE_ORE_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator normal REDSTONE_ORE toggle -s'
+            - 'delay: 3'
+            - 'update: H;X'
+            - 'refresh: H;X'
+
+  'I':
+    update: 20
+    refresh: 20
+    display:
+      material: DIAMOND_ORE
+      name: '&b&l钻石矿石'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_normal_DIAMOND_ORE%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator normal DIAMOND_ORE toggle -s'
+        - 'delay: 3'
+        - 'update: I;X'
+        - 'refresh: I;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_level% <= "2"'
+        display:
+          material: AIR
+      - condition: 'check papi %starmskyblock_generator_normal_DIAMOND_ORE_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator normal DIAMOND_ORE toggle -s'
+            - 'delay: 3'
+            - 'update: I;X'
+            - 'refresh: I;X'
+
+  'J':
+    update: 20
+    refresh: 20
+    display:
+      material: EMERALD_ORE
+      name: '&2&l绿宝石矿石'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_normal_EMERALD_ORE%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator normal EMERALD_ORE toggle -s'
+        - 'delay: 3'
+        - 'update: J;X'
+        - 'refresh: J;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_level% <= "2"'
+        display:
+          material: AIR
+      - condition: 'check papi %starmskyblock_generator_normal_EMERALD_ORE_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator normal EMERALD_ORE toggle -s'
+            - 'delay: 3'
+            - 'update: J;X'
+            - 'refresh: J;X'

@@ -86,6 +86,7 @@ public class PortalListener implements Listener {
 
         if (!fromNormal && !fromNether && !fromEnd) return;
 
+        
         // 查找实体所在区块属于哪个岛屿
         int chunkX = from.getChunk().getX();
         int chunkZ = from.getChunk().getZ();
@@ -351,18 +352,33 @@ public class PortalListener implements Listener {
     @EventHandler
     public void onEntityPortalEnter(EntityPortalEnterEvent event) {
         Entity entity = event.getEntity();
-        if (!(entity instanceof Player player)) return;
-
         Location location = event.getLocation();
         World world = location.getWorld();
         if (world == null) return;
-        if (!worldManager.isEndWorld(world.getName())) return;
-        if (location.getBlock().getType() != Material.END_PORTAL) return;
 
-        UUID uuid = player.getUniqueId();
+        String worldName = world.getName();
+        boolean isEndWorld = worldManager.isEndWorld(worldName);
+        boolean isNormalWorld = worldManager.isNormalWorld(worldName);
+        boolean isNetherWorld = worldManager.isNetherWorld(worldName);
+        if (!isEndWorld && !isNormalWorld && !isNetherWorld) return;
+
+        Material blockType = location.getBlock().getType();
+        if (blockType != Material.END_PORTAL && blockType != Material.NETHER_PORTAL) return;
+
+        UUID uuid = entity.getUniqueId();
         long now = System.currentTimeMillis();
         if (now - lastPortalEnter.getOrDefault(uuid, 0L) < 2000) return;
         lastPortalEnter.put(uuid, now);
+
+        if (entity instanceof Player player) {
+            handlePlayerPortalEnter(player, world, isEndWorld);
+        } else {
+            handleEntityPortalEnter(entity, world, location, isEndWorld);
+        }
+    }
+
+    private void handlePlayerPortalEnter(Player player, World world, boolean isEndWorld) {
+        if (!isEndWorld) return;
 
         World targetWorld = worldManager.getOrCreateSkyblockWorld();
         if (targetWorld == null) return;
@@ -373,7 +389,6 @@ public class PortalListener implements Listener {
                 : targetWorld.getSpawnLocation();
 
         player.setPortalCooldown(40);
-
         player.teleport(targetLoc);
 
         Bukkit.getScheduler().runTask(StarMSkyblock.getInstance(), () -> {
@@ -382,6 +397,31 @@ public class PortalListener implements Listener {
                 player.teleport(targetLoc);
             }
         });
+    }
+
+    private void handleEntityPortalEnter(Entity entity, World world, Location location,
+                                          boolean isEndWorld) {
+        // 仅处理末地传送门 —— 因为 Paper 在末地维度不触发 EntityPortalEvent，
+        // 但 EntityPortalEnterEvent 一定会触发。
+        // 非玩家实体的下界传送门由 onEntityPortal(EntityPortalEvent) 通过 setTo 处理。
+        if (!isEndWorld) return;
+
+        // Find island by chunk position
+        int chunkX = location.getChunk().getX();
+        int chunkZ = location.getChunk().getZ();
+        Optional<Island> optionalIsland = islandManager.getIslandAt(chunkX, chunkZ);
+        if (optionalIsland.isEmpty()) {
+            optionalIsland = islandManager.getIslandAtMaxRange(chunkX, chunkZ);
+        }
+        if (optionalIsland.isEmpty()) return;
+
+        Island island = optionalIsland.get();
+
+        World targetWorld = isEndWorld
+                ? worldManager.getOrCreateSkyblockWorld()
+                : worldManager.getOrCreateSkyblockEnd();
+        if (targetWorld == null) return;
+        entity.teleport(getIslandLocation(island, targetWorld));
     }
 
     /** 计算岛屿在该世界的传送点坐标（中心区块 + 配置偏移量） */

@@ -1,0 +1,302 @@
+Title: '岛屿刷石机设置-下界'
+
+Options:
+  Arguments: false
+  Min-Click-Delay: 200
+
+Events:
+  Open:
+    - 'delay: 3'
+    - 'update: X;B;C;D;E;F;G;H'
+    - 'refresh: X;B;C;D;E;F;G;H'
+
+Layout:
+  - '!#######<'
+  - '#ABCDEFG#'
+  - '#H      #'
+  - '########X'
+
+Icons:
+  '!':
+    display:
+      material: BOOK
+      name: '&6&l说明'
+      lore:
+        - '&e当矿石被禁用时'
+        - '&e该矿石在生成时会被替换为默认产物'
+        - '&e不会因为禁用而提升其它矿石生成概率'
+        - ''
+        - '&f默认产物:'
+        - '&a主世界-圆石&7,&c下界-玄武岩&7,&e末地-末地石'
+
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6&l返回'
+    actions:
+      all:
+        - 'menu: Generator'
+
+  'X':
+    update: 20
+    refresh: 20
+    display:
+      material: BARRIER
+      name: '&c&l禁用全部矿石'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator nether all false -s'
+        - 'delay: 3'
+        - 'update: X;B;C;D;E;F;G;H'
+        - 'refresh: X;B;C;D;E;F;G;H'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_nether_all% == "false"'
+        display:
+          material: STRUCTURE VOID
+          name: '&a&l启用全部矿石'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator nether all true -s'
+            - 'delay: 3'
+            - 'update: X;B;C;D;E;F;G;H'
+            - 'refresh: X;B;C;D;E;F;G;H'
+
+  'A':
+    display:
+      material: BASALT
+      name: '&7&l玄武岩'
+      shiny: 'true'
+      lore:
+        - '&b是否生成: &a是'
+
+  'B':
+    update: 20
+    refresh: 20
+    display:
+      material: NETHERRACK
+      name: '&c&l下界岩'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_nether_NETHERRACK%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator nether NETHERRACK toggle -s'
+        - 'delay: 3'
+        - 'update: B;X'
+        - 'refresh: B;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_level% <= "1"'
+        display:
+          material: AIR
+      - condition: 'check papi %starmskyblock_generator_nether_NETHERRACK_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator nether NETHERRACK toggle -s'
+            - 'delay: 3'
+            - 'update: B;X'
+            - 'refresh: B;X'
+
+  'C':
+    update: 20
+    refresh: 20
+    display:
+      material: SOUL_SOIL
+      name: '&6&l灵魂土'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_nether_SOUL_SOIL%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator nether SOUL_SOIL toggle -s'
+        - 'delay: 3'
+        - 'update: C;X'
+        - 'refresh: C;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_level% <= "1"'
+        display:
+          material: AIR
+      - condition: 'check papi %starmskyblock_generator_nether_SOUL_SOIL_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator nether SOUL_SOIL toggle -s'
+            - 'delay: 3'
+            - 'update: C;X'
+            - 'refresh: C;X'
+
+  'D':
+    update: 20
+    refresh: 20
+    display:
+      material: GLOWSTONE
+      name: '&e&l荧石'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_nether_GLOWSTONE%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator nether GLOWSTONE toggle -s'
+        - 'delay: 3'
+        - 'update: D;X'
+        - 'refresh: D;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_level% <= "1"'
+        display:
+          material: AIR
+      - condition: 'check papi %starmskyblock_generator_nether_GLOWSTONE_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator nether GLOWSTONE toggle -s'
+            - 'delay: 3'
+            - 'update: D;X'
+            - 'refresh: D;X'
+
+  'E':
+    update: 20
+    refresh: 20
+    display:
+      material: NETHER_GOLD_ORE
+      name: '&6&l下界金矿石'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_nether_NETHER_GOLD_ORE%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator nether NETHER_GOLD_ORE toggle -s'
+        - 'delay: 3'
+        - 'update: E;X'
+        - 'refresh: E;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_level% <= "2"'
+        display:
+          material: AIR
+      - condition: 'check papi %starmskyblock_generator_nether_NETHER_GOLD_ORE_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator nether NETHER_GOLD_ORE toggle -s'
+            - 'delay: 3'
+            - 'update: E;X'
+            - 'refresh: E;X'
+
+  'F':
+    update: 20
+    refresh: 20
+    display:
+      material: NETHER_QUARTZ_ORE
+      name: '&f&l下界石英矿石'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_nether_NETHER_QUARTZ_ORE%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator nether NETHER_QUARTZ_ORE toggle -s'
+        - 'delay: 3'
+        - 'update: F;X'
+        - 'refresh: F;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_level% <= "2"'
+        display:
+          material: AIR
+      - condition: 'check papi %starmskyblock_generator_nether_NETHER_QUARTZ_ORE_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator nether NETHER_QUARTZ_ORE toggle -s'
+            - 'delay: 3'
+            - 'update: F;X'
+            - 'refresh: F;X'
+
+  'G':
+    update: 20
+    refresh: 20
+    display:
+      material: GILDED_BLACKSTONE
+      name: '&e&l镶金黑石'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_nether_GILDED_BLACKSTONE%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator nether GILDED_BLACKSTONE toggle -s'
+        - 'delay: 3'
+        - 'update: G;X'
+        - 'refresh: G;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_level% <= "3"'
+        display:
+          material: AIR
+      - condition: 'check papi %starmskyblock_generator_nether_GILDED_BLACKSTONE_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator nether GILDED_BLACKSTONE toggle -s'
+            - 'delay: 3'
+            - 'update: G;X'
+            - 'refresh: G;X'
+
+  'H':
+    update: 20
+    refresh: 20
+    display:
+      material: ANCIENT_DEBRIS
+      name: '&4&l远古残骸'
+      lore:
+        - '&b是否生成: %starmskyblock_generator_nether_ANCIENT_DEBRIS%'
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is generator nether ANCIENT_DEBRIS toggle -s'
+        - 'delay: 3'
+        - 'update: H;X'
+        - 'refresh: H;X'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_level% <= "4"'
+        display:
+          material: AIR
+      - condition: 'check papi %starmskyblock_generator_nether_ANCIENT_DEBRIS_boolean% == "true"'
+        inherit: true
+        display:
+          shiny: 'true'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is generator nether ANCIENT_DEBRIS toggle -s'
+            - 'delay: 3'
+            - 'update: H;X'
+            - 'refresh: H;X'

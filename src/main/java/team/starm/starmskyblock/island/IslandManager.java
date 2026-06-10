@@ -113,7 +113,9 @@ public class IslandManager {
                         double hz = ((Number) homeMap.get("z")).doubleValue();
                         island.setCustomHome(worldType, hx, hy, hz);
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception e) {
+                    MessageUtil.consoleWarn("解析岛屿 home 数据失败，ID: " + id + "，数据: " + homeData);
+                }
             }
 
             islandsById.put(id, island);
@@ -387,8 +389,8 @@ public class IslandManager {
 
     /** 增加玩家的岛屿删除次数（缓存 + 数据库原子递增） */
     public void incrementDeleteCount(UUID playerUuid) {
-        deleteCountCache.merge(playerUuid, 1, Integer::sum);
         islandRepo.incrementDeleteCount(playerUuid);
+        deleteCountCache.merge(playerUuid, 1, Integer::sum);
     }
 
     /**
@@ -555,16 +557,18 @@ public class IslandManager {
 
     /** 将岛屿加入网格空间索引（用于 O(1) 区块 → 岛屿反向查询） */
     private void addToGridIndex(Island island) {
-        int gx = Math.floorDiv(island.getCenterChunkX(), gridManager.getGridCellSize());
-        int gz = Math.floorDiv(island.getCenterChunkZ(), gridManager.getGridCellSize());
+        int cellSize = gridManager.getGridCellSize();
+        int gx = (int) Math.round((double) island.getCenterChunkX() / cellSize);
+        int gz = (int) Math.round((double) island.getCenterChunkZ() / cellSize);
         long key = (((long) gx) << 32) | (gz & 0xffffffffL);
         islandGridIndex.put(key, island.getId());
     }
 
     /** 从网格空间索引中移除岛屿 */
     private void removeFromGridIndex(Island island) {
-        int gx = Math.floorDiv(island.getCenterChunkX(), gridManager.getGridCellSize());
-        int gz = Math.floorDiv(island.getCenterChunkZ(), gridManager.getGridCellSize());
+        int cellSize = gridManager.getGridCellSize();
+        int gx = (int) Math.round((double) island.getCenterChunkX() / cellSize);
+        int gz = (int) Math.round((double) island.getCenterChunkZ() / cellSize);
         long key = (((long) gx) << 32) | (gz & 0xffffffffL);
         islandGridIndex.remove(key);
     }
@@ -607,12 +611,12 @@ public class IslandManager {
 
     /**
      * 根据区块坐标 O(1) 查找所属岛屿（在当前半径内）。
-     * 使用 floorDiv 将区块坐标映射到网格单元，与 addToGridIndex 一致的空间索引计算。
+     * 使用 Math.round 将区块坐标映射到最近的网格中心，保证岛屿负方向区块也能正确归位。
      */
     public Optional<Island> getIslandAt(int chunkX, int chunkZ) {
         int cellSize = gridManager.getGridCellSize();
-        int gx = Math.floorDiv(chunkX, cellSize);
-        int gz = Math.floorDiv(chunkZ, cellSize);
+        int gx = (int) Math.round((double) chunkX / cellSize);
+        int gz = (int) Math.round((double) chunkZ / cellSize);
         long key = (((long) gx) << 32) | (gz & 0xffffffffL);
         Integer id = islandGridIndex.get(key);
         if (id != null) {
@@ -630,8 +634,8 @@ public class IslandManager {
      */
     public Optional<Island> getIslandAtMaxRange(int chunkX, int chunkZ) {
         int cellSize = gridManager.getGridCellSize();
-        int gx = Math.floorDiv(chunkX, cellSize);
-        int gz = Math.floorDiv(chunkZ, cellSize);
+        int gx = (int) Math.round((double) chunkX / cellSize);
+        int gz = (int) Math.round((double) chunkZ / cellSize);
         long key = (((long) gx) << 32) | (gz & 0xffffffffL);
         Integer id = islandGridIndex.get(key);
         if (id != null) {

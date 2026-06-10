@@ -21,6 +21,7 @@ public class PlayerRepository {
     private final java.util.concurrent.locks.ReentrantReadWriteLock dbLock;
 
     private final Map<UUID, String> playerNameCache = createBoundedCache(2000);
+    private final Map<String, UUID> nameToUuidCache = createBoundedCache(2000);
     private final Map<UUID, Boolean> firstNetherJoinCache = createBoundedCache(2000);
 
     public PlayerRepository(SQLiteManager sqliteManager) {
@@ -42,6 +43,7 @@ public class PlayerRepository {
                     UUID uuid = UUID.fromString(rs.getString("player_uuid"));
                     String name = rs.getString("player_name");
                     playerNameCache.put(uuid, name);
+                    nameToUuidCache.put(name.toLowerCase(), uuid);
                     count++;
                 }
                 MessageUtil.consolePrint("已预加载 " + count + " 个玩家名称到缓存");
@@ -61,6 +63,7 @@ public class PlayerRepository {
         dbLock.writeLock().lock();
         try {
             playerNameCache.put(uuid, playerName);
+            nameToUuidCache.put(playerName.toLowerCase(), uuid);
             Connection conn = sqliteManager.getConnection();
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, uuid.toString());
@@ -111,15 +114,9 @@ public class PlayerRepository {
     }
 
     public Optional<UUID> getUUID(String playerName) {
-        dbLock.readLock().lock();
-        try {
-            for (Map.Entry<UUID, String> entry : playerNameCache.entrySet()) {
-                if (entry.getValue().equalsIgnoreCase(playerName)) {
-                    return Optional.of(entry.getKey());
-                }
-            }
-        } finally {
-            dbLock.readLock().unlock();
+        UUID cached = nameToUuidCache.get(playerName.toLowerCase());
+        if (cached != null) {
+            return Optional.of(cached);
         }
 
         String sql = "SELECT player_uuid FROM players WHERE LOWER(player_name) = ?";
@@ -132,6 +129,7 @@ public class PlayerRepository {
                     if (rs.next()) {
                         UUID uuid = UUID.fromString(rs.getString("player_uuid"));
                         playerNameCache.put(uuid, playerName);
+                        nameToUuidCache.put(playerName.toLowerCase(), uuid);
                         return Optional.of(uuid);
                     }
                 }

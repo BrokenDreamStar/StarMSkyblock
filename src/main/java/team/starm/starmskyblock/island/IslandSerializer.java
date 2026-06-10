@@ -2,6 +2,7 @@ package team.starm.starmskyblock.island;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import team.starm.starmskyblock.message.MessageUtil;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.setting.IslandSetting;
 
@@ -47,7 +48,9 @@ public final class IslandSerializer {
                     settingValues.put(setting, (Boolean) entry.getValue());
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            MessageUtil.consoleWarn("解析岛屿设置 JSON 失败: " + json);
+        }
     }
 
     private static IslandSetting legacyKeyToSetting(String key) {
@@ -95,6 +98,8 @@ public final class IslandSerializer {
                     }
                 } catch (IllegalArgumentException ignored) {}
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            MessageUtil.consoleWarn("解析岛屿权限 JSON 失败: " + json);
+        }
     }
 }

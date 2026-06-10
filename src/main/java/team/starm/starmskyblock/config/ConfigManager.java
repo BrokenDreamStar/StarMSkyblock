@@ -25,39 +25,39 @@ public class ConfigManager {
 
     private final StarMSkyblock plugin;
     // ==================== 基础岛屿配置 ====================
-    private int islandRadius; // 岛屿初始半径（区块）
-    private int islandSpacing; // 岛屿之间间隔距离（区块）
-    private int islandMaxRadius; // 岛屿可扩展的最大半径（区块）
-    private boolean teleportOnCreate; // 创建岛屿后是否自动传送玩家
-    private boolean showBorderDefault; // 岛屿边界是否默认显示
+    private volatile int islandRadius; // 岛屿初始半径（区块）
+    private volatile int islandSpacing; // 岛屿之间间隔距离（区块）
+    private volatile int islandMaxRadius; // 岛屿可扩展的最大半径（区块）
+    private volatile boolean teleportOnCreate; // 创建岛屿后是否自动传送玩家
+    private volatile boolean showBorderDefault; // 岛屿边界是否默认显示
     // ==================== 结构文件配置（支持多岛屿类型） ====================
-    private Map<String, String> normalSchematics; // 岛屿类型 -> 结构文件名
-    private Map<String, SchematicConfig> schematicConfigs; // 岛屿类型 -> 完整配置（含偏移）
-    private String defaultNormalSchematicId; // 默认使用的岛屿类型ID
+    private volatile Map<String, String> normalSchematics; // 岛屿类型 -> 结构文件名
+    private volatile Map<String, SchematicConfig> schematicConfigs; // 岛屿类型 -> 完整配置（含偏移）
+    private volatile String defaultNormalSchematicId; // 默认使用的岛屿类型ID
     // 下界和末地结构（当前版本自动根据主世界结构文件名生成 _nether / _the_end 后缀）
     // (netherSchematic / endSchematic 字段已移除，改用 getNetherSchematicFileName / getEndSchematicFileName)
     // ==================== 世界与生物群系配置 ====================
-    private String biomeNormal; // 主世界生物群系
-    private String biomeNether; // 下界生物群系
-    private String biomeEnd; // 末地生物群系
-    private String worldNameNormal; // 主世界名称
-    private String worldNameNether; // 下界世界名称
-    private String worldNameEnd; // 末地世界名称
-    private int islandHeight; // 岛屿生成高度（以基岩方块为中心点的 Y 坐标）
+    private volatile String biomeNormal; // 主世界生物群系
+    private volatile String biomeNether; // 下界生物群系
+    private volatile String biomeEnd; // 末地生物群系
+    private volatile String worldNameNormal; // 主世界名称
+    private volatile String worldNameNether; // 下界世界名称
+    private volatile String worldNameEnd; // 末地世界名称
+    private volatile int islandHeight; // 岛屿生成高度（以基岩方块为中心点的 Y 坐标）
     // ==================== 其他功能配置 ====================
-    private int maxDeleteTimes; // 玩家最多可删除自己岛屿的次数
-    private boolean allowSetspawnInNether; // 是否允许在下界使用 /is setspawn
-    private boolean allowSetspawnInEnd; // 是否允许在末地使用 /is setspawn
-    private boolean allowEndPortalInNether; // 是否允许在下界放置末地传送门
-    private boolean allowEndPortalInEnd; // 是否允许在末地放置末地传送门
-    private long permissionMessageCooldown; // 权限提示消息冷却时间（毫秒）
-    private int maxNameLength; // 岛屿名称最大长度（颜色代码不计入）
-    private int renameCooldown; // 岛屿重命名冷却时间（秒）
-    private int teleportCountdown; // 岛屿传送倒计时（秒）
-    private boolean useFawe; // 是否使用 FAWE 模式
-    private String defaultIslandCommand; // /is 无参数时执行的子命令（默认 spawn）
-    private boolean obsidianToLava; // 是否允许空桶右键黑曜石转化为熔岩桶
-    private boolean setRespawnOnJoin; // 创建或加入岛屿时是否自动设置重生点
+    private volatile int maxDeleteTimes; // 玩家最多可删除自己岛屿的次数
+    private volatile boolean allowSetspawnInNether; // 是否允许在下界使用 /is setspawn
+    private volatile boolean allowSetspawnInEnd; // 是否允许在末地使用 /is setspawn
+    private volatile boolean allowEndPortalInNether; // 是否允许在下界放置末地传送门
+    private volatile boolean allowEndPortalInEnd; // 是否允许在末地放置末地传送门
+    private volatile long permissionMessageCooldown; // 权限提示消息冷却时间（毫秒）
+    private volatile int maxNameLength; // 岛屿名称最大长度（颜色代码不计入）
+    private volatile int renameCooldown; // 岛屿重命名冷却时间（秒）
+    private volatile int teleportCountdown; // 岛屿传送倒计时（秒）
+    private volatile boolean useFawe; // 是否使用 FAWE 模式
+    private volatile String defaultIslandCommand; // /is 无参数时执行的子命令（默认 spawn）
+    private volatile boolean obsidianToLava; // 是否允许空桶右键黑曜石转化为熔岩桶
+    private volatile boolean setRespawnOnJoin; // 创建或加入岛屿时是否自动设置重生点
 
     public ConfigManager(StarMSkyblock plugin) {
         this.plugin = plugin;
@@ -83,9 +83,26 @@ public class ConfigManager {
         FileConfiguration config = plugin.getConfig();
 
         // ====================== 基础岛屿参数 ======================
-        this.islandRadius = config.getInt("island-radius", 5);
-        this.islandSpacing = config.getInt("island-spacing", 5);
-        this.islandMaxRadius = config.getInt("island-max-radius", 16);
+        int rawRadius = config.getInt("island-radius", 5);
+        if (rawRadius < 1) {
+            MessageUtil.consoleWarn("island-radius 必须 ≥ 1，已自动修正为 1");
+            rawRadius = 1;
+        }
+        this.islandRadius = rawRadius;
+
+        int rawSpacing = config.getInt("island-spacing", 5);
+        if (rawSpacing < 0) {
+            MessageUtil.consoleWarn("island-spacing 不能为负数，已自动修正为 0");
+            rawSpacing = 0;
+        }
+        this.islandSpacing = rawSpacing;
+
+        int rawMaxRadius = config.getInt("island-max-radius", 16);
+        if (rawMaxRadius < this.islandRadius) {
+            MessageUtil.consoleWarn("island-max-radius 不能小于 island-radius，已自动修正为 " + this.islandRadius);
+            rawMaxRadius = this.islandRadius;
+        }
+        this.islandMaxRadius = rawMaxRadius;
 
         this.teleportOnCreate = config.getBoolean("teleport-on-create", true);
         this.showBorderDefault = config.getBoolean("show-border-default", true);

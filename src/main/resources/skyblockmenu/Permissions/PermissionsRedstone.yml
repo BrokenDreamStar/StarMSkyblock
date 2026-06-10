@@ -1,0 +1,515 @@
+Title: '岛屿权限管理-红石'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#ABCDEFG#'
+  - '#HIJ    #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: Permissions'
+
+  'A':
+    update: 30
+    refresh: 30
+    display:
+      material: STONE_BUTTON
+      name: '&a按按钮'
+      lore:
+        - '&f按按钮'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_BUTTON_PRESS_level_ADMIN%'
+        - '- %starmskyblock_permission_BUTTON_PRESS_level_MOD%'
+        - '- %starmskyblock_permission_BUTTON_PRESS_level_MEMBER%'
+        - '- %starmskyblock_permission_BUTTON_PRESS_level_COOP%'
+        - '- %starmskyblock_permission_BUTTON_PRESS_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission button_press cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission button_press rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f按按钮'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_BUTTON_PRESS_level_ADMIN%'
+            - '- %starmskyblock_permission_BUTTON_PRESS_level_MOD%'
+            - '- %starmskyblock_permission_BUTTON_PRESS_level_MEMBER%'
+            - '- %starmskyblock_permission_BUTTON_PRESS_level_COOP%'
+            - '- %starmskyblock_permission_BUTTON_PRESS_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'B':
+    update: 30
+    refresh: 30
+    display:
+      material: LEVER
+      name: '&a拉拉杆'
+      lore:
+        - '&f拉拉杆'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_LEVER_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_LEVER_USE_level_MOD%'
+        - '- %starmskyblock_permission_LEVER_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_LEVER_USE_level_COOP%'
+        - '- %starmskyblock_permission_LEVER_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission lever_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission lever_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f拉拉杆'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_LEVER_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_LEVER_USE_level_MOD%'
+            - '- %starmskyblock_permission_LEVER_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_LEVER_USE_level_COOP%'
+            - '- %starmskyblock_permission_LEVER_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'C':
+    update: 30
+    refresh: 30
+    display:
+      material: REPEATER
+      name: '&a切换红石中继器'
+      lore:
+        - '&f切换红石中继器'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_REPEATER_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_REPEATER_USE_level_MOD%'
+        - '- %starmskyblock_permission_REPEATER_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_REPEATER_USE_level_COOP%'
+        - '- %starmskyblock_permission_REPEATER_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission repeater_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission repeater_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f切换红石中继器'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_REPEATER_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_REPEATER_USE_level_MOD%'
+            - '- %starmskyblock_permission_REPEATER_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_REPEATER_USE_level_COOP%'
+            - '- %starmskyblock_permission_REPEATER_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'D':
+    update: 30
+    refresh: 30
+    display:
+      material: COMPARATOR
+      name: '&a切换红石比较器'
+      lore:
+        - '&f切换红石比较器'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_COMPARATOR_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_COMPARATOR_USE_level_MOD%'
+        - '- %starmskyblock_permission_COMPARATOR_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_COMPARATOR_USE_level_COOP%'
+        - '- %starmskyblock_permission_COMPARATOR_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission comparator_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission comparator_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f切换红石比较器'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_COMPARATOR_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_COMPARATOR_USE_level_MOD%'
+            - '- %starmskyblock_permission_COMPARATOR_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_COMPARATOR_USE_level_COOP%'
+            - '- %starmskyblock_permission_COMPARATOR_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'E':
+    update: 30
+    refresh: 30
+    display:
+      material: DAYLIGHT_DETECTOR
+      name: '&a切换阳光探测器'
+      lore:
+        - '&f切换阳光探测器'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_DAYLIGHT_DETECTOR_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_DAYLIGHT_DETECTOR_USE_level_MOD%'
+        - '- %starmskyblock_permission_DAYLIGHT_DETECTOR_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_DAYLIGHT_DETECTOR_USE_level_COOP%'
+        - '- %starmskyblock_permission_DAYLIGHT_DETECTOR_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission daylight_detector_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission daylight_detector_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f切换阳光探测器'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_DAYLIGHT_DETECTOR_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_DAYLIGHT_DETECTOR_USE_level_MOD%'
+            - '- %starmskyblock_permission_DAYLIGHT_DETECTOR_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_DAYLIGHT_DETECTOR_USE_level_COOP%'
+            - '- %starmskyblock_permission_DAYLIGHT_DETECTOR_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'F':
+    update: 30
+    refresh: 30
+    display:
+      material: STONE_PRESSURE_PLATE
+      name: '&a触发压力板'
+      lore:
+        - '&f触发压力板'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_PRESSURE_PLATE_TRIGGER_level_ADMIN%'
+        - '- %starmskyblock_permission_PRESSURE_PLATE_TRIGGER_level_MOD%'
+        - '- %starmskyblock_permission_PRESSURE_PLATE_TRIGGER_level_MEMBER%'
+        - '- %starmskyblock_permission_PRESSURE_PLATE_TRIGGER_level_COOP%'
+        - '- %starmskyblock_permission_PRESSURE_PLATE_TRIGGER_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission pressure_plate_trigger cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission pressure_plate_trigger rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f触发压力板'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_PRESSURE_PLATE_TRIGGER_level_ADMIN%'
+            - '- %starmskyblock_permission_PRESSURE_PLATE_TRIGGER_level_MOD%'
+            - '- %starmskyblock_permission_PRESSURE_PLATE_TRIGGER_level_MEMBER%'
+            - '- %starmskyblock_permission_PRESSURE_PLATE_TRIGGER_level_COOP%'
+            - '- %starmskyblock_permission_PRESSURE_PLATE_TRIGGER_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'G':
+    update: 30
+    refresh: 30
+    display:
+      material: TRIPWIRE_HOOK
+      name: '&a触发绊线钩'
+      lore:
+        - '&f触发绊线钩'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_TRIPWIRE_HOOK_TRIGGER_level_ADMIN%'
+        - '- %starmskyblock_permission_TRIPWIRE_HOOK_TRIGGER_level_MOD%'
+        - '- %starmskyblock_permission_TRIPWIRE_HOOK_TRIGGER_level_MEMBER%'
+        - '- %starmskyblock_permission_TRIPWIRE_HOOK_TRIGGER_level_COOP%'
+        - '- %starmskyblock_permission_TRIPWIRE_HOOK_TRIGGER_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission tripwire_hook_trigger cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission tripwire_hook_trigger rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f触发绊线钩'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_TRIPWIRE_HOOK_TRIGGER_level_ADMIN%'
+            - '- %starmskyblock_permission_TRIPWIRE_HOOK_TRIGGER_level_MOD%'
+            - '- %starmskyblock_permission_TRIPWIRE_HOOK_TRIGGER_level_MEMBER%'
+            - '- %starmskyblock_permission_TRIPWIRE_HOOK_TRIGGER_level_COOP%'
+            - '- %starmskyblock_permission_TRIPWIRE_HOOK_TRIGGER_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'H':
+    update: 30
+    refresh: 30
+    display:
+      material: SCULK_SENSOR
+      name: '&a触发幽匿感测体'
+      lore:
+        - '&f触发幽匿感测体'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_SCULK_SENSOR_TRIGGER_level_ADMIN%'
+        - '- %starmskyblock_permission_SCULK_SENSOR_TRIGGER_level_MOD%'
+        - '- %starmskyblock_permission_SCULK_SENSOR_TRIGGER_level_MEMBER%'
+        - '- %starmskyblock_permission_SCULK_SENSOR_TRIGGER_level_COOP%'
+        - '- %starmskyblock_permission_SCULK_SENSOR_TRIGGER_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission sculk_sensor_trigger cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission sculk_sensor_trigger rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f触发幽匿感测体'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_SCULK_SENSOR_TRIGGER_level_ADMIN%'
+            - '- %starmskyblock_permission_SCULK_SENSOR_TRIGGER_level_MOD%'
+            - '- %starmskyblock_permission_SCULK_SENSOR_TRIGGER_level_MEMBER%'
+            - '- %starmskyblock_permission_SCULK_SENSOR_TRIGGER_level_COOP%'
+            - '- %starmskyblock_permission_SCULK_SENSOR_TRIGGER_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'I':
+    update: 30
+    refresh: 30
+    display:
+      material: BELL
+      name: '&a敲击钟'
+      lore:
+        - '&f敲击钟'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_BELL_RING_level_ADMIN%'
+        - '- %starmskyblock_permission_BELL_RING_level_MOD%'
+        - '- %starmskyblock_permission_BELL_RING_level_MEMBER%'
+        - '- %starmskyblock_permission_BELL_RING_level_COOP%'
+        - '- %starmskyblock_permission_BELL_RING_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission bell_ring cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission bell_ring rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f敲击钟'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_BELL_RING_level_ADMIN%'
+            - '- %starmskyblock_permission_BELL_RING_level_MOD%'
+            - '- %starmskyblock_permission_BELL_RING_level_MEMBER%'
+            - '- %starmskyblock_permission_BELL_RING_level_COOP%'
+            - '- %starmskyblock_permission_BELL_RING_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'J':
+    update: 30
+    refresh: 30
+    display:
+      material: NOTE_BLOCK
+      name: '&a使用音符盒'
+      lore:
+        - '&f使用音符盒'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_NOTE_BLOCK_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_NOTE_BLOCK_USE_level_MOD%'
+        - '- %starmskyblock_permission_NOTE_BLOCK_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_NOTE_BLOCK_USE_level_COOP%'
+        - '- %starmskyblock_permission_NOTE_BLOCK_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission note_block_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission note_block_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f使用音符盒'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_NOTE_BLOCK_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_NOTE_BLOCK_USE_level_MOD%'
+            - '- %starmskyblock_permission_NOTE_BLOCK_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_NOTE_BLOCK_USE_level_COOP%'
+            - '- %starmskyblock_permission_NOTE_BLOCK_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'

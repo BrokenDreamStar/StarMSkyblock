@@ -53,6 +53,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
 
         subCommands.put("help", new HelpCommand(plugin, this));
         subCommandNames.addAll(subCommands.keySet());
+        subCommandNames.add("permission");
         Collections.sort(subCommandNames); // keep sorted for help/tab
     }
 

@@ -1,0 +1,957 @@
+Title: '岛屿权限管理-容器'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#ABCDEFG#'
+  - '#HIJKLMN#'
+  - '#OPQRS  #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: Permissions'
+
+  'A':
+    update: 30
+    refresh: 30
+    display:
+      material: FURNACE
+      name: '&a使用熔炉'
+      lore:
+        - '&f使用熔炉'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_FURNACE_OPEN_level_ADMIN%'
+        - '- %starmskyblock_permission_FURNACE_OPEN_level_MOD%'
+        - '- %starmskyblock_permission_FURNACE_OPEN_level_MEMBER%'
+        - '- %starmskyblock_permission_FURNACE_OPEN_level_COOP%'
+        - '- %starmskyblock_permission_FURNACE_OPEN_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission furnace_open cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission furnace_open rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f使用熔炉'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_FURNACE_OPEN_level_ADMIN%'
+            - '- %starmskyblock_permission_FURNACE_OPEN_level_MOD%'
+            - '- %starmskyblock_permission_FURNACE_OPEN_level_MEMBER%'
+            - '- %starmskyblock_permission_FURNACE_OPEN_level_COOP%'
+            - '- %starmskyblock_permission_FURNACE_OPEN_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'B':
+    update: 30
+    refresh: 30
+    display:
+      material: CHEST
+      name: '&a打开箱子'
+      lore:
+        - '&f打开箱子/陷阱箱/箱子矿车/运输船/运输竹筏'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_CHEST_OPEN_level_ADMIN%'
+        - '- %starmskyblock_permission_CHEST_OPEN_level_MOD%'
+        - '- %starmskyblock_permission_CHEST_OPEN_level_MEMBER%'
+        - '- %starmskyblock_permission_CHEST_OPEN_level_COOP%'
+        - '- %starmskyblock_permission_CHEST_OPEN_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission chest_open cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission chest_open rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f打开箱子/陷阱箱/箱子矿车/运输船/运输竹筏'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_CHEST_OPEN_level_ADMIN%'
+            - '- %starmskyblock_permission_CHEST_OPEN_level_MOD%'
+            - '- %starmskyblock_permission_CHEST_OPEN_level_MEMBER%'
+            - '- %starmskyblock_permission_CHEST_OPEN_level_COOP%'
+            - '- %starmskyblock_permission_CHEST_OPEN_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'C':
+    update: 30
+    refresh: 30
+    display:
+      material: BARREL
+      name: '&a打开木桶'
+      lore:
+        - '&f打开木桶'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_BARREL_OPEN_level_ADMIN%'
+        - '- %starmskyblock_permission_BARREL_OPEN_level_MOD%'
+        - '- %starmskyblock_permission_BARREL_OPEN_level_MEMBER%'
+        - '- %starmskyblock_permission_BARREL_OPEN_level_COOP%'
+        - '- %starmskyblock_permission_BARREL_OPEN_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission barrel_open cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission barrel_open rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f打开木桶'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_BARREL_OPEN_level_ADMIN%'
+            - '- %starmskyblock_permission_BARREL_OPEN_level_MOD%'
+            - '- %starmskyblock_permission_BARREL_OPEN_level_MEMBER%'
+            - '- %starmskyblock_permission_BARREL_OPEN_level_COOP%'
+            - '- %starmskyblock_permission_BARREL_OPEN_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'D':
+    update: 30
+    refresh: 30
+    display:
+      material: ENDER_CHEST
+      name: '&a打开末影箱'
+      lore:
+        - '&f打开末影箱'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_ENDER_CHEST_OPEN_level_ADMIN%'
+        - '- %starmskyblock_permission_ENDER_CHEST_OPEN_level_MOD%'
+        - '- %starmskyblock_permission_ENDER_CHEST_OPEN_level_MEMBER%'
+        - '- %starmskyblock_permission_ENDER_CHEST_OPEN_level_COOP%'
+        - '- %starmskyblock_permission_ENDER_CHEST_OPEN_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission ender_chest_open cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission ender_chest_open rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f打开末影箱'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_ENDER_CHEST_OPEN_level_ADMIN%'
+            - '- %starmskyblock_permission_ENDER_CHEST_OPEN_level_MOD%'
+            - '- %starmskyblock_permission_ENDER_CHEST_OPEN_level_MEMBER%'
+            - '- %starmskyblock_permission_ENDER_CHEST_OPEN_level_COOP%'
+            - '- %starmskyblock_permission_ENDER_CHEST_OPEN_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'E':
+    update: 30
+    refresh: 30
+    display:
+      material: SHULKER_BOX
+      name: '&a打开潜影盒'
+      lore:
+        - '&f打开潜影盒'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_SHULKER_BOX_OPEN_level_ADMIN%'
+        - '- %starmskyblock_permission_SHULKER_BOX_OPEN_level_MOD%'
+        - '- %starmskyblock_permission_SHULKER_BOX_OPEN_level_MEMBER%'
+        - '- %starmskyblock_permission_SHULKER_BOX_OPEN_level_COOP%'
+        - '- %starmskyblock_permission_SHULKER_BOX_OPEN_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission shulker_box_open cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission shulker_box_open rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f打开潜影盒'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_SHULKER_BOX_OPEN_level_ADMIN%'
+            - '- %starmskyblock_permission_SHULKER_BOX_OPEN_level_MOD%'
+            - '- %starmskyblock_permission_SHULKER_BOX_OPEN_level_MEMBER%'
+            - '- %starmskyblock_permission_SHULKER_BOX_OPEN_level_COOP%'
+            - '- %starmskyblock_permission_SHULKER_BOX_OPEN_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'F':
+    update: 30
+    refresh: 30
+    display:
+      material: HOPPER
+      name: '&a打开漏斗'
+      lore:
+        - '&f打开漏斗/漏斗矿车'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_HOPPER_OPEN_level_ADMIN%'
+        - '- %starmskyblock_permission_HOPPER_OPEN_level_MOD%'
+        - '- %starmskyblock_permission_HOPPER_OPEN_level_MEMBER%'
+        - '- %starmskyblock_permission_HOPPER_OPEN_level_COOP%'
+        - '- %starmskyblock_permission_HOPPER_OPEN_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission hopper_open cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission hopper_open rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f打开漏斗/漏斗矿车'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_HOPPER_OPEN_level_ADMIN%'
+            - '- %starmskyblock_permission_HOPPER_OPEN_level_MOD%'
+            - '- %starmskyblock_permission_HOPPER_OPEN_level_MEMBER%'
+            - '- %starmskyblock_permission_HOPPER_OPEN_level_COOP%'
+            - '- %starmskyblock_permission_HOPPER_OPEN_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'G':
+    update: 30
+    refresh: 30
+    display:
+      material: DISPENSER
+      name: '&a打开发射器'
+      lore:
+        - '&f打开发射器'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_DISPENSER_OPEN_level_ADMIN%'
+        - '- %starmskyblock_permission_DISPENSER_OPEN_level_MOD%'
+        - '- %starmskyblock_permission_DISPENSER_OPEN_level_MEMBER%'
+        - '- %starmskyblock_permission_DISPENSER_OPEN_level_COOP%'
+        - '- %starmskyblock_permission_DISPENSER_OPEN_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission dispenser_open cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission dispenser_open rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f打开发射器'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_DISPENSER_OPEN_level_ADMIN%'
+            - '- %starmskyblock_permission_DISPENSER_OPEN_level_MOD%'
+            - '- %starmskyblock_permission_DISPENSER_OPEN_level_MEMBER%'
+            - '- %starmskyblock_permission_DISPENSER_OPEN_level_COOP%'
+            - '- %starmskyblock_permission_DISPENSER_OPEN_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'H':
+    update: 30
+    refresh: 30
+    display:
+      material: DROPPER
+      name: '&a打开投掷器'
+      lore:
+        - '&f打开投掷器'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_DROPPER_OPEN_level_ADMIN%'
+        - '- %starmskyblock_permission_DROPPER_OPEN_level_MOD%'
+        - '- %starmskyblock_permission_DROPPER_OPEN_level_MEMBER%'
+        - '- %starmskyblock_permission_DROPPER_OPEN_level_COOP%'
+        - '- %starmskyblock_permission_DROPPER_OPEN_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission dropper_open cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission dropper_open rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f打开投掷器'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_DROPPER_OPEN_level_ADMIN%'
+            - '- %starmskyblock_permission_DROPPER_OPEN_level_MOD%'
+            - '- %starmskyblock_permission_DROPPER_OPEN_level_MEMBER%'
+            - '- %starmskyblock_permission_DROPPER_OPEN_level_COOP%'
+            - '- %starmskyblock_permission_DROPPER_OPEN_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'I':
+    update: 30
+    refresh: 30
+    display:
+      material: CRAFTER
+      name: '&a打开自动合成器'
+      lore:
+        - '&f打开自动合成器'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_CRAFTER_OPEN_level_ADMIN%'
+        - '- %starmskyblock_permission_CRAFTER_OPEN_level_MOD%'
+        - '- %starmskyblock_permission_CRAFTER_OPEN_level_MEMBER%'
+        - '- %starmskyblock_permission_CRAFTER_OPEN_level_COOP%'
+        - '- %starmskyblock_permission_CRAFTER_OPEN_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission crafter_open cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission crafter_open rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f打开自动合成器'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_CRAFTER_OPEN_level_ADMIN%'
+            - '- %starmskyblock_permission_CRAFTER_OPEN_level_MOD%'
+            - '- %starmskyblock_permission_CRAFTER_OPEN_level_MEMBER%'
+            - '- %starmskyblock_permission_CRAFTER_OPEN_level_COOP%'
+            - '- %starmskyblock_permission_CRAFTER_OPEN_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'J':
+    update: 30
+    refresh: 30
+    display:
+      material: BREWING_STAND
+      name: '&a打开酿造台'
+      lore:
+        - '&f打开酿造台'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_BREWING_STAND_OPEN_level_ADMIN%'
+        - '- %starmskyblock_permission_BREWING_STAND_OPEN_level_MOD%'
+        - '- %starmskyblock_permission_BREWING_STAND_OPEN_level_MEMBER%'
+        - '- %starmskyblock_permission_BREWING_STAND_OPEN_level_COOP%'
+        - '- %starmskyblock_permission_BREWING_STAND_OPEN_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission brewing_stand_open cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission brewing_stand_open rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f打开酿造台'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_BREWING_STAND_OPEN_level_ADMIN%'
+            - '- %starmskyblock_permission_BREWING_STAND_OPEN_level_MOD%'
+            - '- %starmskyblock_permission_BREWING_STAND_OPEN_level_MEMBER%'
+            - '- %starmskyblock_permission_BREWING_STAND_OPEN_level_COOP%'
+            - '- %starmskyblock_permission_BREWING_STAND_OPEN_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'K':
+    update: 30
+    refresh: 30
+    display:
+      material: ARMOR_STAND
+      name: '&a使用展示架'
+      lore:
+        - '&f使用展示架'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_SHELF_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_SHELF_USE_level_MOD%'
+        - '- %starmskyblock_permission_SHELF_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_SHELF_USE_level_COOP%'
+        - '- %starmskyblock_permission_SHELF_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission shelf_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission shelf_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f使用展示架'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_SHELF_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_SHELF_USE_level_MOD%'
+            - '- %starmskyblock_permission_SHELF_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_SHELF_USE_level_COOP%'
+            - '- %starmskyblock_permission_SHELF_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'L':
+    update: 30
+    refresh: 30
+    display:
+      material: ITEM_FRAME
+      name: '&a使用物品展示框'
+      lore:
+        - '&f使用物品展示框'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_ITEM_FRAME_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_ITEM_FRAME_USE_level_MOD%'
+        - '- %starmskyblock_permission_ITEM_FRAME_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_ITEM_FRAME_USE_level_COOP%'
+        - '- %starmskyblock_permission_ITEM_FRAME_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission item_frame_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission item_frame_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f使用物品展示框'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_ITEM_FRAME_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_ITEM_FRAME_USE_level_MOD%'
+            - '- %starmskyblock_permission_ITEM_FRAME_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_ITEM_FRAME_USE_level_COOP%'
+            - '- %starmskyblock_permission_ITEM_FRAME_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'M':
+    update: 30
+    refresh: 30
+    display:
+      material: JUKEBOX
+      name: '&a使用唱片机'
+      lore:
+        - '&f使用唱片机'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_JUKEBOX_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_JUKEBOX_USE_level_MOD%'
+        - '- %starmskyblock_permission_JUKEBOX_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_JUKEBOX_USE_level_COOP%'
+        - '- %starmskyblock_permission_JUKEBOX_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission jukebox_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission jukebox_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f使用唱片机'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_JUKEBOX_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_JUKEBOX_USE_level_MOD%'
+            - '- %starmskyblock_permission_JUKEBOX_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_JUKEBOX_USE_level_COOP%'
+            - '- %starmskyblock_permission_JUKEBOX_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'N':
+    update: 30
+    refresh: 30
+    display:
+      material: LECTERN
+      name: '&a使用讲台'
+      lore:
+        - '&f使用讲台'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_LECTERN_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_LECTERN_USE_level_MOD%'
+        - '- %starmskyblock_permission_LECTERN_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_LECTERN_USE_level_COOP%'
+        - '- %starmskyblock_permission_LECTERN_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission lectern_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission lectern_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f使用讲台'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_LECTERN_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_LECTERN_USE_level_MOD%'
+            - '- %starmskyblock_permission_LECTERN_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_LECTERN_USE_level_COOP%'
+            - '- %starmskyblock_permission_LECTERN_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'O':
+    update: 30
+    refresh: 30
+    display:
+      material: CHISELED_BOOKSHELF
+      name: '&a使用雕纹书架'
+      lore:
+        - '&f使用雕纹书架'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_CHISELED_BOOKSHELF_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_CHISELED_BOOKSHELF_USE_level_MOD%'
+        - '- %starmskyblock_permission_CHISELED_BOOKSHELF_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_CHISELED_BOOKSHELF_USE_level_COOP%'
+        - '- %starmskyblock_permission_CHISELED_BOOKSHELF_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission chiseled_bookshelf_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission chiseled_bookshelf_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f使用雕纹书架'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_CHISELED_BOOKSHELF_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_CHISELED_BOOKSHELF_USE_level_MOD%'
+            - '- %starmskyblock_permission_CHISELED_BOOKSHELF_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_CHISELED_BOOKSHELF_USE_level_COOP%'
+            - '- %starmskyblock_permission_CHISELED_BOOKSHELF_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'P':
+    update: 30
+    refresh: 30
+    display:
+      material: DECORATED_POT
+      name: '&a使用陶罐'
+      lore:
+        - '&f使用陶罐'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_DECORATED_POT_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_DECORATED_POT_USE_level_MOD%'
+        - '- %starmskyblock_permission_DECORATED_POT_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_DECORATED_POT_USE_level_COOP%'
+        - '- %starmskyblock_permission_DECORATED_POT_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission decorated_pot_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission decorated_pot_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f使用陶罐'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_DECORATED_POT_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_DECORATED_POT_USE_level_MOD%'
+            - '- %starmskyblock_permission_DECORATED_POT_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_DECORATED_POT_USE_level_COOP%'
+            - '- %starmskyblock_permission_DECORATED_POT_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'Q':
+    update: 30
+    refresh: 30
+    display:
+      material: COMPOSTER
+      name: '&a使用堆肥桶'
+      lore:
+        - '&f使用堆肥桶'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_COMPOSTER_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_COMPOSTER_USE_level_MOD%'
+        - '- %starmskyblock_permission_COMPOSTER_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_COMPOSTER_USE_level_COOP%'
+        - '- %starmskyblock_permission_COMPOSTER_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission composter_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission composter_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f使用堆肥桶'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_COMPOSTER_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_COMPOSTER_USE_level_MOD%'
+            - '- %starmskyblock_permission_COMPOSTER_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_COMPOSTER_USE_level_COOP%'
+            - '- %starmskyblock_permission_COMPOSTER_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'R':
+    update: 30
+    refresh: 30
+    display:
+      material: FLOWER_POT
+      name: '&a使用花盆'
+      lore:
+        - '&f使用花盆'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_FLOWER_POT_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_FLOWER_POT_USE_level_MOD%'
+        - '- %starmskyblock_permission_FLOWER_POT_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_FLOWER_POT_USE_level_COOP%'
+        - '- %starmskyblock_permission_FLOWER_POT_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission flower_pot_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission flower_pot_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f使用花盆'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_FLOWER_POT_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_FLOWER_POT_USE_level_MOD%'
+            - '- %starmskyblock_permission_FLOWER_POT_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_FLOWER_POT_USE_level_COOP%'
+            - '- %starmskyblock_permission_FLOWER_POT_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'S':
+    update: 30
+    refresh: 30
+    display:
+      material: SADDLE
+      name: '&a打开生物背包'
+      lore:
+        - '&f打开生物的背包/装备栏'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_ANIMAL_INVENTORY_OPEN_level_ADMIN%'
+        - '- %starmskyblock_permission_ANIMAL_INVENTORY_OPEN_level_MOD%'
+        - '- %starmskyblock_permission_ANIMAL_INVENTORY_OPEN_level_MEMBER%'
+        - '- %starmskyblock_permission_ANIMAL_INVENTORY_OPEN_level_COOP%'
+        - '- %starmskyblock_permission_ANIMAL_INVENTORY_OPEN_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission animal_inventory_open cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission animal_inventory_open rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f打开生物的背包/装备栏'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_ANIMAL_INVENTORY_OPEN_level_ADMIN%'
+            - '- %starmskyblock_permission_ANIMAL_INVENTORY_OPEN_level_MOD%'
+            - '- %starmskyblock_permission_ANIMAL_INVENTORY_OPEN_level_MEMBER%'
+            - '- %starmskyblock_permission_ANIMAL_INVENTORY_OPEN_level_COOP%'
+            - '- %starmskyblock_permission_ANIMAL_INVENTORY_OPEN_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'

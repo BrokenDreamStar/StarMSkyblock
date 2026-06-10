@@ -47,22 +47,26 @@ public class IslandRepository {
             try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(sql)) {
                 while (rs.next()) {
-                    rows.add(new IslandRow(
-                            rs.getInt("id"),
-                            UUID.fromString(rs.getString("owner_uuid")),
-                            rs.getString("name"),
-                            rs.getInt("level"),
-                            rs.getInt("radius"),
-                            rs.getInt("center_x"),
-                            rs.getInt("center_z"),
-                            rs.getString("permissions"),
-                            rs.getString("settings"),
-                            rs.getString("home_data"),
-                            rs.getString("created_at"),
-                            rs.getInt("nether_unlocked") == 1,
-                            rs.getInt("generator_level"),
-                            rs.getString("generator_disabled")
-                    ));
+                    try {
+                        rows.add(new IslandRow(
+                                rs.getInt("id"),
+                                UUID.fromString(rs.getString("owner_uuid")),
+                                rs.getString("name"),
+                                rs.getInt("level"),
+                                rs.getInt("radius"),
+                                rs.getInt("center_x"),
+                                rs.getInt("center_z"),
+                                rs.getString("permissions"),
+                                rs.getString("settings"),
+                                rs.getString("home_data"),
+                                rs.getString("created_at"),
+                                rs.getInt("nether_unlocked") == 1,
+                                rs.getInt("generator_level"),
+                                rs.getString("generator_disabled")
+                        ));
+                    } catch (IllegalArgumentException e) {
+                        MessageUtil.consoleWarn("跳过无效 UUID 的岛屿行，id=" + rs.getInt("id"));
+                    }
                 }
             } catch (SQLException e) {
                 MessageUtil.consoleError("加载岛屿数据失败！", e);
@@ -82,11 +86,15 @@ public class IslandRepository {
             try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(sql)) {
                 while (rs.next()) {
-                    rows.add(new MemberRow(
-                            rs.getInt("island_id"),
-                            UUID.fromString(rs.getString("player_uuid")),
-                            rs.getString("role")
-                    ));
+                    try {
+                        rows.add(new MemberRow(
+                                rs.getInt("island_id"),
+                                UUID.fromString(rs.getString("player_uuid")),
+                                rs.getString("role")
+                        ));
+                    } catch (IllegalArgumentException e) {
+                        MessageUtil.consoleWarn("跳过无效 UUID 的成员行，island_id=" + rs.getInt("island_id"));
+                    }
                 }
             } catch (SQLException e) {
                 MessageUtil.consoleError("加载岛屿成员数据失败！", e);
@@ -106,10 +114,14 @@ public class IslandRepository {
             try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(sql)) {
                 while (rs.next()) {
-                    rows.add(new CoopRow(
-                            rs.getInt("island_id"),
-                            UUID.fromString(rs.getString("player_uuid"))
-                    ));
+                    try {
+                        rows.add(new CoopRow(
+                                rs.getInt("island_id"),
+                                UUID.fromString(rs.getString("player_uuid"))
+                        ));
+                    } catch (IllegalArgumentException e) {
+                        MessageUtil.consoleWarn("跳过无效 UUID 的合作者行，island_id=" + rs.getInt("island_id"));
+                    }
                 }
             } catch (SQLException e) {
                 MessageUtil.consoleError("加载岛屿合作者数据失败！", e);
@@ -302,6 +314,26 @@ public class IslandRepository {
                 pstmt.executeUpdate();
             } catch (SQLException e) {
                 MessageUtil.consoleError("保存权限数据失败！岛屿ID: " + id, e);
+            }
+        } finally {
+            dbLock.writeLock().unlock();
+        }
+    }
+
+    public void batchUpdateIsland(int id, String name, int radius, int generatorLevel, String generatorDisabledJson) {
+        dbLock.writeLock().lock();
+        try {
+            Connection conn = sqliteManager.getConnection();
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                    "UPDATE islands SET name=?, radius=?, generator_level=?, generator_disabled=? WHERE id=?")) {
+                pstmt.setString(1, name != null ? name : "");
+                pstmt.setInt(2, radius);
+                pstmt.setInt(3, generatorLevel);
+                pstmt.setString(4, generatorDisabledJson);
+                pstmt.setInt(5, id);
+                pstmt.executeUpdate();
+            } catch (SQLException e) {
+                MessageUtil.consoleError("批量更新岛屿数据失败！ID: " + id, e);
             }
         } finally {
             dbLock.writeLock().unlock();

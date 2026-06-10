@@ -1,9 +1,11 @@
 package team.starm.starmskyblock.island;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BoundingBox;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.message.MessageUtil;
 
@@ -73,37 +75,43 @@ public class IslandDeleteTask extends BukkitRunnable {
                         endWorld.getMaxHeight(), maxZ);
             }
 
-            // 2. 同步阶段：在主线程清理非玩家实体 + 删除数据库记录
+            // 2. 同步阶段：在主线程传送玩家 + 清理非玩家实体 + 删除数据库记录
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     try {
+                        java.util.List<World> worlds = new java.util.ArrayList<>();
+                        if (world != null) worlds.add(world);
+                        if (netherWorld != null) worlds.add(netherWorld);
+                        if (endWorld != null) worlds.add(endWorld);
+
+                        Location spawnLoc = world != null ? world.getSpawnLocation() : null;
+
+                        BoundingBox islandBox = new BoundingBox(minX, -64, minZ, maxX + 1, 320, maxZ + 1);
+                        for (Player p : Bukkit.getOnlinePlayers()) {
+                            if (islandBox.contains(p.getLocation().toVector())) {
+                                if (spawnLoc != null) p.teleport(spawnLoc);
+                                p.sendMessage("§c你的岛屿已被删除，你已被传送至主城！");
+                            }
+                        }
+
                         if (world != null) {
-                            world.getEntities().stream().filter(e -> !(e instanceof Player)).forEach(e -> {
-                                int eChunkX = e.getLocation().getBlockX() >> 4;
-                                int eChunkZ = e.getLocation().getBlockZ() >> 4;
-                                if (eChunkX >= minChunkX && eChunkX <= maxChunkX && eChunkZ >= minChunkZ && eChunkZ <= maxChunkZ) {
-                                    e.remove();
-                                }
-                            });
+                            BoundingBox box = new BoundingBox(minX, world.getMinHeight(), minZ, maxX + 1, world.getMaxHeight(), maxZ + 1);
+                            world.getNearbyEntities(box).stream()
+                                    .filter(e -> !(e instanceof Player))
+                                    .forEach(e -> e.remove());
                         }
                         if (netherWorld != null) {
-                            netherWorld.getEntities().stream().filter(e -> !(e instanceof Player)).forEach(e -> {
-                                int eChunkX = e.getLocation().getBlockX() >> 4;
-                                int eChunkZ = e.getLocation().getBlockZ() >> 4;
-                                if (eChunkX >= minChunkX && eChunkX <= maxChunkX && eChunkZ >= minChunkZ && eChunkZ <= maxChunkZ) {
-                                    e.remove();
-                                }
-                            });
+                            BoundingBox box = new BoundingBox(minX, netherWorld.getMinHeight(), minZ, maxX + 1, netherWorld.getMaxHeight(), maxZ + 1);
+                            netherWorld.getNearbyEntities(box).stream()
+                                    .filter(e -> !(e instanceof Player))
+                                    .forEach(e -> e.remove());
                         }
                         if (endWorld != null) {
-                            endWorld.getEntities().stream().filter(e -> !(e instanceof Player)).forEach(e -> {
-                                int eChunkX = e.getLocation().getBlockX() >> 4;
-                                int eChunkZ = e.getLocation().getBlockZ() >> 4;
-                                if (eChunkX >= minChunkX && eChunkX <= maxChunkX && eChunkZ >= minChunkZ && eChunkZ <= maxChunkZ) {
-                                    e.remove();
-                                }
-                            });
+                            BoundingBox box = new BoundingBox(minX, endWorld.getMinHeight(), minZ, maxX + 1, endWorld.getMaxHeight(), maxZ + 1);
+                            endWorld.getNearbyEntities(box).stream()
+                                    .filter(e -> !(e instanceof Player))
+                                    .forEach(e -> e.remove());
                         }
 
                         boolean success = islandManager.deleteIslandFromDatabase(island);

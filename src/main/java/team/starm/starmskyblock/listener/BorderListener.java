@@ -15,6 +15,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import team.starm.starmskyblock.database.PlayerRepository;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.util.reflection.WorldBorderReflection;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
 import java.util.LinkedHashMap;
@@ -129,20 +130,20 @@ public class BorderListener implements Listener {
 
         boolean isInSkyblockWorld = worldManager.isSkyblockWorld(playerWorld);
         if (!isInSkyblockWorld) {
-            player.setWorldBorder(null);
+            WorldBorderReflection.resetWorldBorder(player, playerWorld);
             return;
         }
 
         if (!isPlayerShowBorder(player.getUniqueId())) {
-            player.setWorldBorder(null);
+            WorldBorderReflection.resetWorldBorder(player, playerWorld);
             return;
         }
 
         Optional<Island> currentIsland = islandManager.getIslandAtMaxRange(
                 location.getChunk().getX(), location.getChunk().getZ());
         currentIsland.ifPresentOrElse(
-                island -> player.setWorldBorder(getOrCreateIslandBorder(island)),
-                () -> player.setWorldBorder(null));
+                island -> WorldBorderReflection.sendWorldBorder(player, getOrCreateIslandBorder(island)),
+                () -> WorldBorderReflection.resetWorldBorder(player, playerWorld));
     }
 
     /** 根据岛屿参数获取缓存的 WorldBorder（中心 + 边长），半径不变时复用缓存对象 */

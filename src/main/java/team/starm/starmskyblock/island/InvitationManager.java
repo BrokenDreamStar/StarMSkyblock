@@ -8,10 +8,10 @@ import team.starm.starmskyblock.message.MessageUtil;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 邀请管理器 —— 处理玩家之间发送/接受/拒绝岛屿邀请。
@@ -27,7 +27,7 @@ public class InvitationManager {
     private final SkyblockWorldManager worldManager;
 
     /** 待处理的邀请缓存（目标玩家 UUID → 邀请数据） */
-    private final Map<UUID, InvitationData> pendingInvitations = new HashMap<>();
+    private final Map<UUID, InvitationData> pendingInvitations = new ConcurrentHashMap<>();
 
     public InvitationManager(IslandManager islandManager, ConfigManager configManager, SkyblockWorldManager worldManager) {
         this.islandManager = islandManager;

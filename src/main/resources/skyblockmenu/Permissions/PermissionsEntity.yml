@@ -1,0 +1,558 @@
+Title: '岛屿权限管理-生物'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#ABCDEFG#'
+  - '#HIJKL  #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: Permissions'
+
+  'A':
+    update: 30
+    refresh: 30
+    display:
+      material: WHEAT
+      name: '&a喂食动物'
+      lore:
+        - '&f喂食动物'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_ANIMAL_FEED_level_ADMIN%'
+        - '- %starmskyblock_permission_ANIMAL_FEED_level_MOD%'
+        - '- %starmskyblock_permission_ANIMAL_FEED_level_MEMBER%'
+        - '- %starmskyblock_permission_ANIMAL_FEED_level_COOP%'
+        - '- %starmskyblock_permission_ANIMAL_FEED_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission animal_feed cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission animal_feed rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f喂食动物'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_ANIMAL_FEED_level_ADMIN%'
+            - '- %starmskyblock_permission_ANIMAL_FEED_level_MOD%'
+            - '- %starmskyblock_permission_ANIMAL_FEED_level_MEMBER%'
+            - '- %starmskyblock_permission_ANIMAL_FEED_level_COOP%'
+            - '- %starmskyblock_permission_ANIMAL_FEED_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+  'B':
+    update: 30
+    refresh: 30
+    display:
+      material: SADDLE
+      name: '&a骑乘生物'
+      lore:
+        - '&f骑乘生物'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_ENTITY_RIDE_level_ADMIN%'
+        - '- %starmskyblock_permission_ENTITY_RIDE_level_MOD%'
+        - '- %starmskyblock_permission_ENTITY_RIDE_level_MEMBER%'
+        - '- %starmskyblock_permission_ENTITY_RIDE_level_COOP%'
+        - '- %starmskyblock_permission_ENTITY_RIDE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission entity_ride cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission entity_ride rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f骑乘生物'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_ENTITY_RIDE_level_ADMIN%'
+            - '- %starmskyblock_permission_ENTITY_RIDE_level_MOD%'
+            - '- %starmskyblock_permission_ENTITY_RIDE_level_MEMBER%'
+            - '- %starmskyblock_permission_ENTITY_RIDE_level_COOP%'
+            - '- %starmskyblock_permission_ENTITY_RIDE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+  'C':
+    update: 30
+    refresh: 30
+    display:
+      material: HORSE_ARMOR_DIAMOND
+      name: '&a装备生物'
+      lore:
+        - '&f装备生物'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_ENTITY_EQUIP_level_ADMIN%'
+        - '- %starmskyblock_permission_ENTITY_EQUIP_level_MOD%'
+        - '- %starmskyblock_permission_ENTITY_EQUIP_level_MEMBER%'
+        - '- %starmskyblock_permission_ENTITY_EQUIP_level_COOP%'
+        - '- %starmskyblock_permission_ENTITY_EQUIP_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission entity_equip cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission entity_equip rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f装备生物'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_ENTITY_EQUIP_level_ADMIN%'
+            - '- %starmskyblock_permission_ENTITY_EQUIP_level_MOD%'
+            - '- %starmskyblock_permission_ENTITY_EQUIP_level_MEMBER%'
+            - '- %starmskyblock_permission_ENTITY_EQUIP_level_COOP%'
+            - '- %starmskyblock_permission_ENTITY_EQUIP_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+  'D':
+    update: 30
+    refresh: 30
+    display:
+      material: IRON_SWORD
+      flag: HIDE_ATTRIBUTES
+      name: '&a攻击动物'
+      lore:
+        - '&f攻击动物'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_ANIMAL_DAMAGE_level_ADMIN%'
+        - '- %starmskyblock_permission_ANIMAL_DAMAGE_level_MOD%'
+        - '- %starmskyblock_permission_ANIMAL_DAMAGE_level_MEMBER%'
+        - '- %starmskyblock_permission_ANIMAL_DAMAGE_level_COOP%'
+        - '- %starmskyblock_permission_ANIMAL_DAMAGE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission animal_damage cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission animal_damage rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f攻击动物'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_ANIMAL_DAMAGE_level_ADMIN%'
+            - '- %starmskyblock_permission_ANIMAL_DAMAGE_level_MOD%'
+            - '- %starmskyblock_permission_ANIMAL_DAMAGE_level_MEMBER%'
+            - '- %starmskyblock_permission_ANIMAL_DAMAGE_level_COOP%'
+            - '- %starmskyblock_permission_ANIMAL_DAMAGE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+  'E':
+    update: 30
+    refresh: 30
+    display:
+      material: DIAMOND_SWORD
+      flag: HIDE_ATTRIBUTES
+      name: '&a攻击怪物'
+      lore:
+        - '&f攻击怪物'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_MONSTER_DAMAGE_level_ADMIN%'
+        - '- %starmskyblock_permission_MONSTER_DAMAGE_level_MOD%'
+        - '- %starmskyblock_permission_MONSTER_DAMAGE_level_MEMBER%'
+        - '- %starmskyblock_permission_MONSTER_DAMAGE_level_COOP%'
+        - '- %starmskyblock_permission_MONSTER_DAMAGE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission monster_damage cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission monster_damage rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f攻击怪物'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_MONSTER_DAMAGE_level_ADMIN%'
+            - '- %starmskyblock_permission_MONSTER_DAMAGE_level_MOD%'
+            - '- %starmskyblock_permission_MONSTER_DAMAGE_level_MEMBER%'
+            - '- %starmskyblock_permission_MONSTER_DAMAGE_level_COOP%'
+            - '- %starmskyblock_permission_MONSTER_DAMAGE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+  'F':
+    update: 30
+    refresh: 30
+    display:
+      material: NETHERITE_SWORD
+      flag: HIDE_ATTRIBUTES
+      name: '&a攻击村民'
+      lore:
+        - '&f攻击村民'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_VILLAGER_DAMAGE_level_ADMIN%'
+        - '- %starmskyblock_permission_VILLAGER_DAMAGE_level_MOD%'
+        - '- %starmskyblock_permission_VILLAGER_DAMAGE_level_MEMBER%'
+        - '- %starmskyblock_permission_VILLAGER_DAMAGE_level_COOP%'
+        - '- %starmskyblock_permission_VILLAGER_DAMAGE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission villager_damage cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission villager_damage rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f攻击村民'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_VILLAGER_DAMAGE_level_ADMIN%'
+            - '- %starmskyblock_permission_VILLAGER_DAMAGE_level_MOD%'
+            - '- %starmskyblock_permission_VILLAGER_DAMAGE_level_MEMBER%'
+            - '- %starmskyblock_permission_VILLAGER_DAMAGE_level_COOP%'
+            - '- %starmskyblock_permission_VILLAGER_DAMAGE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+  'G':
+    update: 30
+    refresh: 30
+    display:
+      material: EMERALD
+      name: '&a村民交易'
+      lore:
+        - '&f村民交易'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_VILLAGER_TRADE_level_ADMIN%'
+        - '- %starmskyblock_permission_VILLAGER_TRADE_level_MOD%'
+        - '- %starmskyblock_permission_VILLAGER_TRADE_level_MEMBER%'
+        - '- %starmskyblock_permission_VILLAGER_TRADE_level_COOP%'
+        - '- %starmskyblock_permission_VILLAGER_TRADE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission villager_trade cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission villager_trade rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f村民交易'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_VILLAGER_TRADE_level_ADMIN%'
+            - '- %starmskyblock_permission_VILLAGER_TRADE_level_MOD%'
+            - '- %starmskyblock_permission_VILLAGER_TRADE_level_MEMBER%'
+            - '- %starmskyblock_permission_VILLAGER_TRADE_level_COOP%'
+            - '- %starmskyblock_permission_VILLAGER_TRADE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+  'H':
+    update: 30
+    refresh: 30
+    display:
+      material: GOLD_INGOT
+      name: '&a以物易物'
+      lore:
+        - '&f以物易物'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_BARTERING_level_ADMIN%'
+        - '- %starmskyblock_permission_BARTERING_level_MOD%'
+        - '- %starmskyblock_permission_BARTERING_level_MEMBER%'
+        - '- %starmskyblock_permission_BARTERING_level_COOP%'
+        - '- %starmskyblock_permission_BARTERING_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission bartering cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission bartering rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f以物易物'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_BARTERING_level_ADMIN%'
+            - '- %starmskyblock_permission_BARTERING_level_MOD%'
+            - '- %starmskyblock_permission_BARTERING_level_MEMBER%'
+            - '- %starmskyblock_permission_BARTERING_level_COOP%'
+            - '- %starmskyblock_permission_BARTERING_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+  'I':
+    update: 30
+    refresh: 30
+    display:
+      material: AMETHYST_SHARD
+      name: '&a与悦灵交互'
+      lore:
+        - '&f与悦灵交互'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_ALLAY_INTERACT_level_ADMIN%'
+        - '- %starmskyblock_permission_ALLAY_INTERACT_level_MOD%'
+        - '- %starmskyblock_permission_ALLAY_INTERACT_level_MEMBER%'
+        - '- %starmskyblock_permission_ALLAY_INTERACT_level_COOP%'
+        - '- %starmskyblock_permission_ALLAY_INTERACT_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission allay_interact cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission allay_interact rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f与悦灵交互'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_ALLAY_INTERACT_level_ADMIN%'
+            - '- %starmskyblock_permission_ALLAY_INTERACT_level_MOD%'
+            - '- %starmskyblock_permission_ALLAY_INTERACT_level_MEMBER%'
+            - '- %starmskyblock_permission_ALLAY_INTERACT_level_COOP%'
+            - '- %starmskyblock_permission_ALLAY_INTERACT_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+  'J':
+    update: 30
+    refresh: 30
+    display:
+      material: COPPER_SWORD
+      flag: HIDE_ATTRIBUTES
+      name: '&a攻击盔甲架'
+      lore:
+        - '&f攻击盔甲架'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_ARMOR_STAND_DAMAGE_level_ADMIN%'
+        - '- %starmskyblock_permission_ARMOR_STAND_DAMAGE_level_MOD%'
+        - '- %starmskyblock_permission_ARMOR_STAND_DAMAGE_level_MEMBER%'
+        - '- %starmskyblock_permission_ARMOR_STAND_DAMAGE_level_COOP%'
+        - '- %starmskyblock_permission_ARMOR_STAND_DAMAGE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission armor_stand_damage cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission armor_stand_damage rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f攻击盔甲架'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_ARMOR_STAND_DAMAGE_level_ADMIN%'
+            - '- %starmskyblock_permission_ARMOR_STAND_DAMAGE_level_MOD%'
+            - '- %starmskyblock_permission_ARMOR_STAND_DAMAGE_level_MEMBER%'
+            - '- %starmskyblock_permission_ARMOR_STAND_DAMAGE_level_COOP%'
+            - '- %starmskyblock_permission_ARMOR_STAND_DAMAGE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+  'K':
+    update: 30
+    refresh: 30
+    display:
+      material: ARMOR_STAND
+      name: '&a与盔甲架交互'
+      lore:
+        - '&f与盔甲架交互'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_ARMOR_STAND_INTERACT_level_ADMIN%'
+        - '- %starmskyblock_permission_ARMOR_STAND_INTERACT_level_MOD%'
+        - '- %starmskyblock_permission_ARMOR_STAND_INTERACT_level_MEMBER%'
+        - '- %starmskyblock_permission_ARMOR_STAND_INTERACT_level_COOP%'
+        - '- %starmskyblock_permission_ARMOR_STAND_INTERACT_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission armor_stand_interact cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission armor_stand_interact rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f与盔甲架交互'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_ARMOR_STAND_INTERACT_level_ADMIN%'
+            - '- %starmskyblock_permission_ARMOR_STAND_INTERACT_level_MOD%'
+            - '- %starmskyblock_permission_ARMOR_STAND_INTERACT_level_MEMBER%'
+            - '- %starmskyblock_permission_ARMOR_STAND_INTERACT_level_COOP%'
+            - '- %starmskyblock_permission_ARMOR_STAND_INTERACT_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'

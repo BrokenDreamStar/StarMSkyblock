@@ -1,0 +1,205 @@
+Title: '修改岛屿生物群系-山地类'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#ABCDEFG#'
+  - '#HIJ    #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: SetBiome'
+
+  'A':
+    display:
+      material: SNOW_BLOCK
+      name: '&f&l尖峭山峰'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&f&l尖峭山峰'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&f&l尖峭山峰'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome jagged_peaks'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Mountain &f&l尖峭山峰 jagged_peaks'
+
+  'B':
+    display:
+      material: ICE
+      name: '&b&l冰封山峰'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&b&l冰封山峰'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&b&l冰封山峰'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome frozen_peaks'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Mountain &b&l冰封山峰 frozen_peaks'
+
+  'C':
+    display:
+      material: STONE
+      name: '&7&l裸岩山峰'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&7&l裸岩山峰'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&7&l裸岩山峰'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome stony_peaks'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Mountain &7&l裸岩山峰 stony_peaks'
+
+  'D':
+    display:
+      material: GRASS_BLOCK
+      name: '&a&l草甸'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&a&l草甸'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&a&l草甸'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome meadow'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Mountain &a&l草甸 meadow'
+
+  'E':
+    display:
+      material: CHERRY_SAPLING
+      name: '&d&l樱花树林'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&d&l樱花树林'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&d&l樱花树林'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome cherry_grove'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Mountain &d&l樱花树林 cherry_grove'
+
+  'F':
+    display:
+      material: DIRT
+      name: '&f&l雪林'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&f&l雪林'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&f&l雪林'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome grove'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Mountain &f&l雪林 grove'
+
+  'G':
+    display:
+      material: POWDER_SNOW_BUCKET
+      name: '&f&l积雪山坡'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&f&l积雪山坡'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&f&l积雪山坡'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome snowy_slopes'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Mountain &f&l积雪山坡 snowy_slopes'
+
+  'H':
+    display:
+      material: EMERALD_ORE
+      name: '&2&l风袭丘陵'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&2&l风袭丘陵'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&2&l风袭丘陵'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome windswept_hills'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Mountain &2&l风袭丘陵 windswept_hills'
+
+  'I':
+    display:
+      material: GRAVEL
+      name: '&7&l风袭沙砾丘陵'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&7&l风袭沙砾丘陵'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&7&l风袭沙砾丘陵'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome windswept_gravelly_hills'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Mountain &7&l风袭沙砾丘陵 windswept_gravelly_hills'
+
+  'J':
+    display:
+      material: SPRUCE_SAPLING
+      name: '&2&l风袭森林'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&2&l风袭森林'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&2&l风袭森林'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome windswept_forest'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Mountain &2&l风袭森林 windswept_forest'

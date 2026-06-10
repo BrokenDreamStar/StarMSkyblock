@@ -1,0 +1,172 @@
+Title: '岛屿权限管理-拾取与丢弃'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#ABC    #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: Permissions'
+
+  'A':
+    update: 30
+    refresh: 30
+    display:
+      material: DIAMOND
+      name: '&a拾取物品'
+      lore:
+        - '&f拾取物品'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_ITEM_PICKUP_level_ADMIN%'
+        - '- %starmskyblock_permission_ITEM_PICKUP_level_MOD%'
+        - '- %starmskyblock_permission_ITEM_PICKUP_level_MEMBER%'
+        - '- %starmskyblock_permission_ITEM_PICKUP_level_COOP%'
+        - '- %starmskyblock_permission_ITEM_PICKUP_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission item_pickup cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission item_pickup rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f拾取物品'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_ITEM_PICKUP_level_ADMIN%'
+            - '- %starmskyblock_permission_ITEM_PICKUP_level_MOD%'
+            - '- %starmskyblock_permission_ITEM_PICKUP_level_MEMBER%'
+            - '- %starmskyblock_permission_ITEM_PICKUP_level_COOP%'
+            - '- %starmskyblock_permission_ITEM_PICKUP_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'B':
+    update: 30
+    refresh: 30
+    display:
+      material: WOODEN_PICKAXE
+      flag: HIDE_ATTRIBUTES
+      name: '&c丢弃物品'
+      lore:
+        - '&f丢弃物品'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_ITEM_DROP_level_ADMIN%'
+        - '- %starmskyblock_permission_ITEM_DROP_level_MOD%'
+        - '- %starmskyblock_permission_ITEM_DROP_level_MEMBER%'
+        - '- %starmskyblock_permission_ITEM_DROP_level_COOP%'
+        - '- %starmskyblock_permission_ITEM_DROP_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission item_drop cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission item_drop rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f丢弃物品'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_ITEM_DROP_level_ADMIN%'
+            - '- %starmskyblock_permission_ITEM_DROP_level_MOD%'
+            - '- %starmskyblock_permission_ITEM_DROP_level_MEMBER%'
+            - '- %starmskyblock_permission_ITEM_DROP_level_COOP%'
+            - '- %starmskyblock_permission_ITEM_DROP_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'C':
+    update: 30
+    refresh: 30
+    display:
+      material: EXPERIENCE_BOTTLE
+      name: '&a吸取经验球'
+      lore:
+        - '&f吸取经验球'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_EXP_PICKUP_level_ADMIN%'
+        - '- %starmskyblock_permission_EXP_PICKUP_level_MOD%'
+        - '- %starmskyblock_permission_EXP_PICKUP_level_MEMBER%'
+        - '- %starmskyblock_permission_EXP_PICKUP_level_COOP%'
+        - '- %starmskyblock_permission_EXP_PICKUP_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission exp_pickup cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission exp_pickup rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f吸取经验球'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_EXP_PICKUP_level_ADMIN%'
+            - '- %starmskyblock_permission_EXP_PICKUP_level_MOD%'
+            - '- %starmskyblock_permission_EXP_PICKUP_level_MEMBER%'
+            - '- %starmskyblock_permission_EXP_PICKUP_level_COOP%'
+            - '- %starmskyblock_permission_EXP_PICKUP_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'

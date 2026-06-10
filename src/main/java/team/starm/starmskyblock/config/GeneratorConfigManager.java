@@ -10,7 +10,11 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -25,10 +29,37 @@ public class GeneratorConfigManager {
     private int deepslateYThreshold;
     private TreeMap<Integer, GeneratorTier> tiers;
 
+    public record WeightedEntry(double cumulativeWeight, String material) {}
+
     public record GeneratorTier(int minLevel,
                                 Map<String, Double> normal,
                                 Map<String, Double> end,
-                                Map<String, Double> nether) {}
+                                Map<String, Double> nether,
+                                List<WeightedEntry> normalEntries,
+                                List<WeightedEntry> endEntries,
+                                List<WeightedEntry> netherEntries) {
+
+        public GeneratorTier(int minLevel,
+                             Map<String, Double> normal,
+                             Map<String, Double> end,
+                             Map<String, Double> nether) {
+            this(minLevel, normal, end, nether,
+                    buildWeightedEntries(normal),
+                    buildWeightedEntries(end),
+                    buildWeightedEntries(nether));
+        }
+
+        private static List<WeightedEntry> buildWeightedEntries(Map<String, Double> rates) {
+            if (rates.isEmpty()) return List.of();
+            List<WeightedEntry> entries = new ArrayList<>();
+            double cumulative = 0;
+            for (Map.Entry<String, Double> e : rates.entrySet()) {
+                cumulative += e.getValue();
+                entries.add(new WeightedEntry(cumulative, e.getKey()));
+            }
+            return entries;
+        }
+    }
 
     public GeneratorConfigManager(StarMSkyblock plugin) {
         this.plugin = plugin;

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import team.starm.starmskyblock.message.MessageUtil;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.setting.IslandSetting;
@@ -306,7 +307,9 @@ public class Island {
                     if (!set.isEmpty()) disabledGeneratorOres.put(entry.getKey(), set);
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            MessageUtil.consoleWarn("解析禁用生成器矿石 JSON 失败，岛屿 ID: " + id + "，数据: " + json);
+        }
     }
 
     public boolean getSetting(IslandSetting setting) {

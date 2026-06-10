@@ -1,0 +1,168 @@
+Title: '岛屿权限管理-门'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#ABC    #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: Permissions'
+
+  'A':
+    update: 30
+    refresh: 30
+    display:
+      material: OAK_DOOR
+      name: '&a开关'
+      lore:
+        - '&f开关门'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_DOOR_OPEN_level_ADMIN%'
+        - '- %starmskyblock_permission_DOOR_OPEN_level_MOD%'
+        - '- %starmskyblock_permission_DOOR_OPEN_level_MEMBER%'
+        - '- %starmskyblock_permission_DOOR_OPEN_level_COOP%'
+        - '- %starmskyblock_permission_DOOR_OPEN_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission door_open cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission door_open rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f开关门'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_DOOR_OPEN_level_ADMIN%'
+            - '- %starmskyblock_permission_DOOR_OPEN_level_MOD%'
+            - '- %starmskyblock_permission_DOOR_OPEN_level_MEMBER%'
+            - '- %starmskyblock_permission_DOOR_OPEN_level_COOP%'
+            - '- %starmskyblock_permission_DOOR_OPEN_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'B':
+    update: 30
+    refresh: 30
+    display:
+      material: OAK_FENCE_GATE
+      name: '&a开关栅栏门'
+      lore:
+        - '&f开关栅栏门'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_FENCE_GATE_OPEN_level_ADMIN%'
+        - '- %starmskyblock_permission_FENCE_GATE_OPEN_level_MOD%'
+        - '- %starmskyblock_permission_FENCE_GATE_OPEN_level_MEMBER%'
+        - '- %starmskyblock_permission_FENCE_GATE_OPEN_level_COOP%'
+        - '- %starmskyblock_permission_FENCE_GATE_OPEN_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission fence_gate_open cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission fence_gate_open rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f开关栅栏门'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_FENCE_GATE_OPEN_level_ADMIN%'
+            - '- %starmskyblock_permission_FENCE_GATE_OPEN_level_MOD%'
+            - '- %starmskyblock_permission_FENCE_GATE_OPEN_level_MEMBER%'
+            - '- %starmskyblock_permission_FENCE_GATE_OPEN_level_COOP%'
+            - '- %starmskyblock_permission_FENCE_GATE_OPEN_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'C':
+    update: 30
+    refresh: 30
+    display:
+      material: OAK_TRAPDOOR
+      name: '&a开关活板门'
+      lore:
+        - '&f开关活板门'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_TRAPDOOR_OPEN_level_ADMIN%'
+        - '- %starmskyblock_permission_TRAPDOOR_OPEN_level_MOD%'
+        - '- %starmskyblock_permission_TRAPDOOR_OPEN_level_MEMBER%'
+        - '- %starmskyblock_permission_TRAPDOOR_OPEN_level_COOP%'
+        - '- %starmskyblock_permission_TRAPDOOR_OPEN_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission trapdoor_open cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission trapdoor_open rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f开关活板门'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_TRAPDOOR_OPEN_level_ADMIN%'
+            - '- %starmskyblock_permission_TRAPDOOR_OPEN_level_MOD%'
+            - '- %starmskyblock_permission_TRAPDOOR_OPEN_level_MEMBER%'
+            - '- %starmskyblock_permission_TRAPDOOR_OPEN_level_COOP%'
+            - '- %starmskyblock_permission_TRAPDOOR_OPEN_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'

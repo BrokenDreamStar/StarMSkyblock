@@ -1,0 +1,150 @@
+Title: '修改岛屿生物群系-干旱类'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#ABCDEFG#'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: SetBiome'
+
+  'A':
+    display:
+      material: ACACIA_SAPLING
+      name: '&6&l热带草原'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&6&l热带草原'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&6&l热带草原'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome savanna'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Arid &6&l热带草原 savanna'
+
+  'B':
+    display:
+      material: ACACIA_LOG
+      name: '&6&l热带高原'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&6&l热带高原'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&6&l热带高原'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome savanna_plateau'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Arid &6&l热带高原 savanna_plateau'
+
+  'C':
+    display:
+      material: COARSE_DIRT
+      name: '&6&l风袭热带草原'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&6&l风袭热带草原'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&6&l风袭热带草原'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome windswept_savanna'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Arid &6&l风袭热带草原 windswept_savanna'
+
+  'D':
+    display:
+      material: SAND
+      name: '&e&l沙漠'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&e&l沙漠'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&e&l沙漠'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome desert'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Arid &e&l沙漠 desert'
+
+  'E':
+    display:
+      material: RED_SAND
+      name: '&4&l恶地'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&4&l恶地'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&4&l恶地'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome badlands'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm &4&l恶地 badlands'
+
+  'F':
+    display:
+      material: TERRACOTTA
+      name: '&4&l风蚀恶地'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&4&l风蚀恶地'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&4&l风蚀恶地'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome eroded_badlands'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Arid &4&l风蚀恶地 eroded_badlands'
+
+  'G':
+    display:
+      material: DEAD_BUSH
+      name: '&c&l疏林恶地'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&c&l疏林恶地'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&c&l疏林恶地'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome wooded_badlands'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Arid &c&l疏林恶地 wooded_badlands'

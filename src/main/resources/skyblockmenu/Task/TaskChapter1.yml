@@ -1,0 +1,424 @@
+Title: '任务-序章 初临空岛'
+
+Options:
+  Arguments: false
+  Min-Click-Delay: 200
+
+Events:
+  Open:
+    - 'delay: 5'
+    - 'refresh: A;B;C;D;E;F'
+    - 'update: A;B;C;D;E;F'
+
+Layout:
+  - '########<'
+  - '#ABCDEF #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: Tasks'
+
+  'A':
+    display:
+      material: COBBLESTONE
+      name: '&f&l空岛 启动!'
+      lore:
+        - '&f制造刷石机并刷取一些圆石'
+        - ''
+        - '&6要求:'
+        - ' - &f挖掘 圆石 x128'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x1000'
+        - ' - &f铜镐(耐久3 效率3) x1'
+        - ''
+        - '&b进度: %starmskyblock_task_1_1_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_1_1_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f制造刷石机并刷取一些圆石'
+            - ''
+            - '&6要求:'
+            - ' - &f挖掘 圆石 x128'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x1000'
+            - ' - &f铜镐(耐久3 效率3) x1'
+            - ''
+            - '&b进度: 100 %'
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 1 1'
+            - 'delay: 3'
+            - 'refresh: A'
+            - 'update: A'
+      - condition: 'check papi %starmskyblock_task_1_1_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f制造刷石机并刷取一些圆石'
+            - ''
+            - '&6要求:'
+            - ' - &f挖掘 圆石 x128'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x1000'
+            - ' - &f铜镐(耐久3 效率3) x1'
+            - ''
+            - '&2&l奖励已领取'
+
+  'B':
+    display:
+      material: OAK_SAPLING
+      name: '&f&l会掉树苗吗?'
+      lore:
+        - '&f种植并砍伐一些树'
+        - ''
+        - '&6要求:'
+        - ' - &f任意原木或竹块 x32'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x1000'
+        - ' - &f铜斧(耐久3 效率3) x1'
+        - ''
+        - '&b进度: 0 %'
+        - ''
+        - '&e点击提交物品'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is task submit 1 2'
+        - 'delay: 3'
+        - 'refresh: B'
+        - 'update: B'
+    icons:
+      - condition: 'check papi %starmskyblock_task_1_2_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f种植并砍伐一些树'
+            - ''
+            - '&6要求:'
+            - ' - &f任意原木或竹块 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x1000'
+            - ' - &f铜斧(耐久3 效率3) x1'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 1 2'
+            - 'delay: 3'
+            - 'refresh: B'
+            - 'update: B'
+      - condition: 'check papi %starmskyblock_task_1_2_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f种植并砍伐一些树'
+            - ''
+            - '&6要求:'
+            - ' - &f任意原木或竹块 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x1000'
+            - ' - &f铜斧(耐久3 效率3) x1'
+            - ''
+            - '&2奖励已领取'
+
+  'C':
+    display:
+      material: WHEAT
+      name: '&f&l开荒垦地'
+      lore:
+        - '&f通过击杀骷髅或堆肥获得骨粉'
+        - '&f对草方块使用骨粉生成草'
+        - '&f破坏草获得一些小麦种子并种植'
+        - ''
+        - '&6要求:'
+        - ' - &f种植小麦 x8'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x1000'
+        - ' - &f泥土 x32'
+        - ''
+        - '&b进度: %starmskyblock_task_1_3_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_1_3_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f通过击杀骷髅或堆肥获得骨粉'
+            - '&f对草方块使用骨粉生成草'
+            - '&f破坏草获得一些小麦种子并种植'
+            - ''
+            - '&6要求:'
+            - ' - &f种植小麦 x8'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x1000'
+            - ' - &f泥土 x32'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 1 3'
+            - 'delay: 3'
+            - 'refresh: C'
+            - 'update: C'
+      - condition: 'check papi %starmskyblock_task_1_3_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f通过击杀骷髅或堆肥获得骨粉'
+            - '&f对草方块使用骨粉生成草'
+            - '&f破坏草获得一些小麦种子并种植'
+            - ''
+            - '&6要求:'
+            - ' - &f种植小麦 x8'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x1000'
+            - ' - &f泥土 x32'
+            - ''
+            - '&2奖励已领取'
+
+  'D':
+    display:
+      material: MELON_SLICE
+      name: '&f&l吃瓜群众'
+      lore:
+        - '&f种植并收获一些西瓜和南瓜'
+        - ''
+        - '&6要求:'
+        - ' - &f西瓜片 x32'
+        - ' - &f南瓜 x32'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x1000'
+        - ' - &f南瓜派 x32'
+        - ''
+        - '&b进度: 0 %'
+        - ''
+        - '&e点击提交物品'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is task submit 1 4'
+        - 'delay: 3'
+        - 'refresh: D'
+        - 'update: D'
+    icons:
+      - condition: 'check papi %starmskyblock_task_1_4_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f种植并收获一些西瓜和南瓜'
+            - ''
+            - '&6要求:'
+            - ' - &f西瓜片 x32'
+            - ' - &f南瓜 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x1000'
+            - ' - &f南瓜派 x32'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 1 4'
+            - 'delay: 3'
+            - 'refresh: D'
+            - 'update: D'
+      - condition: 'check papi %starmskyblock_task_1_4_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f种植并收获一些西瓜和南瓜'
+            - ''
+            - '&6要求:'
+            - ' - &f西瓜片 x32'
+            - ' - &f南瓜 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x1000'
+            - ' - &f南瓜派 x32'
+            - ''
+            - ''
+            - '&2奖励已领取'
+
+  'E':
+    display:
+      material: SUGAR
+      name: '&f&l糖'
+      lore:
+        - '&f种植甜菜根或甘蔗来制糖'
+        - ''
+        - '&6要求:'
+        - ' - &f糖 x32'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x1500'
+        - ' - &f沙子 x32'
+        - ''
+        - '&b进度: 0 %'
+        - ''
+        - '&e点击提交物品'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is task submit 1 5'
+        - 'delay: 3'
+        - 'refresh: E'
+        - 'update: E'
+    icons:
+      - condition: 'check papi %starmskyblock_task_1_5_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f种植甜菜根或甘蔗来制糖'
+            - ''
+            - '&6要求:'
+            - ' - &f糖 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x1500'
+            - ' - &f沙子 x32'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 1 5'
+            - 'delay: 3'
+            - 'refresh: E'
+            - 'update: E'
+      - condition: 'check papi %starmskyblock_task_1_5_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f种植甜菜根或甘蔗来制糖'
+            - ''
+            - '&6要求:'
+            - ' - &f糖 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x1500'
+            - ' - &f沙子 x32'
+            - ''
+            - '&2奖励已领取'
+
+  'F':
+    display:
+      material: CACTUS
+      name: '&f&l我们群主敢用'
+      lore:
+        - '&f种植并收获一些仙人掌'
+        - ''
+        - '&6要求:'
+        - ' - &f仙人掌 x32'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x1500'
+        - ' - &f牛刷怪蛋 x2'
+        - ''
+        - '&b进度: 0 %'
+        - ''
+        - '&e点击提交物品'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is task submit 1 6'
+        - 'delay: 3'
+        - 'refresh: F'
+        - 'update: F'
+    icons:
+      - condition: 'check papi %starmskyblock_task_1_6_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f种植并收获一些仙人掌'
+            - ''
+            - '&6要求:'
+            - ' - &f仙人掌 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x1500'
+            - ' - &f牛刷怪蛋 x2'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 1 6'
+            - 'delay: 3'
+            - 'refresh: F'
+            - 'update: F'
+      - condition: 'check papi %starmskyblock_task_1_6_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f种植并收获一些仙人掌'
+            - ''
+            - '&6要求:'
+            - ' - &f仙人掌 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x1500'
+            - ' - &f牛刷怪蛋 x2'
+            - ''
+            - '&2奖励已领取'

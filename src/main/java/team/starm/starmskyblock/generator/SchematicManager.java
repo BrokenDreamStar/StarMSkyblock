@@ -197,6 +197,10 @@ public class SchematicManager {
     }
 
     public boolean pasteSchematic(String fileName, World world, int x, int y, int z) {
+        return pasteSchematic(fileName, world, x, y, z, false);
+    }
+
+    public boolean pasteSchematic(String fileName, World world, int x, int y, int z, boolean ignoreAirBlocks) {
         Clipboard clipboard = getSchematic(fileName);
         if (clipboard == null) {
             return false;
@@ -209,7 +213,7 @@ public class SchematicManager {
             Operation operation = new ClipboardHolder(clipboard)
                     .createPaste(editSession)
                     .to(BlockVector3.at(x, y, z))
-                    .ignoreAirBlocks(false)
+                    .ignoreAirBlocks(ignoreAirBlocks)
                     .build();
 
             Operations.complete(operation);

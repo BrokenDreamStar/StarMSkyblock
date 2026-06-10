@@ -9,9 +9,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 
 /**
  * SQLite 数据库管理器 —— 负责连接管理、表结构创建、事务支持和皮肤纹理持久化。
@@ -21,6 +23,7 @@ public class SQLiteManager {
 
     private final File dataFolder;
     private Connection connection;
+    private PreparedStatement saveSkinStmt;
     private final ReentrantReadWriteLock dbLock = new ReentrantReadWriteLock();
 
     public SQLiteManager(File dataFolder) {
@@ -180,19 +183,44 @@ public class SQLiteManager {
         }
     }
 
+    public void batchWrite(List<Consumer<Connection>> operations) {
+        dbLock.writeLock().lock();
+        try {
+            connection.setAutoCommit(false);
+            try {
+                for (Consumer<Connection> op : operations) {
+                    op.accept(connection);
+                }
+                connection.commit();
+            } catch (SQLException e) {
+                try { connection.rollback(); } catch (SQLException ignored) {}
+                throw new RuntimeException(e);
+            } finally {
+                try { connection.setAutoCommit(true); } catch (SQLException e) {
+                    MessageUtil.consoleWarn("batchWrite 恢复 autoCommit 失败");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            dbLock.writeLock().unlock();
+        }
+    }
+
     // ==================== 皮肤纹理 ====================
 
     public void saveSkinTexture(UUID uuid, String texture) {
-        String sql = "INSERT OR REPLACE INTO skin_textures (uuid, texture) VALUES (?, ?)";
         dbLock.writeLock().lock();
         try {
-            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-                pstmt.setString(1, uuid.toString());
-                pstmt.setString(2, texture);
-                pstmt.executeUpdate();
-            } catch (SQLException e) {
-                MessageUtil.consoleError("保存皮肤纹理失败！UUID: " + uuid, e);
+            if (saveSkinStmt == null || saveSkinStmt.isClosed()) {
+                saveSkinStmt = connection.prepareStatement(
+                        "INSERT OR REPLACE INTO skin_textures (uuid, texture) VALUES (?, ?)");
             }
+            saveSkinStmt.setString(1, uuid.toString());
+            saveSkinStmt.setString(2, texture);
+            saveSkinStmt.executeUpdate();
+        } catch (SQLException e) {
+            MessageUtil.consoleError("保存皮肤纹理失败！UUID: " + uuid, e);
         } finally {
             dbLock.writeLock().unlock();
         }
@@ -225,6 +253,9 @@ public class SQLiteManager {
         dbLock.writeLock().lock();
         try {
             try {
+                if (saveSkinStmt != null && !saveSkinStmt.isClosed()) {
+                    saveSkinStmt.close();
+                }
                 if (connection != null && !connection.isClosed()) {
                     connection.close();
                     MessageUtil.consolePrint("&cSQLite 数据库已关闭。");

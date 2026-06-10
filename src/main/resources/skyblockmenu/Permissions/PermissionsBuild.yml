@@ -1,0 +1,121 @@
+Title: '岛屿权限管理-建造与破坏'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#AB     #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: Permissions'
+
+  'A':
+    update: 30
+    refresh: 30
+    display:
+      material: BRICKS
+      name: '&a建造'
+      lore:
+        - '&f放置方块/展示框/画'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_BUILD_level_ADMIN%'
+        - '- %starmskyblock_permission_BUILD_level_MOD%'
+        - '- %starmskyblock_permission_BUILD_level_MEMBER%'
+        - '- %starmskyblock_permission_BUILD_level_COOP%'
+        - '- %starmskyblock_permission_BUILD_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission build cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission build rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f放置方块/展示框/画'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_BUILD_level_ADMIN%'
+            - '- %starmskyblock_permission_BUILD_level_MOD%'
+            - '- %starmskyblock_permission_BUILD_level_MEMBER%'
+            - '- %starmskyblock_permission_BUILD_level_COOP%'
+            - '- %starmskyblock_permission_BUILD_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'B':
+    update: 30
+    refresh: 30
+    display:
+      material: DIAMOND_PICKAXE
+      flag: HIDE_ATTRIBUTES
+      name: '&c破坏'
+      lore:
+        - '&f破坏方块/展示框/画'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_BREAK_level_ADMIN%'
+        - '- %starmskyblock_permission_BREAK_level_MOD%'
+        - '- %starmskyblock_permission_BREAK_level_MEMBER%'
+        - '- %starmskyblock_permission_BREAK_level_COOP%'
+        - '- %starmskyblock_permission_BREAK_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission break cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission break rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f破坏方块/展示框/画'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_BREAK_level_ADMIN%'
+            - '- %starmskyblock_permission_BREAK_level_MOD%'
+            - '- %starmskyblock_permission_BREAK_level_MEMBER%'
+            - '- %starmskyblock_permission_BREAK_level_COOP%'
+            - '- %starmskyblock_permission_BREAK_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'

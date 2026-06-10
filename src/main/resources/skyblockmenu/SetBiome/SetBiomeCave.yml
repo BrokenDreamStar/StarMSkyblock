@@ -1,0 +1,78 @@
+Title: '修改岛屿生物群系-洞穴类'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#ABC    #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: SetBiome'
+
+  'A':
+    display:
+      material: DRIPSTONE_BLOCK
+      name: '&6&l溶洞'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&6&l溶洞'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&6&l溶洞'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome dripstone_caves'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Cave &6&l溶洞 dripstone_caves'
+
+  'B':
+    display:
+      material: MOSS_BLOCK
+      name: '&a&l繁茂洞穴'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&a&l繁茂洞穴'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&a&l繁茂洞穴'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome lush_caves'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Cave &a&l繁茂洞穴 lush_caves'
+
+  'C':
+    display:
+      material: SCULK
+      name: '&d&l深暗之域'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&d&l深暗之域'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&d&l深暗之域'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome deep_dark'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Cave &d&l深暗之域 deep_dark'

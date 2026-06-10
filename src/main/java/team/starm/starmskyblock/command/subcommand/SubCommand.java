@@ -34,8 +34,16 @@ public abstract class SubCommand {
     }
 
     protected boolean isLocationSafe(org.bukkit.Location location) {
-        org.bukkit.Location blockBelow = location.clone().subtract(0, 1, 0);
-        return !blockBelow.getBlock().getType().isAir();
+        org.bukkit.Location blockLoc = location.clone();
+        org.bukkit.Location blockBelow = blockLoc.clone().subtract(0, 1, 0);
+        org.bukkit.block.Block footBlock = blockLoc.getBlock();
+        org.bukkit.block.Block belowBlock = blockBelow.getBlock();
+
+        if (footBlock.isLiquid() || belowBlock.isLiquid()) return false;
+        if (belowBlock.getType().isAir()) return false;
+        org.bukkit.block.Block aboveBlock = blockLoc.clone().add(0, 1, 0).getBlock();
+        if (aboveBlock.getType().isSolid()) return false;
+        return true;
     }
 
     protected boolean assertMaxArgs(Player player, String[] args, int max, String usage) {

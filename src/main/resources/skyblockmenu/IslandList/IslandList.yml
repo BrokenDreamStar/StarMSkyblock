@@ -1,0 +1,857 @@
+Title: '岛屿列表'
+
+Options:
+  Arguments: false
+  Min-Click-Delay: 500
+
+Events:
+  Open:
+    - 'delay: 5'
+    - 'refresh: <;>;A;B;C;D;E;F;G'
+    - 'update: ~;<;>;A;B;C;D;E;F;G'
+    - 'delay: 5'
+    - 'refresh: H;I;J;K;L;M;N'
+    - 'update: H;I;J;K;L;M;N'
+    - 'delay: 5'
+    - 'refresh: O;P;Q;R;S;T;U'
+    - 'update: O;P;Q;R;S;T;U'
+    - 'delay: 5'
+    - 'refresh: V;W;X;Y;Z;0;1'
+    - 'update: V;W;X;Y;Z;0;1'
+  Close:
+    - 'command: is list home -s'
+
+Layout:
+  - '!#######*'
+  - '#ABCDEFG#'
+  - '#HIJKLMN#'
+  - '#OPQRSTU#'
+  - '#VWXYZ01#'
+  - '##<#~#>##'
+
+Icons:
+  '!':
+    display:
+      material: REDSTONE_TORCH
+      name: '&6&l提示'
+      lore:
+        - '&e由于技术性问题'
+        - '&e玩家头颅可能无法正确渲染'
+        - '&e可点击该按钮刷新玩家头颅'
+    actions:
+      left:
+        - 'delay: 3'
+        - 'refresh: <;>;A;B;C;D;E;F;G;H;I;J;K;L;M;N;O;P;Q;R;S;T;U;V;W;X;Y;Z;0;1; '
+        - 'update: ~;<;>;A;B;C;D;E;F;G;H;I;J;K;L;M;N;O;P;Q;R;S;T;U;V;W;X;Y;Z;0;1; '
+
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '*':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: IslandMenu'
+
+  '<':
+    display:
+      material: ARROW
+      name: '&6上一页'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is list prev -s'
+        - 'delay: 3'
+        - 'refresh: <;>;A;B;C;D;E;F;G;H;I;J;K;L;M;N;O;P;Q;R;S;T;U;V;W;X;Y;Z;0;1; '
+        - 'update: ~;<;>;A;B;C;D;E;F;G;H;I;J;K;L;M;N;O;P;Q;R;S;T;U;V;W;X;Y;Z;0;1; '
+
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_page%" == 1'
+        inherit: true
+        display:
+          material: SPECTRAL_ARROW
+          name: '&6已经是第一页了'
+
+  '~':
+    display:
+      material: PAPER
+      name: '&f第&e%starmskyblock_island_list_page%&f页'
+
+  '>':
+    display:
+      material: ARROW
+      name: '&6下一页'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is list next -s'
+        - 'delay: 3'
+        - 'refresh: <;>;A;B;C;D;E;F;G;H;I;J;K;L;M;N;O;P;Q;R;S;T;U;V;W;X;Y;Z;0;1; >'
+        - 'update: ~;<;>;A;B;C;D;E;F;G;H;I;J;K;L;M;N;O;P;Q;R;S;T;U;V;W;X;Y;Z;0;1; '
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_is_last_page%" == "true"'
+        inherit: true
+        display:
+          material: SPECTRAL_ARROW
+          name: '&6已经是最后一页了'
+
+  'A':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_1%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_1_owner")'
+          name: '&f%starmskyblock_island_list_1%'
+          lore:
+            - '&eID: %starmskyblock_island_list_1_id% &f| &d等级: %starmskyblock_island_list_1_level%'
+            - '&f岛屿成员:'
+            - '%starmskyblock_island_list_1_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_1_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_1% %starmskyblock_island_list_1_id%'
+          all:
+            - 'update: A'
+            - 'refresh: A'
+
+  'B':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_2%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_2_owner")'
+          name: '&f%starmskyblock_island_list_2%'
+          lore:
+            - '&eID: %starmskyblock_island_list_2_id% &f| &d等级: %starmskyblock_island_list_2_level%'
+            - '&f岛屿成员:'
+            - '%starmskyblock_island_list_2_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_2_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_2% %starmskyblock_island_list_2_id%'
+          all:
+            - 'update: B'
+            - 'refresh: B'
+
+  'C':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_3%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_3_owner")'
+          name: '&f%starmskyblock_island_list_3%'
+          lore:
+            - '&eID: %starmskyblock_island_list_3_id% &f| &d等级: %starmskyblock_island_list_3_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_3_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_3_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_3% %starmskyblock_island_list_3_id%'
+          all:
+            - 'update: C'
+            - 'refresh: C'
+
+  'D':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_4%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_4_owner")'
+          name: '&f%starmskyblock_island_list_4%'
+          lore:
+            - '&eID: %starmskyblock_island_list_4_id% &f| &d等级: %starmskyblock_island_list_4_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_4_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_4_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_4% %starmskyblock_island_list_4_id%'
+          all:
+            - 'update: D'
+            - 'refresh: D'
+
+  'E':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_5%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_5_owner")'
+          name: '&f%starmskyblock_island_list_5%'
+          lore:
+            - '&eID: %starmskyblock_island_list_5_id% &f| &d等级: %starmskyblock_island_list_5_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_5_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_5_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_5% %starmskyblock_island_list_5_id%'
+          all:
+            - 'update: E'
+            - 'refresh: E'
+
+  'F':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_6%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_6_owner")'
+          name: '&f%starmskyblock_island_list_6%'
+          lore:
+            - '&eID: %starmskyblock_island_list_6_id% &f| &d等级: %starmskyblock_island_list_6_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_6_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_6_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_6% %starmskyblock_island_list_6_id%'
+          all:
+            - 'update: F'
+            - 'refresh: F'
+
+  'G':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_7%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_7_owner")'
+          name: '&f%starmskyblock_island_list_7%'
+          lore:
+            - '&eID: %starmskyblock_island_list_7_id% &f| &d等级: %starmskyblock_island_list_7_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_7_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_7_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_7% %starmskyblock_island_list_7_id%'
+          all:
+            - 'update: G'
+            - 'refresh: G'
+
+  'H':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_8%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_8_owner")'
+          name: '&f%starmskyblock_island_list_8%'
+          lore:
+            - '&eID: %starmskyblock_island_list_8_id% &f| &d等级: %starmskyblock_island_list_8_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_8_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_8_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_8% %starmskyblock_island_list_8_id%'
+          all:
+            - 'update: H'
+            - 'refresh: H'
+
+  'I':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_9%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_9_owner")'
+          name: '&f%starmskyblock_island_list_9%'
+          lore:
+            - '&eID: %starmskyblock_island_list_9_id% &f| &d等级: %starmskyblock_island_list_9_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_9_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_9_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_9% %starmskyblock_island_list_9_id%'
+          all:
+            - 'update: I'
+            - 'refresh: I'
+
+  'J':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_10%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_10_owner") '
+          name: '&f%starmskyblock_island_list_10%'
+          lore:
+            - '&eID: %starmskyblock_island_list_10_id% &f| &d等级: %starmskyblock_island_list_10_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_10_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_10_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_10% %starmskyblock_island_list_10_id%'
+          all:
+            - 'update: J'
+            - 'refresh: J'
+
+  'K':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_11%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_11_owner")'
+          name: '&f%starmskyblock_island_list_11%'
+          lore:
+            - '&eID: %starmskyblock_island_list_11_id% &f| &d等级: %starmskyblock_island_list_11_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_11_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_11_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_11% %starmskyblock_island_list_11_id%'
+          all:
+            - 'update: K'
+            - 'refresh: K'
+
+  'L':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_12%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_12_owner")'
+          name: '&f%starmskyblock_island_list_12%'
+          lore:
+            - '&eID: %starmskyblock_island_list_12_id% &f| &d等级: %starmskyblock_island_list_12_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_12_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_12_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_12% %starmskyblock_island_list_12_id%'
+          all:
+            - 'update: L'
+            - 'refresh: L'
+
+  'M':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_13%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_13_owner")'
+          name: '&f%starmskyblock_island_list_13%'
+          lore:
+            - '&eID: %starmskyblock_island_list_13_id% &f| &d等级: %starmskyblock_island_list_13_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_13_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_13_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_13% %starmskyblock_island_list_13_id%'
+          all:
+            - 'update: M'
+            - 'refresh: M'
+
+  'N':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_14%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_14_owner")'
+          name: '&f%starmskyblock_island_list_14%'
+          lore:
+            - '&eID: %starmskyblock_island_list_14_id% &f| &d等级: %starmskyblock_island_list_14_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_14_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_14_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_14% %starmskyblock_island_list_14_id%'
+          all:
+            - 'update: N'
+            - 'refresh: N'
+
+  'O':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_15%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_15_owner")'
+          name: '&f%starmskyblock_island_list_15%'
+          lore:
+            - '&eID: %starmskyblock_island_list_15_id% &f| &d等级: %starmskyblock_island_list_15_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_15_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_15_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_15% %starmskyblock_island_list_15_id%'
+          all:
+            - 'update: O'
+            - 'refresh: O'
+
+  'P':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_16%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_16_owner")'
+          name: '&f%starmskyblock_island_list_16%'
+          lore:
+            - '&eID: %starmskyblock_island_list_16_id% &f| &d等级: %starmskyblock_island_list_16_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_16_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_16_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_16% %starmskyblock_island_list_16_id%'
+          all:
+            - 'update: P'
+            - 'refresh: P'
+
+  'Q':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_17%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_17_owner")'
+          name: '&f%starmskyblock_island_list_17%'
+          lore:
+            - '&eID: %starmskyblock_island_list_17_id% &f| &d等级: %starmskyblock_island_list_17_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_17_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_17_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_17% %starmskyblock_island_list_17_id%'
+          all:
+            - 'update: Q'
+            - 'refresh: Q'
+
+  'R':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_18%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_18_owner")'
+          name: '&f%starmskyblock_island_list_18%'
+          lore:
+            - '&eID: %starmskyblock_island_list_18_id% &f| &d等级: %starmskyblock_island_list_18_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_18_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_18_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_18% %starmskyblock_island_list_18_id%'
+          all:
+            - 'update: R'
+            - 'refresh: R'
+
+  'S':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_19%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_19_owner")'
+          name: '&f%starmskyblock_island_list_19%'
+          lore:
+            - '&eID: %starmskyblock_island_list_19_id% &f| &d等级: %starmskyblock_island_list_19_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_19_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_19_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_19% %starmskyblock_island_list_19_id%'
+          all:
+            - 'update: S'
+            - 'refresh: S'
+
+  'T':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_20%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_20_owner")'
+          name: '&f%starmskyblock_island_list_20%'
+          lore:
+            - '&eID: %starmskyblock_island_list_20_id% &f| &d等级: %starmskyblock_island_list_20_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_20_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_20_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_20% %starmskyblock_island_list_20_id%'
+          all:
+            - 'update: T'
+            - 'refresh: T'
+
+  'U':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_21%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_21_owner")'
+          name: '&f%starmskyblock_island_list_21%'
+          lore:
+            - '&eID: %starmskyblock_island_list_21_id% &f| &d等级: %starmskyblock_island_list_21_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_21_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_21_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_21% %starmskyblock_island_list_21_id%'
+          all:
+            - 'update: U'
+            - 'refresh: U'
+
+  'V':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_22%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_22_owner")'
+          name: '&f%starmskyblock_island_list_22%'
+          lore:
+            - '&eID: %starmskyblock_island_list_22_id% &f| &d等级: %starmskyblock_island_list_22_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_22_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_22_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_22% %starmskyblock_island_list_22_id%'
+          all:
+            - 'update: V'
+            - 'refresh: V'
+
+  'W':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_23%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_23_owner")'
+          name: '&f%starmskyblock_island_list_23%'
+          lore:
+            - '&eID: %starmskyblock_island_list_23_id% &f| &d等级: %starmskyblock_island_list_23_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_23_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_23_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_23% %starmskyblock_island_list_23_id%'
+          all:
+            - 'update: W'
+            - 'refresh: W'
+
+  'X':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_24%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_24_owner")'
+          name: '&f%starmskyblock_island_list_24%'
+          lore:
+            - '&eID: %starmskyblock_island_list_24_id% &f| &d等级: %starmskyblock_island_list_24_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_24_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_24_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_24% %starmskyblock_island_list_24_id%'
+          all:
+            - 'update: X'
+            - 'refresh: X'
+
+  'Y':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_25%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_25_owner")'
+          name: '&f%starmskyblock_island_list_25%'
+          lore:
+            - '&eID: %starmskyblock_island_list_25_id% &f| &d等级: %starmskyblock_island_list_25_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_25_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_25_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_25% %starmskyblock_island_list_25_id%'
+          all:
+            - 'update: Y'
+            - 'refresh: Y'
+
+  'Z':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_26%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_26_owner")'
+          name: '&f%starmskyblock_island_list_26%'
+          lore:
+            - '&eID: %starmskyblock_island_list_26_id% &f| &d等级: %starmskyblock_island_list_26_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_26_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_26_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_26% %starmskyblock_island_list_26_id%'
+          all:
+            - 'update: Z'
+            - 'refresh: Z'
+
+  '0':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_27%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_27_owner")'
+          name: '&f%starmskyblock_island_list_27%'
+          lore:
+            - '&eID: %starmskyblock_island_list_27_id% &f| &d等级: %starmskyblock_island_list_27_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_27_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_27_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_27% %starmskyblock_island_list_27_id%'
+          all:
+            - 'update: 0'
+            - 'refresh: 0'
+
+  '1':
+    display:
+      material: AIR
+      hideTooltip: true
+    icons:
+      - condition: 'check papi "%starmskyblock_island_list_28%" != "NONE"'
+        display:
+          material: 'source:JS:StarMSkyblockAPI.getPlayerHead(player, "island_list_28_owner")'
+          name: '&f%starmskyblock_island_list_28%'
+          lore:
+            - '&eID: %starmskyblock_island_list_28_id% &f| &d等级: %starmskyblock_island_list_28_level%'
+            - '&f岛屿成员:'
+            - ' %starmskyblock_island_list_28_memberlist%'
+            - '&b创建时间&f:'
+            - '&b - %starmskyblock_island_list_28_creationtime%'
+            - ''
+            - '&e点击传送到该岛屿'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'Close'
+            - 'delay: 1'
+            - 'command: is tp %starmskyblock_island_list_28% %starmskyblock_island_list_28_id%'
+          all:
+            - 'update: 1'
+            - 'refresh: 1'

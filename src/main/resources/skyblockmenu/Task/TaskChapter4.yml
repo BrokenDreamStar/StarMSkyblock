@@ -1,0 +1,272 @@
+Title: '第三章 终末之诗'
+
+Options:
+  Arguments: false
+  Min-Click-Delay: 200
+
+Events:
+  Open:
+    - 'delay: 5'
+    - 'refresh: A;B;C;D'
+    - 'update: A;B;C;D'
+
+Layout:
+  - '########<'
+  - '#ABCD   #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: Tasks'
+
+  'A':
+    display:
+      material: END_PORTAL_FRAME
+      name: '&e&l进入末地'
+      lore:
+        - '&f在主世界放置末地传送门'
+        - ''
+        - '&6要求:'
+        - ' - &f放置 末地传送框架 x9'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x12000'
+        - ' - &f末地传送权限'
+        - ''
+        - '&b进度: %starmskyblock_task_4_1_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_4_1_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f在主世界放置末地传送门'
+            - ''
+            - '&6要求:'
+            - ' - &f放置 末地传送框架 x9'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x12000'
+            - ' - &f末地传送权限'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 4 1'
+            - 'delay: 3'
+            - 'refresh: A'
+            - 'update: A'
+      - condition: 'check papi %starmskyblock_task_4_1_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f在主世界放置末地传送门'
+            - ''
+            - '&6要求:'
+            - ' - &f放置 末地传送框架 x9'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x12000'
+            - ' - &f末地传送权限'
+            - ''
+            - '&2&l奖励已领取'
+
+  'B':
+    display:
+      material: DRAGON_EGG
+      name: '&e&l屠龙'
+      lore:
+        - '&f在资源末地复活并击杀末影龙'
+        - ''
+        - '&6要求:'
+        - ' - &f击杀 末影龙 x1'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x12000'
+        - ' - &f龙蛋 x1'
+        - ''
+        - '&b进度: %starmskyblock_task_4_2_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_4_2_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f在资源末地复活并击杀末影龙'
+            - ''
+            - '&6要求:'
+            - ' - &f击杀 末影龙 x1'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x12000'
+            - ' - &f龙蛋 x1'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 4 2'
+            - 'delay: 3'
+            - 'refresh: B'
+            - 'update: B'
+      - condition: 'check papi %starmskyblock_task_4_2_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f在资源末地复活并击杀末影龙'
+            - ''
+            - '&6要求:'
+            - ' - &f击杀 末影龙 x1'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x12000'
+            - ' - &f龙蛋 x1'
+            - ''
+            - '&2&l奖励已领取'
+
+  'C':
+    display:
+      material: SHULKER_SPAWN_EGG
+      name: '&e&l生蚝'
+      lore:
+        - '&f击杀一些潜影贝'
+        - ''
+        - '&6要求:'
+        - ' - &f击杀 潜影贝 x5'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x12000'
+        - ' - &f潜影贝刷怪蛋 x2'
+        - ''
+        - '&b进度: %starmskyblock_task_4_3_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_4_3_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f击杀一些潜影贝'
+            - ''
+            - '&6要求:'
+            - ' - &f击杀 潜影贝 x5'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x12000'
+            - ' - &f潜影贝刷怪蛋 x2'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 4 3'
+            - 'delay: 3'
+            - 'refresh: C'
+            - 'update: C'
+      - condition: 'check papi %starmskyblock_task_4_3_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f击杀一些潜影贝'
+            - ''
+            - '&6要求:'
+            - ' - &f击杀 潜影贝 x5'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x12000'
+            - ' - &f潜影贝刷怪蛋 x2'
+            - ''
+            - '&2&l奖励已领取'
+
+  'D':
+    display:
+      material: ELYTRA
+      name: '&e&l天空极为极限'
+      lore:
+        - '&f探索资源末地寻找鞘翅'
+        - ''
+        - '&6要求:'
+        - ' - &f鞘翅 x1'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x12000'
+        - ' - &f飞行权限'
+        - ''
+        - '&b进度: 0 %'
+        - ''
+        - '&e点击提交物品'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is task submit 4 4'
+        - 'delay: 3'
+        - 'refresh: D'
+        - 'update: D'
+    icons:
+      - condition: 'check papi %starmskyblock_task_4_4_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f探索资源末地寻找鞘翅'
+            - ''
+            - '&6要求:'
+            - ' - &f鞘翅 x1'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x12000'
+            - ' - &f飞行权限'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 4 4'
+            - 'delay: 3'
+            - 'refresh: D'
+            - 'update: D'
+      - condition: 'check papi %starmskyblock_task_4_4_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f探索资源末地寻找鞘翅'
+            - ''
+            - '&6要求:'
+            - ' - &f鞘翅 x1'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x12000'
+            - ' - &f飞行权限'
+            - ''
+            - '&2奖励已领取'

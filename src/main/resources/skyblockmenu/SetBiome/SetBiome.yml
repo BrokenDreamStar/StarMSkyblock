@@ -1,0 +1,101 @@
+Title: '修改岛屿生物群系'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#ABCDEFG#'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: IslandMenu'
+
+  'A':
+    display:
+      material: WATER_BUCKET
+      name: '&3&l海洋类生物群系'
+      lore:
+        - '&e点击打开海洋类生物群系列表'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeOcean'
+
+  'B':
+    display:
+      material: STONE
+      name: '&7&l山地类生物群系'
+      lore:
+        - '&e点击打开山地类生物群系列表'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeMountain'
+
+  'C':
+    display:
+      material: OAK_SAPLING
+      name: '&2&l森林类生物群系'
+      lore:
+        - '&e点击打开森林类生物群系列表'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeForest'
+
+  'D':
+    display:
+      material: CLAY
+      name: '&8&l湿地类生物群系'
+      lore:
+        - '&e点击打开湿地类生物群系列表'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeWetland'
+
+  'E':
+    display:
+      material: GRASS_BLOCK
+      name: '&a&l平原类生物群系'
+      lore:
+        - '&e点击打开平原类生物群系列表'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomePlains'
+
+  'F':
+    display:
+      material: SAND
+      name: '&e&l干旱类生物群系'
+      lore:
+        - '&e点击打开干旱类生物群系列表'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeArid'
+
+  'G':
+    display:
+      material: DRIPSTONE_BLOCK
+      name: '&d&l洞穴类生物群系'
+      lore:
+        - '&e点击打开洞穴类生物群系列表'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeCave'

@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.jspecify.annotations.NonNull;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.command.subcommand.AdminSubCommand;
+import team.starm.starmskyblock.command.subcommand.ReloadCommand;
 import team.starm.starmskyblock.command.subcommand.SetGeneratorCommand;
 import team.starm.starmskyblock.command.subcommand.SetRadiusCommand;
 import team.starm.starmskyblock.command.subcommand.SetTaskCommand;
@@ -33,6 +34,7 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
         subCommands.put("setradius", new SetRadiusCommand(plugin));
         subCommands.put("setgenerator", new SetGeneratorCommand(plugin));
         subCommands.put("settask", new SetTaskCommand(plugin));
+        subCommands.put("reload", new ReloadCommand(plugin));
         subCommandNames.addAll(subCommands.keySet());
     }
 
@@ -77,6 +79,7 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
         MessageUtil.sendMessage(sender, "&c  /isadmin setradius <岛屿ID> <新半径>");
         MessageUtil.sendMessage(sender, "&c  /isadmin setgenerator <岛屿ID> <等级>");
         MessageUtil.sendMessage(sender, "&c  /isadmin settask <玩家> <章节ID> <任务ID> complete|reset");
+        MessageUtil.sendMessage(sender, "&c  /isadmin reload - 重载所有配置文件");
     }
 
     @Override

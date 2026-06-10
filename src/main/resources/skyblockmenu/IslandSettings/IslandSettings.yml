@@ -1,0 +1,361 @@
+Title: '岛屿设置'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#ABCDEFG#'
+  - '#HIJKLMN#'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: IslandMenu'
+
+  'A':
+    update: 30
+    refresh: 30
+    display:
+      material: DIAMOND_SWORD
+      name: '&aPVP'
+      lore:
+        - '&e是否允许玩家PVP'
+        - '&f当前设置: %starmskyblock_islandsettings_PVP%'
+        - ''
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is settings pvp toggle -s'
+        - 'delay: 2'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_SETTINGS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&e是否允许玩家PVP'
+            - '&f当前设置: %starmskyblock_islandsettings_PVP%'
+            - ''
+            - '&c你没有权限修改'
+
+  'B':
+    update: 30
+    refresh: 30
+    display:
+      material: ENDER_PEARL
+      name: '&aTP'
+      lore:
+        - '&e是否允许传送到该岛屿'
+        - '&f当前设置: %starmskyblock_islandsettings_TP%'
+        - ''
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is settings tp toggle -s'
+        - 'delay: 2'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_SETTINGS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&e是否允许传送到该岛屿'
+            - '&f当前设置: %starmskyblock_islandsettings_TP%'
+            - ''
+            - '&c你没有权限修改'
+
+  'C':
+    update: 30
+    refresh: 30
+    display:
+      material: WHEAT
+      name: '&a动物生成'
+      lore:
+        - '&e是否允许自然生成动物'
+        - '&f当前设置: %starmskyblock_islandsettings_ANIMAL_SPAWN%'
+        - ''
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is settings animal_spawn toggle -s'
+        - 'delay: 2'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_SETTINGS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&e是否允许自然生成动物'
+            - '&f当前设置: %starmskyblock_islandsettings_ANIMAL_SPAWN%'
+            - ''
+            - '&c你没有权限修改'
+
+  'D':
+    update: 30
+    refresh: 30
+    display:
+      material: ROTTEN_FLESH
+      name: '&a怪物生成'
+      lore:
+        - '&e是否允许自然生成怪物'
+        - '&f当前设置: %starmskyblock_islandsettings_MONSTER_SPAWN%'
+        - ''
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is settings monster_spawn toggle -s'
+        - 'delay: 2'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_SETTINGS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&e是否允许自然生成怪物'
+            - '&f当前设置: %starmskyblock_islandsettings_MONSTER_SPAWN%'
+            - ''
+            - '&c你没有权限修改'
+
+  'E':
+    update: 30
+    refresh: 30
+    display:
+      material: SPAWNER
+      name: '&a刷怪笼'
+      lore:
+        - '&e是否允许刷怪笼生成生物'
+        - '&f当前设置: %starmskyblock_islandsettings_SPAWNER_SPAWN%'
+        - ''
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is settings spawner_spawn toggle -s'
+        - 'delay: 2'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_SETTINGS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&e是否允许刷怪笼生成生物'
+            - '&f当前设置: %starmskyblock_islandsettings_SPAWNER_SPAWN%'
+            - ''
+            - '&c你没有权限修改'
+
+  'F':
+    update: 30
+    refresh: 30
+    display:
+      material: FLINT_AND_STEEL
+      name: '&a火势蔓延'
+      lore:
+        - '&e是否允许火势蔓延'
+        - '&f当前设置: %starmskyblock_islandsettings_FIRE_SPREAD%'
+        - ''
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is settings fire_spread toggle -s'
+        - 'delay: 2'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_SETTINGS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&e是否允许火势蔓延'
+            - '&f当前设置: %starmskyblock_islandsettings_FIRE_SPREAD%'
+            - ''
+            - '&c你没有权限修改'
+
+  'G':
+    update: 30
+    refresh: 30
+    display:
+      material: GRASS_BLOCK
+      name: '&a末影人搬运方块'
+      lore:
+        - '&e是否允许末影人搬运方块'
+        - '&f当前设置: %starmskyblock_islandsettings_ENDERMAN_GRIEF%'
+        - ''
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is settings enderman_grief toggle -s'
+        - 'delay: 2'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_SETTINGS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&e是否允许末影人搬运方块'
+            - '&f当前设置: %starmskyblock_islandsettings_ENDERMAN_GRIEF%'
+            - ''
+            - '&c你没有权限修改'
+
+  'H':
+    update: 30
+    refresh: 30
+    display:
+      material: FIRE_CHARGE
+      name: '&a恶魂火球'
+      lore:
+        - '&e是否允许恶魂火球破坏方块'
+        - '&f当前设置: %starmskyblock_islandsettings_GHAST_FIREBALL_GRIEF%'
+        - ''
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is settings ghast_fireball_grief toggle -s'
+        - 'delay: 2'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_SETTINGS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&e是否允许恶魂火球破坏方块'
+            - '&f当前设置: %starmskyblock_islandsettings_GHAST_FIREBALL_GRIEF%'
+            - ''
+            - '&c你没有权限修改'
+
+  'I':
+    update: 30
+    refresh: 30
+    display:
+      material: CREEPER_HEAD
+      name: '&a苦力怕爆炸'
+      lore:
+        - '&e是否允许苦力怕爆炸破坏方块'
+        - '&f当前设置: %starmskyblock_islandsettings_CREEPER_EXPLOSION%'
+        - ''
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is settings creeper_explosion toggle -s'
+        - 'delay: 2'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_SETTINGS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&e是否允许苦力怕爆炸破坏方块'
+            - '&f当前设置: %starmskyblock_islandsettings_CREEPER_EXPLOSION%'
+            - ''
+            - '&c你没有权限修改'
+
+  'J':
+    update: 30
+    refresh: 30
+    display:
+      material: TNT
+      name: '&aTNT爆炸'
+      lore:
+        - '&e是否允许TNT爆炸破坏方块'
+        - '&f当前设置: %starmskyblock_islandsettings_TNT_EXPLOSION%'
+        - ''
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is settings tnt_explosion toggle -s'
+        - 'delay: 2'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_SETTINGS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&e是否允许TNT爆炸破坏方块'
+            - '&f当前设置: %starmskyblock_islandsettings_TNT_EXPLOSION%'
+            - ''
+            - '&c你没有权限修改'
+
+  'K':
+    update: 30
+    refresh: 30
+    display:
+      material: WITHER_SKELETON_SKULL
+      name: '&a凋灵破坏'
+      lore:
+        - '&e是否允许凋灵破坏方块'
+        - '&f当前设置: %starmskyblock_islandsettings_WITHER_GRIEF%'
+        - ''
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is settings wither_grief toggle -s'
+        - 'delay: 2'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_SETTINGS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&e是否允许凋灵破坏方块'
+            - '&f当前设置: %starmskyblock_islandsettings_WITHER_GRIEF%'
+            - ''
+            - '&c你没有权限修改'
+
+  'L':
+    update: 30
+    refresh: 30
+    display:
+      material: PHANTOM_MEMBRANE
+      name: '&a生成幻翼'
+      lore:
+        - '&e是否允许生成幻翼'
+        - '&f当前设置: %starmskyblock_islandsettings_PHANTOM_SPAWN%'
+        - ''
+        - '&e点击切换设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is settings phantom_spawn toggle -s'
+        - 'delay: 2'
+        - 'update'
+        - 'refresh'
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_SETTINGS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&e是否允许生成幻翼'
+            - '&f当前设置: %starmskyblock_islandsettings_PHANTOM_SPAWN%'
+            - ''
+            - '&c你没有权限修改'

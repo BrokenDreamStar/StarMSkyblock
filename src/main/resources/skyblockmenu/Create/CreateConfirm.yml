@@ -1,0 +1,47 @@
+Title: '确认创建岛屿'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '##A###B##'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: Create'
+
+  'A':
+    display:
+      material: LIME_CONCRETE
+      name: '&a&l确认'
+      lore:
+        - '&e确认创建该岛屿'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is create {0}'
+
+  'B':
+    display:
+      material: RED_CONCRETE
+      name: '&c&l取消'
+      lore:
+        - '&e取消创建岛屿'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'

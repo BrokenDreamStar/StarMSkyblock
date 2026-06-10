@@ -1,0 +1,76 @@
+Title: '任务'
+
+Options:
+  Min-Click-Delay: 200
+
+Events:
+  Open:
+    - 'delay: 3'
+    - 'refresh: D'
+
+Layout:
+  - '!#######<'
+  - '#ABCDEFG#'
+  - '#########'
+
+Icons:
+  '!':
+    display:
+      material: BOOK
+      name: '&6&l说明'
+      lore:
+        - '&e需要提交物品的任务要手动点击提交'
+        - '&e提交后物品会被扣除'
+        - '&e其它任务在达到要求后会自动完成'
+        - ''
+        - '&e采集类(挖掘 砍伐等)任务需要破坏自然生成的方块才计数'
+
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: IslandMenu'
+
+  'A':
+    display:
+      material: OAK_SAPLING
+      name: '&f&l序章 初临空岛'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: TaskChapter1'
+
+  'B':
+    display:
+      material: IRON_INGOT
+      name: '&a&l第一章 空岛生存'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: TaskChapter2'
+
+  'C':
+    display:
+      material: NETHERRACK
+      name: '&c&l第二章 地狱空荡荡'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: TaskChapter3'
+
+  'D':
+    display:
+      material: END_PORTAL_FRAME
+      name: '&e&l第三章 终末之诗'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: TaskChapter4'

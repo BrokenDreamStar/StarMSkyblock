@@ -8,6 +8,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.net.URI;
 
 import team.starm.starmskyblock.command.AdminCommand;
 import team.starm.starmskyblock.config.ConfigManager;
@@ -105,10 +109,11 @@ public class StarMSkyblock extends JavaPlugin {
         initWorlds();
         initInvitations();
         initPermissions();
-        registerIntegrations();
-        preWarmWorlds();
         registerListeners();
         registerCommands();
+
+        registerIntegrations();
+        preWarmWorlds();
 
         MessageUtil.consolePrint("插件已准备就绪！");
     }
@@ -230,6 +235,11 @@ public class StarMSkyblock extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("TrMenu") != null) {
             JavaScriptAgent.INSTANCE.putBinding("StarMSkyblockAPI", new StarMSkyblockHook());
             MessageUtil.consolePrint("已注册 TrMenu JS 物品源桥接");
+
+            File menuDir = new File("plugins/TrMenu/menus/skyblockmenu");
+            if (!menuDir.exists()) {
+                extractSkyblockMenu();
+            }
         }
 
         setupVault();
@@ -440,6 +450,38 @@ public class StarMSkyblock extends JavaPlugin {
             } catch (IOException e) {
                 MessageUtil.consoleError("创建schematics文件时发生错误: " + fileName, e);
             }
+        }
+    }
+
+    private void extractSkyblockMenu() {
+        try {
+            URI jarUri = getClass().getProtectionDomain().getCodeSource().getLocation().toURI();
+            Path trMenuMenus = new File("plugins/TrMenu/menus/skyblockmenu").toPath();
+            int[] count = {0};
+
+            try (FileSystem fs = FileSystems.newFileSystem(Path.of(jarUri), (ClassLoader) null)) {
+                Path menuRoot = fs.getPath("skyblockmenu");
+                Files.walk(menuRoot).forEach(source -> {
+                    try {
+                        Path relative = menuRoot.relativize(source);
+                        Path target = trMenuMenus.resolve(relative.toString());
+                        if (Files.isDirectory(source)) {
+                            target.toFile().mkdirs();
+                        } else if (!target.toFile().exists()) {
+                            Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+                            count[0]++;
+                        }
+                    } catch (IOException e) {
+                        MessageUtil.consoleError("提取菜单文件时出错: " + source, e);
+                    }
+                });
+            }
+
+            if (count[0] > 0) {
+                MessageUtil.consolePrint("已创建 " + count[0] + " 个 TrMenu 菜单文件");
+            }
+        } catch (Exception e) {
+            MessageUtil.consoleError("提取 TrMenu 菜单文件时出错", e);
         }
     }
 }

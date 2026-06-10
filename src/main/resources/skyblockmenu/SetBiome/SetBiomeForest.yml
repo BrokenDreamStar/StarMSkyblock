@@ -1,0 +1,259 @@
+Title: '修改岛屿生物群系-森林类'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#ABCDEFG#'
+  - '#HIJKLM #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: SetBiome'
+
+  'A':
+    display:
+      material: OAK_SAPLING
+      name: '&a&l森林'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&a&l森林'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&a&l森林'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome forest'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Forest &a&l森林 forest'
+
+  'B':
+    display:
+      material: SPRUCE_SAPLING
+      name: '&2&l针叶林'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&2&l针叶林'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&2&l针叶林'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome taiga'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Forest &2&l针叶林 taiga'
+
+  'C':
+    display:
+      material: SNOW
+      name: '&f&l积雪针叶林'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&f&l积雪针叶林'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&f&l积雪针叶林'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome snowy_taiga'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Forest &f&l积雪针叶林 snowy_taiga'
+
+  'D':
+    display:
+      material: PODZOL
+      name: '&6&l原始松木针叶林'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&6&l原始松木针叶林'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&6&l原始松木针叶林'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome old_growth_pine_taiga'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Forest &6&l原始松木针叶林 old_growth_pine_taiga'
+
+  'E':
+    display:
+      material: SPRUCE_LOG
+      name: '&6&l原始云杉针叶林'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&6&l原始云杉针叶林'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&6&l原始云杉针叶林'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome old_growth_spruce_taiga'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Forest &6&l原始云杉针叶林 old_growth_spruce_taiga'
+
+  'F':
+    display:
+      material: RED_TULIP
+      name: '&c&l繁&e&l花&b&l森&a&l林'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&c&l繁&e&l花&b&l森&a&l林'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&c&l繁&e&l花&b&l森&a&l林'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome flower_forest'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Forest &c&l繁&e&l花&b&l森&a&l林 flower_forest'
+
+  'G':
+    display:
+      material: BIRCH_SAPLING
+      name: '&f&l桦木森林'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&f&l桦木森林'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&f&l桦木森林'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome birch_forest'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Forest &f&l桦木森林 birch_forest'
+
+  'H':
+    display:
+      material: BIRCH_LOG
+      name: '&f&l原始桦木森林'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&f&l原始桦木森林'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&f&l原始桦木森林'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome old_growth_birch_forest'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Forest &f&l原始桦木森林 old_growth_birch_forest'
+
+  'I':
+    display:
+      material: DARK_OAK_SAPLING
+      name: '&5&l黑森林'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&5&l黑森林'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&5&l黑森林'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome dark_forest'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Forest &5&l黑森林 dark_forest'
+
+  'J':
+    display:
+      material: JUNGLE_SAPLING
+      name: '&2&l丛林'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&2&l丛林'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&2&l丛林'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome jungle'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Forest &2&l丛林 jungle'
+
+  'K':
+    display:
+      material: JUNGLE_LEAVES
+      name: '&2&l稀疏丛林'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&2&l稀疏丛林'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&2&l稀疏丛林'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome sparse_jungle'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Forest &2&l稀疏丛林 sparse_jungle'
+
+  'L':
+    display:
+      material: BAMBOO
+      name: '&2&l竹林'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&2&l竹林'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&2&l竹林'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome bamboo_jungle'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Forest &2&l竹林 bamboo_jungle'
+
+  'M':
+    display:
+      material: PALE_OAK_SAPLING
+      name: '&f&l苍白之园'
+      lore:
+        - '&a左键点击'
+        - ' - &e左键修改&l当前所在区块&e生物群系为&f&l苍白之园'
+        - '&b右键点击'
+        - ' - &e修改&l整个岛屿&e的生物群系为&f&l苍白之园'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'Close'
+        - 'command: is setchunkbiome pale_garden'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiomeConfirm Forest &f&l苍白之园 pale_garden'

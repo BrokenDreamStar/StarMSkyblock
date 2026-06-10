@@ -1,0 +1,313 @@
+Title: '岛屿权限管理-载具'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#ABCDEF #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: Permissions'
+
+  'A':
+    update: 30
+    refresh: 30
+    display:
+      material: MINECART
+      name: '&c破坏矿车'
+      lore:
+        - '&f破坏矿车/漏斗矿车/箱子矿车/运输矿车/TNT矿车'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_MINECART_DAMAGE_level_ADMIN%'
+        - '- %starmskyblock_permission_MINECART_DAMAGE_level_MOD%'
+        - '- %starmskyblock_permission_MINECART_DAMAGE_level_MEMBER%'
+        - '- %starmskyblock_permission_MINECART_DAMAGE_level_COOP%'
+        - '- %starmskyblock_permission_MINECART_DAMAGE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission minecart_damage cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission minecart_damage rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f破坏矿车/漏斗矿车/箱子矿车/运输矿车/TNT矿车'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_MINECART_DAMAGE_level_ADMIN%'
+            - '- %starmskyblock_permission_MINECART_DAMAGE_level_MOD%'
+            - '- %starmskyblock_permission_MINECART_DAMAGE_level_MEMBER%'
+            - '- %starmskyblock_permission_MINECART_DAMAGE_level_COOP%'
+            - '- %starmskyblock_permission_MINECART_DAMAGE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+  'B':
+    update: 30
+    refresh: 30
+    display:
+      material: MINECART
+      name: '&a乘坐矿车'
+      lore:
+        - '&f乘坐矿车'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_MINECART_ENTER_level_ADMIN%'
+        - '- %starmskyblock_permission_MINECART_ENTER_level_MOD%'
+        - '- %starmskyblock_permission_MINECART_ENTER_level_MEMBER%'
+        - '- %starmskyblock_permission_MINECART_ENTER_level_COOP%'
+        - '- %starmskyblock_permission_MINECART_ENTER_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission minecart_enter cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission minecart_enter rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f乘坐矿车'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_MINECART_ENTER_level_ADMIN%'
+            - '- %starmskyblock_permission_MINECART_ENTER_level_MOD%'
+            - '- %starmskyblock_permission_MINECART_ENTER_level_MEMBER%'
+            - '- %starmskyblock_permission_MINECART_ENTER_level_COOP%'
+            - '- %starmskyblock_permission_MINECART_ENTER_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+  'C':
+    update: 30
+    refresh: 30
+    display:
+      material: MINECART
+      name: '&a放置矿车'
+      lore:
+        - '&f放置矿车/漏斗矿车/箱子矿车/运输矿车/TNT矿车'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_MINECART_PLACE_level_ADMIN%'
+        - '- %starmskyblock_permission_MINECART_PLACE_level_MOD%'
+        - '- %starmskyblock_permission_MINECART_PLACE_level_MEMBER%'
+        - '- %starmskyblock_permission_MINECART_PLACE_level_COOP%'
+        - '- %starmskyblock_permission_MINECART_PLACE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission minecart_place cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission minecart_place rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f放置矿车/漏斗矿车/箱子矿车/运输矿车/TNT矿车'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_MINECART_PLACE_level_ADMIN%'
+            - '- %starmskyblock_permission_MINECART_PLACE_level_MOD%'
+            - '- %starmskyblock_permission_MINECART_PLACE_level_MEMBER%'
+            - '- %starmskyblock_permission_MINECART_PLACE_level_COOP%'
+            - '- %starmskyblock_permission_MINECART_PLACE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+  'D':
+    update: 30
+    refresh: 30
+    display:
+      material: OAK_BOAT
+      name: '&c破坏船'
+      lore:
+        - '&f破坏船/运输船/运输竹筏'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_BOAT_DAMAGE_level_ADMIN%'
+        - '- %starmskyblock_permission_BOAT_DAMAGE_level_MOD%'
+        - '- %starmskyblock_permission_BOAT_DAMAGE_level_MEMBER%'
+        - '- %starmskyblock_permission_BOAT_DAMAGE_level_COOP%'
+        - '- %starmskyblock_permission_BOAT_DAMAGE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission boat_damage cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission boat_damage rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f破坏船/运输船/运输竹筏'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_BOAT_DAMAGE_level_ADMIN%'
+            - '- %starmskyblock_permission_BOAT_DAMAGE_level_MOD%'
+            - '- %starmskyblock_permission_BOAT_DAMAGE_level_MEMBER%'
+            - '- %starmskyblock_permission_BOAT_DAMAGE_level_COOP%'
+            - '- %starmskyblock_permission_BOAT_DAMAGE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+  'E':
+    update: 30
+    refresh: 30
+    display:
+      material: OAK_BOAT
+      name: '&a乘坐船'
+      lore:
+        - '&f乘坐船/运输船/运输竹筏'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_BOAT_ENTER_level_ADMIN%'
+        - '- %starmskyblock_permission_BOAT_ENTER_level_MOD%'
+        - '- %starmskyblock_permission_BOAT_ENTER_level_MEMBER%'
+        - '- %starmskyblock_permission_BOAT_ENTER_level_COOP%'
+        - '- %starmskyblock_permission_BOAT_ENTER_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission boat_enter cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission boat_enter rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f乘坐船/运输船/运输竹筏'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_BOAT_ENTER_level_ADMIN%'
+            - '- %starmskyblock_permission_BOAT_ENTER_level_MOD%'
+            - '- %starmskyblock_permission_BOAT_ENTER_level_MEMBER%'
+            - '- %starmskyblock_permission_BOAT_ENTER_level_COOP%'
+            - '- %starmskyblock_permission_BOAT_ENTER_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+  'F':
+    update: 30
+    refresh: 30
+    display:
+      material: OAK_BOAT
+      name: '&a放置船/运输船/运输竹筏'
+      lore:
+        - '&f放置船'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_BOAT_PLACE_level_ADMIN%'
+        - '- %starmskyblock_permission_BOAT_PLACE_level_MOD%'
+        - '- %starmskyblock_permission_BOAT_PLACE_level_MEMBER%'
+        - '- %starmskyblock_permission_BOAT_PLACE_level_COOP%'
+        - '- %starmskyblock_permission_BOAT_PLACE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission boat_place cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission boat_place rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f放置船'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_BOAT_PLACE_level_ADMIN%'
+            - '- %starmskyblock_permission_BOAT_PLACE_level_MOD%'
+            - '- %starmskyblock_permission_BOAT_PLACE_level_MEMBER%'
+            - '- %starmskyblock_permission_BOAT_PLACE_level_COOP%'
+            - '- %starmskyblock_permission_BOAT_PLACE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'

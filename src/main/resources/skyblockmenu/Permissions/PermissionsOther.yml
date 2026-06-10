@@ -1,0 +1,613 @@
+Title: '岛屿权限管理-其它'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#ABCDEFG#'
+  - '#HIJKL  #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: Permissions'
+
+  'A':
+    update: 30
+    refresh: 30
+    display:
+      material: PIG_SPAWN_EGG
+      name: '&a使用刷怪蛋'
+      lore:
+        - '&f使用刷怪蛋'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_SPAWN_EGG_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_SPAWN_EGG_USE_level_MOD%'
+        - '- %starmskyblock_permission_SPAWN_EGG_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_SPAWN_EGG_USE_level_COOP%'
+        - '- %starmskyblock_permission_SPAWN_EGG_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission spawn_egg_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission spawn_egg_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f使用刷怪蛋'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_SPAWN_EGG_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_SPAWN_EGG_USE_level_MOD%'
+            - '- %starmskyblock_permission_SPAWN_EGG_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_SPAWN_EGG_USE_level_COOP%'
+            - '- %starmskyblock_permission_SPAWN_EGG_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'B':
+    update: 30
+    refresh: 30
+    display:
+      material: FARMLAND
+      name: '&a踩踏耕地'
+      lore:
+        - '&f踩踏耕地'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_FARMLAND_TRAMPLE_level_ADMIN%'
+        - '- %starmskyblock_permission_FARMLAND_TRAMPLE_level_MOD%'
+        - '- %starmskyblock_permission_FARMLAND_TRAMPLE_level_MEMBER%'
+        - '- %starmskyblock_permission_FARMLAND_TRAMPLE_level_COOP%'
+        - '- %starmskyblock_permission_FARMLAND_TRAMPLE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission farmland_trample cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission farmland_trample rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f踩踏耕地'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_FARMLAND_TRAMPLE_level_ADMIN%'
+            - '- %starmskyblock_permission_FARMLAND_TRAMPLE_level_MOD%'
+            - '- %starmskyblock_permission_FARMLAND_TRAMPLE_level_MEMBER%'
+            - '- %starmskyblock_permission_FARMLAND_TRAMPLE_level_COOP%'
+            - '- %starmskyblock_permission_FARMLAND_TRAMPLE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'C':
+    update: 30
+    refresh: 30
+    display:
+      material: TURTLE_EGG
+      name: '&a踩踏海龟蛋'
+      lore:
+        - '&f踩踏海龟蛋'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_TURTLE_EGG_TRAMPLE_level_ADMIN%'
+        - '- %starmskyblock_permission_TURTLE_EGG_TRAMPLE_level_MOD%'
+        - '- %starmskyblock_permission_TURTLE_EGG_TRAMPLE_level_MEMBER%'
+        - '- %starmskyblock_permission_TURTLE_EGG_TRAMPLE_level_COOP%'
+        - '- %starmskyblock_permission_TURTLE_EGG_TRAMPLE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission turtle_egg_trample cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission turtle_egg_trample rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f踩踏海龟蛋'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_TURTLE_EGG_TRAMPLE_level_ADMIN%'
+            - '- %starmskyblock_permission_TURTLE_EGG_TRAMPLE_level_MOD%'
+            - '- %starmskyblock_permission_TURTLE_EGG_TRAMPLE_level_MEMBER%'
+            - '- %starmskyblock_permission_TURTLE_EGG_TRAMPLE_level_COOP%'
+            - '- %starmskyblock_permission_TURTLE_EGG_TRAMPLE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'D':
+    update: 30
+    refresh: 30
+    display:
+      material: SWEET_BERRIES
+      name: '&a采摘浆果'
+      lore:
+        - '&f采摘浆果'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_SWEET_BERRY_HARVEST_level_ADMIN%'
+        - '- %starmskyblock_permission_SWEET_BERRY_HARVEST_level_MOD%'
+        - '- %starmskyblock_permission_SWEET_BERRY_HARVEST_level_MEMBER%'
+        - '- %starmskyblock_permission_SWEET_BERRY_HARVEST_level_COOP%'
+        - '- %starmskyblock_permission_SWEET_BERRY_HARVEST_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission sweet_berry_harvest cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission sweet_berry_harvest rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f采摘浆果'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_SWEET_BERRY_HARVEST_level_ADMIN%'
+            - '- %starmskyblock_permission_SWEET_BERRY_HARVEST_level_MOD%'
+            - '- %starmskyblock_permission_SWEET_BERRY_HARVEST_level_MEMBER%'
+            - '- %starmskyblock_permission_SWEET_BERRY_HARVEST_level_COOP%'
+            - '- %starmskyblock_permission_SWEET_BERRY_HARVEST_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'E':
+    update: 30
+    refresh: 30
+    display:
+      material: CAKE
+      name: '&a食用蛋糕'
+      lore:
+        - '&f食用蛋糕'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_CAKE_EAT_level_ADMIN%'
+        - '- %starmskyblock_permission_CAKE_EAT_level_MOD%'
+        - '- %starmskyblock_permission_CAKE_EAT_level_MEMBER%'
+        - '- %starmskyblock_permission_CAKE_EAT_level_COOP%'
+        - '- %starmskyblock_permission_CAKE_EAT_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission cake_eat cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission cake_eat rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f食用蛋糕'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_CAKE_EAT_level_ADMIN%'
+            - '- %starmskyblock_permission_CAKE_EAT_level_MOD%'
+            - '- %starmskyblock_permission_CAKE_EAT_level_MEMBER%'
+            - '- %starmskyblock_permission_CAKE_EAT_level_COOP%'
+            - '- %starmskyblock_permission_CAKE_EAT_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'F':
+    update: 30
+    refresh: 30
+    display:
+      material: OAK_SIGN
+      name: '&a编辑告示牌'
+      lore:
+        - '&f编辑告示牌'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_SIGN_EDIT_level_ADMIN%'
+        - '- %starmskyblock_permission_SIGN_EDIT_level_MOD%'
+        - '- %starmskyblock_permission_SIGN_EDIT_level_MEMBER%'
+        - '- %starmskyblock_permission_SIGN_EDIT_level_COOP%'
+        - '- %starmskyblock_permission_SIGN_EDIT_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission sign_edit cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission sign_edit rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f编辑告示牌'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_SIGN_EDIT_level_ADMIN%'
+            - '- %starmskyblock_permission_SIGN_EDIT_level_MOD%'
+            - '- %starmskyblock_permission_SIGN_EDIT_level_MEMBER%'
+            - '- %starmskyblock_permission_SIGN_EDIT_level_COOP%'
+            - '- %starmskyblock_permission_SIGN_EDIT_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'G':
+    update: 30
+    refresh: 30
+    display:
+      material: RED_BED
+      name: '&a睡觉'
+      lore:
+        - '&f睡觉'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_BED_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_BED_USE_level_MOD%'
+        - '- %starmskyblock_permission_BED_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_BED_USE_level_COOP%'
+        - '- %starmskyblock_permission_BED_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission bed_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission bed_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f睡觉'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_BED_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_BED_USE_level_MOD%'
+            - '- %starmskyblock_permission_BED_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_BED_USE_level_COOP%'
+            - '- %starmskyblock_permission_BED_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'H':
+    update: 30
+    refresh: 30
+    display:
+      material: RESPAWN_ANCHOR
+      name: '&a使用重生锚'
+      lore:
+        - '&f使用重生锚'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_RESPAWN_ANCHOR_USE_level_ADMIN%'
+        - '- %starmskyblock_permission_RESPAWN_ANCHOR_USE_level_MOD%'
+        - '- %starmskyblock_permission_RESPAWN_ANCHOR_USE_level_MEMBER%'
+        - '- %starmskyblock_permission_RESPAWN_ANCHOR_USE_level_COOP%'
+        - '- %starmskyblock_permission_RESPAWN_ANCHOR_USE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission respawn_anchor_use cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission respawn_anchor_use rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f使用重生锚'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_RESPAWN_ANCHOR_USE_level_ADMIN%'
+            - '- %starmskyblock_permission_RESPAWN_ANCHOR_USE_level_MOD%'
+            - '- %starmskyblock_permission_RESPAWN_ANCHOR_USE_level_MEMBER%'
+            - '- %starmskyblock_permission_RESPAWN_ANCHOR_USE_level_COOP%'
+            - '- %starmskyblock_permission_RESPAWN_ANCHOR_USE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'I':
+    update: 30
+    refresh: 30
+    display:
+      material: END_CRYSTAL
+      name: '&a破坏末地水晶'
+      lore:
+        - '&f破坏末地水晶'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_END_CRYSTAL_DAMAGE_level_ADMIN%'
+        - '- %starmskyblock_permission_END_CRYSTAL_DAMAGE_level_MOD%'
+        - '- %starmskyblock_permission_END_CRYSTAL_DAMAGE_level_MEMBER%'
+        - '- %starmskyblock_permission_END_CRYSTAL_DAMAGE_level_COOP%'
+        - '- %starmskyblock_permission_END_CRYSTAL_DAMAGE_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission end_crystal_damage cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission end_crystal_damage rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f破坏末地水晶'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_END_CRYSTAL_DAMAGE_level_ADMIN%'
+            - '- %starmskyblock_permission_END_CRYSTAL_DAMAGE_level_MOD%'
+            - '- %starmskyblock_permission_END_CRYSTAL_DAMAGE_level_MEMBER%'
+            - '- %starmskyblock_permission_END_CRYSTAL_DAMAGE_level_COOP%'
+            - '- %starmskyblock_permission_END_CRYSTAL_DAMAGE_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'J':
+    update: 30
+    refresh: 30
+    display:
+      material: OMINOUS_BOTTLE
+      name: '&a触发袭击'
+      lore:
+        - '&f触发袭击'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_RAID_TRIGGER_level_ADMIN%'
+        - '- %starmskyblock_permission_RAID_TRIGGER_level_MOD%'
+        - '- %starmskyblock_permission_RAID_TRIGGER_level_MEMBER%'
+        - '- %starmskyblock_permission_RAID_TRIGGER_level_COOP%'
+        - '- %starmskyblock_permission_RAID_TRIGGER_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission raid_trigger cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission raid_trigger rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f触发袭击'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_RAID_TRIGGER_level_ADMIN%'
+            - '- %starmskyblock_permission_RAID_TRIGGER_level_MOD%'
+            - '- %starmskyblock_permission_RAID_TRIGGER_level_MEMBER%'
+            - '- %starmskyblock_permission_RAID_TRIGGER_level_COOP%'
+            - '- %starmskyblock_permission_RAID_TRIGGER_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'K':
+    update: 30
+    refresh: 30
+    display:
+      material: OBSIDIAN
+      name: '&a进入下界传送门'
+      lore:
+        - '&f进入下界传送门'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_ENTER_NETHER_PORTAL_level_ADMIN%'
+        - '- %starmskyblock_permission_ENTER_NETHER_PORTAL_level_MOD%'
+        - '- %starmskyblock_permission_ENTER_NETHER_PORTAL_level_MEMBER%'
+        - '- %starmskyblock_permission_ENTER_NETHER_PORTAL_level_COOP%'
+        - '- %starmskyblock_permission_ENTER_NETHER_PORTAL_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission enter_nether_portal cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission enter_nether_portal rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f触发袭击'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_ENTER_NETHER_PORTAL_level_ADMIN%'
+            - '- %starmskyblock_permission_ENTER_NETHER_PORTAL_level_MOD%'
+            - '- %starmskyblock_permission_ENTER_NETHER_PORTAL_level_MEMBER%'
+            - '- %starmskyblock_permission_ENTER_NETHER_PORTAL_level_COOP%'
+            - '- %starmskyblock_permission_ENTER_NETHER_PORTAL_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'
+
+  'L':
+    update: 30
+    refresh: 30
+    display:
+      material: ND_PORTAL_FRAME
+      name: '&a进入末地传送门'
+      lore:
+        - '&f进入末地传送门'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_ENTER_END_PORTAL_level_ADMIN%'
+        - '- %starmskyblock_permission_ENTER_END_PORTAL_level_MOD%'
+        - '- %starmskyblock_permission_ENTER_END_PORTAL_level_MEMBER%'
+        - '- %starmskyblock_permission_ENTER_END_PORTAL_level_COOP%'
+        - '- %starmskyblock_permission_ENTER_END_PORTAL_level_VISITOR%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission enter_end_portal cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission enter_end_portal rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f触发袭击'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_ENTER_END_PORTAL_level_ADMIN%'
+            - '- %starmskyblock_permission_ENTER_END_PORTAL_level_MOD%'
+            - '- %starmskyblock_permission_ENTER_END_PORTAL_level_MEMBER%'
+            - '- %starmskyblock_permission_ENTER_END_PORTAL_level_COOP%'
+            - '- %starmskyblock_permission_ENTER_END_PORTAL_level_VISITOR%'
+            - ''
+            - '&c你没有权限修改'

@@ -16,7 +16,9 @@ import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
-import java.util.Map;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -154,10 +156,10 @@ public class CobblestoneGeneratorListener implements Listener {
      */
     private Material selectGeneratorMaterial(Island island, String worldName, Location loc) {
         GeneratorConfigManager.GeneratorTier tier = generatorConfig.getTier(island.getGeneratorLevel());
-        Map<String, Double> rates = getDimensionRates(tier, worldName);
-        if (rates.isEmpty()) return null;
+        List<GeneratorConfigManager.WeightedEntry> entries = getDimensionEntries(tier, worldName);
+        if (entries.isEmpty()) return null;
 
-        Material selected = selectMaterial(rates);
+        Material selected = selectMaterialFast(entries);
         if (selected == null) return null;
 
         Material defaultBlock = getDimensionDefaultBlock(worldName);
@@ -176,33 +178,28 @@ public class CobblestoneGeneratorListener implements Listener {
         return false;
     }
 
-    private Map<String, Double> getDimensionRates(GeneratorConfigManager.GeneratorTier tier, String worldName) {
+    private List<GeneratorConfigManager.WeightedEntry> getDimensionEntries(GeneratorConfigManager.GeneratorTier tier, String worldName) {
         if (worldManager.isNormalWorld(worldName)) {
-            return tier.normal();
+            return tier.normalEntries();
         } else if (worldManager.isEndWorld(worldName)) {
-            return tier.end();
+            return tier.endEntries();
         } else if (worldManager.isNetherWorld(worldName)) {
-            return tier.nether();
+            return tier.netherEntries();
         }
-        return Map.of();
+        return List.of();
     }
 
-    private Material selectMaterial(Map<String, Double> rates) {
-        double totalWeight = 0;
-        for (double w : rates.values()) {
-            totalWeight += w;
-        }
+    private Material selectMaterialFast(List<GeneratorConfigManager.WeightedEntry> entries) {
+        if (entries.isEmpty()) return null;
+        double totalWeight = entries.get(entries.size() - 1).cumulativeWeight();
         if (totalWeight <= 0) return null;
-
         double random = ThreadLocalRandom.current().nextDouble(totalWeight);
-        double cumulative = 0;
-        for (Map.Entry<String, Double> entry : rates.entrySet()) {
-            cumulative += entry.getValue();
-            if (random < cumulative) {
-                return Material.matchMaterial(entry.getKey());
-            }
-        }
-        return null;
+        int idx = Collections.binarySearch(entries,
+                new GeneratorConfigManager.WeightedEntry(random, ""),
+                Comparator.comparingDouble(GeneratorConfigManager.WeightedEntry::cumulativeWeight));
+        if (idx < 0) idx = -idx - 1;
+        idx = Math.min(idx, entries.size() - 1);
+        return Material.matchMaterial(entries.get(idx).material());
     }
 
     private Material applyGeneratorToggle(Material selected, Island island, String worldName, Material defaultBlock) {

@@ -1,0 +1,518 @@
+Title: '岛屿权限管理-管理权限'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#ABCDEFG#'
+  - '#HIJKL  #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: Permissions'
+
+  'A':
+    update: 30
+    refresh: 30
+    display:
+      material: BARRIER
+      name: '&4删除岛屿'
+      lore:
+        - '&f删除岛屿'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      all:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f删除岛屿'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - ''
+            - '&c你没有权限修改'
+
+  'B':
+    update: 30
+    refresh: 30
+    display:
+      material: NAME_TAG
+      name: '&e重命名岛屿'
+      lore:
+        - '&f重命名岛屿'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_RENAME_ISLAND_level_ADMIN%'
+        - '- %starmskyblock_permission_RENAME_ISLAND_level_MOD%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission rename_island cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission rename_island rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f重命名岛屿'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_RENAME_ISLAND_level_ADMIN%'
+            - '- %starmskyblock_permission_RENAME_ISLAND_level_MOD%'
+            - ''
+            - '&c你没有权限修改'
+  'C':
+    update: 30
+    refresh: 30
+    display:
+      material: WRITABLE_BOOK
+      name: '&e修改岛屿权限'
+      lore:
+        - '&f修改岛屿权限'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_EDIT_PERMISSIONS_level_ADMIN%'
+        - '- %starmskyblock_permission_EDIT_PERMISSIONS_level_MOD%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission edit_permissions cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission edit_permissions rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f修改岛屿权限'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_EDIT_PERMISSIONS_level_ADMIN%'
+            - '- %starmskyblock_permission_EDIT_PERMISSIONS_level_MOD%'
+            - ''
+            - '&c你没有权限修改'
+  'D':
+    update: 30
+    refresh: 30
+    display:
+      material: COMPARATOR
+      name: '&e修改岛屿设置'
+      lore:
+        - '&f修改岛屿设置'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_EDIT_SETTINGS_level_ADMIN%'
+        - '- %starmskyblock_permission_EDIT_SETTINGS_level_MOD%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission edit_settings cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission edit_settings rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f修改岛屿设置'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_EDIT_SETTINGS_level_ADMIN%'
+            - '- %starmskyblock_permission_EDIT_SETTINGS_level_MOD%'
+            - ''
+            - '&c你没有权限修改'
+  'E':
+    update: 30
+    refresh: 30
+    display:
+      material: PLAYER_HEAD
+      name: '&a邀请成员'
+      lore:
+        - '&f邀请成员'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_INVITE_MEMBER_level_ADMIN%'
+        - '- %starmskyblock_permission_INVITE_MEMBER_level_MOD%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission invite_member cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission invite_member rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f邀请成员'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_INVITE_MEMBER_level_ADMIN%'
+            - '- %starmskyblock_permission_INVITE_MEMBER_level_MOD%'
+            - ''
+            - '&c你没有权限修改'
+  'F':
+    update: 30
+    refresh: 30
+    display:
+      material: STRUCTURE_VOID
+      name: '&c移除成员'
+      lore:
+        - '&f移除成员'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_REMOVE_MEMBER_level_ADMIN%'
+        - '- %starmskyblock_permission_REMOVE_MEMBER_level_MOD%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission remove_member cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission remove_member rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f移除成员'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_REMOVE_MEMBER_level_ADMIN%'
+            - '- %starmskyblock_permission_REMOVE_MEMBER_level_MOD%'
+            - ''
+            - '&c你没有权限修改'
+  'G':
+    update: 30
+    refresh: 30
+    display:
+      material: ANVIL
+      name: '&5设置成员角色'
+      lore:
+        - '&f设置成员角色'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_SET_ROLE_level_ADMIN%'
+        - '- %starmskyblock_permission_SET_ROLE_level_MOD%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission set_role cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission set_role rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f设置成员角色'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_SET_ROLE_level_ADMIN%'
+            - '- %starmskyblock_permission_SET_ROLE_level_MOD%'
+            - ''
+            - '&c你没有权限修改'
+  'H':
+    update: 30
+    refresh: 30
+    display:
+      material: EMERALD
+      name: '&a邀请合作者'
+      lore:
+        - '&f邀请合作者'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_INVITE_COOP_level_ADMIN%'
+        - '- %starmskyblock_permission_INVITE_COOP_level_MOD%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission invite_coop cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission invite_coop rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f邀请合作者'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_INVITE_COOP_level_ADMIN%'
+            - '- %starmskyblock_permission_INVITE_COOP_level_MOD%'
+            - ''
+            - '&c你没有权限修改'
+  'I':
+    update: 30
+    refresh: 30
+    display:
+      material: REDSTONE
+      name: '&c移除合作者'
+      lore:
+        - '&f移除合作者'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_REMOVE_COOP_level_ADMIN%'
+        - '- %starmskyblock_permission_REMOVE_COOP_level_MOD%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission remove_coop cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission remove_coop rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f移除合作者'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_REMOVE_COOP_level_ADMIN%'
+            - '- %starmskyblock_permission_REMOVE_COOP_level_MOD%'
+            - ''
+            - '&c你没有权限修改'
+  'J':
+    update: 30
+    refresh: 30
+    display:
+      material: COMPASS
+      name: '&e设置传送点'
+      lore:
+        - '&f设置传送点'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_SET_HOME_level_ADMIN%'
+        - '- %starmskyblock_permission_SET_HOME_level_MOD%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission set_home cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission set_home rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f设置传送点'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_SET_HOME_level_ADMIN%'
+            - '- %starmskyblock_permission_SET_HOME_level_MOD%'
+            - ''
+            - '&c你没有权限修改'
+  'K':
+    update: 30
+    refresh: 30
+    display:
+      material: GRASS_BLOCK
+      name: '&2设置生物群系'
+      lore:
+        - '&f设置生物群系'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_SET_BIOME_level_ADMIN%'
+        - '- %starmskyblock_permission_SET_BIOME_level_MOD%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission set_biome cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission set_biome rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f设置生物群系'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_SET_BIOME_level_ADMIN%'
+            - '- %starmskyblock_permission_SET_BIOME_level_MOD%'
+            - ''
+            - '&c你没有权限修改'
+
+  'L':
+    update: 30
+    refresh: 30
+    display:
+      material: DIAMOND_ORE
+      name: '&2设置岛屿刷石机'
+      lore:
+        - '&f设置岛屿刷石机'
+        - ''
+        - '&7允许给:'
+        - '- &a岛主'
+        - '- %starmskyblock_permission_SET_GENERATOR_level_ADMIN%'
+        - '- %starmskyblock_permission_SET_GENERATOR_level_MOD%'
+        - ''
+        - '&e点击切换权限组'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission set_generator cycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+      right:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is permission set_generator rcycle -s'
+        - 'delay: 5'
+        - 'update'
+        - 'refresh'
+
+    icons:
+      - condition: 'check papi "%starmskyblock_haspermission_EDIT_PERMISSIONS%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&f设置岛屿刷石机'
+            - ''
+            - '&7允许给:'
+            - '- &a岛主'
+            - '- %starmskyblock_permission_SET_GENERATOR_level_ADMIN%'
+            - '- %starmskyblock_permission_SET_GENERATOR_level_MOD%'
+            - ''
+            - '&c你没有权限修改'

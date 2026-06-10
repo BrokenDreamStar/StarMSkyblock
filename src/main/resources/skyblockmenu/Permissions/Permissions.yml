@@ -1,0 +1,146 @@
+Title: '岛屿权限管理'
+
+Options:
+  Min-Click-Delay: 200
+
+Layout:
+  - '########<'
+  - '#ABCDEFG#'
+  - '#HIJKLMN#'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: IslandMenu'
+
+  'A':
+    display:
+      material: OAK_HANGING_SIGN
+      name: '&a管理权限'
+      lore:
+        - '&e点击管理 管理权限 权限'
+    actions:
+      left:
+        - 'menu: PermissionsManagement'
+
+  'B':
+    display:
+      material: DIAMOND
+      name: '&a拾取与丢弃'
+      lore:
+        - '&e点击管理拾取与丢弃权限'
+    actions:
+      left:
+        - 'menu: PermissionsDropPickup'
+
+  'C':
+    display:
+      material: BRICKS
+      name: '&a建造与破坏'
+      lore:
+        - '&e点击管理建造与破坏权限'
+    actions:
+      left:
+        - 'menu: PermissionsBuild'
+
+  'D':
+    display:
+      material: CRAFTING_TABLE
+      name: '&a工作方块'
+      lore:
+        - '&e点击管理工作方块权限'
+    actions:
+      left:
+        - 'menu: PermissionsWorkblock'
+
+  'E':
+    display:
+      material: CHEST
+      name: '&a容器'
+      lore:
+        - '&e点击管理容器权限'
+    actions:
+      left:
+        - 'menu: PermissionsContainer'
+
+  'F':
+    display:
+      material: REDSTONE
+      name: '&a红石'
+      lore:
+        - '&e点击管理红石权限'
+    actions:
+      left:
+        - 'menu: PermissionsRedstone'
+
+  'G':
+    display:
+      material: OAK_DOOR
+      name: '&a门'
+      lore:
+        - '&e点击管理门权限'
+    actions:
+      left:
+        - 'menu: PermissionsDoor'
+
+  'H':
+    display:
+      material: MINECART
+      name: '&a载具'
+      lore:
+        - '&e点击管理载具权限'
+    actions:
+      left:
+        - 'menu: PermissionsVehicle'
+
+  'I':
+    display:
+      material: IRON_AXE
+      flag: HIDE_ATTRIBUTES
+      name: '&a工具'
+      lore:
+        - '&e点击管理工具权限'
+    actions:
+      left:
+        - 'menu: PermissionsTool'
+
+  'J':
+    display:
+      material: IRON_INGOT
+      name: '&a物品'
+      lore:
+        - '&e点击管理物品权限'
+    actions:
+      left:
+        - 'menu: PermissionsItem'
+
+  'K':
+    display:
+      material: PANDA_SPAWN_EGG
+      name: '&a生物'
+      lore:
+        - '&e点击管理生物权限'
+    actions:
+      left:
+        - 'menu: PermissionsEntity'
+
+  'L':
+    display:
+      material: STICK
+      name: '&a其它'
+      lore:
+        - '&e点击管理其它权限'
+    actions:
+      left:
+        - 'menu: PermissionsOther'

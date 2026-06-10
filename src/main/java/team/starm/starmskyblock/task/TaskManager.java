@@ -196,6 +196,7 @@ public class TaskManager {
         ensureLoaded(uuid);
 
         Map<String, TaskProgress> progressMap = playerProgress.get(uuid);
+        boolean updated = false;
 
         for (TaskDefinition def : tasks) {
             if (def.isOnlyNatural() && !isNatural) continue;
@@ -224,16 +225,19 @@ public class TaskManager {
             }
 
             pMap.merge(upperKey, amount, Integer::sum);
-            markDirty(uuid);
+            updated = true;
 
             if (!prog.isClaimed() && !prog.isNotified() && prog.isCompleted(def)) {
                 prog.setNotified(true);
-                markDirty(uuid);
                 int ch = taskConfig.getChapterNumberByTaskId(def.getId());
                 int ms = def.getMissionNumber();
                 MessageUtil.sendMessage(player, "&a任务 &e" + def.getName() + " &a已完成！使用 &e/is task claim "
                         + ch + " " + ms + " &a领取奖励。");
             }
+        }
+
+        if (updated) {
+            markDirty(uuid);
         }
     }
 

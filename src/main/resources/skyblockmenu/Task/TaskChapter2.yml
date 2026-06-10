@@ -1,0 +1,496 @@
+Title: '任务-第一章 空岛生存'
+
+Options:
+  Arguments: false
+  Min-Click-Delay: 200
+
+Events:
+  Open:
+    - 'delay: 5'
+    - 'refresh: A;B;C;D;E;F;G'
+    - 'update: A;B;C;D;E;F;G'
+
+Layout:
+  - '########<'
+  - '#ABCDEFG#'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: Tasks'
+
+  'A':
+    display:
+      material: IRON_ORE
+      name: '&a&l铁器时代'
+      lore:
+        - '&f升级你的刷石机 使得刷石机可以生成铁矿'
+        - ''
+        - '&6要求:'
+        - ' - &f挖掘 铁矿石 x32'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x2000'
+        - ' - &f滴水石锥 x1'
+        - ' - &f滴水石块 x1'
+        - ''
+        - '&b进度: %starmskyblock_task_2_1_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_2_1_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f升级你的刷石机 使得刷石机可以生成铁矿'
+            - ''
+            - '&6要求:'
+            - ' - &f挖掘 铁矿石 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x2000'
+            - ' - &f滴水石锥 x1'
+            - ' - &f滴水石块 x1'
+            - ''
+            - '&b进度: 100 %'
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 2 1'
+            - 'delay: 3'
+            - 'refresh: A'
+            - 'update: A'
+      - condition: 'check papi %starmskyblock_task_2_1_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f升级你的刷石机 使得刷石机可以生成铁矿'
+            - ''
+            - '&6要求:'
+            - ' - &f挖掘 铁矿石 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x2000'
+            - ' - &f滴水石锥 x1'
+            - ' - &f滴水石块 x1'
+            - ''
+            - '&2&l奖励已领取'
+
+  'B':
+    display:
+      material: COPPER_HELMET
+      name: '&a&l铜头铁臂'
+      lore:
+        - '&f合成铜头盔和铁胸甲'
+        - ''
+        - '&6要求:'
+        - ' - &f合成 铜头盔 x1'
+        - ' - &f合成 铁胸甲 x1'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x2000'
+        - ' - &f铁头盔(保护3) x1'
+        - ' - &f铁胸甲(保护3) x1'
+        - ' - &f铁护腿(保护3) x1'
+        - ' - &f铁靴子(保护3) x1'
+        - ''
+        - '&b进度: %starmskyblock_task_2_2_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_2_2_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f合成铜头盔和铁胸甲'
+            - ''
+            - '&6要求:'
+            - ' - &f合成 铜头盔 x1'
+            - ' - &f合成 铁胸甲 x1'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x2000'
+            - ' - &f铁头盔(保护3) x1'
+            - ' - &f铁胸甲(保护3) x1'
+            - ' - &f铁护腿(保护3) x1'
+            - ' - &f铁靴子(保护3) x1'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 2 2'
+            - 'delay: 3'
+            - 'refresh: B'
+            - 'update: B'
+      - condition: 'check papi %starmskyblock_task_2_2_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f合成铜头盔和铁胸甲'
+            - ''
+            - '&6要求:'
+            - ' - &f合成 铜头盔 x1'
+            - ' - &f合成 铁胸甲 x1'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x2000'
+            - ' - &f铁头盔(保护3) x1'
+            - ' - &f铁胸甲(保护3) x1'
+            - ' - &f铁护腿(保护3) x1'
+            - ' - &f铁靴子(保护3) x1'
+            - ''
+            - '&2奖励已领取'
+
+  'C':
+    display:
+      material: IRON_SWORD
+      name: '&a&l怪物猎人'
+      lore:
+        - '&f击杀一些怪物'
+        - ''
+        - '&6要求:'
+        - ' - &f击杀 骷髅 x32'
+        - ' - &f击杀 僵尸 x32'
+        - ' - &f击杀 苦力怕 x16'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x3000'
+        - ' - &f胡萝卜 x1'
+        - ' - &f马铃薯 x1'
+        - ''
+        - '&b进度: %starmskyblock_task_2_3_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_2_3_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f击杀一些怪物'
+            - ''
+            - '&6要求:'
+            - ' - &f击杀 骷髅 x32'
+            - ' - &f击杀 僵尸 x32'
+            - ' - &f击杀 苦力怕 x16'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x3000'
+            - ' - &f胡萝卜 x1'
+            - ' - &f马铃薯 x1'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 2 3'
+            - 'delay: 3'
+            - 'refresh: C'
+            - 'update: C'
+      - condition: 'check papi %starmskyblock_task_2_3_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f击杀一些怪物'
+            - ''
+            - '&6要求:'
+            - ' - &f击杀 骷髅 x32'
+            - ' - &f击杀 僵尸 x32'
+            - ' - &f击杀 苦力怕 x16'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x3000'
+            - ' - &f胡萝卜 x1'
+            - ' - &f马铃薯 x1'
+            - ''
+            - '&2奖励已领取'
+
+  'D':
+    display:
+      material: CARROT
+      name: '&a&l农夫乐事'
+      lore:
+        - '&f种田!'
+        - ''
+        - '&6要求:'
+        - ' - &f种植 马铃薯 x32'
+        - ' - &f种植 胡萝卜 x32'
+        - ''
+        - '&d奖励:'
+        - ' - &f羊刷怪蛋 x2'
+        - ''
+        - '&b进度: %starmskyblock_task_2_4_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_2_4_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f种田!'
+            - ''
+            - '&6要求:'
+            - ' - &f种植 马铃薯 x32'
+            - ' - &f种植 胡萝卜 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f羊刷怪蛋 x2'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 2 4'
+            - 'delay: 3'
+            - 'refresh: D'
+            - 'update: D'
+      - condition: 'check papi %starmskyblock_task_2_4_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f种田!'
+            - ''
+            - '&6要求:'
+            - ' - &f种植 马铃薯 x32'
+            - ' - &f种植 胡萝卜 x32'
+            - ''
+            - '&d奖励:'
+            - ' - &f羊刷怪蛋 x2'
+            - ''
+            - '&2&l奖励已领取'
+
+  'E':
+    display:
+      material: BEEF
+      name: '&a&l屠夫'
+      lore:
+        - '&f繁殖并击杀一些动物'
+        - ''
+        - '&6要求:'
+        - ' - &f击杀 牛 x8'
+        - ' - &f击杀 羊 x8'
+        - ''
+        - '&d奖励:'
+        - ' - &f猪刷怪蛋 x2'
+        - ''
+        - '&b进度: %starmskyblock_task_2_5_progress% %'
+    icons:
+      - condition: 'check papi %starmskyblock_task_2_5_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f繁殖并击杀一些动物'
+            - ''
+            - '&6要求:'
+            - ' - &f击杀 牛 x8'
+            - ' - &f击杀 羊 x8'
+            - ''
+            - '&d奖励:'
+            - ' - &f猪刷怪蛋 x2'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 2 5'
+            - 'delay: 3'
+            - 'refresh: E'
+            - 'update: E'
+      - condition: 'check papi %starmskyblock_task_2_5_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f繁殖并击杀一些动物'
+            - ''
+            - '&6要求:'
+            - ' - &f击杀 牛 x8'
+            - ' - &f击杀 羊 x8'
+            - ''
+            - '&d奖励:'
+            - ' - &f猪刷怪蛋 x2'
+            - ''
+            - '&2奖励已领取'
+
+  'F':
+    display:
+      material: POINTED_DRIPSTONE
+      name: '&a&l钟乳石'
+      lore:
+        - '&f当滴水石块上方为水源 下方为滴水石锥'
+        - '&f且滴水石锥正下方为非流体方块时'
+        - '&f滴水石锥会生长'
+        - ''
+        - '&6要求:'
+        - ' - &f采集 滴水石锥 x1'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x3000'
+        - ' - &f岩浆桶 x2'
+        - ' - &f滴水石锥 x8'
+        - ''
+        - '&b进度: 0 %'
+        - ''
+        - '&e点击提交物品'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is task submit 2 6'
+        - 'delay: 3'
+        - 'refresh: F'
+        - 'update: F'
+    icons:
+      - condition: 'check papi %starmskyblock_task_2_6_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f当滴水石块上方为水源 下方为滴水石锥'
+            - '&f且滴水石锥正下方为非流体方块时'
+            - '&f滴水石锥会生长'
+            - ''
+            - '&6要求:'
+            - ' - &f采集 滴水石锥 x1'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x3000'
+            - ' - &f岩浆桶 x2'
+            - ' - &f滴水石锥 x8'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 2 6'
+            - 'delay: 3'
+            - 'refresh: F'
+            - 'update: F'
+      - condition: 'check papi %starmskyblock_task_2_6_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f当滴水石块上方为水源 下方为滴水石锥'
+            - '&f且滴水石锥正下方为非流体方块时'
+            - '&f滴水石锥会生长'
+            - ''
+            - '&6要求:'
+            - ' - &f采集 滴水石锥 x1'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x3000'
+            - ' - &f岩浆桶 x2'
+            - ' - &f滴水石锥 x8'
+            - ''
+            - '&2奖励已领取'
+
+  'G':
+    display:
+      material: LAVA_BUCKET
+      name: '&a&l无限岩浆'
+      lore:
+        - '&f当方块上方为岩浆源 下方为滴水石锥'
+        - '&f且滴水石锥正下方为炼药锅时'
+        - '&f炼药锅会缓慢装满岩浆'
+        - ''
+        - '&6要求:'
+        - ' - &f岩浆桶 x10'
+        - ''
+        - '&d奖励:'
+        - ' - &f硬币 x5000'
+        - ' - &f打火石 x1'
+        - ' - &f黑曜石 x14'
+        - ''
+        - '&b进度: 0 %'
+        - ''
+        - '&e点击提交物品'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is task submit 2 7'
+        - 'delay: 3'
+        - 'refresh: G'
+        - 'update: G'
+    icons:
+      - condition: 'check papi %starmskyblock_task_2_7_completed% == "true"'
+        priority: 0
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f当方块上方为岩浆源 下方为滴水石锥'
+            - '&f且滴水石锥正下方为炼药锅时'
+            - '&f炼药锅会缓慢装满岩浆'
+            - ''
+            - '&6要求:'
+            - ' - &f岩浆桶 x10'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x5000'
+            - ' - &f打火石 x1'
+            - ' - &f黑曜石 x14'
+            - ''
+            - '&b进度: 100 %'
+            - ''
+            - '&2点击领取奖励'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'command: is task claim 2 7'
+            - 'delay: 3'
+            - 'refresh: G'
+            - 'update: G'
+      - condition: 'check papi %starmskyblock_task_2_7_claimed% == "true"'
+        priority: 1
+        inherit: true
+        display:
+          shiny: 'true'
+          lore:
+            - '&f当方块上方为岩浆源 下方为滴水石锥'
+            - '&f且滴水石锥正下方为炼药锅时'
+            - '&f炼药锅会缓慢装满岩浆'
+            - ''
+            - '&6要求:'
+            - ' - &f岩浆桶 x10'
+            - ''
+            - '&d奖励:'
+            - ' - &f硬币 x5000'
+            - ' - &f打火石 x1'
+            - ' - &f黑曜石 x14'
+            - ''
+            - '&2奖励已领取'

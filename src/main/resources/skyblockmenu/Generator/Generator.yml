@@ -1,0 +1,145 @@
+Title: '岛屿刷石机设置'
+
+Options:
+  Arguments: false
+  Min-Click-Delay: 200
+
+Events:
+  Open:
+    - 'delay: 5'
+    - 'update: ~;A;B;C'
+    - 'refresh: ~;A;B;C'
+
+Layout:
+  - '~#######<'
+  - '# A B C #'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6返回'
+    actions:
+      all:
+        - 'menu: IslandMenu'
+
+  '~':
+    update: 20
+    refresh: 20
+    display:
+      material: PAPER
+      item_model: netherite_upgrade_smithing_template
+      name: '&b升级刷石机'
+      lore:
+        - '&d刷石机等级&7:&f%starmskyblock_generator_level%&f级'
+        - '&6升级需要&7:'
+        - '- &f%starmskyblock_upgrades_generator_next_level_money% 硬币'
+        - '&e点击升级刷石机'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'command: is upgrade generator'
+        - 'delay: 3'
+        - 'update: ~;A;B;C'
+        - 'refresh: ~;A;B;C'
+    icons:
+      - condition: 'check papi %starmskyblock_generator_level% == "5"'
+        inherit: true
+        display:
+          material: PAPER
+          item_model: netherite_upgrade_smithing_template
+          lore:
+            - '&d刷石机等级&7:&f%starmskyblock_generator_level%&f级'
+            - '&e已达到最高等级'
+      - condition: 'check papi %starmskyblock_upgrades_generator_has_money% == "false"'
+        inherit: true
+        display:
+          material: PAPER
+          item_model: netherite_upgrade_smithing_template
+          lore:
+            - '&d刷石机等级&7:&f%starmskyblock_generator_level%&f级'
+            - '&6升级需要&7:'
+            - '- &f%starmskyblock_upgrades_generator_next_level_money% 硬币'
+            - '&c余额不足'
+
+  'A':
+    update: 20
+    refresh: 20
+    display:
+      material: GRASS_BLOCK
+      name: '&a&l主世界刷石机'
+      lore:
+        - '%starmskyblock_generator_normal%'
+        - '&e下一级:'
+        - '%starmskyblock_generator_level_next_normal%'
+        - '&e点击设置主世界刷石机'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: GeneratorNormal'
+    icons:
+      - condition: 'check papi %starmskyblock_haspermission_SET_GENERATOR% == "false"'
+        inherit: true
+        display:
+          lore:
+            - '%starmskyblock_generator_normal%'
+            - '&e下一级:'
+            - '%starmskyblock_generator_level_next_normal%'
+            - '&c你没有权限设置刷石机'
+
+  'B':
+    update: 20
+    refresh: 20
+    display:
+      material: NETHERRACK
+      name: '&c&l下界刷石机'
+      lore:
+        - '%starmskyblock_generator_nether%'
+        - '&e下一级:'
+        - '%starmskyblock_generator_level_next_nether%'
+        - '&e点击设置下界刷石机'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: GeneratorNether'
+    icons:
+      - condition: 'check papi %starmskyblock_haspermission_SET_GENERATOR% == "false"'
+        inherit: true
+        display:
+          lore:
+            - '%starmskyblock_generator_normal%'
+            - '&e下一级:'
+            - '%starmskyblock_generator_level_next_normal%'
+            - '&c你没有权限设置刷石机'
+
+  'C':
+    update: 20
+    refresh: 20
+    display:
+      material: END_STONE
+      name: '&e&l末地刷石机'
+      lore:
+        - '%starmskyblock_generator_end%'
+        - '&e下一级:'
+        - '%starmskyblock_generator_level_next_end%'
+        - '&e点击设置末地刷石机'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: GeneratorEnd'
+    icons:
+      - condition: 'check papi %starmskyblock_haspermission_SET_GENERATOR% == "false"'
+        inherit: true
+        display:
+          lore:
+            - '%starmskyblock_generator_normal%'
+            - '&e下一级:'
+            - '%starmskyblock_generator_level_next_normal%'
+            - '&c你没有权限设置刷石机'

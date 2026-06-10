@@ -1,0 +1,126 @@
+Title: '空岛菜单'
+
+Options:
+  Min-Click-Delay: 200
+
+Events:
+  Open:
+    - 'delay: 3'
+    - 'refresh: D'
+
+Layout:
+  - '########<'
+  - '#ABCDEFG#'
+  - '#########'
+
+Icons:
+  '#':
+    display:
+      material: GRAY_STAINED_GLASS_PANE
+      name: '&r'
+      hideTooltip: true
+
+  '<':
+    display:
+      material: RED_STAINED_GLASS_PANE
+      name: '&6关闭'
+    actions:
+      all:
+        - 'close'
+
+  'A':
+    display:
+      material: OAK_HANGING_SIGN
+      name: '&a&l岛屿权限管理'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: Permissions'
+
+  'B':
+    display:
+      material: COMPASS
+      name: '&a&l岛屿设置'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: IslandSettings'
+
+  'C':
+    display:
+      material: PLAYER_HEAD
+      name: '&a&l岛屿列表'
+      lore:
+        - '&e由于技术性问题'
+        - '&e首次打开该菜单可能会卡顿'
+        - '&e请耐心等待加载完成'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: IslandList'
+
+  'D':
+    display:
+      material: STONE
+      name: '&a&l修改岛屿生物群系'
+      lore:
+        - '&e由于Minecraft底层代码限制'
+        - '&e无法将区块内的所有方块都设置为目标生物群系'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: SetBiome'
+    icons:
+      - condition: 'check papi %starmskyblock_own_island% == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&c只能在自己岛屿内修改生物群系'
+      - condition: 'check papi "%starmskyblock_haspermission_SET_BIOME%" == "false"'
+        inherit: true
+        display:
+          lore:
+            - '&c你没有修改生物群系权限'
+      - condition: 'check papi %starmskyblock_dimension% == "下界"'
+        inherit: true
+        display:
+          lore:
+            - '&e由于Minecraft底层代码限制'
+            - '&e无法将区块内的所有方块都设置为目标生物群系'
+        actions:
+          left:
+            - 'sound: UI_BUTTON_CLICK-1-2'
+            - 'menu: SetBiomeNether'
+      - condition: 'check papi %starmskyblock_dimension% == "末地"'
+        inherit: true
+        display:
+          lore:
+            - '&c末地暂不支持修改群系'
+  'E':
+    display:
+      material: DIAMOND_ORE
+      name: '&b&l岛屿刷石机设置'
+      lore:
+        - '&e点击设置岛屿刷石机'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: Generator'
+
+  'F':
+    display:
+      material: GRASS_BLOCK
+      name: '&a&l创建岛屿'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: Create'
+
+  'G':
+    display:
+      material: BOOK
+      name: '&a&l任务'
+    actions:
+      left:
+        - 'sound: UI_BUTTON_CLICK-1-2'
+        - 'menu: Tasks'
