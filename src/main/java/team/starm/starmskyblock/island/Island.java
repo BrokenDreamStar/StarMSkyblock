@@ -1,6 +1,7 @@
 package team.starm.starmskyblock.island;
 
 import com.google.gson.Gson;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -102,6 +103,26 @@ public class Island {
      * 岛屿等级
      */
     private int level;
+
+    /**
+     * 岛屿累计经验值（用于等级换算）
+     */
+    private double experience;
+
+    /**
+     * 岛屿上每种方块的数量统计（Material 名 → 数量）
+     */
+    private Map<String, Long> blockCounts = new HashMap<>();
+
+    /**
+     * 模板基线经验值（创建岛屿时模板方块的累计经验值）
+     */
+    private double baselineExperience;
+
+    /**
+     * 模板基线方块计数（创建岛屿时模板方块的数量，Material 名 → 数量）
+     */
+    private Map<String, Long> baselineBlockCounts = new HashMap<>();
 
     /**
      * 刷石机生成器等级（决定刷石机替换概率，与岛屿等级独立）
@@ -225,6 +246,63 @@ public class Island {
 
     public void setLevel(int level) {
         this.level = level;
+    }
+
+    public double getExperience() {
+        return experience;
+    }
+
+    public void setExperience(double experience) {
+        this.experience = experience;
+    }
+
+    /**
+     * @return 方块计数 Map（Material 名 → 数量），不可变副本
+     */
+    public Map<String, Long> getBlockCounts() {
+        return Collections.unmodifiableMap(blockCounts);
+    }
+
+    /**
+     * 设置方块计数 Map
+     */
+    public void setBlockCounts(Map<org.bukkit.Material, Long> counts) {
+        this.blockCounts = new HashMap<>();
+        for (Map.Entry<org.bukkit.Material, Long> entry : counts.entrySet()) {
+            this.blockCounts.put(entry.getKey().name(), entry.getValue());
+        }
+    }
+
+    /**
+     * 从反序列化的 String→Long Map 恢复方块计数
+     */
+    public void setBlockCountsFromRaw(Map<String, Long> counts) {
+        this.blockCounts = new HashMap<>(counts);
+    }
+
+    // ==================== 模板基线（Baseline） ====================
+
+    public double getBaselineExperience() {
+        return baselineExperience;
+    }
+
+    public void setBaselineExperience(double baselineExperience) {
+        this.baselineExperience = baselineExperience;
+    }
+
+    public Map<String, Long> getBaselineBlockCounts() {
+        return Collections.unmodifiableMap(baselineBlockCounts);
+    }
+
+    public void setBaselineBlockCounts(Map<String, Long> counts) {
+        this.baselineBlockCounts = new HashMap<>(counts);
+    }
+
+    /**
+     * 累加基线方块计数（用于从 Clipboard 遍历时逐块累加）
+     */
+    public void addToBaseline(String materialName, long count) {
+        baselineBlockCounts.merge(materialName, count, Long::sum);
     }
 
     /**

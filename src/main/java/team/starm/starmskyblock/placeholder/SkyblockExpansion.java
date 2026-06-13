@@ -121,6 +121,20 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                 return getIslandLevelHere(islandManager, ctx.chunkX(), ctx.chunkZ());
             }
 
+            if (params.equalsIgnoreCase("total_points_here") || params.equalsIgnoreCase("experience_here")) {
+                if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
+                    return "&f-";
+                }
+                return getIslandValueHere(islandManager, ctx.chunkX(), ctx.chunkZ(), params.equalsIgnoreCase("total_points_here") ? "total_points" : "experience");
+            }
+
+            if (params.equalsIgnoreCase("blocks_counted_here")) {
+                if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
+                    return "&f-";
+                }
+                return getIslandValueHere(islandManager, ctx.chunkX(), ctx.chunkZ(), "blocks_counted");
+            }
+
             if (params.equalsIgnoreCase("generator_level_here")) {
                 if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
                     return "&f-";
@@ -172,6 +186,26 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                 }
 
                 return String.valueOf(islandOpt.get().getLevel());
+            }
+
+            if (params.equalsIgnoreCase("total_points") || params.equalsIgnoreCase("experience")) {
+                Optional<Island> islandOpt = ctx.playerIsland();
+                if (islandOpt.isEmpty()) {
+                    return "&f-";
+                }
+                return String.format("%.2f", islandOpt.get().getExperience());
+            }
+
+            if (params.equalsIgnoreCase("blocks_counted")) {
+                Optional<Island> islandOpt = ctx.playerIsland();
+                if (islandOpt.isEmpty()) {
+                    return "&f-";
+                }
+                long total = 0;
+                for (long count : islandOpt.get().getBlockCounts().values()) {
+                    total += count;
+                }
+                return String.valueOf(total);
             }
 
             if (params.equalsIgnoreCase("generator_level")) {
@@ -486,6 +520,45 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             }
 
             return String.valueOf(islandOpt.get().getLevel());
+
+        } catch (Throwable ignored) {
+        }
+
+        return "&f-";
+    }
+
+    private String getIslandValueHere(
+            IslandManager islandManager,
+            int chunkX,
+            int chunkZ,
+            String type
+    ) {
+        try {
+            Optional<Island> islandOpt =
+                    islandManager.getIslandAt(chunkX, chunkZ);
+
+            if (islandOpt.isEmpty()) {
+                islandOpt =
+                        islandManager.getIslandAtMaxRange(chunkX, chunkZ);
+            }
+
+            if (islandOpt.isEmpty()) {
+                return "&f-";
+            }
+
+            Island island = islandOpt.get();
+
+            if ("total_points".equals(type) || "experience".equals(type)) {
+                return String.format("%.2f", island.getExperience());
+            } else if ("blocks_counted".equals(type)) {
+                long total = 0;
+                for (long count : island.getBlockCounts().values()) {
+                    total += count;
+                }
+                return String.valueOf(total);
+            }
+
+            return "&f-";
 
         } catch (Throwable ignored) {
         }

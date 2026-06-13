@@ -86,6 +86,36 @@ public class IslandManager {
             island.setCenterChunkZ(row.centerZ());
             island.setMaxRadius(configManager.getIslandMaxRadius());
             island.setLevel(row.level());
+            island.setExperience(row.totalExperience());
+            island.setBaselineExperience(row.baselineExperience());
+            try {
+                java.util.Map<String, Object> baselineMap = GSON.fromJson(row.baselineBlockCounts(), java.util.Map.class);
+                if (baselineMap != null && !baselineMap.isEmpty()) {
+                    java.util.Map<String, Long> parsed = new java.util.HashMap<>();
+                    for (java.util.Map.Entry<String, Object> entry : baselineMap.entrySet()) {
+                        if (entry.getValue() instanceof Number num) {
+                            parsed.put(entry.getKey(), num.longValue());
+                        }
+                    }
+                    island.setBaselineBlockCounts(parsed);
+                }
+            } catch (Exception e) {
+                MessageUtil.consoleWarn("解析岛屿模板基线 JSON 失败，ID: " + id);
+            }
+            try {
+                java.util.Map<String, Object> blockCountsMap = GSON.fromJson(row.blockCounts(), java.util.Map.class);
+                if (blockCountsMap != null && !blockCountsMap.isEmpty()) {
+                    java.util.Map<String, Long> parsed = new java.util.HashMap<>();
+                    for (java.util.Map.Entry<String, Object> entry : blockCountsMap.entrySet()) {
+                        if (entry.getValue() instanceof Number num) {
+                            parsed.put(entry.getKey(), num.longValue());
+                        }
+                    }
+                    island.setBlockCountsFromRaw(parsed);
+                }
+            } catch (Exception e) {
+                MessageUtil.consoleWarn("解析岛屿方块计数 JSON 失败，ID: " + id);
+            }
             island.setGeneratorLevel(row.generatorLevel());
             island.setDisabledGeneratorOresFromJson(row.generatorDisabled());
             island.setCreatedAt(row.createdAt());
@@ -702,5 +732,12 @@ public class IslandManager {
         removeFromNameIndex(island);
 
         return true;
+    }
+
+    /**
+     * 获取岛屿数据访问层
+     */
+    public IslandRepository getIslandRepository() {
+        return islandRepo;
     }
 }

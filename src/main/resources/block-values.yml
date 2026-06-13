@@ -1,0 +1,232 @@
+# StarMSkyblock 岛屿等级方块经验值配置
+# 配置岛屿上每种方块的经验值、数量上限和等级换算公式。
+
+# ============================================
+# 方块经验值
+# 每种方块对应的经验值，空岛上的方块将按此值累加总经验
+# 格式: MATERIAL_NAME: 经验值
+# 未在此处列出的方块默认经验值为 1.0
+# ============================================
+blocks:
+  # —— 矿石块 ——
+  DIAMOND_BLOCK: 300.0
+  EMERALD_BLOCK: 250.0
+  NETHERITE_BLOCK: 500.0
+  GOLD_BLOCK: 200.0
+  IRON_BLOCK: 100.0
+  LAPIS_BLOCK: 80.0
+  REDSTONE_BLOCK: 60.0
+  COAL_BLOCK: 30.0
+  COPPER_BLOCK: 20.0
+
+  # —— 矿物 ——
+  DIAMOND_ORE: 100.0
+  DEEPSLATE_DIAMOND_ORE: 120.0
+  EMERALD_ORE: 80.0
+  DEEPSLATE_EMERALD_ORE: 100.0
+  NETHERITE_SCRAP: 200.0
+  ANCIENT_DEBRIS: 200.0
+  GOLD_ORE: 60.0
+  DEEPSLATE_GOLD_ORE: 70.0
+  IRON_ORE: 30.0
+  DEEPSLATE_IRON_ORE: 35.0
+  LAPIS_ORE: 25.0
+  DEEPSLATE_LAPIS_ORE: 30.0
+  REDSTONE_ORE: 20.0
+  DEEPSLATE_REDSTONE_ORE: 25.0
+  COAL_ORE: 10.0
+  DEEPSLATE_COAL_ORE: 12.0
+  COPPER_ORE: 8.0
+  DEEPSLATE_COPPER_ORE: 10.0
+  NETHER_GOLD_ORE: 10.0
+  NETHER_QUARTZ_ORE: 10.0
+
+  # —— 精炼建材 ——
+  STONE: 1.0
+  STONE_BRICKS: 1.5
+  SMOOTH_STONE: 1.0
+  ANDESITE: 0.5
+  POLISHED_ANDESITE: 1.0
+  DIORITE: 0.5
+  POLISHED_DIORITE: 1.0
+  GRANITE: 0.5
+  POLISHED_GRANITE: 1.0
+  DEEPSLATE: 1.0
+  COBBLED_DEEPSLATE: 0.5
+  POLISHED_DEEPSLATE: 1.0
+  TUFF: 0.5
+  CALCITE: 0.5
+  DRIPSTONE_BLOCK: 0.5
+  BASALT: 0.5
+  POLISHED_BASALT: 1.0
+  SMOOTH_BASALT: 1.0
+  BLACKSTONE: 1.0
+  POLISHED_BLACKSTONE: 1.5
+  GILDED_BLACKSTONE: 5.0
+  NETHER_BRICKS: 1.5
+  RED_NETHER_BRICKS: 1.5
+  END_STONE: 1.0
+  END_STONE_BRICKS: 1.5
+  PURPUR_BLOCK: 1.0
+  PURPUR_PILLAR: 1.5
+  PRISMARINE: 1.5
+  PRISMARINE_BRICKS: 2.0
+  DARK_PRISMARINE: 2.0
+  SEA_LANTERN: 10.0
+
+  # —— 木材与树叶 ——
+  OAK_LOG: 0.5
+  SPRUCE_LOG: 0.5
+  BIRCH_LOG: 0.5
+  JUNGLE_LOG: 0.5
+  ACACIA_LOG: 0.5
+  DARK_OAK_LOG: 0.5
+  MANGROVE_LOG: 0.5
+  CHERRY_LOG: 0.5
+  CRIMSON_STEM: 0.5
+  WARPED_STEM: 0.5
+  OAK_PLANKS: 0.3
+  SPRUCE_PLANKS: 0.3
+  BIRCH_PLANKS: 0.3
+  JUNGLE_PLANKS: 0.3
+  ACACIA_PLANKS: 0.3
+  DARK_OAK_PLANKS: 0.3
+  MANGROVE_PLANKS: 0.3
+  CHERRY_PLANKS: 0.3
+  CRIMSON_PLANKS: 0.3
+  WARPED_PLANKS: 0.3
+
+  # —— 玻璃与装饰 ——
+  GLASS: 0.5
+  WHITE_STAINED_GLASS: 0.5
+  ORANGE_STAINED_GLASS: 0.5
+  MAGENTA_STAINED_GLASS: 0.5
+  LIGHT_BLUE_STAINED_GLASS: 0.5
+  YELLOW_STAINED_GLASS: 0.5
+  LIME_STAINED_GLASS: 0.5
+  PINK_STAINED_GLASS: 0.5
+  GRAY_STAINED_GLASS: 0.5
+  LIGHT_GRAY_STAINED_GLASS: 0.5
+  CYAN_STAINED_GLASS: 0.5
+  PURPLE_STAINED_GLASS: 0.5
+  BLUE_STAINED_GLASS: 0.5
+  BROWN_STAINED_GLASS: 0.5
+  GREEN_STAINED_GLASS: 0.5
+  RED_STAINED_GLASS: 0.5
+  BLACK_STAINED_GLASS: 0.5
+  GLASS_PANE: 0.3
+
+  # —— 其他实用方块 ——
+  BOOKSHELF: 2.0
+  OBSIDIAN: 3.0
+  CRYING_OBSIDIAN: 5.0
+  ENCHANTING_TABLE: 50.0
+  ANVIL: 30.0
+  CHIPPED_ANVIL: 20.0
+  DAMAGED_ANVIL: 10.0
+  BEACON: 500.0
+  CONDUIT: 200.0
+  SPAWNER: 500.0
+  HOPPER: 15.0
+  DROPPER: 10.0
+  DISPENSER: 10.0
+  FURNACE: 5.0
+  BLAST_FURNACE: 10.0
+  SMOKER: 10.0
+  CRAFTING_TABLE: 2.0
+  CHEST: 2.0
+  TRAPPED_CHEST: 2.0
+  BARREL: 2.0
+  ENDER_CHEST: 20.0
+  SHULKER_BOX: 20.0
+  NOTE_BLOCK: 5.0
+  JUKEBOX: 20.0
+  TNT: 5.0
+  SAND: 0.1
+  RED_SAND: 0.1
+  GRAVEL: 0.1
+  CLAY: 1.0
+  SOUL_SAND: 0.5
+  SOUL_SOIL: 0.5
+
+  # —— 作物与植物 ——
+  WHEAT: 0.5
+  CARROTS: 0.5
+  POTATOES: 0.5
+  BEETROOTS: 0.5
+  MELON: 1.0
+  PUMPKIN: 1.0
+  SUGAR_CANE: 0.5
+  CACTUS: 0.5
+  BAMBOO: 0.3
+  NETHER_WART: 1.0
+  COCOA: 0.5
+  KELP: 0.3
+
+# ============================================
+# 方块数量上限（阈值）
+# 当某种方块的数量超过此阈值后，超额部分的经验值会按递减公式计算。
+# 未配置的方块无上限限制。
+# ============================================
+limits:
+  COBBLESTONE: 10000
+  STONE: 5000
+  NETHERRACK: 3000
+  DIRT: 2000
+  GRASS_BLOCK: 1000
+  SAND: 3000
+  GRAVEL: 2000
+  DEEPSLATE: 3000
+  TUFF: 1000
+  BASALT: 2000
+  BLACKSTONE: 2000
+  GLASS: 500
+  OAK_LOG: 1000
+  SPRUCE_LOG: 1000
+  BIRCH_LOG: 1000
+  OAK_PLANKS: 3000
+  SPRUCE_PLANKS: 3000
+  BIRCH_PLANKS: 3000
+  WATER: 1000
+  LAVA: 500
+
+# ============================================
+# 超额经验值递减配置
+# 达到阈值后，超额方块不再直接经验值为 0，
+# 而是按递减公式逐渐降低经验值，最终趋于最低值。
+# decay:   递减系数（越大经验值下降越快）
+#          每增加一个超额方块：value = baseValue / (1 + decay * i)
+#          decay=0.001 ≈ 1000 块后价值折半
+#          decay=0.0005 ≈ 2000 块后价值折半
+# minimum: 单个方块的最低经验值（最低为 1）
+# 适用于所有在 limits 中配置了阈值的方块。
+# 未配置本段 或 enabled: false 时保持原行为（超额经验值为 0）。
+# ============================================
+diminishing:
+  enabled: true
+  decay: 0.03
+  minimum: 1.0
+
+# ============================================
+# 等级经验值消耗（幂函数增长）
+# base:  升到 1 级所需的基础经验值
+# power: 指数系数，控制每级增长幅度
+# 当 level-cost 存在时，level-formula 配置会被忽略。
+# 公式：cost(L) = Math.round(base × L^power)
+# 示例：base=50, power=1.2 时
+#   1 级需要 50 经验值（累计 50）
+#   2 级需要 115 经验值（累计 165）
+#   3 级需要 187 经验值（累计 352）
+#   4 级需要 264 经验值（累计 616）
+# ============================================
+level-cost:
+  base: 50.0
+  power: 1.2
+
+# ============================================
+# 等级计算公式（旧版，仅当 level-cost 不存在时生效）
+# {experience} = 岛屿上所有方块的总经验（阈值内全额 + 超额递减部分）
+# 兼容旧版 {points} 写法
+# 支持运算: + - * / 和 ()
+# ============================================
+# level-formula: "{experience} / 100"

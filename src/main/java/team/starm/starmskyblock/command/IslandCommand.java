@@ -50,8 +50,10 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         subCommands.put("generator", new GeneratorCommand(plugin));
         subCommands.put("upgrade", new UpgradeCommand(plugin));
         subCommands.put("task", new TaskCommand(plugin));
+        subCommands.put("level", new LevelCommand(plugin));
 
         subCommands.put("help", new HelpCommand(plugin, this));
+        subCommands.put("portalinfo", new PortalInfoCommand(plugin));
         subCommandNames.addAll(subCommands.keySet());
         subCommandNames.add("permission");
         Collections.sort(subCommandNames); // keep sorted for help/tab
@@ -141,6 +143,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         MessageUtil.sendMessage(player, "&b/is setbiome <生物群系> &f- 修改整个岛屿生物群系");
         MessageUtil.sendMessage(player, "&b/is generator [维度] [矿石] [true/false/toggle] &f- 查看/控制刷石机矿石生成");
         MessageUtil.sendMessage(player, "&b/is upgrade [radius|generator] &f- 升级岛屿范围或刷石机等级");
+        MessageUtil.sendMessage(player, "&b/is level &f- 扫描全岛并计算等级");
     }
 
     @Override

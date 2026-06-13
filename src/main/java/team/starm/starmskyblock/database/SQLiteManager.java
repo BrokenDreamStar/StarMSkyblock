@@ -46,14 +46,13 @@ public class SQLiteManager {
             }
 
             File dbFile = new File(dbFolder, "islands.db");
-            boolean isNewDatabase = !dbFile.exists();
             String url = "jdbc:sqlite:" + dbFile.getAbsolutePath();
 
             try {
                 Class.forName("org.sqlite.JDBC");
                 connection = DriverManager.getConnection(url);
                 applyPragmas();
-                createTables(isNewDatabase);
+                createTables();
                 MessageUtil.consolePrint("SQLite 数据库连接成功！");
             } catch (ClassNotFoundException | SQLException e) {
                 MessageUtil.consoleError("无法连接到 SQLite 数据库！", e);
@@ -73,7 +72,7 @@ public class SQLiteManager {
         }
     }
 
-    private void createTables(boolean isNewDatabase) {
+    private void createTables() {
         String createIslandsTable = """
                 CREATE TABLE IF NOT EXISTS islands (
                     id INTEGER PRIMARY KEY,
@@ -89,7 +88,11 @@ public class SQLiteManager {
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     nether_unlocked INTEGER DEFAULT 0,
                     generator_level INTEGER DEFAULT 1,
-                    generator_disabled TEXT DEFAULT '{}'
+                    generator_disabled TEXT DEFAULT '{}',
+                    total_points REAL DEFAULT 0,
+                    block_counts TEXT DEFAULT '{}',
+                    baseline_total_points REAL DEFAULT 0,
+                    baseline_block_counts TEXT DEFAULT '{}'
                 );""";
 
         String createMembersTable = """
@@ -137,11 +140,7 @@ public class SQLiteManager {
             stmt.execute(createPlayersTable);
             stmt.execute(createPlayerStatsTable);
             stmt.execute(createSkinTexturesTable);
-            if (isNewDatabase) {
-                MessageUtil.consolePrint("数据库表结构创建成功！");
-            } else {
-                MessageUtil.consolePrint("数据库表结构检查成功！");
-            }
+            MessageUtil.consolePrint("数据库表结构创建成功！");
         } catch (SQLException e) {
             MessageUtil.consoleError("创建数据库表失败！", e);
         }

@@ -118,6 +118,9 @@ public class IslandCreateTask extends BukkitRunnable {
                         sendMessage("§e正在生成末地结构...");
                         plugin.getSchematicManager().pasteSchematic(endSchematicName, endWorld, pasteX, y, pasteZ);
 
+                        // 保存模板基线（用于等级系统忽略模板方块）
+                        plugin.getLevelManager().saveBaseline(createdIsland, schematicId);
+
                         // 更新主世界告示牌文字
                         updateSigns(world, pasteX, y, pasteZ, schematicName);
 

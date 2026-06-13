@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.net.URI;
 
 import team.starm.starmskyblock.command.AdminCommand;
+import team.starm.starmskyblock.config.ExperienceConfig;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.config.GeneratorConfigManager;
 import team.starm.starmskyblock.config.PermissionConfigManager;
@@ -27,6 +28,7 @@ import team.starm.starmskyblock.generator.SchematicManager;
 import team.starm.starmskyblock.grid.GridManager;
 import team.starm.starmskyblock.island.InvitationManager;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.level.LevelManager;
 import team.starm.starmskyblock.listener.BlockPlaceListener;
 import team.starm.starmskyblock.listener.BorderListener;
 import team.starm.starmskyblock.listener.CobblestoneGeneratorListener;
@@ -84,6 +86,10 @@ public class StarMSkyblock extends JavaPlugin {
 
     private SkyblockExpansion skyblockExpansion;
 
+    // ========== 等级系统 ==========
+    private ExperienceConfig experienceConfig;
+    private LevelManager levelManager;
+
     // ========== 任务系统 ==========
     private TaskConfigScanner taskConfigScanner;
     private TaskManager taskManager;
@@ -107,6 +113,7 @@ public class StarMSkyblock extends JavaPlugin {
         initSchematicManager();
         initGridAndIslands();
         initWorlds();
+        initLevelSystem();
         initInvitations();
         initPermissions();
         registerListeners();
@@ -203,6 +210,12 @@ public class StarMSkyblock extends JavaPlugin {
 
     private void initWorlds() {
         worldManager = new SkyblockWorldManager(configManager, this);
+    }
+
+    private void initLevelSystem() {
+        experienceConfig = new ExperienceConfig(this);
+        experienceConfig.initialize();
+        levelManager = new LevelManager(this, experienceConfig, islandManager, worldManager);
     }
 
     private void initInvitations() {
@@ -409,6 +422,14 @@ public class StarMSkyblock extends JavaPlugin {
 
     public SkyblockExpansion getSkyblockExpansion() {
         return skyblockExpansion;
+    }
+
+    public ExperienceConfig getExperienceConfig() {
+        return experienceConfig;
+    }
+
+    public LevelManager getLevelManager() {
+        return levelManager;
     }
 
     public TaskConfigScanner getTaskConfigManager() {

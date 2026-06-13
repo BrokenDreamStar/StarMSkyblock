@@ -27,10 +27,12 @@ public class IslandRepository {
 
     // ==================== 数据行记录（仅用于加载路径） ====================
 
-    public record IslandRow(int id, UUID ownerUuid, String name, int level, int radius,
+    public record IslandRow(int id, UUID ownerUuid, String name, int level, double totalExperience,
+                            String blockCounts, int radius,
                             int centerX, int centerZ, String permissions, String settings,
                             String homeData, String createdAt, boolean netherUnlocked,
-                            int generatorLevel, String generatorDisabled) {}
+                            int generatorLevel, String generatorDisabled,
+                            double baselineExperience, String baselineBlockCounts) {}
 
     public record MemberRow(int islandId, UUID playerUuid, String role) {}
 
@@ -39,7 +41,7 @@ public class IslandRepository {
     // ==================== 批量加载 ====================
 
     public List<IslandRow> loadAllIslands() {
-        String sql = "SELECT id, owner_uuid, name, level, radius, center_x, center_z, permissions, settings, home_data, created_at, nether_unlocked, generator_level, generator_disabled FROM islands";
+        String sql = "SELECT id, owner_uuid, name, level, COALESCE(total_points, 0) as total_points, COALESCE(block_counts, '{}') as block_counts, radius, center_x, center_z, permissions, settings, home_data, created_at, nether_unlocked, generator_level, generator_disabled, COALESCE(baseline_total_points, 0) as baseline_total_points, COALESCE(baseline_block_counts, '{}') as baseline_block_counts FROM islands";
         List<IslandRow> rows = new ArrayList<>();
         dbLock.readLock().lock();
         try {
@@ -53,6 +55,8 @@ public class IslandRepository {
                                 UUID.fromString(rs.getString("owner_uuid")),
                                 rs.getString("name"),
                                 rs.getInt("level"),
+                                rs.getDouble("total_points"),
+                                rs.getString("block_counts"),
                                 rs.getInt("radius"),
                                 rs.getInt("center_x"),
                                 rs.getInt("center_z"),
@@ -62,7 +66,9 @@ public class IslandRepository {
                                 rs.getString("created_at"),
                                 rs.getInt("nether_unlocked") == 1,
                                 rs.getInt("generator_level"),
-                                rs.getString("generator_disabled")
+                                rs.getString("generator_disabled"),
+                                rs.getDouble("baseline_total_points"),
+                                rs.getString("baseline_block_counts")
                         ));
                     } catch (IllegalArgumentException e) {
                         MessageUtil.consoleWarn("跳过无效 UUID 的岛屿行，id=" + rs.getInt("id"));
@@ -525,6 +531,51 @@ public class IslandRepository {
                 pstmt.executeUpdate();
             } catch (SQLException e) {
                 MessageUtil.consoleError("增加玩家删除岛屿次数失败！UUID: " + playerUuid, e);
+            }
+        } finally {
+            dbLock.writeLock().unlock();
+        }
+    }
+
+    // ==================== 等级系统 ====================
+
+    /**
+     * 更新岛屿模板基线（方块计数 + 总分）
+     */
+    public void updateBaseline(int id, double baselineExperience, String baselineBlockCountsJson) {
+        String sql = "UPDATE islands SET baseline_total_points = ?, baseline_block_counts = ? WHERE id = ?";
+        dbLock.writeLock().lock();
+        try {
+            Connection conn = sqliteManager.getConnection();
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setDouble(1, baselineExperience);
+                pstmt.setString(2, baselineBlockCountsJson != null ? baselineBlockCountsJson : "{}");
+                pstmt.setInt(3, id);
+                pstmt.executeUpdate();
+            } catch (SQLException e) {
+                MessageUtil.consoleError("更新岛屿模板基线到数据库失败！ID: " + id, e);
+            }
+        } finally {
+            dbLock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * 更新岛屿等级、总分和方块计数
+     */
+    public void updateLevel(int id, int level, double totalExperience, String blockCountsJson) {
+        String sql = "UPDATE islands SET level = ?, total_points = ?, block_counts = ? WHERE id = ?";
+        dbLock.writeLock().lock();
+        try {
+            Connection conn = sqliteManager.getConnection();
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, level);
+                pstmt.setDouble(2, totalExperience);
+                pstmt.setString(3, blockCountsJson != null ? blockCountsJson : "{}");
+                pstmt.setInt(4, id);
+                pstmt.executeUpdate();
+            } catch (SQLException e) {
+                MessageUtil.consoleError("更新岛屿等级到数据库失败！ID: " + id, e);
             }
         } finally {
             dbLock.writeLock().unlock();
