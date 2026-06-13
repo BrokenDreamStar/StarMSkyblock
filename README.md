@@ -128,13 +128,13 @@
 
 ### 默认等级表
 
-| 等级 | 主世界产物                        | 下界产物                                          | 末地产物        |
-|----|-------------------------------|------------------------------------------------|-------------|
-| 1  | 圆石 85%, 石头 10%, 煤矿 3%, 铜矿 2% | 玄武岩 100%                                     | 末地石 100%   |
-| 2  | +铁矿 3%, 青金石 2%               | 下界岩 10%, 灵魂土 5%, 荧石 5%                      | 末地石 100%   |
-| 3  | +金矿 2%, 红石 3%, 钻石 0.7%, 绿宝石 0.3% | +下界金矿 5%, 下界石英 5%                          | +沙子 10%    |
-| 4  | 概率上调                                    | +镶金黑石 1%                                      | 沙子 20%     |
-| 5  | 概率继续上调                                 | +远古残骸 0.5%                                    | 沙子 30%     |
+| 等级 | 主世界产物 | 下界产物 | 末地产物 |
+|-----|-----------|---------|---------|
+| 1 | 圆石 85%, 石头 10%, 煤矿 3%, 铜矿 2% | 玄武岩 100% | 末地石 100% |
+| 2 | 圆石 76%, 石头 10%, 煤矿 5%, 铜矿 4%, 铁矿 3%, 青金石 2% | 玄武岩 80%, 下界岩 10%, 灵魂土 5%, 荧石 5% | 末地石 100% |
+| 3 | 圆石 62%, 石头 10%, 煤矿 7%, 铜矿 6%, 铁矿 5%, 青金石 4%, 金矿 2%, 红石 3%, 钻石 0.7%, 绿宝石 0.3% | 玄武岩 69%, 下界岩 10%, 灵魂土 5%, 荧石 5%, 下界金矿 5%, 下界石英 5%, 镶金黑石 0.8%, 远古残骸 0.2% | 末地石 90%, 沙子 10% |
+| 4 | 圆石 51%, 石头 10%, 煤矿 7%, 铜矿 7%, 铁矿 7%, 青金石 6%, 金矿 5%, 红石 5%, 钻石 1.4%, 绿宝石 0.6% | 玄武岩 64.5%, 下界岩 10%, 灵魂土 5%, 荧石 5%, 下界金矿 7%, 下界石英 7%, 镶金黑石 1%, 远古残骸 0.5% | 末地石 80%, 沙子 20% |
+| 5 | 圆石 47%, 石头 10%, 煤矿 7%, 铜矿 7%, 铁矿 7%, 青金石 6%, 金矿 6%, 红石 6.5%, 钻石 2.3%, 绿宝石 1.2% | 玄武岩 60%, 下界岩 10%, 灵魂土 5%, 荧石 5%, 下界金矿 9%, 下界石英 9%, 镶金黑石 1%, 远古残骸 1% | 末地石 70%, 沙子 30% |
 
 ## 升级系统
 
@@ -474,31 +474,132 @@ StarMSkyblock 拥有精细的权限体系，每种操作（如破坏方块、打
 
 | 角色      | 等级值 | 颜色 |
 |---------|-----|----|
-| OWNER   | 5   | 红色 |
-| ADMIN   | 4   | 金色 |
-| MOD     | 3   | 绿色 |
-| MEMBER  | 2   | 白色 |
-| COOP    | 1   | 灰色 |
-| VISITOR | 0   | 深红 |
+| OWNER   | 5   | 金色 |
+| ADMIN   | 4   | 红色 |
+| MOD     | 3   | 深绿 |
+| MEMBER  | 2   | 绿色 |
+| COOP    | 1   | 天蓝 |
+| VISITOR | 0   | 白色 |
 
 ### 权限节点
 
-权限分 12 大类，共 80+ 个权限点：
+权限分 12 大类，共 80 个权限点：
 
-| 类别                   | 包含权限                                  |
-|----------------------|---------------------------------------|
-| **MANAGEMENT**       | 管理类：邀请/移除成员、设置角色/权限/传送点/生物群系/刷石机、重命名、删除岛屿 |
-| **ITEM_DROP_PICKUP** | 物品丢弃、拾取、经验球吸取                         |
-| **BLOCK**            | 方块破坏和建造                               |
-| **WORKBLOCK**        | 工作台、附魔台、铁砧、锻造台、织布机、切石机等               |
-| **CONTAINER**        | 箱子、熔炉、漏斗、发射器、潜影盒、末影箱、唱片机等             |
-| **REDSTONE**         | 按钮、拉杆、压力板、红石中继器/比较器、钟、音符盒、幽匿感测体       |
-| **DOOR**             | 门、栅栏门、活板门                             |
-| **VEHICLE**          | 矿车和船（放置/乘坐/破坏）                        |
-| **TOOL**             | 弓/弩、斧、锹、锄、桶、剪刀、刷子、拴绳、钓鱼竿              |
-| **ITEM**             | 烟花、刷怪蛋、命名牌、药水、骨粉、末影珍珠、风弹等             |
-| **ENTITY**           | 动物喂食/攻击、怪物攻击、村民交易、以物易物、骑乘、悦灵等         |
-| **OTHER**            | 踩踏耕地/海龟蛋、采摘浆果、蛋糕、睡觉、告示牌编辑、袭击触发等       |
+| 类别 | 权限 | 说明 |
+|-----|------|------|
+| **MANAGEMENT** | `RENAME_ISLAND` | 修改岛屿名称 |
+| | `EDIT_PERMISSIONS` | 修改岛屿权限 |
+| | `EDIT_SETTINGS` | 修改岛屿设置 |
+| | `INVITE_MEMBER` | 邀请成员 |
+| | `REMOVE_MEMBER` | 移除成员 |
+| | `SET_ROLE` | 设置成员权限组 |
+| | `INVITE_COOP` | 邀请合作者 |
+| | `REMOVE_COOP` | 移除合作者 |
+| | `SET_SPAWN` | 设置传送点 |
+| | `SET_BIOME` | 设置生物群系 |
+| | `SET_GENERATOR` | 设置岛屿刷石机 |
+| **ITEM_DROP_PICKUP** | `ITEM_DROP` | 丢弃物品 |
+| | `ITEM_PICKUP` | 拾取物品 |
+| | `EXP_PICKUP` | 吸取经验球 |
+| **BLOCK** | `BREAK` | 破坏方块 |
+| | `BUILD` | 建造/放置方块 |
+| **WORKBLOCK** | `CRAFTING_TABLE_USE` | 使用工作台 |
+| | `ENCHANTING_TABLE_USE` | 使用附魔台 |
+| | `BEACON_USE` | 使用信标 |
+| | `ANVIL_USE` | 使用铁砧 |
+| | `GRINDSTONE_USE` | 使用砂轮 |
+| | `CARTOGRAPHY_TABLE_USE` | 使用制图台 |
+| | `STONECUTTER_USE` | 使用切石机 |
+| | `LOOM_USE` | 使用织布机 |
+| | `SMITHING_TABLE_USE` | 使用锻造台 |
+| | `CAMPFIRE_USE` | 使用营火 |
+| **CONTAINER** | `FURNACE_OPEN` | 使用熔炉 |
+| | `CHEST_OPEN` | 打开箱子 |
+| | `BARREL_OPEN` | 打开木桶 |
+| | `ENDER_CHEST_OPEN` | 打开末影箱 |
+| | `SHULKER_BOX_OPEN` | 打开潜影盒 |
+| | `HOPPER_OPEN` | 打开漏斗 |
+| | `DISPENSER_OPEN` | 打开发射器 |
+| | `DROPPER_OPEN` | 打开投掷器 |
+| | `CRAFTER_OPEN` | 打开自动合成器 |
+| | `BREWING_STAND_OPEN` | 打开酿造台 |
+| | `SHELF_USE` | 使用展示架 |
+| | `ITEM_FRAME_USE` | 使用物品展示框 |
+| | `JUKEBOX_USE` | 使用唱片机 |
+| | `LECTERN_USE` | 使用讲台 |
+| | `CHISELED_BOOKSHELF_USE` | 使用雕纹书架 |
+| | `DECORATED_POT_USE` | 使用陶罐 |
+| | `COMPOSTER_USE` | 使用堆肥桶 |
+| | `FLOWER_POT_USE` | 使用花盆 |
+| | `ANIMAL_INVENTORY_OPEN` | 打开生物背包 |
+| **REDSTONE** | `BUTTON_PRESS` | 按按钮 |
+| | `LEVER_USE` | 拉拉杆 |
+| | `REPEATER_USE` | 切换红石中继器 |
+| | `COMPARATOR_USE` | 切换红石比较器 |
+| | `DAYLIGHT_DETECTOR_USE` | 切换阳光探测器 |
+| | `PRESSURE_PLATE_TRIGGER` | 触发压力板 |
+| | `TRIPWIRE_HOOK_TRIGGER` | 触发绊线钩 |
+| | `SCULK_SENSOR_TRIGGER` | 触发幽匿感测体 |
+| | `BELL_RING` | 敲击钟 |
+| | `NOTE_BLOCK_USE` | 使用音符盒 |
+| **DOOR** | `DOOR_OPEN` | 开关门 |
+| | `FENCE_GATE_OPEN` | 开关栅栏门 |
+| | `TRAPDOOR_OPEN` | 开关活板门 |
+| **VEHICLE** | `MINECART_DAMAGE` | 破坏矿车 |
+| | `MINECART_ENTER` | 乘坐矿车 |
+| | `MINECART_PLACE` | 放置矿车 |
+| | `BOAT_DAMAGE` | 破坏船 |
+| | `BOAT_ENTER` | 乘坐船 |
+| | `BOAT_PLACE` | 放置船 |
+| **TOOL** | `BOW_USE` | 使用弓/弩 |
+| | `AXE_USE` | 使用斧 |
+| | `SHOVEL_USE` | 使用锹 |
+| | `HOE_USE` | 使用锄 |
+| | `BUCKET_USE` | 使用桶 |
+| | `GLASS_BOTTLE_USE` | 使用玻璃瓶 |
+| | `BOWL_USE` | 使用碗 |
+| | `FISHING_ROD_USE` | 钓鱼 |
+| | `FLINT_AND_STEEL_USE` | 点火 |
+| | `SHEARS_USE` | 使用剪刀 |
+| | `BRUSH_USE` | 使用刷子 |
+| | `LEASH_USE` | 使用拴绳 |
+| **ITEM** | `FIREWORK_USE` | 使用烟花 |
+| | `NAME_TAG_USE` | 使用命名牌 |
+| | `POTION_THROW` | 投掷药水 |
+| | `WATER_BOTTLE_USE` | 使用水瓶 |
+| | `BONE_MEAL_USE` | 使用骨粉 |
+| | `DYE_USE` | 使用染料 |
+| | `INK_SAC_USE` | 使用墨囊 |
+| | `HONEYCOMB_USE` | 涂蜡 |
+| | `CHORUS_FRUIT_EAT` | 食用紫颂果 |
+| | `ENDER_PEARL_USE` | 使用末影珍珠 |
+| | `ENDER_EYE_USE` | 使用末影之眼 |
+| | `WIND_CHARGE_USE` | 使用风弹 |
+| | `SNOWBALL_THROW` | 丢雪球 |
+| | `EGG_THROW` | 丢鸡蛋 |
+| **ENTITY** | `ANIMAL_FEED` | 喂食动物 |
+| | `ENTITY_RIDE` | 骑乘生物 |
+| | `ENTITY_EQUIP` | 装备生物 |
+| | `ANIMAL_DAMAGE` | 攻击动物 |
+| | `MONSTER_DAMAGE` | 攻击怪物 |
+| | `VILLAGER_DAMAGE` | 攻击村民 |
+| | `VILLAGER_TRADE` | 村民交易 |
+| | `BARTERING` | 以物易物 |
+| | `ALLAY_INTERACT` | 与悦灵交互 |
+| | `ARMOR_STAND_DAMAGE` | 攻击盔甲架 |
+| | `ARMOR_STAND_INTERACT` | 与盔甲架交互 |
+| **OTHER** | `ENTER_NETHER_PORTAL` | 进入下界传送门 |
+| | `ENTER_END_PORTAL` | 进入末地传送门 |
+| | `SPAWN_EGG_USE` | 使用刷怪蛋 |
+| | `FARMLAND_TRAMPLE` | 踩踏耕地 |
+| | `TURTLE_EGG_TRAMPLE` | 踩踏海龟蛋 |
+| | `SWEET_BERRY_HARVEST` | 采摘浆果 |
+| | `CAKE_EAT` | 食用蛋糕 |
+| | `SIGN_EDIT` | 编辑告示牌 |
+| | `BED_USE` | 睡觉 |
+| | `RESPAWN_ANCHOR_USE` | 使用重生锚 |
+| | `END_CRYSTAL_DAMAGE` | 破坏末地水晶 |
+| | `RAID_TRIGGER` | 触发袭击 |
 
 ### 默认权限组配置文件 (`permissions.yml`)
 
@@ -706,4 +807,5 @@ StarMSkyblock
 ## 贡献
 
 作者: BrokenDream_Star, DeepSeek, Gemini, Grok  
+开发工具: Claude Code, OpenCode, IntelliJ IDEA  
 网站: https://starm.team/
