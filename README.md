@@ -47,7 +47,8 @@
 | `sign.yml`        | 岛屿出生点告示牌文本模板（支持 PAPI 变量）                                                               |
 | `tasks/tasks.yml` | 任务章节注册文件                                                                               |
 | `tasks/<Chapter>/` | 章节任务定义文件（`.yml`），如 `Chapter1/Mission1_1.yml`                                           |
-| `schematics/`     | 岛屿结构文件（`.schem`），内置 `default.schem` / `default_nether.schem` / `default_the_end.schem` |
+| `block-values.yml` | 方块经验价值表：每种方块/实体/钓鱼/合成对应的经验值                                  |
+| `experience.yml`   | 等级系统配置：等级公式（线性/平方/三次方）、系数、触发冷却、是否异步                        |
 
 ## 命令
 
@@ -90,6 +91,8 @@
 | `task info <章节> <任务>`                          | 查看任务详情                      |
 | `task submit <章节> <任务>`                        | 提交物品完成 ITEM 类型任务             |
 | `task claim <章节> <任务>`                         | 领取已完成任务的奖励                  |
+| `level`                                            | 扫描全岛方块并计算岛屿等级与总经验值            |
+| `portalinfo`                                       | 查看当前位置所在的传送门信息（源/目标岛屿、目标位置）       |
 
 `/is` 无参数时默认执行 `/is spawn`（可通过 `config.yml` 的 `default-island-command` 修改）。
 
@@ -176,6 +179,99 @@ generator-upgrades:
 ```
 
 升级采用阶梯配置，每个升级项包含目标值和费用。范围升级的目标半径不得超过 `config.yml` 中的 `island-max-radius`，刷石机等级不得超过 `generator.yml` 的最大等级。
+
+## 等级系统
+
+StarMSkyblock 拥有完整的岛屿等级系统，基于玩家在空岛上放置的方块的稀有度和数量自动计算等级，为玩家提供长期发展目标。
+
+### 命令
+
+| 命令           | 说明                                |
+|--------------|-----------------------------------|
+| `/is level`  | 异步扫描全岛所有方块，计算总经验值并换算为岛屿等级，同时显示扫描结果 |
+
+扫描包括岛屿半径内的**所有三个维度**（主世界 / 下界 / 末地）。扫描完成后会保存到数据库，PAPI 变量即时反映最新值。
+
+### 配置文件 (`block-values.yml`)
+
+```yaml
+# 方块经验值
+blocks:
+  DIAMOND_BLOCK: 300.0
+  EMERALD_BLOCK: 250.0
+  IRON_BLOCK: 100.0
+  STONE: 1.0
+  OAK_LOG: 0.5
+  # ... 所有支持方块的完整价值表
+
+# 方块数量上限（阈值）
+limits:
+  COBBLESTONE: 10000
+  STONE: 5000
+  # ... 超过阈值的超额部分按递减公式计算
+
+# 超额经验值递减配置
+diminishing:
+  enabled: true
+  decay: 0.03         # 递减系数（越大下降越快）
+  minimum: 1.0        # 单个方块的最低经验值
+
+# 等级经验值消耗（幂函数增长）
+level-cost:
+  base: 50.0           # 升到 1 级所需基础经验值
+  power: 1.2           # 指数系数控制每级增长幅度
+```
+
+#### 方块经验值
+
+每种方块独立配置经验值。稀有/高级方块（钻石块 300、信标 500、刷怪笼 500）经验值高；基础建材（圆石 0.3、石头 1.0）经验值低。未配置的方块默认经验值为 `1.0`。
+
+#### 数量阈值与超额递减
+
+如果某种方块（如圆石）大量堆积，超出 `limits` 阈值后超额部分会按递减公式处理：
+
+```
+value = baseValue / (1 + decay × i)    # i = 超额数量
+```
+
+即超额方块越多，单个方块的边际价值越低，但最终不低于 `minimum` 值。此机制鼓励玩家多样化发展而非单纯刷取单一材料。
+
+#### 等级换算
+
+等级使用幂函数公式计算：
+
+```
+cost(L) = round(base × L^power)
+```
+
+- `base`：基础经验值消耗（升 1 级的门槛）
+- `power`：增长指数，控制每级所需的经验增量
+- 总经验值 = 所有方块经验值（阈值内全额 + 超额递减部分） - 模板基线（创建时 schematic 方块的原始经验值）
+
+#### 模板基线（Baseline）
+
+岛屿创建时自动扫描并保存 schematic 中每种方块的数量和总经验值作为基线。等级计算时：
+
+```
+有效方块数 = 世界实际方块数 - 基线方块数
+有效经验值 = max(0, 世界总经验 - 基线总经验)
+```
+
+这确保了玩家**只有真正新增的方块才会计入等级**，模板已有的方块不会被重复计算。
+
+### 计算流程
+
+```
+/is level
+  → 异步遍历岛屿半径内所有区块（含三个维度）
+  → 逐方块统计种类和数量（计入递减）
+  → 减去模板基线
+  → 按 level-cost 公式换算等级
+  → 结果持久化到数据库
+  → 向玩家展示扫描摘要
+```
+
+扫描结果包含：总经验值、岛屿等级、扫描方块总量、各维度统计。
 
 ## 传送门系统
 
@@ -438,8 +534,14 @@ StarMSkyblock 拥有精细的权限体系，每种操作（如破坏方块、打
 | `%starmskyblock_island_name_here%`                        | 当前位置所在岛屿的名称                                                       |
 | `%starmskyblock_role%`                                    | 玩家在岛屿中的角色                                                         |
 | `%starmskyblock_role_here%`                               | 玩家在当前岛屿中的角色                                                       |
-| `%starmskyblock_level%`                                   | 玩家自己的岛屿等级                                                         |
-| `%starmskyblock_level_here%`                              | 当前岛屿的等级                                                           |
+| `%starmskyblock_level%`                                   | 玩家自己的岛屿等级（来自 `/is level` 扫描结果）                                  |
+| `%starmskyblock_level_here%`                              | 当前位置所在岛屿的等级                                                       |
+| `%starmskyblock_total_points%`                            | 玩家岛屿的总经验值（浮点数）                                                     |
+| `%starmskyblock_total_points_here%`                       | 当前位置所在岛屿的总经验值                                                      |
+| `%starmskyblock_experience%`                              | 玩家岛屿的有效经验值（总经验 - 基线经验，同 total_points）                            |
+| `%starmskyblock_experience_here%`                         | 当前位置所在岛屿的有效经验值                                                     |
+| `%starmskyblock_blocks_counted%`                          | 玩家岛屿扫描到的方块总数                                                        |
+| `%starmskyblock_blocks_counted_here%`                     | 当前位置所在岛屿扫描到的方块总数                                                    |
 | `%starmskyblock_generator_level%`                         | 玩家岛屿的刷石机等级                                                        |
 | `%starmskyblock_generator_level_here%`                    | 当前岛屿的刷石机等级                                                        |
 | `%starmskyblock_generator_<normal/nether/end>%`           | 玩家岛屿指定维度的刷石机概率表（含启停状态）                                            |
@@ -486,13 +588,14 @@ StarMSkyblock
 │   ├── IslandCommand.java      — /is 命令分发器
 │   ├── AdminCommand.java       — /isadmin 命令分发器
 │   ├── IslandPermissionCommand.java  — /is permission 子命令
-│   └── subcommand/             — 20 个具体子命令实现
+│   └── subcommand/             — 具体子命令实现（含帮助、队伍、任务、等级等）
 ├── config/                     — YAML 配置管理
 │   ├── ConfigManager.java      — config.yml
 │   ├── PermissionConfigManager.java — permissions.yml
 │   ├── SettingsConfigManager.java   — settings.yml
 │   ├── GeneratorConfigManager.java  — generator.yml（刷石机等级与概率权重）
 │   ├── UpgradeConfigManager.java    — upgrades.yml（升级等级与费用）
+│   └── ExperienceConfig.java        — block-values.yml（方块经验值、阈值、等级公式）
 │   └── SignConfigManager.java       — sign.yml
 ├── database/                   — SQLite 持久层
 │   ├── SQLiteManager.java      — 连接管理与建表
@@ -511,6 +614,10 @@ StarMSkyblock
 │   ├── IslandDeleteTask.java   — 异步岛屿删除
 │   ├── InvitationManager.java  — 邀请管理（含 5 分钟过期）
 │   └── IslandSerializer.java   — JSON 序列化
+├── level/                      — 等级系统
+│   ├── LevelManager.java       — 等级核心管理器（异步扫描+计算调度）
+│   ├── IslandLevelCalculator.java — 方块扫描与经验值计算逻辑
+│   └── LevelResults.java       — 扫描结果数据模型
 ├── task/                       — 任务系统
 │   ├── TaskType.java           — 任务类型枚举
 │   ├── TaskDefinition.java     — 任务定义（需求组、前置、奖励）
@@ -589,7 +696,7 @@ StarMSkyblock
 
 | 表名               | 说明                           |
 |------------------|------------------------------|
-| `islands`        | 岛屿数据（ID、名称、所属者、坐标、半径、设置、权限、刷石机禁用列表等） |
+| `islands`        | 岛屿数据（ID、名称、所属者、坐标、半径、设置、权限、刷石机禁用列表、等级、经验值、方块计数、模板基线等） |
 | `island_members` | 成员关联（UUID、角色、加入时间）           |
 | `island_coops`   | 合作者关联                        |
 | `players`        | 玩家数据（边界偏好、首次进入下界标志、任务进度 JSON） |
