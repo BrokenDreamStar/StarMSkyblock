@@ -53,6 +53,7 @@ public class ConfigManager {
     private volatile long permissionMessageCooldown; // 权限提示消息冷却时间（毫秒）
     private volatile int maxNameLength; // 岛屿名称最大长度（颜色代码不计入）
     private volatile int renameCooldown; // 岛屿重命名冷却时间（秒）
+    private volatile int levelCooldown; // 岛屿等级计算冷却时间（秒）
     private volatile int teleportCountdown; // 岛屿传送倒计时（秒）
     private volatile boolean useFawe; // 是否使用 FAWE 模式
     private volatile String defaultIslandCommand; // /is 无参数时执行的子命令（默认 spawn）
@@ -190,6 +191,8 @@ public class ConfigManager {
         this.maxNameLength = config.getInt("max-name-length", 32);
 
         this.renameCooldown = config.getInt("rename-cooldown", 300);
+
+        this.levelCooldown = config.getInt("level-cooldown", 60);
 
         this.teleportCountdown = config.getInt("teleport-countdown", 3);
 
@@ -349,6 +352,13 @@ public class ConfigManager {
 
     public int getRenameCooldown() {
         return renameCooldown;
+    }
+
+    /**
+     * @return 岛屿等级计算冷却时间（秒），0 表示无冷却
+     */
+    public int getLevelCooldown() {
+        return levelCooldown;
     }
 
     public int getTeleportCountdown() {

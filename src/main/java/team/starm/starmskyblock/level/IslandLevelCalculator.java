@@ -226,7 +226,7 @@ public class IslandLevelCalculator extends BukkitRunnable {
                 double decay = experienceConfig.getDiminishingDecay();
                 double minimum = experienceConfig.getDiminishingMinimum();
                 for (long i = 0; i < overLimit; i++) {
-                    exp += Math.max(expValue / (1 + decay * i), minimum);
+                    exp += Math.round(Math.max(expValue / (1 + decay * i), minimum));
                 }
                 results.addBlockCount(material, overLimit);
                 results.addBlockOverLimit(material, overLimit);

@@ -5,190 +5,1017 @@
 # 方块经验值
 # 每种方块对应的经验值，空岛上的方块将按此值累加总经验
 # 格式: MATERIAL_NAME: 经验值
-# 未在此处列出的方块默认经验值为 1.0
+# 未在此处列出的方块默认经验值为 1
 # ============================================
 blocks:
-  # —— 矿石块 ——
-  DIAMOND_BLOCK: 300.0
-  EMERALD_BLOCK: 250.0
-  NETHERITE_BLOCK: 500.0
-  GOLD_BLOCK: 200.0
-  IRON_BLOCK: 100.0
-  LAPIS_BLOCK: 80.0
-  REDSTONE_BLOCK: 60.0
-  COAL_BLOCK: 30.0
-  COPPER_BLOCK: 20.0
-
-  # —— 矿物 ——
-  DIAMOND_ORE: 100.0
-  DEEPSLATE_DIAMOND_ORE: 120.0
-  EMERALD_ORE: 80.0
-  DEEPSLATE_EMERALD_ORE: 100.0
-  NETHERITE_SCRAP: 200.0
-  ANCIENT_DEBRIS: 200.0
-  GOLD_ORE: 60.0
-  DEEPSLATE_GOLD_ORE: 70.0
-  IRON_ORE: 30.0
-  DEEPSLATE_IRON_ORE: 35.0
-  LAPIS_ORE: 25.0
-  DEEPSLATE_LAPIS_ORE: 30.0
-  REDSTONE_ORE: 20.0
-  DEEPSLATE_REDSTONE_ORE: 25.0
-  COAL_ORE: 10.0
-  DEEPSLATE_COAL_ORE: 12.0
-  COPPER_ORE: 8.0
-  DEEPSLATE_COPPER_ORE: 10.0
-  NETHER_GOLD_ORE: 10.0
-  NETHER_QUARTZ_ORE: 10.0
-
-  # —— 精炼建材 ——
-  STONE: 1.0
-  STONE_BRICKS: 1.5
-  SMOOTH_STONE: 1.0
-  ANDESITE: 0.5
-  POLISHED_ANDESITE: 1.0
-  DIORITE: 0.5
-  POLISHED_DIORITE: 1.0
-  GRANITE: 0.5
-  POLISHED_GRANITE: 1.0
-  DEEPSLATE: 1.0
-  COBBLED_DEEPSLATE: 0.5
-  POLISHED_DEEPSLATE: 1.0
-  TUFF: 0.5
-  CALCITE: 0.5
-  DRIPSTONE_BLOCK: 0.5
-  BASALT: 0.5
-  POLISHED_BASALT: 1.0
-  SMOOTH_BASALT: 1.0
-  BLACKSTONE: 1.0
-  POLISHED_BLACKSTONE: 1.5
-  GILDED_BLACKSTONE: 5.0
-  NETHER_BRICKS: 1.5
-  RED_NETHER_BRICKS: 1.5
-  END_STONE: 1.0
-  END_STONE_BRICKS: 1.5
-  PURPUR_BLOCK: 1.0
-  PURPUR_PILLAR: 1.5
-  PRISMARINE: 1.5
-  PRISMARINE_BRICKS: 2.0
-  DARK_PRISMARINE: 2.0
-  SEA_LANTERN: 10.0
-
-  # —— 木材与树叶 ——
-  OAK_LOG: 0.5
-  SPRUCE_LOG: 0.5
-  BIRCH_LOG: 0.5
-  JUNGLE_LOG: 0.5
-  ACACIA_LOG: 0.5
-  DARK_OAK_LOG: 0.5
-  MANGROVE_LOG: 0.5
-  CHERRY_LOG: 0.5
-  CRIMSON_STEM: 0.5
-  WARPED_STEM: 0.5
-  OAK_PLANKS: 0.3
-  SPRUCE_PLANKS: 0.3
-  BIRCH_PLANKS: 0.3
-  JUNGLE_PLANKS: 0.3
-  ACACIA_PLANKS: 0.3
-  DARK_OAK_PLANKS: 0.3
-  MANGROVE_PLANKS: 0.3
-  CHERRY_PLANKS: 0.3
-  CRIMSON_PLANKS: 0.3
-  WARPED_PLANKS: 0.3
-
-  # —— 玻璃与装饰 ——
-  GLASS: 0.5
-  WHITE_STAINED_GLASS: 0.5
-  ORANGE_STAINED_GLASS: 0.5
-  MAGENTA_STAINED_GLASS: 0.5
-  LIGHT_BLUE_STAINED_GLASS: 0.5
-  YELLOW_STAINED_GLASS: 0.5
-  LIME_STAINED_GLASS: 0.5
-  PINK_STAINED_GLASS: 0.5
-  GRAY_STAINED_GLASS: 0.5
-  LIGHT_GRAY_STAINED_GLASS: 0.5
-  CYAN_STAINED_GLASS: 0.5
-  PURPLE_STAINED_GLASS: 0.5
-  BLUE_STAINED_GLASS: 0.5
-  BROWN_STAINED_GLASS: 0.5
-  GREEN_STAINED_GLASS: 0.5
-  RED_STAINED_GLASS: 0.5
-  BLACK_STAINED_GLASS: 0.5
-  GLASS_PANE: 0.3
-
-  # —— 其他实用方块 ——
-  BOOKSHELF: 2.0
-  OBSIDIAN: 3.0
-  CRYING_OBSIDIAN: 5.0
-  ENCHANTING_TABLE: 50.0
-  ANVIL: 30.0
-  CHIPPED_ANVIL: 20.0
-  DAMAGED_ANVIL: 10.0
-  BEACON: 500.0
-  CONDUIT: 200.0
-  SPAWNER: 500.0
-  HOPPER: 15.0
-  DROPPER: 10.0
-  DISPENSER: 10.0
-  FURNACE: 5.0
-  BLAST_FURNACE: 10.0
-  SMOKER: 10.0
-  CRAFTING_TABLE: 2.0
-  CHEST: 2.0
-  TRAPPED_CHEST: 2.0
-  BARREL: 2.0
-  ENDER_CHEST: 20.0
-  SHULKER_BOX: 20.0
-  NOTE_BLOCK: 5.0
-  JUKEBOX: 20.0
-  TNT: 5.0
-  SAND: 0.1
-  RED_SAND: 0.1
-  GRAVEL: 0.1
-  CLAY: 1.0
-  SOUL_SAND: 0.5
-  SOUL_SOIL: 0.5
-
-  # —— 作物与植物 ——
-  WHEAT: 0.5
-  CARROTS: 0.5
-  POTATOES: 0.5
-  BEETROOTS: 0.5
-  MELON: 1.0
-  PUMPKIN: 1.0
-  SUGAR_CANE: 0.5
-  CACTUS: 0.5
-  BAMBOO: 0.3
-  NETHER_WART: 1.0
-  COCOA: 0.5
-  KELP: 0.3
-
-# ============================================
-# 方块数量上限（阈值）
-# 当某种方块的数量超过此阈值后，超额部分的经验值会按递减公式计算。
-# 未配置的方块无上限限制。
-# ============================================
-limits:
-  COBBLESTONE: 10000
-  STONE: 5000
-  NETHERRACK: 3000
-  DIRT: 2000
-  GRASS_BLOCK: 1000
-  SAND: 3000
-  GRAVEL: 2000
-  DEEPSLATE: 3000
-  TUFF: 1000
-  BASALT: 2000
-  BLACKSTONE: 2000
-  GLASS: 500
-  OAK_LOG: 1000
-  SPRUCE_LOG: 1000
-  BIRCH_LOG: 1000
-  OAK_PLANKS: 3000
-  SPRUCE_PLANKS: 3000
-  BIRCH_PLANKS: 3000
-  WATER: 1000
-  LAVA: 500
+  ACACIA_BUTTON: 2  # 金合欢木按钮
+  ACACIA_DOOR: 2  # 金合欢木门
+  ACACIA_FENCE: 2  # 金合欢木栅栏
+  ACACIA_FENCE_GATE: 2  # 金合欢木栅栏门
+  ACACIA_HANGING_SIGN: 2  # 悬挂式金合欢木告示牌
+  ACACIA_LEAVES: 1  # 金合欢树叶
+  ACACIA_LOG: 1  # 金合欢原木
+  ACACIA_PLANKS: 1  # 金合欢木板
+  ACACIA_PRESSURE_PLATE: 2  # 金合欢木压力板
+  ACACIA_SAPLING: 2  # 金合欢树苗
+  ACACIA_SHELF: 2  # 金合欢木展示架
+  ACACIA_SIGN: 2  # 金合欢木告示牌
+  ACACIA_SLAB: 2  # 金合欢木台阶
+  ACACIA_STAIRS: 2  # 金合欢木楼梯
+  ACACIA_TRAPDOOR: 2  # 金合欢木活板门
+  ACACIA_WOOD: 1  # 金合欢木
+  ACTIVATOR_RAIL: 5  # 激活铁轨
+  ALLIUM: 1  # 绒球葱
+  ANCIENT_DEBRIS: 300  # 远古残骸
+  ANDESITE: 1  # 安山岩
+  ANDESITE_SLAB: 2  # 安山岩台阶
+  ANDESITE_STAIRS: 2  # 安山岩楼梯
+  ANDESITE_WALL: 2  # 安山岩墙
+  ANVIL: 150  # 铁砧
+  AZALEA: 1  # 杜鹃花丛
+  AZALEA_LEAVES: 2  # 杜鹃树叶
+  AZURE_BLUET: 1  # 蓝花美耳草
+  BAMBOO: 1  # 竹子
+  BAMBOO_BUTTON: 2  # 竹按钮
+  BAMBOO_DOOR: 2  # 竹门
+  BAMBOO_FENCE: 2  # 竹栅栏
+  BAMBOO_FENCE_GATE: 2  # 竹栅栏门
+  BAMBOO_HANGING_SIGN: 2  # 悬挂式竹告示牌
+  BAMBOO_MOSAIC: 2  # 竹马赛克
+  BAMBOO_MOSAIC_SLAB: 2  # 竹马赛克台阶
+  BAMBOO_MOSAIC_STAIRS: 2  # 竹马赛克楼梯
+  BAMBOO_PLANKS: 2  # 竹板
+  BAMBOO_PRESSURE_PLATE: 2  # 竹压力板
+  BAMBOO_SHELF: 2  # 竹展示架
+  BAMBOO_SIGN: 2  # 竹告示牌
+  BAMBOO_SLAB: 2  # 竹台阶
+  BAMBOO_STAIRS: 2  # 竹楼梯
+  BAMBOO_TRAPDOOR: 2  # 竹活板门
+  BARREL: 2  # 木桶
+  BASALT: 1  # 玄武岩
+  BEACON: 500  # 信标
+  BEEHIVE: 1  # 蜂箱
+  BEE_NEST: 1  # 蜂巢
+  BEETROOTS: 1  # 甜菜种子
+  BELL: 200  # 钟
+  BIG_DRIPLEAF: 1  # 大型垂滴叶
+  BIRCH_BUTTON: 2  # 白桦木按钮
+  BIRCH_DOOR: 2  # 白桦木门
+  BIRCH_FENCE: 2  # 白桦木栅栏
+  BIRCH_FENCE_GATE: 2  # 白桦木栅栏门
+  BIRCH_HANGING_SIGN: 2  # 悬挂式白桦木告示牌
+  BIRCH_LEAVES: 1  # 白桦树叶
+  BIRCH_LOG: 1  # 白桦原木
+  BIRCH_PLANKS: 1  # 白桦木板
+  BIRCH_PRESSURE_PLATE: 2  # 白桦木压力板
+  BIRCH_SAPLING: 2  # 白桦树苗
+  BIRCH_SHELF: 2  # 白桦木展示架
+  BIRCH_SIGN: 2  # 白桦木告示牌
+  BIRCH_SLAB: 2  # 白桦木台阶
+  BIRCH_STAIRS: 2  # 白桦木楼梯
+  BIRCH_TRAPDOOR: 2  # 白桦木活板门
+  BIRCH_WOOD: 1  # 白桦木
+  BLACK_BANNER: 2  # 黑色旗帜
+  BLACK_BED: 35  # 黑色床
+  BLACK_CANDLE: 2  # 黑色蜡烛
+  BLACK_CARPET: 1  # 黑色地毯
+  BLACK_CONCRETE: 10  # 黑色混凝土
+  BLACK_CONCRETE_POWDER: 5  # 黑色混凝土粉末
+  BLACK_GLAZED_TERRACOTTA: 25  # 黑色带釉陶瓦
+  BLACK_SHULKER_BOX: 20  # 黑色潜影盒
+  BLACK_STAINED_GLASS: 15  # 黑色染色玻璃
+  BLACK_STAINED_GLASS_PANE: 10  # 黑色染色玻璃板
+  BLACK_TERRACOTTA: 20  # 黑色陶瓦
+  BLACK_WOOL: 10  # 黑色羊毛
+  BLACKSTONE: 2  # 黑石
+  BLACKSTONE_SLAB: 3  # 黑石台阶
+  BLACKSTONE_STAIRS: 3  # 黑石楼梯
+  BLACKSTONE_WALL: 3  # 黑石墙
+  BLAST_FURNACE: 10  # 高炉
+  AMETHYST_BLOCK: 20  # 紫水晶块
+  BAMBOO_BLOCK: 1  # 竹块
+  CAVE_VINES_PLANT: 1    # 洞穴藤蔓植株
+  COAL_BLOCK: 30  # 煤炭块
+  COPPER_BLOCK: 40  # 铜块
+  DIAMOND_BLOCK: 350  # 钻石块
+  EMERALD_BLOCK: 450  # 绿宝石块
+  FROSTED_ICE: 1     # 霜冰
+  GOLD_BLOCK: 250 # 金块
+  IRON_BLOCK: 50  # 铁块
+  IRON_CHAIN: 2   # 铁锁链
+  KELP: 1          # 海带
+  LAPIS_BLOCK: 50  # 青金石块
+  PITCHER_CROP: 1       # 瓶子草植株
+  QUARTZ_BLOCK: 5  # 石英块
+  RAW_COPPER_BLOCK: 5  # 粗铜块
+  RAW_GOLD_BLOCK: 20  # 粗金块
+  RAW_IRON_BLOCK: 10  # 粗铁块
+  REDSTONE_BLOCK: 60  # 红石块
+  RESIN_BLOCK: 5  # 树脂块
+  STRIPPED_BAMBOO_BLOCK: 1  # 去皮竹块
+  BLUE_BANNER: 2  # 蓝色旗帜
+  BLUE_BED: 35  # 蓝色床
+  BLUE_CANDLE: 2  # 蓝色蜡烛
+  BLUE_CARPET: 1  # 蓝色地毯
+  BLUE_CONCRETE: 10  # 蓝色混凝土
+  BLUE_CONCRETE_POWDER: 5  # 蓝色混凝土粉末
+  BLUE_GLAZED_TERRACOTTA: 25  # 蓝色带釉陶瓦
+  BLUE_ICE: 30  # 蓝冰
+  BLUE_ORCHID: 1  # 兰花
+  BLUE_SHULKER_BOX: 20  # 蓝色潜影盒
+  BLUE_STAINED_GLASS: 15  # 蓝色染色玻璃
+  BLUE_STAINED_GLASS_PANE: 10  # 蓝色染色玻璃板
+  BLUE_TERRACOTTA: 20  # 蓝色陶瓦
+  BLUE_WOOL: 10  # 蓝色羊毛
+  BONE_BLOCK: 3  # 骨块
+  BOOKSHELF: 2  # 书架
+  BRAIN_CORAL: 2  # 脑纹珊瑚
+  BRAIN_CORAL_BLOCK: 3  # 脑纹珊瑚块
+  BRAIN_CORAL_FAN: 2  # 脑纹珊瑚扇
+  BREWING_STAND: 1  # 酿造台
+  BRICK_SLAB: 3  # 红砖台阶
+  BRICK_STAIRS: 3  # 红砖楼梯
+  BRICK_WALL: 3  # 红砖墙
+  BRICKS: 3  # 红砖块
+  BROWN_BANNER: 2  # 棕色旗帜
+  BROWN_BED: 35  # 棕色床
+  BROWN_CANDLE: 2  # 棕色蜡烛
+  BROWN_CARPET: 1  # 棕色地毯
+  BROWN_CONCRETE: 10  # 棕色混凝土
+  BROWN_CONCRETE_POWDER: 5  # 棕色混凝土粉末
+  BROWN_GLAZED_TERRACOTTA: 25  # 棕色带釉陶瓦
+  BROWN_MUSHROOM: 1  # 棕色蘑菇
+  BROWN_MUSHROOM_BLOCK: 1  # 棕色蘑菇方块
+  BROWN_SHULKER_BOX: 20  # 棕色潜影盒
+  BROWN_STAINED_GLASS: 15  # 棕色染色玻璃
+  BROWN_STAINED_GLASS_PANE: 10  # 棕色染色玻璃板
+  BROWN_TERRACOTTA: 20  # 棕色陶瓦
+  BROWN_WOOL: 10  # 棕色羊毛
+  BUBBLE_CORAL: 2  # 气泡珊瑚
+  BUBBLE_CORAL_BLOCK: 3  # 气泡珊瑚块
+  BUBBLE_CORAL_FAN: 2  # 气泡珊瑚扇
+  BUDDING_AMETHYST: 10  # 紫水晶母岩
+  BUSH: 1  # 灌木丛
+  CACTUS: 1  # 仙人掌
+  CACTUS_FLOWER: 2  # 仙人掌花
+  CAKE: 1  # 蛋糕
+  CALCITE: 1  # 方解石
+  CALIBRATED_SCULK_SENSOR: 20  # 校频幽匿感测体
+  CAMPFIRE: 3  # 营火
+  CANDLE: 2  # 蜡烛
+  CARROTS: 1  # 胡萝卜植株
+  CARTOGRAPHY_TABLE: 5  # 制图台
+  CARVED_PUMPKIN: 1  # 雕刻南瓜
+  CAULDRON: 1  # 炼药锅
+  CAVE_VINES: 1  # 洞穴藤蔓
+  CHAIN: 2  # 铁链
+  CHERRY_BUTTON: 1  # 樱花木按钮
+  CHERRY_DOOR: 2  # 樱花木门
+  CHERRY_FENCE: 1  # 樱花木栅栏
+  CHERRY_FENCE_GATE: 2  # 樱花木栅栏门
+  CHERRY_HANGING_SIGN: 2  # 悬挂式樱花木告示牌
+  CHERRY_LEAVES: 1  # 樱花树叶
+  CHERRY_LOG: 1  # 樱花原木
+  CHERRY_PLANKS: 1  # 樱花木板
+  CHERRY_PRESSURE_PLATE: 1  # 樱花木压力板
+  CHERRY_SAPLING: 3  # 樱花树苗
+  CHERRY_SHELF: 2  # 樱花木展示架
+  CHERRY_SIGN: 1  # 樱花木告示牌
+  CHERRY_SLAB: 1  # 樱花木台阶
+  CHERRY_STAIRS: 2  # 樱花木楼梯
+  CHERRY_TRAPDOOR: 2  # 樱花木活板门
+  CHERRY_WOOD: 1  # 樱花木
+  CHEST: 2  # 箱子
+  CHIPPED_ANVIL: 20  # 开裂的铁砧
+  CHISELED_BOOKSHELF: 5  # 雕纹书架
+  CHISELED_COPPER: 6  # 雕纹铜块
+  CHISELED_DEEPSLATE: 3  # 雕纹深板岩
+  CHISELED_NETHER_BRICKS: 3  # 雕纹下界砖块
+  CHISELED_POLISHED_BLACKSTONE: 3  # 雕纹磨制黑石
+  CHISELED_QUARTZ_BLOCK: 6  # 雕纹石英块
+  CHISELED_RED_SANDSTONE: 3  # 雕纹红砂岩
+  CHISELED_RESIN_BRICKS: 4  # 雕纹树脂砖块
+  CHISELED_SANDSTONE: 2  # 雕纹砂岩
+  CHISELED_STONE_BRICKS: 3  # 雕纹石砖
+  CHISELED_TUFF: 3  # 雕纹凝灰岩
+  CHISELED_TUFF_BRICKS: 3  # 雕纹凝灰岩砖
+  CHORUS_FLOWER: 5  # 紫颂果
+  CHORUS_PLANT: 2  # 紫颂植株
+  CLAY: 1  # 黏土
+  CLOSED_EYEBLOSSOM: 3  # 闭合的眼眸花
+  COAL_ORE: 10  # 煤矿石
+  COARSE_DIRT: 1  # 砂土
+  COBBLED_DEEPSLATE: 1  # 深板岩圆石
+  COBBLED_DEEPSLATE_SLAB: 1  # 深板岩圆石台阶
+  COBBLED_DEEPSLATE_STAIRS: 2  # 深板岩圆石楼梯
+  COBBLED_DEEPSLATE_WALL: 2  # 深板岩圆石墙
+  COBBLESTONE: 1  # 圆石
+  COBBLESTONE_SLAB: 1  # 圆石台阶
+  COBBLESTONE_STAIRS: 2  # 圆石楼梯
+  COBBLESTONE_WALL: 2  # 圆石墙
+  COBWEB: 1  # 蜘蛛网
+  COCOA: 1  # 可可果
+  COMPOSTER: 2  # 堆肥桶
+  CONDUIT: 200  # 潮涌核心
+  COPPER_BARS: 3  # 铜栏杆
+  COPPER_BULB: 10  # 铜灯
+  COPPER_CHAIN: 3  # 铜链
+  COPPER_CHEST: 3  # 铜箱子
+  COPPER_DOOR: 3  # 铜门
+  COPPER_GOLEM_STATUE: 1  # 铜傀儡像
+  COPPER_GRATE: 5  # 铜格栅
+  COPPER_LANTERN: 5  # 铜灯笼
+  COPPER_ORE: 8  # 铜矿石
+  COPPER_TRAPDOOR: 3  # 铜活板门
+  CORNFLOWER: 1  # 矢车菊
+  CRACKED_DEEPSLATE_BRICKS: 2  # 裂纹深板岩砖
+  CRACKED_DEEPSLATE_TILES: 2  # 裂纹深板岩瓦
+  CRACKED_POLISHED_BLACKSTONE_BRICKS: 2  # 裂纹磨制黑石砖
+  CRACKED_NETHER_BRICKS: 2  # 裂纹下界砖块
+  CRACKED_STONE_BRICKS: 2  # 裂纹石砖
+  CRAFTER: 15  # 合成器
+  CRAFTING_TABLE: 2  # 工作台
+  CREAKING_HEART: 50  # 嘎枝之心
+  CREEPER_HEAD: 5  # 苦力怕的头
+  CRIMSON_BUTTON: 1  # 绯红木按钮
+  CRIMSON_DOOR: 2  # 绯红木门
+  CRIMSON_FENCE: 1  # 绯红木栅栏
+  CRIMSON_FENCE_GATE: 2  # 绯红木栅栏门
+  CRIMSON_FUNGUS: 2  # 绯红菌
+  CRIMSON_HANGING_SIGN: 2  # 悬挂式绯红木告示牌
+  CRIMSON_HYPHAE: 1  # 绯红菌核
+  CRIMSON_NYLIUM: 2  # 绯红菌岩
+  CRIMSON_PLANKS: 1  # 绯红木板
+  CRIMSON_PRESSURE_PLATE: 1  # 绯红木压力板
+  CRIMSON_ROOTS: 1  # 绯红菌索
+  CRIMSON_SHELF: 2  # 绯红木展示架
+  CRIMSON_SIGN: 1  # 绯红木告示牌
+  CRIMSON_SLAB: 1  # 绯红木台阶
+  CRIMSON_STAIRS: 2  # 绯红木楼梯
+  CRIMSON_STEM: 1  # 绯红菌柄
+  CRIMSON_TRAPDOOR: 2  # 绯红木活板门
+  CRYING_OBSIDIAN: 1  # 哭泣的黑曜石
+  CUT_COPPER: 5  # 切制铜块
+  CUT_COPPER_SLAB: 5  # 切制铜台阶
+  CUT_COPPER_STAIRS: 6  # 切制铜楼梯
+  CUT_RED_SANDSTONE: 2  # 切制红砂岩
+  CUT_RED_SANDSTONE_SLAB: 2  # 切制红砂岩台阶
+  CUT_SANDSTONE: 1  # 切制砂岩
+  CUT_SANDSTONE_SLAB: 1  # 切制砂岩台阶
+  CYAN_BANNER: 2  # 青色旗帜
+  CYAN_BED: 35  # 青色床
+  CYAN_CANDLE: 2  # 青色蜡烛
+  CYAN_CARPET: 1  # 青色地毯
+  CYAN_CONCRETE: 10  # 青色混凝土
+  CYAN_CONCRETE_POWDER: 5  # 青色混凝土粉末
+  CYAN_GLAZED_TERRACOTTA: 25  # 青色带釉陶瓦
+  CYAN_SHULKER_BOX: 20  # 青色潜影盒
+  CYAN_STAINED_GLASS: 15  # 青色染色玻璃
+  CYAN_STAINED_GLASS_PANE: 10  # 青色染色玻璃板
+  CYAN_TERRACOTTA: 20  # 青色陶瓦
+  CYAN_WOOL: 10  # 青色羊毛
+  DAMAGED_ANVIL: 10  # 损坏的铁砧
+  DANDELION: 1  # 蒲公英
+  DARK_OAK_BUTTON: 1  # 深色橡木按钮
+  DARK_OAK_DOOR: 2  # 深色橡木门
+  DARK_OAK_FENCE: 2  # 深色橡木栅栏
+  DARK_OAK_FENCE_GATE: 2  # 深色橡木栅栏门
+  DARK_OAK_HANGING_SIGN: 2  # 悬挂式深色橡木告示牌
+  DARK_OAK_LEAVES: 1  # 深色橡树树叶
+  DARK_OAK_LOG: 1  # 深色橡木原木
+  DARK_OAK_PLANKS: 1  # 深色橡木木板
+  DARK_OAK_PRESSURE_PLATE: 1  # 深色橡木压力板
+  DARK_OAK_SAPLING: 2  # 深色橡树树苗
+  DARK_OAK_SHELF: 2  # 深色橡木展示架
+  DARK_OAK_SIGN: 2  # 深色橡木告示牌
+  DARK_OAK_SLAB: 2  # 深色橡木台阶
+  DARK_OAK_STAIRS: 2  # 深色橡木楼梯
+  DARK_OAK_TRAPDOOR: 2  # 深色橡木活板门
+  DARK_OAK_WOOD: 1  # 深色橡木
+  DARK_PRISMARINE: 2  # 暗海晶石
+  DARK_PRISMARINE_SLAB: 2  # 暗海晶石台阶
+  DARK_PRISMARINE_STAIRS: 3  # 暗海晶石楼梯
+  DAYLIGHT_DETECTOR: 5  # 阳光探测器
+  DEAD_BRAIN_CORAL: 1  # 失活的脑纹珊瑚
+  DEAD_BRAIN_CORAL_BLOCK: 1  # 失活的脑纹珊瑚块
+  DEAD_BRAIN_CORAL_FAN: 1  # 失活的脑纹珊瑚扇
+  DEAD_BUBBLE_CORAL: 1  # 失活的气泡珊瑚
+  DEAD_BUBBLE_CORAL_BLOCK: 1  # 失活的气泡珊瑚块
+  DEAD_BUBBLE_CORAL_FAN: 1  # 失活的气泡珊瑚扇
+  DEAD_BUSH: 1  # 枯萎的灌木
+  DEAD_FIRE_CORAL: 1  # 失活的火珊瑚
+  DEAD_FIRE_CORAL_BLOCK: 1  # 失活的火珊瑚块
+  DEAD_FIRE_CORAL_FAN: 1  # 失活的火珊瑚扇
+  DEAD_HORN_CORAL: 1  # 失活的鹿角珊瑚
+  DEAD_HORN_CORAL_BLOCK: 1  # 失活的鹿角珊瑚块
+  DEAD_HORN_CORAL_FAN: 1  # 失活的鹿角珊瑚扇
+  DEAD_TUBE_CORAL: 1  # 失活的管珊瑚
+  DEAD_TUBE_CORAL_BLOCK: 1  # 失活的管珊瑚块
+  DEAD_TUBE_CORAL_FAN: 1  # 失活的管珊瑚扇
+  DECORATED_POT: 3  # 饰纹陶罐
+  DEEPSLATE: 1  # 深板岩
+  DEEPSLATE_BRICKS: 2  # 深板岩砖
+  DEEPSLATE_BRICK_SLAB: 2  # 深板岩砖台阶
+  DEEPSLATE_BRICK_STAIRS: 3  # 深板岩砖楼梯
+  DEEPSLATE_BRICK_WALL: 3  # 深板岩砖墙
+  DEEPSLATE_COAL_ORE: 12  # 深层煤矿石
+  DEEPSLATE_COPPER_ORE: 10  # 深层铜矿石
+  DEEPSLATE_DIAMOND_ORE: 120  # 深层钻石矿石
+  DEEPSLATE_EMERALD_ORE: 100  # 深层绿宝石矿石
+  DEEPSLATE_GOLD_ORE: 70  # 深层金矿石
+  DEEPSLATE_IRON_ORE: 35  # 深层铁矿石
+  DEEPSLATE_LAPIS_ORE: 30  # 深层青金石矿石
+  DEEPSLATE_REDSTONE_ORE: 25  # 深层红石矿石
+  DEEPSLATE_TILES: 2  # 深板岩瓦
+  DEEPSLATE_TILE_SLAB: 2  # 深板岩瓦台阶
+  DEEPSLATE_TILE_STAIRS: 3  # 深板岩瓦楼梯
+  DEEPSLATE_TILE_WALL: 3  # 深板岩瓦墙
+  DETECTOR_RAIL: 5  # 探测铁轨
+  DIAMOND_ORE: 10  # 钻石矿石
+  DIORITE: 1  # 闪长岩
+  DIORITE_SLAB: 1  # 闪长岩台阶
+  DIORITE_STAIRS: 2  # 闪长岩楼梯
+  DIORITE_WALL: 2  # 闪长岩墙
+  DIRT: 100  # 泥土
+  DIRT_PATH: 1  # 土径
+  DISPENSER: 10  # 发射器
+  DRAGON_EGG: 500  # 龙蛋
+  DRAGON_HEAD: 50  # 龙首
+  DRIED_KELP_BLOCK: 2  # 干海带块
+  DRIPSTONE_BLOCK: 10  # 滴水石块
+  DROPPER: 10  # 投掷器
+  EMERALD_ORE: 10  # 绿宝石矿石
+  ENCHANTING_TABLE: 50  # 附魔台
+  END_PORTAL_FRAME: 1  # 末地传送门框架
+  END_ROD: 5  # 末地烛
+  END_STONE: 1  # 末地石
+  END_STONE_BRICK_SLAB: 2  # 末地石砖台阶
+  END_STONE_BRICK_STAIRS: 3  # 末地石砖楼梯
+  END_STONE_BRICK_WALL: 3  # 末地石砖墙
+  END_STONE_BRICKS: 2  # 末地石砖
+  ENDER_CHEST: 20  # 末影箱
+  EXPOSED_CHISELED_COPPER: 5  # 斑驳的雕纹铜块
+  EXPOSED_COPPER_BARS: 3  # 斑驳的铜栏杆
+  EXPOSED_COPPER: 25  # 斑驳的铜块
+  EXPOSED_COPPER_BULB: 8  # 斑驳的铜灯
+  EXPOSED_COPPER_CHAIN: 3  # 斑驳的铜链
+  EXPOSED_COPPER_CHEST: 3  # 斑驳的铜箱子
+  EXPOSED_COPPER_DOOR: 3  # 斑驳的铜门
+  EXPOSED_COPPER_GOLEM_STATUE: 1  # 斑驳的铜傀儡像
+  EXPOSED_COPPER_GRATE: 4  # 斑驳的铜格栅
+  EXPOSED_COPPER_LANTERN: 4  # 斑驳的铜灯笼
+  EXPOSED_COPPER_TRAPDOOR: 3  # 斑驳的铜活板门
+  EXPOSED_CUT_COPPER: 4  # 斑驳的切制铜块
+  EXPOSED_CUT_COPPER_SLAB: 4  # 斑驳的切制铜台阶
+  EXPOSED_CUT_COPPER_STAIRS: 5  # 斑驳的切制铜楼梯
+  EXPOSED_LIGHTNING_ROD: 4  # 斑驳的避雷针
+  FARMLAND: 1  # 耕地
+  FERN: 1  # 蕨
+  FIREFLY_BUSH: 1  # 萤火虫灌木丛
+  FIRE_CORAL: 2  # 火珊瑚
+  FIRE_CORAL_BLOCK: 3  # 火珊瑚块
+  FIRE_CORAL_FAN: 2  # 火珊瑚扇
+  FLETCHING_TABLE: 5  # 制箭台
+  FLOWER_POT: 1  # 花盆
+  FLOWERING_AZALEA: 3  # 盛开的杜鹃花丛
+  FLOWERING_AZALEA_LEAVES: 2  # 盛开的杜鹃树叶
+  FURNACE: 5  # 熔炉
+  GILDED_BLACKSTONE: 5  # 镶金黑石
+  GLASS: 1  # 玻璃
+  GLASS_PANE: 1  # 玻璃板
+  GLOWSTONE: 5  # 荧石
+  GLOW_LICHEN: 1  # 发光地衣
+  GOLD_ORE: 60  # 金矿石
+  GOLDEN_DANDELION: 2  # 金蒲公英
+  GRANITE: 1  # 花岗岩
+  GRANITE_SLAB: 1  # 花岗岩台阶
+  GRANITE_STAIRS: 2  # 花岗岩楼梯
+  GRANITE_WALL: 2  # 花岗岩墙
+  SHORT_GRASS: 1  # 草丛
+  GRASS_BLOCK: 150  # 草方块
+  GRAVEL: 1  # 沙砾
+  GRAY_BANNER: 2  # 灰色旗帜
+  GRAY_BED: 35  # 灰色床
+  GRAY_CANDLE: 2  # 灰色蜡烛
+  GRAY_CARPET: 1  # 灰色地毯
+  GRAY_CONCRETE: 10  # 灰色混凝土
+  GRAY_CONCRETE_POWDER: 5  # 灰色混凝土粉末
+  GRAY_GLAZED_TERRACOTTA: 25  # 灰色带釉陶瓦
+  GRAY_SHULKER_BOX: 20  # 灰色潜影盒
+  GRAY_STAINED_GLASS: 15  # 灰色染色玻璃
+  GRAY_STAINED_GLASS_PANE: 10  # 灰色染色玻璃板
+  GRAY_TERRACOTTA: 20  # 灰色陶瓦
+  GRAY_WOOL: 10  # 灰色羊毛
+  GREEN_BANNER: 2  # 绿色旗帜
+  GREEN_BED: 35  # 绿色床
+  GREEN_CANDLE: 2  # 绿色蜡烛
+  GREEN_CARPET: 1  # 绿色地毯
+  GREEN_CONCRETE: 10  # 绿色混凝土
+  GREEN_CONCRETE_POWDER: 5  # 绿色混凝土粉末
+  GREEN_GLAZED_TERRACOTTA: 25  # 绿色带釉陶瓦
+  GREEN_SHULKER_BOX: 20  # 绿色潜影盒
+  GREEN_STAINED_GLASS: 15  # 绿色染色玻璃
+  GREEN_STAINED_GLASS_PANE: 10  # 绿色染色玻璃板
+  GREEN_TERRACOTTA: 20  # 绿色陶瓦
+  GREEN_WOOL: 10  # 绿色羊毛
+  GRINDSTONE: 5  # 砂轮
+  HANGING_ROOTS: 1  # 垂根
+  HAY_BALE: 1  # 干草捆
+  HEAVY_CORE: 80  # 沉重核心
+  HEAVY_WEIGHTED_PRESSURE_PLATE: 5  # 重质测重压力板
+  HONEY_BLOCK: 5  # 蜂蜜块
+  HONEYCOMB_BLOCK: 5  # 蜜脾块
+  HOPPER: 15  # 漏斗
+  HORN_CORAL: 2  # 鹿角珊瑚
+  HORN_CORAL_BLOCK: 3  # 鹿角珊瑚块
+  HORN_CORAL_FAN: 2  # 鹿角珊瑚扇
+  ICE: 1  # 冰
+  IRON_BARS: 2  # 铁栏杆
+  IRON_DOOR: 3  # 铁门
+  IRON_ORE: 30  # 铁矿石
+  IRON_TRAPDOOR: 3  # 铁活板门
+  ITEM_FRAME: 1  # 物品展示框
+  JACK_OLANTERN: 1  # 南瓜灯
+  JUKEBOX: 20  # 唱片机
+  JUNGLE_BUTTON: 1  # 丛林木按钮
+  JUNGLE_DOOR: 2  # 丛林木门
+  JUNGLE_FENCE: 1  # 丛林木栅栏
+  JUNGLE_FENCE_GATE: 2  # 丛林木栅栏门
+  JUNGLE_HANGING_SIGN: 2  # 悬挂式丛林木告示牌
+  JUNGLE_LEAVES: 1  # 丛林树叶
+  JUNGLE_LOG: 1  # 丛林原木
+  JUNGLE_PLANKS: 1  # 丛林木板
+  JUNGLE_PRESSURE_PLATE: 1  # 丛林木压力板
+  JUNGLE_SAPLING: 3  # 丛林树苗
+  JUNGLE_SHELF: 2  # 丛林木展示架
+  JUNGLE_SIGN: 1  # 丛林木告示牌
+  JUNGLE_SLAB: 1  # 丛林木台阶
+  JUNGLE_STAIRS: 2  # 丛林木楼梯
+  JUNGLE_TRAPDOOR: 2  # 丛林木活板门
+  JUNGLE_WOOD: 1  # 丛林木
+  LADDER: 1  # 梯子
+  LANTERN: 5  # 灯笼
+  LAPIS_ORE: 25  # 青金石矿石
+  LARGE_FERN: 2  # 大型蕨
+  LEAF_LITTER: 1  # 枯叶堆
+  LECTERN: 5  # 讲台
+  LEVER: 1  # 拉杆
+  LIGHT_BLUE_BANNER: 2  # 淡蓝色旗帜
+  LIGHT_BLUE_BED: 35  # 淡蓝色床
+  LIGHT_BLUE_CANDLE: 2  # 淡蓝色蜡烛
+  LIGHT_BLUE_CARPET: 1  # 淡蓝色地毯
+  LIGHT_BLUE_CONCRETE: 10  # 淡蓝色混凝土
+  LIGHT_BLUE_CONCRETE_POWDER: 5  # 淡蓝色混凝土粉末
+  LIGHT_BLUE_GLAZED_TERRACOTTA: 25  # 淡蓝色带釉陶瓦
+  LIGHT_BLUE_SHULKER_BOX: 20  # 淡蓝色潜影盒
+  LIGHT_BLUE_STAINED_GLASS: 15  # 淡蓝色染色玻璃
+  LIGHT_BLUE_STAINED_GLASS_PANE: 10  # 淡蓝色染色玻璃板
+  LIGHT_BLUE_TERRACOTTA: 20  # 淡蓝色陶瓦
+  LIGHT_BLUE_WOOL: 10  # 淡蓝色羊毛
+  LIGHT_GRAY_BANNER: 2  # 淡灰色旗帜
+  LIGHT_GRAY_BED: 35  # 淡灰色床
+  LIGHT_GRAY_CANDLE: 2  # 淡灰色蜡烛
+  LIGHT_GRAY_CARPET: 1  # 淡灰色地毯
+  LIGHT_GRAY_CONCRETE: 10  # 淡灰色混凝土
+  LIGHT_GRAY_CONCRETE_POWDER: 5  # 淡灰色混凝土粉末
+  LIGHT_GRAY_GLAZED_TERRACOTTA: 25  # 淡灰色带釉陶瓦
+  LIGHT_GRAY_SHULKER_BOX: 20  # 淡灰色潜影盒
+  LIGHT_GRAY_STAINED_GLASS: 15  # 淡灰色染色玻璃
+  LIGHT_GRAY_STAINED_GLASS_PANE: 10  # 淡灰色染色玻璃板
+  LIGHT_GRAY_TERRACOTTA: 20  # 淡灰色陶瓦
+  LIGHT_GRAY_WOOL: 10  # 淡灰色羊毛
+  LIGHT_WEIGHTED_PRESSURE_PLATE: 5  # 轻质测重压力板
+  LIGHTNING_ROD: 5  # 避雷针
+  LILAC: 2  # 丁香
+  LILY_PAD: 1  # 睡莲
+  LILY_OF_THE_VALLEY: 1  # 铃兰
+  LIME_BANNER: 2  # 黄绿色旗帜
+  LIME_BED: 35  # 黄绿色床
+  LIME_CANDLE: 2  # 黄绿色蜡烛
+  LIME_CARPET: 1  # 黄绿色地毯
+  LIME_CONCRETE: 10  # 黄绿色混凝土
+  LIME_CONCRETE_POWDER: 5  # 黄绿色混凝土粉末
+  LIME_GLAZED_TERRACOTTA: 25  # 黄绿色带釉陶瓦
+  LIME_SHULKER_BOX: 20  # 黄绿色潜影盒
+  LIME_STAINED_GLASS: 15  # 黄绿色染色玻璃
+  LIME_STAINED_GLASS_PANE: 10  # 黄绿色染色玻璃板
+  LIME_TERRACOTTA: 20  # 黄绿色陶瓦
+  LIME_WOOL: 10  # 黄绿色羊毛
+  LODESTONE: 20  # 磁石
+  LOOM: 5  # 织布机
+  MAGENTA_BANNER: 2  # 品红色旗帜
+  MAGENTA_BED: 35  # 品红色床
+  MAGENTA_CANDLE: 2  # 品红色蜡烛
+  MAGENTA_CARPET: 1  # 品红色地毯
+  MAGENTA_CONCRETE: 10  # 品红色混凝土
+  MAGENTA_CONCRETE_POWDER: 5  # 品红色混凝土粉末
+  MAGENTA_GLAZED_TERRACOTTA: 25  # 品红色带釉陶瓦
+  MAGENTA_SHULKER_BOX: 20  # 品红色潜影盒
+  MAGENTA_STAINED_GLASS: 15  # 品红色染色玻璃
+  MAGENTA_STAINED_GLASS_PANE: 10  # 品红色染色玻璃板
+  MAGENTA_TERRACOTTA: 20  # 品红色陶瓦
+  MAGENTA_WOOL: 10  # 品红色羊毛
+  MAGMA_BLOCK: 5  # 岩浆块
+  MANGROVE_BUTTON: 2  # 红树木按钮
+  MANGROVE_DOOR: 2  # 红树木门
+  MANGROVE_FENCE: 2  # 红树木栅栏
+  MANGROVE_FENCE_GATE: 2  # 红树木栅栏门
+  MANGROVE_HANGING_SIGN: 2  # 悬挂式红树木告示牌
+  MANGROVE_LEAVES: 1  # 红树树叶
+  MANGROVE_LOG: 1  # 红树原木
+  MANGROVE_PRESSURE_PLATE: 1  # 红树木压力板
+  MANGROVE_PROPAGULE: 2  # 红树胎生苗
+  MANGROVE_PLANKS: 1  # 红树木板
+  MANGROVE_ROOTS: 1  # 红树根
+  MANGROVE_SHELF: 2  # 红树木展示架
+  MANGROVE_SIGN: 2  # 红树木告示牌
+  MANGROVE_SLAB: 2  # 红树木台阶
+  MANGROVE_STAIRS: 2  # 红树木楼梯
+  MANGROVE_TRAPDOOR: 2  # 红树木活板门
+  MANGROVE_WOOD: 1  # 红树木
+  MELON: 1  # 西瓜
+  MOSS_BLOCK: 2  # 苔藓块
+  MOSS_CARPET: 1  # 覆地苔藓
+  MOSSY_COBBLESTONE: 1  # 苔石
+  MOSSY_COBBLESTONE_SLAB: 1  # 苔石台阶
+  MOSSY_COBBLESTONE_STAIRS: 2  # 苔石楼梯
+  MOSSY_COBBLESTONE_WALL: 2  # 苔石墙
+  MOSSY_STONE_BRICK_SLAB: 2  # 苔石砖台阶
+  MOSSY_STONE_BRICK_STAIRS: 2  # 苔石砖楼梯
+  MOSSY_STONE_BRICK_WALL: 3  # 苔石砖墙
+  MOSSY_STONE_BRICKS: 2  # 苔石砖
+  MUD: 1  # 泥巴
+  MUD_BRICK_SLAB: 2  # 泥砖台阶
+  MUD_BRICK_STAIRS: 3  # 泥砖楼梯
+  MUD_BRICK_WALL: 3  # 泥砖墙
+  MUD_BRICKS: 2  # 泥砖
+  MUDDY_MANGROVE_ROOTS: 1  # 沾泥的红树根
+  MYCELIUM: 2  # 菌丝体
+  NETHER_BRICK_FENCE: 2  # 下界砖栅栏
+  NETHER_BRICK_SLAB: 2  # 下界砖台阶
+  NETHER_BRICK_STAIRS: 2  # 下界砖楼梯
+  NETHER_BRICK_WALL: 2  # 下界砖墙
+  NETHER_BRICKS: 2  # 下界砖块
+  NETHER_GOLD_ORE: 10  # 下界金矿石
+  NETHER_QUARTZ_ORE: 10  # 下界石英矿石
+  NETHER_SPROUTS: 1  # 下界苗
+  NETHER_WART: 1  # 下界疣
+  NETHER_WART_BLOCK: 2  # 下界疣块
+  NETHERRACK: 1  # 下界岩
+  NETHERITE_BLOCK: 1000  # 下界合金块
+  NOTE_BLOCK: 5  # 音符盒
+  OAK_BUTTON: 2  # 橡木按钮
+  OAK_DOOR: 2  # 橡木门
+  OAK_FENCE: 2  # 橡木栅栏
+  OAK_FENCE_GATE: 2  # 橡木栅栏门
+  OAK_HANGING_SIGN: 2  # 悬挂式橡木告示牌
+  OAK_LEAVES: 1  # 橡树树叶
+  OAK_LOG: 1  # 橡木原木
+  OAK_PLANKS: 1  # 橡木木板
+  OAK_PRESSURE_PLATE: 1  # 橡木压力板
+  OAK_SAPLING: 1  # 橡树树苗
+  OAK_SHELF: 2  # 橡木展示架
+  OAK_SIGN: 1  # 橡木告示牌
+  OAK_SLAB: 1  # 橡木台阶
+  OAK_STAIRS: 2  # 橡木楼梯
+  OAK_TRAPDOOR: 2  # 橡木活板门
+  OAK_WOOD: 1  # 木头
+  OBSERVER: 10  # 侦测器
+  OBSIDIAN: 1  # 黑曜石
+  OCHRE_FROGLIGHT: 1  # 赭黄蛙明灯
+  OPEN_EYEBLOSSOM: 3  # 张开的眼眸花
+  ORANGE_BANNER: 2  # 橙色旗帜
+  ORANGE_BED: 35  # 橙色床
+  ORANGE_CANDLE: 2  # 橙色蜡烛
+  ORANGE_CARPET: 1  # 橙色地毯
+  ORANGE_CONCRETE: 10  # 橙色混凝土
+  ORANGE_CONCRETE_POWDER: 5  # 橙色混凝土粉末
+  ORANGE_GLAZED_TERRACOTTA: 25  # 橙色带釉陶瓦
+  ORANGE_SHULKER_BOX: 20  # 橙色潜影盒
+  ORANGE_STAINED_GLASS: 15  # 橙色染色玻璃
+  ORANGE_STAINED_GLASS_PANE: 10  # 橙色染色玻璃板
+  ORANGE_TERRACOTTA: 20  # 橙色陶瓦
+  ORANGE_TULIP: 1  # 橙色郁金香
+  ORANGE_WOOL: 10  # 橙色羊毛
+  OXEYE_DAISY: 1  # 滨菊
+  OXIDIZED_CHISELED_COPPER: 3  # 氧化的雕纹铜块
+  OXIDIZED_COPPER_BARS: 2  # 氧化的铜栏杆
+  OXIDIZED_COPPER: 15  # 氧化的铜块
+  OXIDIZED_COPPER_BULB: 4  # 氧化的铜灯
+  OXIDIZED_COPPER_CHAIN: 2  # 氧化的铜链
+  OXIDIZED_COPPER_CHEST: 2  # 氧化的铜箱子
+  OXIDIZED_COPPER_DOOR: 2  # 氧化的铜门
+  OXIDIZED_COPPER_GOLEM_STATUE: 1  # 氧化的铜傀儡像
+  OXIDIZED_COPPER_GRATE: 2  # 氧化的铜格栅
+  OXIDIZED_COPPER_LANTERN: 2  # 氧化的铜灯笼
+  OXIDIZED_COPPER_TRAPDOOR: 2  # 氧化的铜活板门
+  OXIDIZED_CUT_COPPER: 2  # 氧化的切制铜块
+  OXIDIZED_CUT_COPPER_SLAB: 2  # 氧化的切制铜台阶
+  OXIDIZED_CUT_COPPER_STAIRS: 3  # 氧化的切制铜楼梯
+  OXIDIZED_LIGHTNING_ROD: 2  # 氧化的避雷针
+  PACKED_ICE: 3  # 浮冰
+  PACKED_MUD: 1  # 泥坯
+  PALE_HANGING_MOSS: 1  # 苍白垂须
+  PALE_MOSS_BLOCK: 2  # 苍白苔藓块
+  PALE_MOSS_CARPET: 1  # 苍白覆地苔藓
+  PALE_OAK_BUTTON: 1  # 苍白橡木按钮
+  PALE_OAK_DOOR: 2  # 苍白橡木门
+  PALE_OAK_FENCE: 1  # 苍白橡木栅栏
+  PALE_OAK_FENCE_GATE: 2  # 苍白橡木栅栏门
+  PALE_OAK_HANGING_SIGN: 2  # 悬挂式苍白橡木告示牌
+  PALE_OAK_LEAVES: 1  # 苍白橡树树叶
+  PALE_OAK_LOG: 1  # 苍白橡木原木
+  PALE_OAK_PLANKS: 1  # 苍白橡木木板
+  PALE_OAK_PRESSURE_PLATE: 1  # 苍白橡木压力板
+  PALE_OAK_SAPLING: 2  # 苍白橡树树苗
+  PALE_OAK_SHELF: 2  # 苍白橡木展示架
+  PALE_OAK_SIGN: 1  # 苍白橡木告示牌
+  PALE_OAK_SLAB: 1  # 苍白橡木台阶
+  PALE_OAK_STAIRS: 2  # 苍白橡木楼梯
+  PALE_OAK_TRAPDOOR: 2  # 苍白橡木活板门
+  PALE_OAK_WOOD: 1  # 苍白橡木
+  PEARLESCENT_FROGLIGHT: 1  # 珠光蛙明灯
+  PEONY: 2  # 牡丹
+  PITCHER_PLANT: 2  # 瓶子草
+  PIGLIN_HEAD: 5  # 猪灵的头
+  PINK_BANNER: 2  # 粉红色旗帜
+  PINK_BED: 35  # 粉红色床
+  PINK_CANDLE: 2  # 粉红色蜡烛
+  PINK_CARPET: 1  # 粉红色地毯
+  PINK_CONCRETE: 10  # 粉红色混凝土
+  PINK_CONCRETE_POWDER: 5  # 粉红色混凝土粉末
+  PINK_GLAZED_TERRACOTTA: 25  # 粉红色带釉陶瓦
+  PINK_PETALS: 1  # 粉红色花簇
+  PINK_SHULKER_BOX: 20  # 粉红色潜影盒
+  PINK_STAINED_GLASS: 15  # 粉红色染色玻璃
+  PINK_STAINED_GLASS_PANE: 10  # 粉红色染色玻璃板
+  PINK_TERRACOTTA: 20  # 粉红色陶瓦
+  PINK_TULIP: 1  # 粉红色郁金香
+  PINK_WOOL: 10  # 粉红色羊毛
+  PISTON: 5  # 活塞
+  PLAYER_HEAD: 2  # 玩家的头
+  PODZOL: 2  # 灰化土
+  POINTED_DRIPSTONE: 1  # 滴水石锥
+  POLISHED_ANDESITE: 1  # 磨制安山岩
+  POLISHED_ANDESITE_SLAB: 1  # 磨制安山岩台阶
+  POLISHED_ANDESITE_STAIRS: 2  # 磨制安山岩楼梯
+  POLISHED_BASALT: 1  # 磨制玄武岩
+  POLISHED_BLACKSTONE: 2  # 磨制黑石
+  POLISHED_BLACKSTONE_BRICK_SLAB: 2  # 磨制黑石砖台阶
+  POLISHED_BLACKSTONE_BRICK_STAIRS: 3  # 磨制黑石砖楼梯
+  POLISHED_BLACKSTONE_BRICK_WALL: 3  # 磨制黑石砖墙
+  POLISHED_BLACKSTONE_BRICKS: 3  # 磨制黑石砖
+  POLISHED_BLACKSTONE_BUTTON: 1  # 磨制黑石按钮
+  POLISHED_BLACKSTONE_PRESSURE_PLATE: 1  # 磨制黑石压力板
+  POLISHED_BLACKSTONE_SLAB: 2  # 磨制黑石台阶
+  POLISHED_BLACKSTONE_STAIRS: 3  # 磨制黑石楼梯
+  POLISHED_BLACKSTONE_WALL: 3  # 磨制黑石墙
+  POLISHED_DEEPSLATE: 1  # 磨制深板岩
+  POLISHED_DEEPSLATE_SLAB: 2  # 磨制深板岩台阶
+  POLISHED_DEEPSLATE_STAIRS: 2  # 磨制深板岩楼梯
+  POLISHED_DEEPSLATE_WALL: 2  # 磨制深板岩墙
+  POLISHED_DIORITE: 1  # 磨制闪长岩
+  POLISHED_DIORITE_SLAB: 1  # 磨制闪长岩台阶
+  POLISHED_DIORITE_STAIRS: 2  # 磨制闪长岩楼梯
+  POLISHED_GRANITE: 1  # 磨制花岗岩
+  POLISHED_GRANITE_SLAB: 1  # 磨制花岗岩台阶
+  POLISHED_GRANITE_STAIRS: 2  # 磨制花岗岩楼梯
+  POLISHED_TUFF: 2  # 磨制凝灰岩
+  POLISHED_TUFF_SLAB: 2  # 磨制凝灰岩台阶
+  POLISHED_TUFF_STAIRS: 3  # 磨制凝灰岩楼梯
+  POLISHED_TUFF_WALL: 3  # 磨制凝灰岩墙
+  POPPY: 1  # 虞美人
+  POTATOES: 1  # 马铃薯
+  POWERED_RAIL: 5  # 动力铁轨
+  PRISMARINE: 2  # 海晶石
+  PRISMARINE_BRICK_SLAB: 2  # 海晶石砖台阶
+  PRISMARINE_BRICK_STAIRS: 3  # 海晶石砖楼梯
+  PRISMARINE_BRICKS: 2  # 海晶石砖
+  PRISMARINE_SLAB: 2  # 海晶石台阶
+  PRISMARINE_STAIRS: 2  # 海晶石楼梯
+  PRISMARINE_WALL: 2  # 海晶石墙
+  PUMPKIN: 1  # 南瓜
+  PURPLE_BANNER: 2  # 紫色旗帜
+  PURPLE_BED: 35  # 紫色床
+  PURPLE_CANDLE: 2  # 紫色蜡烛
+  PURPLE_CARPET: 1  # 紫色地毯
+  PURPLE_CONCRETE: 10  # 紫色混凝土
+  PURPLE_CONCRETE_POWDER: 5  # 紫色混凝土粉末
+  PURPLE_GLAZED_TERRACOTTA: 25  # 紫色带釉陶瓦
+  PURPLE_SHULKER_BOX: 20  # 紫色潜影盒
+  PURPLE_STAINED_GLASS: 15  # 紫色染色玻璃
+  PURPLE_STAINED_GLASS_PANE: 10  # 紫色染色玻璃板
+  PURPLE_TERRACOTTA: 20  # 紫色陶瓦
+  PURPLE_WOOL: 10  # 紫色羊毛
+  PURPUR_BLOCK: 1  # 紫珀块
+  PURPUR_PILLAR: 2  # 紫珀柱
+  PURPUR_SLAB: 1  # 紫珀台阶
+  PURPUR_STAIRS: 2  # 紫珀楼梯
+  QUARTZ_BRICKS: 6  # 石英砖
+  QUARTZ_PILLAR: 5  # 石英柱
+  QUARTZ_SLAB: 5  # 石英台阶
+  QUARTZ_STAIRS: 5  # 石英楼梯
+  RAIL: 3  # 铁轨
+  RED_BANNER: 2  # 红色旗帜
+  RED_BED: 35  # 红色床
+  RED_CANDLE: 2  # 红色蜡烛
+  RED_CARPET: 1  # 红色地毯
+  RED_CONCRETE: 10  # 红色混凝土
+  RED_CONCRETE_POWDER: 5  # 红色混凝土粉末
+  RED_GLAZED_TERRACOTTA: 25  # 红色带釉陶瓦
+  RED_MUSHROOM: 1  # 红色蘑菇
+  RED_MUSHROOM_BLOCK: 1  # 红色蘑菇方块
+  RED_NETHER_BRICK_SLAB: 2  # 红色下界砖台阶
+  RED_NETHER_BRICK_STAIRS: 3  # 红色下界砖楼梯
+  RED_NETHER_BRICK_WALL: 3  # 红色下界砖墙
+  RED_NETHER_BRICKS: 2  # 红色下界砖块
+  RED_SAND: 1  # 红沙
+  RED_SANDSTONE: 2  # 红砂岩
+  RED_SANDSTONE_SLAB: 2  # 红砂岩台阶
+  RED_SANDSTONE_STAIRS: 3  # 红砂岩楼梯
+  RED_SANDSTONE_WALL: 3  # 红砂岩墙
+  RED_SHULKER_BOX: 20  # 红色潜影盒
+  RED_STAINED_GLASS: 15  # 红色染色玻璃
+  RED_STAINED_GLASS_PANE: 10  # 红色染色玻璃板
+  RED_TERRACOTTA: 20  # 红色陶瓦
+  RED_TULIP: 1  # 红色郁金香
+  RED_WOOL: 10  # 红色羊毛
+  COMPARATOR: 10  # 红石比较器
+  REDSTONE_LAMP: 5  # 红石灯
+  REDSTONE_ORE: 20  # 红石矿石
+  REPEATER: 5  # 红石中继器
+  REDSTONE_TORCH: 2  # 红石火把
+  REDSTONE_WIRE: 1  # 红石线
+  REINFORCED_DEEPSLATE: 1  # 强化深板岩
+  RESIN_BRICK_SLAB: 2  # 树脂砖台阶
+  RESIN_BRICK_STAIRS: 3  # 树脂砖楼梯
+  RESIN_BRICK_WALL: 3  # 树脂砖墙
+  RESIN_BRICKS: 3  # 树脂砖块
+  RESIN_CLUMP: 1  # 树脂团
+  RESPAWN_ANCHOR: 50  # 重生锚
+  ROOTED_DIRT: 1  # 缠根泥土
+  ROSE_BUSH: 2  # 玫瑰丛
+  SAND: 1  # 沙子
+  SANDSTONE: 1  # 砂岩
+  SANDSTONE_SLAB: 1  # 砂岩台阶
+  SANDSTONE_STAIRS: 2  # 砂岩楼梯
+  SANDSTONE_WALL: 2  # 砂岩墙
+  SCAFFOLDING: 1  # 脚手架
+  SCULK: 10  # 幽匿块
+  SCULK_CATALYST: 20  # 幽匿催发体
+  SCULK_SENSOR: 15  # 幽匿感测体
+  SCULK_SHRIEKER: 25  # 幽匿尖啸体
+  SCULK_VEIN: 5  # 幽匿脉络
+  SEA_LANTERN: 10  # 海晶灯
+  SEA_PICKLE: 1  # 海泡菜
+  SEAGRASS: 1  # 海草
+  SHROOMLIGHT: 5  # 菌光体
+  SHORT_DRY_GRASS: 1  # 矮枯草丛
+  SHULKER_BOX: 20  # 潜影盒
+  SKELETON_SKULL: 5  # 骷髅头颅
+  SLIME_BLOCK: 5  # 黏液块
+  SMALL_DRIPLEAF: 1  # 小型垂滴叶
+  SMITHING_TABLE: 10  # 锻造台
+  SMOKER: 10  # 烟熏炉
+  SMOOTH_BASALT: 1  # 平滑玄武岩
+  SMOOTH_QUARTZ: 5  # 平滑石英块
+  SMOOTH_QUARTZ_SLAB: 5  # 平滑石英台阶
+  SMOOTH_QUARTZ_STAIRS: 5  # 平滑石英楼梯
+  SMOOTH_RED_SANDSTONE: 2  # 平滑红砂岩
+  SMOOTH_RED_SANDSTONE_SLAB: 2  # 平滑红砂岩台阶
+  SMOOTH_RED_SANDSTONE_STAIRS: 3  # 平滑红砂岩楼梯
+  SMOOTH_SANDSTONE: 1  # 平滑砂岩
+  SMOOTH_SANDSTONE_SLAB: 1  # 平滑砂岩台阶
+  SMOOTH_SANDSTONE_STAIRS: 2  # 平滑砂岩楼梯
+  SMOOTH_STONE: 1  # 平滑石头
+  SMOOTH_STONE_SLAB: 1  # 平滑石头台阶
+  SNIFFER_EGG: 20  # 嗅探兽蛋
+  SNOW: 1  # 雪
+  SNOW_BLOCK: 1  # 雪块
+  SOUL_CAMPFIRE: 5  # 灵魂营火
+  SOUL_LANTERN: 5  # 灵魂灯笼
+  SOUL_SAND: 1  # 灵魂沙
+  SOUL_SOIL: 1  # 灵魂土
+  SPAWNER: 500  # 刷怪笼
+  SPONGE: 3  # 海绵
+  SPORE_BLOSSOM: 5  # 孢子花
+  SPRUCE_BUTTON: 1  # 云杉木按钮
+  SPRUCE_DOOR: 2  # 云杉木门
+  SPRUCE_FENCE: 1  # 云杉木栅栏
+  SPRUCE_FENCE_GATE: 2  # 云杉木栅栏门
+  SPRUCE_HANGING_SIGN: 2  # 悬挂式云杉木告示牌
+  SPRUCE_LEAVES: 1  # 云杉树叶
+  SPRUCE_LOG: 1  # 云杉原木
+  SPRUCE_PLANKS: 1  # 云杉木板
+  SPRUCE_PRESSURE_PLATE: 1  # 云杉木压力板
+  SPRUCE_SAPLING: 2  # 云杉树苗
+  SPRUCE_SHELF: 2  # 云杉木展示架
+  SPRUCE_SIGN: 1  # 云杉木告示牌
+  SPRUCE_SLAB: 1  # 云杉木台阶
+  SPRUCE_STAIRS: 2  # 云杉木楼梯
+  SPRUCE_TRAPDOOR: 2  # 云杉木活板门
+  SPRUCE_WOOD: 1  # 云杉木
+  STICKY_PISTON: 8  # 黏性活塞
+  STONE: 1  # 石头
+  STONE_BRICK_SLAB: 2  # 石砖台阶
+  STONE_BRICK_STAIRS: 2  # 石砖楼梯
+  STONE_BRICK_WALL: 2  # 石砖墙
+  STONE_BRICKS: 2  # 石砖
+  STONE_BUTTON: 1  # 石头按钮
+  STONE_PRESSURE_PLATE: 1  # 石头压力板
+  STONE_SLAB: 1  # 石头台阶
+  STONE_STAIRS: 2  # 石头楼梯
+  STONECUTTER: 5  # 切石机
+  STRIPPED_ACACIA_LOG: 1  # 去皮金合欢原木
+  STRIPPED_ACACIA_WOOD: 1  # 去皮金合欢木
+  STRIPPED_BIRCH_LOG: 1  # 去皮白桦原木
+  STRIPPED_BIRCH_WOOD: 1  # 去皮白桦木
+  STRIPPED_CHERRY_LOG: 1  # 去皮樱花原木
+  STRIPPED_CHERRY_WOOD: 1  # 去皮樱花木
+  STRIPPED_CRIMSON_HYPHAE: 1  # 去皮绯红菌核
+  STRIPPED_CRIMSON_STEM: 1  # 去皮绯红菌柄
+  STRIPPED_DARK_OAK_LOG: 1  # 去皮深色橡木原木
+  STRIPPED_DARK_OAK_WOOD: 1  # 去皮深色橡木
+  STRIPPED_JUNGLE_LOG: 1  # 去皮丛林原木
+  STRIPPED_JUNGLE_WOOD: 1  # 去皮丛林木
+  STRIPPED_MANGROVE_LOG: 1  # 去皮红树原木
+  STRIPPED_MANGROVE_WOOD: 1  # 去皮红树木
+  STRIPPED_OAK_LOG: 1  # 去皮橡木原木
+  STRIPPED_OAK_WOOD: 1  # 去皮橡木
+  STRIPPED_SPRUCE_LOG: 1  # 去皮云杉原木
+  STRIPPED_SPRUCE_WOOD: 1  # 去皮云杉木
+  STRIPPED_PALE_OAK_LOG: 1  # 去皮苍白橡木原木
+  STRIPPED_PALE_OAK_WOOD: 1  # 去皮苍白橡木
+  STRIPPED_WARPED_HYPHAE: 1  # 去皮诡异菌核
+  STRIPPED_WARPED_STEM: 1  # 去皮诡异菌柄
+  SUGAR_CANE: 1  # 甘蔗
+  SUNFLOWER: 2  # 向日葵
+  SUSPICIOUS_GRAVEL: 2  # 可疑的沙砾
+  SUSPICIOUS_SAND: 2  # 可疑的沙子
+  SWEET_BERRY_BUSH: 1  # 甜浆果丛
+  TALL_DRY_GRASS: 2  # 高枯草丛
+  TALL_GRASS: 2  # 高草丛
+  TALL_SEAGRASS: 2  # 高海草
+  TARGET: 5  # 标靶
+  TERRACOTTA: 2  # 陶瓦
+  TINTED_GLASS: 2  # 遮光玻璃
+  TNT: 5  # TNT
+  TORCH: 1  # 火把
+  TORCHFLOWER: 1  # 火把花
+  TORCHFLOWER_CROP: 1           # 火把花植株
+  TRAPPED_CHEST: 2  # 陷阱箱
+  TRIAL_SPAWNER: 100  # 试炼刷怪笼
+  TRIPWIRE: 1  # 绊线
+  TRIPWIRE_HOOK: 1  # 绊线钩
+  TUBE_CORAL: 2  # 管珊瑚
+  TUBE_CORAL_BLOCK: 3  # 管珊瑚块
+  TUBE_CORAL_FAN: 2  # 管珊瑚扇
+  TUFF: 1  # 凝灰岩
+  TUFF_BRICKS: 2  # 凝灰岩砖
+  TUFF_BRICK_SLAB: 2  # 凝灰岩砖台阶
+  TUFF_BRICK_STAIRS: 3  # 凝灰岩砖楼梯
+  TUFF_BRICK_WALL: 3  # 凝灰岩砖墙
+  TUFF_SLAB: 1  # 凝灰岩台阶
+  TUFF_STAIRS: 2  # 凝灰岩楼梯
+  TUFF_WALL: 2  # 凝灰岩墙
+  TWISTING_VINES: 1  # 缠怨藤
+  VAULT: 100                    # 宝库
+  VERDANT_FROGLIGHT: 1  # 青翠蛙明灯
+  VINE: 1  # 藤蔓
+  WARPED_BUTTON: 1  # 诡异木按钮
+  WARPED_DOOR: 2  # 诡异木门
+  WARPED_FENCE: 1  # 诡异木栅栏
+  WARPED_FENCE_GATE: 2  # 诡异木栅栏门
+  WARPED_FUNGUS: 2  # 诡异菌
+  WARPED_HANGING_SIGN: 2  # 悬挂式诡异木告示牌
+  WARPED_HYPHAE: 1  # 诡异菌核
+  WARPED_NYLIUM: 2  # 诡异菌岩
+  WARPED_PLANKS: 1  # 诡异木板
+  WARPED_PRESSURE_PLATE: 1  # 诡异木压力板
+  WARPED_ROOTS: 1  # 诡异菌索
+  WARPED_SHELF: 2  # 诡异木展示架
+  WARPED_SIGN: 1  # 诡异木告示牌
+  WARPED_SLAB: 1  # 诡异木台阶
+  WARPED_STAIRS: 2  # 诡异木楼梯
+  WARPED_STEM: 1  # 诡异菌柄
+  WARPED_TRAPDOOR: 2  # 诡异木活板门
+  WARPED_WART_BLOCK: 2  # 诡异疣块
+  WAXED_CHISELED_COPPER: 6  # 涂蜡的雕纹铜块
+  WAXED_COPPER_BARS: 3  # 涂蜡的铜栏杆
+  WAXED_COPPER_BLOCK: 30  # 涂蜡的铜块
+  WAXED_COPPER_BULB: 10  # 涂蜡的铜灯
+  WAXED_COPPER_CHAIN: 3  # 涂蜡的铜链
+  WAXED_COPPER_CHEST: 3  # 涂蜡的铜箱子
+  WAXED_COPPER_DOOR: 3  # 涂蜡的铜门
+  WAXED_COPPER_GRATE: 5  # 涂蜡的铜格栅
+  WAXED_COPPER_LANTERN: 5  # 涂蜡的铜灯笼
+  WAXED_COPPER_TRAPDOOR: 3  # 涂蜡的铜活板门
+  WAXED_CUT_COPPER: 5  # 涂蜡的切制铜块
+  WAXED_CUT_COPPER_SLAB: 5  # 涂蜡的切制铜台阶
+  WAXED_CUT_COPPER_STAIRS: 6  # 涂蜡的切制铜楼梯
+  WAXED_LIGHTNING_ROD: 5  # 涂蜡的避雷针
+  WAXED_EXPOSED_CHISELED_COPPER: 5  # 涂蜡的斑驳雕纹铜块
+  WAXED_EXPOSED_COPPER_BARS: 3  # 涂蜡的斑驳铜栏杆
+  WAXED_EXPOSED_COPPER: 25  # 涂蜡的斑驳铜块
+  WAXED_EXPOSED_COPPER_BULB: 8  # 涂蜡的斑驳铜灯
+  WAXED_EXPOSED_COPPER_CHAIN: 3  # 涂蜡的斑驳铜链
+  WAXED_EXPOSED_COPPER_CHEST: 3  # 涂蜡的斑驳铜箱子
+  WAXED_EXPOSED_COPPER_DOOR: 3  # 涂蜡的斑驳铜门
+  WAXED_EXPOSED_COPPER_GRATE: 4  # 涂蜡的斑驳铜格栅
+  WAXED_EXPOSED_COPPER_LANTERN: 4  # 涂蜡的斑驳铜灯笼
+  WAXED_EXPOSED_COPPER_TRAPDOOR: 3  # 涂蜡的斑驳铜活板门
+  WAXED_EXPOSED_CUT_COPPER: 4  # 涂蜡的斑驳切制铜块
+  WAXED_EXPOSED_CUT_COPPER_SLAB: 4  # 涂蜡的斑驳切制铜台阶
+  WAXED_EXPOSED_CUT_COPPER_STAIRS: 5  # 涂蜡的斑驳切制铜楼梯
+  WAXED_EXPOSED_LIGHTNING_ROD: 4  # 涂蜡的斑驳避雷针
+  WAXED_WEATHERED_CHISELED_COPPER: 4  # 涂蜡的锈蚀雕纹铜块
+  WAXED_WEATHERED_COPPER_BARS: 2  # 涂蜡的锈蚀铜栏杆
+  WAXED_WEATHERED_COPPER: 20  # 涂蜡的锈蚀铜块
+  WAXED_WEATHERED_COPPER_BULB: 6  # 涂蜡的锈蚀铜灯
+  WAXED_WEATHERED_COPPER_CHAIN: 2  # 涂蜡的锈蚀铜链
+  WAXED_WEATHERED_COPPER_CHEST: 2  # 涂蜡的锈蚀铜箱子
+  WAXED_WEATHERED_COPPER_DOOR: 2  # 涂蜡的锈蚀铜门
+  WEATHERED_COPPER_GOLEM_STATUE: 1  # 涂蜡的锈蚀铜傀儡像
+  WAXED_WEATHERED_COPPER_GRATE: 3  # 涂蜡的锈蚀铜格栅
+  WAXED_WEATHERED_COPPER_LANTERN: 3  # 涂蜡的锈蚀铜灯笼
+  WAXED_WEATHERED_COPPER_TRAPDOOR: 2  # 涂蜡的锈蚀铜活板门
+  WAXED_WEATHERED_CUT_COPPER: 3  # 涂蜡的锈蚀切制铜块
+  WAXED_WEATHERED_CUT_COPPER_SLAB: 3  # 涂蜡的锈蚀切制铜台阶
+  WAXED_WEATHERED_CUT_COPPER_STAIRS: 4  # 涂蜡的锈蚀切制铜楼梯
+  WAXED_WEATHERED_LIGHTNING_ROD: 3  # 涂蜡的锈蚀避雷针
+  WAXED_OXIDIZED_CHISELED_COPPER: 3  # 涂蜡的氧化雕纹铜块
+  WAXED_OXIDIZED_COPPER_BARS: 2  # 涂蜡的氧化铜栏杆
+  WAXED_OXIDIZED_COPPER: 15  # 涂蜡的氧化铜块
+  WAXED_OXIDIZED_COPPER_BULB: 4  # 涂蜡的氧化铜灯
+  WAXED_OXIDIZED_COPPER_CHAIN: 2  # 涂蜡的氧化铜链
+  WAXED_OXIDIZED_COPPER_CHEST: 2  # 涂蜡的氧化铜箱子
+  WAXED_OXIDIZED_COPPER_DOOR: 2  # 涂蜡的氧化铜门
+  WAXED_OXIDIZED_COPPER_GRATE: 2  # 涂蜡的氧化铜格栅
+  WAXED_OXIDIZED_COPPER_LANTERN: 2  # 涂蜡的氧化铜灯笼
+  WAXED_OXIDIZED_COPPER_TRAPDOOR: 2  # 涂蜡的氧化铜活板门
+  WAXED_OXIDIZED_CUT_COPPER: 2  # 涂蜡的氧化切制铜块
+  WAXED_OXIDIZED_CUT_COPPER_SLAB: 2  # 涂蜡的氧化切制铜台阶
+  WAXED_OXIDIZED_CUT_COPPER_STAIRS: 3  # 涂蜡的氧化切制铜楼梯
+  WAXED_OXIDIZED_LIGHTNING_ROD: 2  # 涂蜡的氧化避雷针
+  WEATHERED_CHISELED_COPPER: 4  # 锈蚀的雕纹铜块
+  WEATHERED_COPPER_BARS: 2  # 锈蚀的铜栏杆
+  WEATHERED_COPPER: 20  # 锈蚀的铜块
+  WEATHERED_COPPER_BULB: 6  # 锈蚀的铜灯
+  WEATHERED_COPPER_CHAIN: 2  # 锈蚀的铜链
+  WEATHERED_COPPER_CHEST: 2  # 锈蚀的铜箱子
+  WEATHERED_COPPER_DOOR: 2  # 锈蚀的铜门
+  WEATHERED_COPPER_GRATE: 3  # 锈蚀的铜格栅
+  WEATHERED_COPPER_LANTERN: 3  # 锈蚀的铜灯笼
+  WEATHERED_COPPER_TRAPDOOR: 2  # 锈蚀的铜活板门
+  WEATHERED_CUT_COPPER: 3  # 锈蚀的切制铜块
+  WEATHERED_CUT_COPPER_SLAB: 3  # 锈蚀的切制铜台阶
+  WEATHERED_CUT_COPPER_STAIRS: 4  # 锈蚀的切制铜楼梯
+  WEATHERED_LIGHTNING_ROD: 3  # 锈蚀的避雷针
+  WEEPING_VINES: 1  # 垂泪藤
+  WET_SPONGE: 1  # 湿海绵
+  WHEAT: 1  # 小麦植株
+  WHITE_BANNER: 2  # 白色旗帜
+  WHITE_BED: 35  # 白色床
+  WHITE_CANDLE: 2  # 白色蜡烛
+  WHITE_CARPET: 1  # 白色地毯
+  WHITE_CONCRETE: 10  # 白色混凝土
+  WHITE_CONCRETE_POWDER: 5  # 白色混凝土粉末
+  WHITE_GLAZED_TERRACOTTA: 25  # 白色带釉陶瓦
+  WHITE_SHULKER_BOX: 20  # 白色潜影盒
+  WHITE_STAINED_GLASS: 15  # 白色染色玻璃
+  WHITE_STAINED_GLASS_PANE: 10  # 白色染色玻璃板
+  WHITE_TERRACOTTA: 20  # 白色陶瓦
+  WHITE_TULIP: 1  # 白色郁金香
+  WHITE_WOOL: 10  # 白色羊毛
+  WILDFLOWERS: 1  # 野花簇
+  WITHER_ROSE: 3  # 凋灵玫瑰
+  WITHER_SKELETON_SKULL: 10  # 凋灵骷髅头颅
+  YELLOW_BANNER: 2  # 黄色旗帜
+  YELLOW_BED: 35  # 黄色床
+  YELLOW_CANDLE: 2  # 黄色蜡烛
+  YELLOW_CARPET: 1  # 黄色地毯
+  YELLOW_CONCRETE: 10  # 黄色混凝土
+  YELLOW_CONCRETE_POWDER: 5  # 黄色混凝土粉末
+  YELLOW_GLAZED_TERRACOTTA: 25  # 黄色带釉陶瓦
+  YELLOW_SHULKER_BOX: 20  # 黄色潜影盒
+  YELLOW_STAINED_GLASS: 15  # 黄色染色玻璃
+  YELLOW_STAINED_GLASS_PANE: 10  # 黄色染色玻璃板
+  YELLOW_TERRACOTTA: 20  # 黄色陶瓦
+  YELLOW_WOOL: 10  # 黄色羊毛
+  ZOMBIE_HEAD: 5  # 僵尸的头
+  # ============================================
+  # 方块数量上限
+  # 每种方块在单次岛屿扫描中的有效计数上限。
+  # 上限基于"实际放置数 - 模板基线(初始空岛自带)"计算，超出上限的部分：
+  #   - 启用超额递减(diminishing)时：按递减公式继续产生经验值
+  #   - 未启用递减时：超额部分经验值为 0
+  # 未在此处列出的方块无上限（Long.MAX_VALUE）。
+  # 格式: MATERIAL_NAME: 数量上限
+  # ============================================
+  limits:
+    NETHERITE_BLOCK: 30000
+    EMERALD_BLOCK: 30000
+    DIAMOND_BLOCK: 50000
 
 # ============================================
 # 超额经验值递减配置
@@ -205,8 +1032,7 @@ limits:
 diminishing:
   enabled: true
   decay: 0.03
-  minimum: 1.0
-
+  minimum: 1
 # ============================================
 # 等级经验值消耗（幂函数增长）
 # base:  升到 1 级所需的基础经验值
@@ -220,9 +1046,8 @@ diminishing:
 #   4 级需要 264 经验值（累计 616）
 # ============================================
 level-cost:
-  base: 50.0
+  base: 50
   power: 1.2
-
 # ============================================
 # 等级计算公式（旧版，仅当 level-cost 不存在时生效）
 # {experience} = 岛屿上所有方块的总经验（阈值内全额 + 超额递减部分）

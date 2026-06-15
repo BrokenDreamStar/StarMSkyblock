@@ -29,7 +29,6 @@ import java.util.UUID;
  */
 public class LevelManager {
 
-    private static final long COOLDOWN_MILLIS = 60_000L; // 60 秒冷却
     private static final int CHUNKS_PER_TICK = 16;
 
     private final StarMSkyblock plugin;
@@ -57,16 +56,22 @@ public class LevelManager {
     public void calculateIsland(Island island, Player player) {
         UUID ownerId = island.getOwnerId();
 
-        // 冷却检查
-        long now = System.currentTimeMillis();
-        Long lastCalc = cooldowns.get(ownerId);
-        if (lastCalc != null && (now - lastCalc) < COOLDOWN_MILLIS) {
-            long remaining = (COOLDOWN_MILLIS - (now - lastCalc)) / 1000;
-            MessageUtil.sendMessage(player, "&c等级计算冷却中，请等待 " + remaining + " 秒后再试");
-            return;
+        // 冷却检查（从 config.yml 读取，设为 0 表示无冷却）
+        int cooldownSeconds = plugin.getConfigManager().getLevelCooldown();
+        if (cooldownSeconds > 0) {
+            long now = System.currentTimeMillis();
+            Long lastCalc = cooldowns.get(ownerId);
+            if (lastCalc != null) {
+                long cooldownMs = cooldownSeconds * 1000L;
+                long elapsed = now - lastCalc;
+                if (elapsed < cooldownMs) {
+                    long remaining = cooldownSeconds - (elapsed / 1000);
+                    MessageUtil.sendMessage(player, "&c等级计算冷却中，请等待 &e" + remaining + " &c秒后再试");
+                    return;
+                }
+            }
+            cooldowns.put(ownerId, now);
         }
-
-        cooldowns.put(ownerId, now);
 
         MessageUtil.sendMessage(player, "&a开始计算岛屿等级，请稍候...");
 

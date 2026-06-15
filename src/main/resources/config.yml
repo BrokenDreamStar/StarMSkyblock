@@ -81,6 +81,9 @@ max-name-length: 20
 # 岛屿重命名冷却时间（秒），设为 0 表示无冷却
 rename-cooldown: 300
 
+# 岛屿等级计算冷却时间（秒），设为 0 表示无冷却
+level-cooldown: 300
+
 # 岛屿传送倒计时（秒），设为 0 表示无倒计时直接传送
 teleport-countdown: 3
 
