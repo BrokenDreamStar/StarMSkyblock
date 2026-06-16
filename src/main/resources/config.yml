@@ -112,4 +112,5 @@ set-respawn-on-join: true
 # 可配置多个世界，如：
 #   - "world"
 #   - "resource"
-public-worlds: []
+public-worlds:
+  - 'world'
