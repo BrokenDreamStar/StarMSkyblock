@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.event.Listener;
 
@@ -12,6 +13,8 @@ import org.bukkit.entity.Player;
 
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.config.ConfigManager;
+import team.starm.starmskyblock.config.LockedAreaConfigManager;
+import team.starm.starmskyblock.config.PublicAreaConfigManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.message.MessageUtil;
@@ -35,6 +38,10 @@ public abstract class BasePermissionManager implements Listener {
     protected final IslandManager islandManager;
     /** 配置管理器，用于获取世界名称和消息冷却时间等配置 */
     protected final ConfigManager configManager;
+    /** 公共区域配置管理器 */
+    protected final PublicAreaConfigManager publicAreaConfig;
+    /** 未解锁区域配置管理器 */
+    protected final LockedAreaConfigManager lockedAreaConfig;
     /** 记录每个玩家最近一次收到权限拒绝消息的时间戳，用于消息冷却防刷屏 */
     protected final Map<UUID, Long> lastDenyMessageTime = new LinkedHashMap<>(256, 0.75f, true) {
         @Override
@@ -49,9 +56,13 @@ public abstract class BasePermissionManager implements Listener {
     /** 上次触发区域锁定的岛屿引用（用于发送更精准的提示消息） */
     protected Island lastAreaLockedIsland = null;
 
-    public BasePermissionManager(IslandManager islandManager, ConfigManager configManager) {
+    public BasePermissionManager(IslandManager islandManager, ConfigManager configManager,
+                                  PublicAreaConfigManager publicAreaConfig,
+                                  LockedAreaConfigManager lockedAreaConfig) {
         this.islandManager = islandManager;
         this.configManager = configManager;
+        this.publicAreaConfig = publicAreaConfig;
+        this.lockedAreaConfig = lockedAreaConfig;
     }
 
     /**
@@ -82,7 +93,18 @@ public abstract class BasePermissionManager implements Listener {
      * 统一的权限检查方法（使用最大岛屿范围）
      */
     public boolean checkPermission(Location location, UUID uuid, IslandPermission permission) {
-        if (!StarMSkyblock.getInstance().getWorldManager().isSkyblockWorldName(location.getWorld().getName())) {
+        // OP 或拥有 skyblock.bypass 权限节点的玩家可以绕过所有权限检查
+        Player bypassPlayer = Bukkit.getPlayer(uuid);
+        if (bypassPlayer != null && (bypassPlayer.isOp() || bypassPlayer.hasPermission("skyblock.bypass"))) {
+            return true;
+        }
+
+        String worldName = location.getWorld().getName();
+        if (!StarMSkyblock.getInstance().getWorldManager().isSkyblockWorldName(worldName)) {
+            if (StarMSkyblock.getInstance().getWorldManager().isPublicWorld(worldName)) {
+                lastCheckWasPublicArea = true;
+                return !publicAreaConfig.isEnabled() || publicAreaConfig.getPermission(permission);
+            }
             return true;
         }
 
@@ -93,17 +115,18 @@ public abstract class BasePermissionManager implements Listener {
 
         if (optIsland.isEmpty()) {
             lastCheckWasPublicArea = true;
-            return false;
+            return !publicAreaConfig.isEnabled() || publicAreaConfig.getPermission(permission);
         }
 
         Island island = optIsland.get();
+
         int chunkX = location.getChunk().getX();
         int chunkZ = location.getChunk().getZ();
 
         if (!island.isChunkWithinIsland(chunkX, chunkZ)) {
             lastCheckWasAreaLocked = true;
             lastAreaLockedIsland = island;
-            return false;
+            return !lockedAreaConfig.isEnabled() || lockedAreaConfig.getPermission(permission);
         }
 
         return hasPermission(island, uuid, permission);

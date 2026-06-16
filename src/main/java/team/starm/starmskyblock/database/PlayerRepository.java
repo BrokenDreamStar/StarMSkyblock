@@ -165,6 +165,31 @@ public class PlayerRepository {
         return true;
     }
 
+    /**
+     * 查询玩家的边界开关偏好，返回 Optional 类型以区分"未设置"和"已关闭"。
+     * 当数据库中没有该玩家的记录时返回 Optional.empty()，由调用方决定默认值。
+     */
+    public Optional<Boolean> getBorderEnabled(UUID playerUuid) {
+        String sql = "SELECT border_enabled FROM players WHERE player_uuid = ?";
+        dbLock.readLock().lock();
+        try {
+            Connection conn = sqliteManager.getConnection();
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, playerUuid.toString());
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        return Optional.of(rs.getBoolean("border_enabled"));
+                    }
+                }
+            } catch (SQLException e) {
+                MessageUtil.consoleError("获取边界开关状态失败！UUID: " + playerUuid, e);
+            }
+        } finally {
+            dbLock.readLock().unlock();
+        }
+        return Optional.empty();
+    }
+
     public void setBorderEnabled(UUID playerUuid, boolean enabled) {
         String sql = "INSERT INTO players (player_uuid, player_name, border_enabled) VALUES (?, '', ?) " +
                 "ON CONFLICT(player_uuid) DO UPDATE SET border_enabled = excluded.border_enabled";

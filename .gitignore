@@ -6,7 +6,6 @@ build/
 .idea/
 *.iml
 .vscode/
-.claude
 
 # Environment
 *.log
@@ -18,3 +17,7 @@ Thumbs.db
 
 # Plugin output
 *.jar
+
+# Claude
+CLAUDE.md
+.claude/

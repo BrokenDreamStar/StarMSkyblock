@@ -105,3 +105,11 @@ obsidian-to-lava: true
 # 是否在创建或加入岛屿时自动将重生点设为岛屿传送点
 # 启用后，玩家死亡后将在岛屿传送点复活而非世界出生点
 set-respawn-on-join: true
+
+# 公共世界列表
+# 这些世界会被视为空岛世界中的"公共区域"，
+# 使用 public-area.yml 中的权限和设置规则
+# 可配置多个世界，如：
+#   - "world"
+#   - "resource"
+public-worlds: []

@@ -5,6 +5,8 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import team.starm.starmskyblock.config.ConfigManager;
+import team.starm.starmskyblock.config.LockedAreaConfigManager;
+import team.starm.starmskyblock.config.PublicAreaConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.manager.BuildPermissionManager;
 import team.starm.starmskyblock.permission.manager.ContainerPermissionManager;
@@ -67,21 +69,23 @@ public class IslandPermissionManager extends BasePermissionManager implements Li
      * @param configManager 配置管理器
      * @param plugin        插件主类实例，用于注册事件
      */
-    public IslandPermissionManager(IslandManager islandManager, ConfigManager configManager, JavaPlugin plugin) {
-        super(islandManager, configManager);
+    public IslandPermissionManager(IslandManager islandManager, ConfigManager configManager,
+                                        PublicAreaConfigManager publicAreaConfig,
+                                        LockedAreaConfigManager lockedAreaConfig, JavaPlugin plugin) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
 
-        this.managementManager = new ManagementPermissionManager(islandManager, configManager);
-        this.pickupManager = new DropPickupPermissionManager(islandManager, configManager, plugin);
-        this.blockManager = new BuildPermissionManager(islandManager, configManager);
-        this.workblockManager = new WorkblockPermissionManager(islandManager, configManager);
-        this.containerManager = new ContainerPermissionManager(islandManager, configManager);
-        this.redstoneManager = new RedstonePermissionManager(islandManager, configManager);
-        this.doorManager = new DoorPermissionManager(islandManager, configManager);
-        this.vehicleManager = new VehiclePermissionManager(islandManager, configManager);
-        this.toolManager = new ToolPermissionManager(islandManager, configManager);
-        this.itemManager = new ItemPermissionManager(islandManager, configManager);
-        this.entityManager = new EntityPermissionManager(islandManager, configManager);
-        this.otherManager = new OtherPermissionManager(islandManager, configManager);
+        this.managementManager = new ManagementPermissionManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+        this.pickupManager = new DropPickupPermissionManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig, plugin);
+        this.blockManager = new BuildPermissionManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+        this.workblockManager = new WorkblockPermissionManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+        this.containerManager = new ContainerPermissionManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+        this.redstoneManager = new RedstonePermissionManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+        this.doorManager = new DoorPermissionManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+        this.vehicleManager = new VehiclePermissionManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+        this.toolManager = new ToolPermissionManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+        this.itemManager = new ItemPermissionManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+        this.entityManager = new EntityPermissionManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+        this.otherManager = new OtherPermissionManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
 
         registerEventListeners(plugin);
     }

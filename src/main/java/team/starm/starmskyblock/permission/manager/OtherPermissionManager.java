@@ -26,6 +26,8 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import team.starm.starmskyblock.config.ConfigManager;
+import team.starm.starmskyblock.config.PublicAreaConfigManager;
+import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
@@ -40,8 +42,10 @@ import java.util.Optional;
  */
 public class OtherPermissionManager extends BasePermissionManager {
 
-    public OtherPermissionManager(IslandManager islandManager, ConfigManager configManager) {
-        super(islandManager, configManager);
+    public OtherPermissionManager(IslandManager islandManager, ConfigManager configManager,
+                                   PublicAreaConfigManager publicAreaConfig,
+                                   LockedAreaConfigManager lockedAreaConfig) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
     }
 
     /**
@@ -278,6 +282,11 @@ public class OtherPermissionManager extends BasePermissionManager {
         IslandPermission permission = (cause == TeleportCause.NETHER_PORTAL)
                 ? IslandPermission.ENTER_NETHER_PORTAL
                 : IslandPermission.ENTER_END_PORTAL;
+
+        // OP 或拥有 skyblock.bypass 权限节点的玩家可以绕过传送门权限检查
+        if (player.isOp() || player.hasPermission("skyblock.bypass")) {
+            return;
+        }
 
         if (!optionalIsland.get().hasPermission(player.getUniqueId(), permission)) {
             event.setCancelled(true);

@@ -32,7 +32,8 @@ public class IslandRepository {
                             int centerX, int centerZ, String permissions, String settings,
                             String homeData, String createdAt, boolean netherUnlocked,
                             int generatorLevel, String generatorDisabled,
-                            double baselineExperience, String baselineBlockCounts) {}
+                            double baselineExperience, String baselineBlockCounts,
+                            int auraskillsContribution) {}
 
     public record MemberRow(int islandId, UUID playerUuid, String role) {}
 
@@ -41,7 +42,7 @@ public class IslandRepository {
     // ==================== 批量加载 ====================
 
     public List<IslandRow> loadAllIslands() {
-        String sql = "SELECT id, owner_uuid, name, level, COALESCE(total_points, 0) as total_points, COALESCE(block_counts, '{}') as block_counts, radius, center_x, center_z, permissions, settings, home_data, created_at, nether_unlocked, generator_level, generator_disabled, COALESCE(baseline_total_points, 0) as baseline_total_points, COALESCE(baseline_block_counts, '{}') as baseline_block_counts FROM islands";
+        String sql = "SELECT id, owner_uuid, name, level, COALESCE(total_points, 0) as total_points, COALESCE(block_counts, '{}') as block_counts, radius, center_x, center_z, permissions, settings, home_data, created_at, nether_unlocked, generator_level, generator_disabled, COALESCE(baseline_total_points, 0) as baseline_total_points, COALESCE(baseline_block_counts, '{}') as baseline_block_counts, COALESCE(auraskills_contribution, 0) as auraskills_contribution FROM islands";
         List<IslandRow> rows = new ArrayList<>();
         dbLock.readLock().lock();
         try {
@@ -68,7 +69,8 @@ public class IslandRepository {
                                 rs.getInt("generator_level"),
                                 rs.getString("generator_disabled"),
                                 rs.getDouble("baseline_total_points"),
-                                rs.getString("baseline_block_counts")
+                                rs.getString("baseline_block_counts"),
+                                rs.getInt("auraskills_contribution")
                         ));
                     } catch (IllegalArgumentException e) {
                         MessageUtil.consoleWarn("跳过无效 UUID 的岛屿行，id=" + rs.getInt("id"));
@@ -561,10 +563,17 @@ public class IslandRepository {
     }
 
     /**
-     * 更新岛屿等级、总分和方块计数
+     * 更新岛屿等级、总分、方块计数和 AuraSkills 贡献等级
      */
     public void updateLevel(int id, int level, double totalExperience, String blockCountsJson) {
-        String sql = "UPDATE islands SET level = ?, total_points = ?, block_counts = ? WHERE id = ?";
+        updateLevel(id, level, totalExperience, blockCountsJson, 0);
+    }
+
+    /**
+     * 更新岛屿等级、总分、方块计数和 AuraSkills 贡献等级
+     */
+    public void updateLevel(int id, int level, double totalExperience, String blockCountsJson, int auraskillsContribution) {
+        String sql = "UPDATE islands SET level = ?, total_points = ?, block_counts = ?, auraskills_contribution = ? WHERE id = ?";
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
@@ -572,7 +581,8 @@ public class IslandRepository {
                 pstmt.setInt(1, level);
                 pstmt.setDouble(2, totalExperience);
                 pstmt.setString(3, blockCountsJson != null ? blockCountsJson : "{}");
-                pstmt.setInt(4, id);
+                pstmt.setInt(4, auraskillsContribution);
+                pstmt.setInt(5, id);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
                 MessageUtil.consoleError("更新岛屿等级到数据库失败！ID: " + id, e);

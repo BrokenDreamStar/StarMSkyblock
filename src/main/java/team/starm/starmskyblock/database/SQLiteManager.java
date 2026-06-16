@@ -92,7 +92,8 @@ public class SQLiteManager {
                     total_points REAL DEFAULT 0,
                     block_counts TEXT DEFAULT '{}',
                     baseline_total_points REAL DEFAULT 0,
-                    baseline_block_counts TEXT DEFAULT '{}'
+                    baseline_block_counts TEXT DEFAULT '{}',
+                    auraskills_contribution INTEGER DEFAULT 0
                 );""";
 
         String createMembersTable = """
@@ -108,7 +109,7 @@ public class SQLiteManager {
                 CREATE TABLE IF NOT EXISTS players (
                     player_uuid VARCHAR(36) PRIMARY KEY,
                     player_name VARCHAR(16) NOT NULL,
-                    border_enabled BOOLEAN DEFAULT 1,
+                    border_enabled BOOLEAN DEFAULT 0,
                     first_nether_join BOOLEAN DEFAULT 1,
                     tasks TEXT DEFAULT '{}'
                 );""";
@@ -140,9 +141,19 @@ public class SQLiteManager {
             stmt.execute(createPlayersTable);
             stmt.execute(createPlayerStatsTable);
             stmt.execute(createSkinTexturesTable);
+
             MessageUtil.consolePrint("数据库表结构创建成功！");
         } catch (SQLException e) {
             MessageUtil.consoleError("创建数据库表失败！", e);
+        }
+    }
+
+    /**
+     * 执行简单更新语句（用于迁移）
+     */
+    private void executeUpdate(String sql) throws SQLException {
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(sql);
         }
     }
 

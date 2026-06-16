@@ -49,7 +49,6 @@ public class ExperienceConfig {
     public void initialize() {
         if (!configFile.exists()) {
             plugin.saveResource(FILE_NAME, false);
-            MessageUtil.consolePrint("已创建 " + FILE_NAME);
         }
         reload();
     }
@@ -65,6 +64,10 @@ public class ExperienceConfig {
         ConfigurationSection blocksSection = config.getConfigurationSection("blocks");
         if (blocksSection != null) {
             for (String key : blocksSection.getKeys(false)) {
+                // 跳过非方块的结构性键（如 limits、diminishing）
+                if ("limits".equals(key) || "diminishing".equals(key)) {
+                    continue;
+                }
                 Material material = Material.getMaterial(key.toUpperCase());
                 if (material == null) {
                     MessageUtil.consoleWarn("block-values.yml 中存在未知的方块类型: " + key);
@@ -78,9 +81,12 @@ public class ExperienceConfig {
         }
         this.experienceValues = values;
 
-        // 加载方块阈值
+        // 加载方块阈值（兼容旧版：之前 limits 被错误地嵌套在 blocks 下）
         Map<Material, Long> limits = new HashMap<>();
         ConfigurationSection limitsSection = config.getConfigurationSection("limits");
+        if (limitsSection == null) {
+            limitsSection = config.getConfigurationSection("blocks.limits");
+        }
         if (limitsSection != null) {
             for (String key : limitsSection.getKeys(false)) {
                 Material material = Material.getMaterial(key.toUpperCase());

@@ -18,6 +18,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import team.starm.starmskyblock.config.ConfigManager;
+import team.starm.starmskyblock.config.PublicAreaConfigManager;
+import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.BasePermissionManager;
@@ -29,8 +31,10 @@ import team.starm.starmskyblock.tag.ItemTags;
  */
 public class ItemPermissionManager extends BasePermissionManager {
 
-    public ItemPermissionManager(IslandManager islandManager, ConfigManager configManager) {
-        super(islandManager, configManager);
+    public ItemPermissionManager(IslandManager islandManager, ConfigManager configManager,
+                                  PublicAreaConfigManager publicAreaConfig,
+                                  LockedAreaConfigManager lockedAreaConfig) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
     }
 
     /**

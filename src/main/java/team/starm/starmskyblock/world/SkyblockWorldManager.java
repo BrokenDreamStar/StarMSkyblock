@@ -174,6 +174,19 @@ public class SkyblockWorldManager {
         return worldName != null && worldName.equals(configManager.getWorldNameEnd());
     }
 
+    /**
+     * 判断世界名称是否为配置的公共世界
+     *
+     * @param worldName 世界名称
+     * @return 如果该世界在 config.yml 的 public-worlds 列表中则返回 true
+     */
+    public boolean isPublicWorld(String worldName) {
+        if (worldName == null) {
+            return false;
+        }
+        return configManager.isPublicWorld(worldName);
+    }
+
     private void disableEnderDragonFight(World world) {
         try {
             DragonBattle battle = world.getEnderDragonBattle();

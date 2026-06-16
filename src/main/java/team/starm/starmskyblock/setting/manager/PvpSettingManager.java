@@ -9,6 +9,8 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.entity.Entity;
 
 import team.starm.starmskyblock.config.ConfigManager;
+import team.starm.starmskyblock.config.PublicAreaConfigManager;
+import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.message.MessageUtil;
 import team.starm.starmskyblock.setting.BaseSettingManager;
@@ -25,8 +27,10 @@ import team.starm.starmskyblock.setting.IslandSetting;
  */
 public class PvpSettingManager extends BaseSettingManager {
 
-    public PvpSettingManager(IslandManager islandManager, ConfigManager configManager) {
-        super(islandManager, configManager);
+    public PvpSettingManager(IslandManager islandManager, ConfigManager configManager,
+                              PublicAreaConfigManager publicAreaConfig,
+                              LockedAreaConfigManager lockedAreaConfig) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
     }
 
     /**

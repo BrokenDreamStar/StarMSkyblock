@@ -5,7 +5,7 @@ main: team.starm.starmskyblock.StarMSkyblock
 api-version: '26.1.2'
 load: POSTWORLD
 loadbefore: [ Multiverse-Core ]
-softdepend: [ PlaceholderAPI, WorldEdit, TrMenu, Vault ]
+softdepend: [ PlaceholderAPI, WorldEdit, TrMenu, Vault, AuraSkills ]
 
 authors: [ BrokenDream_Star,DeepSeek,Gemini,Grok ]
 website: https://starm.team/

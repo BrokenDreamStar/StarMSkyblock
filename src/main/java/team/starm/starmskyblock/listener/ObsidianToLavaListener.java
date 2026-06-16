@@ -15,14 +15,18 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import team.starm.starmskyblock.config.ConfigManager;
+import team.starm.starmskyblock.config.LockedAreaConfigManager;
+import team.starm.starmskyblock.config.PublicAreaConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.BasePermissionManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 
 public class ObsidianToLavaListener extends BasePermissionManager {
 
-    public ObsidianToLavaListener(IslandManager islandManager, ConfigManager configManager) {
-        super(islandManager, configManager);
+    public ObsidianToLavaListener(IslandManager islandManager, ConfigManager configManager,
+                                    PublicAreaConfigManager publicAreaConfig,
+                                    LockedAreaConfigManager lockedAreaConfig) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

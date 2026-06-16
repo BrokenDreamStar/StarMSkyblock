@@ -4,7 +4,10 @@ import org.bukkit.Material;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import team.starm.starmskyblock.integration.MemberSkillData;
 
 /**
  * 岛屿等级计算的结果数据容器。
@@ -29,6 +32,15 @@ public class LevelResults {
     private long timeTaken;
     /** 超过阈值的方块数量（方块名 → 被截断的数量） */
     private final Map<Material, Long> blocksOverLimit = new HashMap<>();
+
+    /** AuraSkills 加成等级 */
+    private int auraskillsContribution = 0;
+    /** 岛屿成员 AuraSkills PowerLevel 总和 */
+    private int totalPowerLevel = 0;
+    /** AuraSkills PowerLevel 转换系数 */
+    private double coefficient = 100.0;
+    /** 各成员 AuraSkills 数据明细（用于逐人显示） */
+    private List<MemberSkillData> memberSkillData = List.of();
 
     public double getTotalExperience() {
         return totalExperience;
@@ -92,5 +104,37 @@ public class LevelResults {
 
     public void addBlockOverLimit(Material material, long overLimitCount) {
         blocksOverLimit.merge(material, overLimitCount, Long::sum);
+    }
+
+    public int getAuraSkillsContribution() {
+        return auraskillsContribution;
+    }
+
+    public void setAuraSkillsContribution(int auraskillsContribution) {
+        this.auraskillsContribution = auraskillsContribution;
+    }
+
+    public int getTotalPowerLevel() {
+        return totalPowerLevel;
+    }
+
+    public void setTotalPowerLevel(int totalPowerLevel) {
+        this.totalPowerLevel = totalPowerLevel;
+    }
+
+    public double getCoefficient() {
+        return coefficient;
+    }
+
+    public void setCoefficient(double coefficient) {
+        this.coefficient = coefficient;
+    }
+
+    public List<MemberSkillData> getMemberSkillData() {
+        return memberSkillData;
+    }
+
+    public void setMemberSkillData(List<MemberSkillData> memberSkillData) {
+        this.memberSkillData = memberSkillData;
     }
 }

@@ -130,6 +130,11 @@ public class Island {
     private int generatorLevel = 1;
 
     /**
+     * AuraSkills 加成等级（全体成员 PowerLevel 总和 / coefficient）
+     */
+    private int auraskillsContribution = 0;
+
+    /**
      * 岛屿功能设置（枚举 → 布尔值），使用 EnumMap 保证紧凑存储
      */
     private final Map<IslandSetting, Boolean> settingValues = new EnumMap<>(IslandSetting.class);
@@ -319,6 +324,20 @@ public class Island {
      */
     public void setGeneratorLevel(int generatorLevel) {
         this.generatorLevel = generatorLevel;
+    }
+
+    /**
+     * @return AuraSkills 加成等级
+     */
+    public int getAuraSkillsContribution() {
+        return auraskillsContribution;
+    }
+
+    /**
+     * 设置 AuraSkills 加成等级
+     */
+    public void setAuraSkillsContribution(int auraskillsContribution) {
+        this.auraskillsContribution = auraskillsContribution;
     }
 
     /**

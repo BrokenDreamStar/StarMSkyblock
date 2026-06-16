@@ -1,6 +1,8 @@
 package team.starm.starmskyblock.permission.manager;
 
 import team.starm.starmskyblock.config.ConfigManager;
+import team.starm.starmskyblock.config.PublicAreaConfigManager;
+import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.BasePermissionManager;
@@ -22,8 +24,10 @@ import java.util.UUID;
  */
 public class ManagementPermissionManager extends BasePermissionManager {
 
-    public ManagementPermissionManager(IslandManager islandManager, ConfigManager configManager) {
-        super(islandManager, configManager);
+    public ManagementPermissionManager(IslandManager islandManager, ConfigManager configManager,
+                                        PublicAreaConfigManager publicAreaConfig,
+                                        LockedAreaConfigManager lockedAreaConfig) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
     }
 
     /**

@@ -25,6 +25,10 @@ repositories {
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:26.1.2-R0.1-SNAPSHOT'
 
+    // AuraSkills API（用于岛屿等级加成计算）
+    // 将 AuraSkills-2.3.12.jar 放到项目根目录的 libs/ 文件夹中
+    compileOnly files('libs/AuraSkills-2.3.12.jar')
+
     // Adventure（部分序列化模块需要显式声明）
     compileOnly 'net.kyori:adventure-api:4.19.0'
     compileOnly 'net.kyori:adventure-text-serializer-legacy:4.19.0'

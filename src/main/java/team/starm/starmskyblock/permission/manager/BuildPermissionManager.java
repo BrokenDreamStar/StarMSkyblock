@@ -13,6 +13,8 @@ import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import team.starm.starmskyblock.config.ConfigManager;
+import team.starm.starmskyblock.config.PublicAreaConfigManager;
+import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.BasePermissionManager;
 import team.starm.starmskyblock.permission.IslandPermission;
@@ -27,8 +29,10 @@ import team.starm.starmskyblock.permission.IslandPermission;
  */
 public class BuildPermissionManager extends BasePermissionManager {
 
-    public BuildPermissionManager(IslandManager islandManager, ConfigManager configManager) {
-        super(islandManager, configManager);
+    public BuildPermissionManager(IslandManager islandManager, ConfigManager configManager,
+                                   PublicAreaConfigManager publicAreaConfig,
+                                   LockedAreaConfigManager lockedAreaConfig) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
     }
 
     /**

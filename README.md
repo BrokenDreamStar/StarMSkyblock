@@ -15,11 +15,12 @@
 - [x] 岛屿权限系统
 - [x] 岛屿设置
 - [x] 非岛屿区域的保护
+- [x] 公共区域/未解锁区域权限与设置独立配置
 
 ### 传送
 
 - [x] 末地传送门
-- [ ] 下界传送门 (未完全测试 遵循原版逻辑 但把绝对坐标转换改为相对于岛屿中心的坐标转换)
+- [x] 下界传送门（相对岛屿中心偏移缩放，三级边界检查，下界解锁机制）
 
 ### 刷石机
 
@@ -35,6 +36,8 @@
 
 - [x] 岛屿方块扫描
 - [x] 等级计算
+- [x] AuraSkills 成员技能加成（PowerLevel 总和按比例转换为额外等级）
+- [x] 等级计算冷却可配置
 
 ### 任务
 
@@ -55,7 +58,7 @@
 | **API 版本**  | 26.1.2 (Paper 1.26.x)                         |
 | **Java 版本** | 21+ (工具链: 25)                                 |
 | **加载时机**    | POSTWORLD                                     |
-| **软依赖**     | PlaceholderAPI, WorldEdit/FAWE, TrMenu, Vault |
+| **软依赖**     | PlaceholderAPI, WorldEdit/FAWE, TrMenu, Vault, AuraSkills |
 | **构建工具**    | Gradle (Shadow JAR)                           |
 | **输出文件**    | `build/libs/StarMSkyblock.jar`                |
 
@@ -76,7 +79,8 @@
 3. （可选）安装 **PlaceholderAPI** 以使用变量占位符
 4. （可选）安装 **TrMenu** 以使用菜单桥接功能
 5. （可选）安装 **Vault** 以使用经济升级功能
-6. 重启服务器
+6. （可选）安装 **AuraSkills** 以使用技能等级加成功能
+7. 重启服务器
 
 ### 配置文件
 
@@ -84,7 +88,7 @@
 
 | 文件                 | 说明                                                               |
 |--------------------|------------------------------------------------------------------|
-| `config.yml`       | 核心配置：世界名称、岛屿半径/间距、结构文件路径、传送偏移、生物群系、功能开关、`default-island-command` |
+| `config.yml`       | 核心配置：世界名称、岛屿半径/间距、结构文件路径、传送偏移、生物群系、功能开关、`default-island-command`、`level-cooldown`、`show-border-default`、`public-worlds` |
 | `permissions.yml`  | 权限组定义：MEMBER / MOD / ADMIN / COOP / VISITOR 每个角色的权限集（支持继承）       |
 | `settings.yml`     | 岛屿默认设置：PVP、传送、生物生成、火势蔓延、爆炸破坏等开关                                  |
 | `generator.yml`    | 岛屿刷石机配置：等级阈值、各维度概率权重表、深板岩替换开关、启用/禁用控制                            |
@@ -94,6 +98,9 @@
 | `tasks/<Chapter>/` | 章节任务定义文件（`.yml`），如 `Chapter1/Mission1_1.yml`                     |
 | `block-values.yml` | 方块经验价值表：每种方块/实体/钓鱼/合成对应的经验值                                      |
 | `experience.yml`   | 等级系统配置：等级公式（线性/平方/三次方）、系数、触发冷却、是否异步                              |
+| `auraskills-contribution.yml` | AuraSkills 加成配置：启用开关、PowerLevel 转换系数、最大加成等级上限             |
+| `public-area.yml`  | 公共区域权限与设置：空岛世界中无主区域的默认权限行为和设置开关                               |
+| `locked-area.yml`  | 岛屿未解锁区域权限与设置：已归属岛屿但尚未扩展半径区域的默认权限行为和设置开关                       |
 
 ## 命令
 
@@ -307,6 +314,26 @@ cost(L) = round(base × L^power)
 
 这确保了玩家**只有真正新增的方块才会计入等级**，模板已有的方块不会被重复计算。
 
+### AuraSkills 加成（可选）
+
+如果服务器安装了 **AuraSkills** 插件，等级计算结果中会额外添加基于岛屿成员技能的加成等级：
+
+```
+加成等级 = min(全体成员 PowerLevel 总和 / coefficient, max-bonus-level)
+```
+
+加成等级在 `auraskills-contribution.yml` 中配置：
+
+- **enabled**: 是否启用 AuraSkills 加成
+- **coefficient**: PowerLevel 转换系数（值越大加成越难获得）
+- **max-bonus-level**: 最大加成等级上限（0 = 不限制）
+
+等级扫描结果会分别显示方块等级和 AuraSkills 加成等级，以及每位成员的贡献明细。
+
+### 等级计算冷却
+
+`/is level` 命令有冷却时间，由 `config.yml` 中的 `level-cooldown` 控制（默认 300 秒），设为 0 可禁用冷却。
+
 ### 计算流程
 
 ```
@@ -314,12 +341,14 @@ cost(L) = round(base × L^power)
   → 异步遍历岛屿半径内所有区块（含三个维度）
   → 逐方块统计种类和数量（计入递减）
   → 减去模板基线
-  → 按 level-cost 公式换算等级
+  → 按 level-cost 公式换算方块等级
+  → [可选] 异步获取全体成员 AuraSkills PowerLevel 总和
+  → 计算 AuraSkills 加成等级（方块等级 + 加成 = 最终等级）
   → 结果持久化到数据库
-  → 向玩家展示扫描摘要
+  → 向玩家展示扫描摘要（含加成明细）
 ```
 
-扫描结果包含：总经验值、岛屿等级、扫描方块总量、各维度统计。
+扫描结果包含：总经验值、岛屿等级（方块+加成）、方块等级、扫描方块总量、各维度统计、AuraSkills 加成明细。
 
 ## 传送门系统
 
@@ -750,7 +779,10 @@ StarMSkyblock
 │   ├── SettingsConfigManager.java   — settings.yml
 │   ├── GeneratorConfigManager.java  — generator.yml（刷石机等级与概率权重）
 │   ├── UpgradeConfigManager.java    — upgrades.yml（升级等级与费用）
-│   └── ExperienceConfig.java        — block-values.yml（方块经验值、阈值、等级公式）
+│   ├── ExperienceConfig.java        — block-values.yml（方块经验值、阈值、等级公式）
+│   ├── AuraSkillsContributionConfig.java — auraskills-contribution.yml（AuraSkills 加成）
+│   ├── PublicAreaConfigManager.java      — public-area.yml（公共区域权限设置）
+│   ├── LockedAreaConfigManager.java      — locked-area.yml（未解锁区域权限设置）
 │   └── SignConfigManager.java       — sign.yml
 ├── database/                   — SQLite 持久层
 │   ├── SQLiteManager.java      — 连接管理与建表
@@ -797,11 +829,13 @@ StarMSkyblock
 ├── listener/                   — Bukkit 事件监听
 │   ├── BorderListener.java     — 动态世界边界
 │   ├── CobblestoneGeneratorListener.java — 刷石机矿石替换（权重随机、深板岩、启用/禁用）
-│   ├── ObsidianToLavaListener.java       — 黑曜石→熔岩转化
+│   ├── ObsidianToLavaListener.java       — 黑曜石→熔岩转化（支持公共/锁定区域权限检查）
 │   ├── PortalListener.java     — 下界/末地传送门处理
 │   ├── TeleportCountdownListener.java — 传送倒计时
 │   ├── EndProtectionListener.java     — 末地龙/水晶防护
-│   └── BlockPlaceListener.java        — 方块放置限制
+│   ├── BlockPlaceListener.java        — 方块放置限制
+│   ├── IslandBoundaryListener.java    — 岛屿边界保护（阻止水流/活塞/枝叶生长越界）
+│   └── RespawnListener.java           — 重生点管理
 ├── permission/                 — 权限子系统
 │   ├── IslandPermission.java   — 权限枚举（80+）
 │   ├── IslandPermissionLevel.java     — 角色等级枚举
@@ -822,6 +856,10 @@ StarMSkyblock
 │   └── SettingsHandler.java    — 设置变量
 ├── bridge/                     — 第三方桥接
 │   └── StarMSkyblockHook.java  — TrMenu JS 桥接
+├── integration/                — 第三方集成
+│   ├── AuraSkillsIntegration.java    — AuraSkills API 封装（PowerLevel 汇总）
+│   ├── AuraSkillsIslandResult.java   — 加成计算结果
+│   └── MemberSkillData.java          — 成员技能数据记录
 ├── message/                    — 消息与颜色工具
 │   ├── MessageUtil.java        — 消息发送/广播/日志
 │   └── color/                  — 渐变/彩虹/过渡色解析
@@ -847,15 +885,18 @@ StarMSkyblock
   的权重表随机选择生成物，支持按岛屿的禁用列表排除特定矿石，Y < 0 时自动替换为深层变种
 - **反射兼容**: FAWE API、GameProfile、末地龙禁用等均使用反射以跨版本兼容
 - **继承式权限配置**: YAML 中角色可继承父角色权限，支持 additional/excluded 的差量配置
+- **三级区域保护**: 权限/设置系统支持三种区域的独立配置：已解锁岛屿区域（使用岛屿自身权限/设置）、未解锁锁定区域（`locked-area.yml`）、无主公共区域（`public-area.yml`）
+- **岛屿边界保护**: `IslandBoundaryListener` 阻止水流、活塞推动、树木生长等连锁环境变化扩散到岛屿解锁区域之外
+- **AuraSkills 等级加成**: 可选集成，根据岛屿全体成员的 AuraSkills PowerLevel 总和按系数转换为额外岛屿等级
 
 ### 数据库表
 
 | 表名               | 说明                                                    |
 |------------------|-------------------------------------------------------|
-| `islands`        | 岛屿数据（ID、名称、所属者、坐标、半径、设置、权限、刷石机禁用列表、等级、经验值、方块计数、模板基线等） |
+| `islands`        | 岛屿数据（ID、名称、所属者、坐标、半径、设置、权限、刷石机禁用列表、等级、经验值、方块计数、模板基线、AuraSkills 加成等） |
 | `island_members` | 成员关联（UUID、角色、加入时间）                                    |
 | `island_coops`   | 合作者关联                                                 |
-| `players`        | 玩家数据（边界偏好、首次进入下界标志、任务进度 JSON）                         |
+| `players`        | 玩家数据（边界显示偏好、首次进入下界标志、任务进度 JSON）                         |
 | `player_stats`   | 玩家统计（岛屿删除次数）                                          |
 | `skin_textures`  | 皮肤纹理缓存                                                |
 

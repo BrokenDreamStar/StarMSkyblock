@@ -11,6 +11,7 @@ import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.IslandPermissionLevel;
 import team.starm.starmskyblock.message.MessageUtil;
 
+import com.google.gson.reflect.TypeToken;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -88,8 +89,9 @@ public class IslandManager {
             island.setLevel(row.level());
             island.setExperience(row.totalExperience());
             island.setBaselineExperience(row.baselineExperience());
+            island.setAuraSkillsContribution(row.auraskillsContribution());
             try {
-                java.util.Map<String, Object> baselineMap = GSON.fromJson(row.baselineBlockCounts(), java.util.Map.class);
+                java.util.Map<String, Object> baselineMap = GSON.fromJson(row.baselineBlockCounts(), new TypeToken<Map<String, Object>>(){}.getType());
                 if (baselineMap != null && !baselineMap.isEmpty()) {
                     java.util.Map<String, Long> parsed = new java.util.HashMap<>();
                     for (java.util.Map.Entry<String, Object> entry : baselineMap.entrySet()) {
@@ -103,7 +105,7 @@ public class IslandManager {
                 MessageUtil.consoleWarn("解析岛屿模板基线 JSON 失败，ID: " + id);
             }
             try {
-                java.util.Map<String, Object> blockCountsMap = GSON.fromJson(row.blockCounts(), java.util.Map.class);
+                java.util.Map<String, Object> blockCountsMap = GSON.fromJson(row.blockCounts(), new TypeToken<Map<String, Object>>(){}.getType());
                 if (blockCountsMap != null && !blockCountsMap.isEmpty()) {
                     java.util.Map<String, Long> parsed = new java.util.HashMap<>();
                     for (java.util.Map.Entry<String, Object> entry : blockCountsMap.entrySet()) {

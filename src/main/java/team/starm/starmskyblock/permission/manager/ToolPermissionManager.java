@@ -42,6 +42,8 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import team.starm.starmskyblock.config.ConfigManager;
+import team.starm.starmskyblock.config.PublicAreaConfigManager;
+import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.BasePermissionManager;
@@ -61,8 +63,10 @@ import java.util.Objects;
  */
 public class ToolPermissionManager extends BasePermissionManager {
 
-    public ToolPermissionManager(IslandManager islandManager, ConfigManager configManager) {
-        super(islandManager, configManager);
+    public ToolPermissionManager(IslandManager islandManager, ConfigManager configManager,
+                                  PublicAreaConfigManager publicAreaConfig,
+                                  LockedAreaConfigManager lockedAreaConfig) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
     }
 
     /**

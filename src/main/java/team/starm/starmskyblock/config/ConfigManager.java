@@ -6,8 +6,11 @@ import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.message.MessageUtil;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * StarMSkyblock 插件的核心配置文件管理器
@@ -59,6 +62,7 @@ public class ConfigManager {
     private volatile String defaultIslandCommand; // /is 无参数时执行的子命令（默认 spawn）
     private volatile boolean obsidianToLava; // 是否允许空桶右键黑曜石转化为熔岩桶
     private volatile boolean setRespawnOnJoin; // 创建或加入岛屿时是否自动设置重生点
+    private volatile Set<String> publicWorlds = Collections.emptySet(); // 公共世界列表
 
     public ConfigManager(StarMSkyblock plugin) {
         this.plugin = plugin;
@@ -204,6 +208,7 @@ public class ConfigManager {
 
         this.obsidianToLava = config.getBoolean("obsidian-to-lava", false);
         this.setRespawnOnJoin = config.getBoolean("set-respawn-on-join", true);
+        this.publicWorlds = new HashSet<>(config.getStringList("public-worlds"));
     }
 
     // ==================== Getter 方法（按功能分类） ====================
@@ -382,6 +387,14 @@ public class ConfigManager {
      */
     public boolean isSetRespawnOnJoin() {
         return setRespawnOnJoin;
+    }
+
+    /**
+     * @param worldName 世界名称
+     * @return 该世界是否被配置为公共世界
+     */
+    public boolean isPublicWorld(String worldName) {
+        return publicWorlds.contains(worldName);
     }
 
     /**

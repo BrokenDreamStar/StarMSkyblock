@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldBorder;
+import team.starm.starmskyblock.config.ConfigManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -36,6 +37,7 @@ public class BorderListener implements Listener {
     private final IslandManager islandManager;
     private final SkyblockWorldManager worldManager;
     private final PlayerRepository playerRepo;
+    private final ConfigManager configManager;
     /** 玩家边界显示开关的 LRU 缓存（容量 1000），减少数据库读取 */
     private final Map<UUID, Boolean> borderCache = new LinkedHashMap<UUID, Boolean>(1000, 0.75f, true) {
         @Override
@@ -46,15 +48,16 @@ public class BorderListener implements Listener {
     /** 岛屿边界缓存：islandId → CachedBorder，避免每次跨区块移动都创建 WorldBorder 对象 */
     private final Map<Integer, CachedBorder> islandBorderCache = new ConcurrentHashMap<>();
 
-    public BorderListener(IslandManager islandManager, SkyblockWorldManager worldManager, PlayerRepository playerRepo) {
+    public BorderListener(IslandManager islandManager, SkyblockWorldManager worldManager, PlayerRepository playerRepo, ConfigManager configManager) {
         this.islandManager = islandManager;
         this.worldManager = worldManager;
         this.playerRepo = playerRepo;
+        this.configManager = configManager;
     }
 
-    /** 查询某玩家是否开启了岛屿边界显示（默认开启） */
+    /** 查询某玩家是否开启了岛屿边界显示（默认由 config.yml 中 show-border-default 控制） */
     public boolean isPlayerShowBorder(UUID playerUuid) {
-        return borderCache.getOrDefault(playerUuid, true);
+        return borderCache.getOrDefault(playerUuid, configManager.isShowBorderDefault());
     }
 
     /** 设置玩家边界显示开关（更新内存缓存 + 数据库） */
@@ -67,8 +70,21 @@ public class BorderListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        playerRepo.savePlayerName(player.getUniqueId(), player.getName());
-        borderCache.put(player.getUniqueId(), playerRepo.isBorderEnabled(player.getUniqueId()));
+        UUID uuid = player.getUniqueId();
+
+        // 先查询数据库中的已保存偏好（玩家无记录时返回 empty，此时使用配置默认值）
+        Optional<Boolean> savedBorder = playerRepo.getBorderEnabled(uuid);
+        boolean showBorder = savedBorder.orElseGet(() -> configManager.isShowBorderDefault());
+
+        // 保存/更新玩家名（新玩家会 INSERT 一行，border_enabled 使用 DEFAULT 0）
+        playerRepo.savePlayerName(uuid, player.getName());
+
+        // 新玩家：将配置默认值持久化到数据库
+        if (savedBorder.isEmpty()) {
+            playerRepo.setBorderEnabled(uuid, showBorder);
+        }
+
+        borderCache.put(uuid, showBorder);
         updatePlayerBorder(player);
     }
 

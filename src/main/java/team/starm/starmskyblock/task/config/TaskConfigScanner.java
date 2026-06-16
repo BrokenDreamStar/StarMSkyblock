@@ -94,9 +94,6 @@ public class TaskConfigScanner {
                 MessageUtil.consoleError("创建任务文件失败: tasks/" + path, e);
             }
         }
-        if (created > 0) {
-            MessageUtil.consolePrint("已创建任务文件 共 " + created + " 个文件");
-        }
     }
 
     public void scan() {

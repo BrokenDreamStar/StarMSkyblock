@@ -15,9 +15,12 @@ import java.net.URI;
 
 import team.starm.starmskyblock.command.AdminCommand;
 import team.starm.starmskyblock.config.ExperienceConfig;
+import team.starm.starmskyblock.config.AuraSkillsContributionConfig;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.config.GeneratorConfigManager;
 import team.starm.starmskyblock.config.PermissionConfigManager;
+import team.starm.starmskyblock.config.LockedAreaConfigManager;
+import team.starm.starmskyblock.config.PublicAreaConfigManager;
 import team.starm.starmskyblock.config.SettingsConfigManager;
 import team.starm.starmskyblock.config.SignConfigManager;
 import team.starm.starmskyblock.config.UpgradeConfigManager;
@@ -33,6 +36,7 @@ import team.starm.starmskyblock.listener.BlockPlaceListener;
 import team.starm.starmskyblock.listener.BorderListener;
 import team.starm.starmskyblock.listener.CobblestoneGeneratorListener;
 import team.starm.starmskyblock.listener.EndProtectionListener;
+import team.starm.starmskyblock.listener.IslandBoundaryListener;
 import team.starm.starmskyblock.listener.ObsidianToLavaListener;
 import team.starm.starmskyblock.listener.PortalListener;
 import team.starm.starmskyblock.listener.RespawnListener;
@@ -88,7 +92,14 @@ public class StarMSkyblock extends JavaPlugin {
 
     // ========== 等级系统 ==========
     private ExperienceConfig experienceConfig;
+    private AuraSkillsContributionConfig auraskillsContributionConfig;
     private LevelManager levelManager;
+
+    // ========== 公共区域 ==========
+    private PublicAreaConfigManager publicAreaConfigManager;
+
+    // ========== 锁定区域 ==========
+    private LockedAreaConfigManager lockedAreaConfigManager;
 
     // ========== 任务系统 ==========
     private TaskConfigScanner taskConfigScanner;
@@ -108,7 +119,7 @@ public class StarMSkyblock extends JavaPlugin {
         if (!checkWorldEdit()) return;
         initConfigs();
         extractSchematics();
-        initDatabase();
+        initDatabase();         // 必须在 initTasks() 之前，因为 TaskManager 依赖 PlayerRepository
         initTasks();
         initSchematicManager();
         initGridAndIslands();
@@ -180,6 +191,12 @@ public class StarMSkyblock extends JavaPlugin {
 
         upgradeConfigManager = new UpgradeConfigManager(this);
         upgradeConfigManager.initialize();
+
+        publicAreaConfigManager = new PublicAreaConfigManager(this);
+        publicAreaConfigManager.initialize();
+
+        lockedAreaConfigManager = new LockedAreaConfigManager(this);
+        lockedAreaConfigManager.initialize();
     }
 
     private void initDatabase() {
@@ -215,7 +232,12 @@ public class StarMSkyblock extends JavaPlugin {
     private void initLevelSystem() {
         experienceConfig = new ExperienceConfig(this);
         experienceConfig.initialize();
-        levelManager = new LevelManager(this, experienceConfig, islandManager, worldManager);
+
+        auraskillsContributionConfig = new AuraSkillsContributionConfig(this);
+        auraskillsContributionConfig.initialize();
+
+        levelManager = new LevelManager(this, experienceConfig, auraskillsContributionConfig,
+                islandManager, worldManager);
     }
 
     private void initInvitations() {
@@ -225,7 +247,7 @@ public class StarMSkyblock extends JavaPlugin {
     }
 
     private void initPermissions() {
-        permissionCoordinator = new IslandPermissionManager(islandManager, configManager, this);
+        permissionCoordinator = new IslandPermissionManager(islandManager, configManager, publicAreaConfigManager, lockedAreaConfigManager, this);
     }
 
     private void registerIntegrations() {
@@ -277,7 +299,7 @@ public class StarMSkyblock extends JavaPlugin {
     }
 
     private void registerListeners() {
-        borderListener = new BorderListener(islandManager, worldManager, playerRepo);
+        borderListener = new BorderListener(islandManager, worldManager, playerRepo, configManager);
         getServer().getPluginManager().registerEvents(borderListener, this);
         getServer().getPluginManager().registerEvents(
                 new PortalListener(configManager, worldManager, islandManager, playerRepo), this);
@@ -285,11 +307,16 @@ public class StarMSkyblock extends JavaPlugin {
         teleportCountdownListener = new TeleportCountdownListener(this);
         getServer().getPluginManager().registerEvents(teleportCountdownListener, this);
 
-        new IslandSettingManager(islandManager, configManager, this);
+        new IslandSettingManager(islandManager, configManager, publicAreaConfigManager, lockedAreaConfigManager, this);
 
         getServer().getPluginManager().registerEvents(new EndProtectionListener(worldManager), this);
 
         getServer().getPluginManager().registerEvents(new BlockPlaceListener(worldManager, configManager), this);
+
+        if (publicAreaConfigManager.isEnabled()) {
+            getServer().getPluginManager().registerEvents(
+                    new IslandBoundaryListener(islandManager, worldManager, configManager), this);
+        }
 
         if (generatorConfigManager.isEnabled()) {
             getServer().getPluginManager().registerEvents(
@@ -299,7 +326,7 @@ public class StarMSkyblock extends JavaPlugin {
 
         if (configManager.isObsidianToLava()) {
             getServer().getPluginManager().registerEvents(
-                    new ObsidianToLavaListener(islandManager, configManager), this);
+                    new ObsidianToLavaListener(islandManager, configManager, publicAreaConfigManager, lockedAreaConfigManager), this);
 //            MessageUtil.consolePrint("已注册黑曜石转熔岩监听器");
         }
 
@@ -344,6 +371,14 @@ public class StarMSkyblock extends JavaPlugin {
 
     public static StarMSkyblock getInstance() {
         return instance;
+    }
+
+    public LockedAreaConfigManager getLockedAreaConfigManager() {
+        return lockedAreaConfigManager;
+    }
+
+    public PublicAreaConfigManager getPublicAreaConfigManager() {
+        return publicAreaConfigManager;
     }
 
     public ConfigManager getConfigManager() {
@@ -456,10 +491,13 @@ public class StarMSkyblock extends JavaPlugin {
                 "default_the_end.schem"
         };
 
+        int extracted = 0;
         for (String fileName : schematicFiles) {
             File targetFile = new File(schematicsFolder, fileName);
-            if (targetFile.exists())
+            if (targetFile.exists()) {
+                extracted++;
                 continue;
+            }
 
             try (InputStream inputStream = getResource("schematics/" + fileName)) {
                 if (inputStream == null) {
@@ -467,11 +505,12 @@ public class StarMSkyblock extends JavaPlugin {
                     continue;
                 }
                 Files.copy(inputStream, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                MessageUtil.consolePrint("已创建schematics文件: " + fileName);
             } catch (IOException e) {
                 MessageUtil.consoleError("创建schematics文件时发生错误: " + fileName, e);
             }
+            extracted++;
         }
+        MessageUtil.consolePrint("已加载 " + extracted + " 个岛屿模板结构文件");
     }
 
     private void extractSkyblockMenu() {

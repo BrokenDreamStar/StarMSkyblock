@@ -102,7 +102,7 @@ blocks:
   FROSTED_ICE: 1     # 霜冰
   GOLD_BLOCK: 250 # 金块
   IRON_BLOCK: 50  # 铁块
-  IRON_CHAIN: 2   # 铁锁链
+  IRON_CHAIN: 3  # 铁锁链
   KELP: 1          # 海带
   LAPIS_BLOCK: 50  # 青金石块
   PITCHER_CROP: 1       # 瓶子草植株
@@ -168,7 +168,6 @@ blocks:
   CARVED_PUMPKIN: 1  # 雕刻南瓜
   CAULDRON: 1  # 炼药锅
   CAVE_VINES: 1  # 洞穴藤蔓
-  CHAIN: 2  # 铁链
   CHERRY_BUTTON: 1  # 樱花木按钮
   CHERRY_DOOR: 2  # 樱花木门
   CHERRY_FENCE: 1  # 樱花木栅栏
@@ -420,7 +419,7 @@ blocks:
   GREEN_WOOL: 10  # 绿色羊毛
   GRINDSTONE: 5  # 砂轮
   HANGING_ROOTS: 1  # 垂根
-  HAY_BALE: 1  # 干草捆
+  HAY_BLOCK: 1  # 干草捆
   HEAVY_CORE: 80  # 沉重核心
   HEAVY_WEIGHTED_PRESSURE_PLATE: 5  # 重质测重压力板
   HONEY_BLOCK: 5  # 蜂蜜块
@@ -435,7 +434,7 @@ blocks:
   IRON_ORE: 30  # 铁矿石
   IRON_TRAPDOOR: 3  # 铁活板门
   ITEM_FRAME: 1  # 物品展示框
-  JACK_OLANTERN: 1  # 南瓜灯
+  JACK_O_LANTERN: 1  # 南瓜灯
   JUKEBOX: 20  # 唱片机
   JUNGLE_BUTTON: 1  # 丛林木按钮
   JUNGLE_DOOR: 2  # 丛林木门
@@ -1003,31 +1002,30 @@ blocks:
   YELLOW_TERRACOTTA: 20  # 黄色陶瓦
   YELLOW_WOOL: 10  # 黄色羊毛
   ZOMBIE_HEAD: 5  # 僵尸的头
-  # ============================================
-  # 方块数量上限
-  # 每种方块在单次岛屿扫描中的有效计数上限。
-  # 上限基于"实际放置数 - 模板基线(初始空岛自带)"计算，超出上限的部分：
-  #   - 启用超额递减(diminishing)时：按递减公式继续产生经验值
-  #   - 未启用递减时：超额部分经验值为 0
-  # 未在此处列出的方块无上限（Long.MAX_VALUE）。
-  # 格式: MATERIAL_NAME: 数量上限
-  # ============================================
-  limits:
-    NETHERITE_BLOCK: 30000
-    EMERALD_BLOCK: 30000
-    DIAMOND_BLOCK: 50000
+# ============================================
+# 方块数量上限
+# 每种方块在单次岛屿扫描中的有效计数上限。
+# 上限基于"实际放置数 - 模板基线(初始空岛自带)"计算，超出上限的部分：
+#   - 启用超额递减(diminishing)时：按递减公式继续产生经验值
+#   - 未启用递减时：超额部分经验值为 0
+# 未在此处列出的方块无上限（Long.MAX_VALUE）。
+# 格式: MATERIAL_NAME: 数量上限
+# ============================================
+limits:
+  NETHERITE_BLOCK: 30000
+  EMERALD_BLOCK: 30000
+  DIAMOND_BLOCK: 50000
 
 # ============================================
 # 超额经验值递减配置
-# 达到阈值后，超额方块不再直接经验值为 0，
-# 而是按递减公式逐渐降低经验值，最终趋于最低值。
-# decay:   递减系数（越大经验值下降越快）
-#          每增加一个超额方块：value = baseValue / (1 + decay * i)
-#          decay=0.001 ≈ 1000 块后价值折半
-#          decay=0.0005 ≈ 2000 块后价值折半
+# 达到阈值后，超额方块按递减公式逐渐降低经验值，最终趋于最低值。
+# decay:   递减系数（越大下降越快）
+#          每增加一个超额方块：value = baseValue / (1 + decay × 超额数量)
+#          decay=0.001 → 约 1000 块后价值折半
+#          decay=0.0005 → 约 2000 块后价值折半
 # minimum: 单个方块的最低经验值（最低为 1）
-# 适用于所有在 limits 中配置了阈值的方块。
-# 未配置本段 或 enabled: false 时保持原行为（超额经验值为 0）。
+# 仅对 limits 中配置了阈值的方块有效。
+# 未配置本段或 enabled: false 时超额方块的经验值直接为0。
 # ============================================
 diminishing:
   enabled: true

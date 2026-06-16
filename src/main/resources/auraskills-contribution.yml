@@ -1,0 +1,12 @@
+# AuraSkills 对岛屿等级的贡献配置
+# 岛屿所有成员的 AuraSkills PowerLevel 总和将按比例转换为额外的岛屿等级
+
+# 是否启用 AuraSkills 加成
+enabled: true
+
+# 加成等级 = 全体成员 PowerLevel 总和 / coefficient
+# 例如 coefficient: 20, 全体成员 PowerLevel 总和为 500, 则加成 25 级
+coefficient: 45.0
+
+# 最大加成等级上限，0 表示不限制
+max-bonus-level: 0

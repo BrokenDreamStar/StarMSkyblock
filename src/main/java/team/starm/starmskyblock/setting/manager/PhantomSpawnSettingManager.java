@@ -8,6 +8,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 
 import team.starm.starmskyblock.config.ConfigManager;
+import team.starm.starmskyblock.config.PublicAreaConfigManager;
+import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.setting.BaseSettingManager;
 import team.starm.starmskyblock.setting.IslandSetting;
@@ -20,8 +22,10 @@ import team.starm.starmskyblock.setting.IslandSetting;
  */
 public class PhantomSpawnSettingManager extends BaseSettingManager {
 
-    public PhantomSpawnSettingManager(IslandManager islandManager, ConfigManager configManager) {
-        super(islandManager, configManager);
+    public PhantomSpawnSettingManager(IslandManager islandManager, ConfigManager configManager,
+                                        PublicAreaConfigManager publicAreaConfig,
+                                        LockedAreaConfigManager lockedAreaConfig) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
     }
 
     /**
