@@ -58,6 +58,8 @@ public class IslandManager {
     private final Map<String, Set<Integer>> islandNameIndex = new ConcurrentHashMap<>();
     /** 下一个可用岛屿 ID（自增） */
     private final AtomicInteger nextIslandId = new AtomicInteger(0);
+    /** createIsland 的 per-owner 锁，防止同一玩家并发 /is create 通过 containsKey 检查后双双进入创建流程 */
+    private final Map<UUID, Object> createIslandLocks = new ConcurrentHashMap<>();
 
     public IslandManager(ConfigManager configManager, PermissionConfigManager permissionConfigManager,
             SettingsConfigManager settingsConfigManager, GridManager gridManager,
@@ -78,6 +80,9 @@ public class IslandManager {
      */
     private void loadIslandsFromDatabase() {
         int maxId = -1;
+        // 收集启动期需要设置默认权限的岛屿,循环结束后一次 batch flush,
+        // 避免在每个需要补权限的岛屿上独立 writeLock → prepare → executeUpdate。
+        java.util.Map<Integer, String> defaultPermissionUpdates = new java.util.HashMap<>();
 
         for (IslandRepository.IslandRow row : islandRepo.loadAllIslands()) {
             int id = row.id();
@@ -130,20 +135,17 @@ public class IslandManager {
             if (permissionsJson == null || permissionsJson.isEmpty() || permissionsJson.equals("{}")) {
                 permissionConfigManager.getDefaultMinLevels()
                         .forEach(island::setPermissionMinLevel);
-                islandRepo.savePermissions(id, island.getPermissionsJson());
+                defaultPermissionUpdates.put(id, island.getPermissionsJson());
             }
 
             String homeData = row.homeData();
             island.setHomeFromJson(homeData);
             if (homeData != null && !homeData.isEmpty() && !homeData.equals("{}")) {
                 try {
-                    var homeMap = GSON.fromJson(homeData, java.util.Map.class);
-                    if (homeMap != null && homeMap.containsKey("world")) {
-                        Island.WorldType worldType = Island.WorldType.valueOf((String) homeMap.get("world"));
-                        double hx = ((Number) homeMap.get("x")).doubleValue();
-                        double hy = ((Number) homeMap.get("y")).doubleValue();
-                        double hz = ((Number) homeMap.get("z")).doubleValue();
-                        island.setCustomHome(worldType, hx, hy, hz);
+                    HomeLocation home = HomeLocation.fromJson(homeData);
+                    if (home != null) {
+                        island.setCustomHome(home.getWorldType(), home.getX(), home.getY(), home.getZ(),
+                                home.getYaw(), home.getPitch());
                     }
                 } catch (Exception e) {
                     MessageUtil.consoleWarn("解析岛屿 home 数据失败，ID: " + id + "，数据: " + homeData);
@@ -162,6 +164,10 @@ public class IslandManager {
         }
 
         nextIslandId.set(maxId + 1);
+
+        if (!defaultPermissionUpdates.isEmpty()) {
+            islandRepo.batchSavePermissions(defaultPermissionUpdates);
+        }
 
         for (IslandRepository.MemberRow row : islandRepo.loadAllMembers()) {
             Island island = islandsById.get(row.islandId());
@@ -187,9 +193,13 @@ public class IslandManager {
     }
 
     public Island createIsland(UUID ownerId, String schematicId, String name) {
-        if (islandsByOwner.containsKey(ownerId)) {
-            throw new IllegalStateException("该玩家已经拥有一个岛屿！");
-        }
+        // 用 per-owner 锁串行化同一玩家的创建请求，防止 containsKey 与 put 之间
+        // 另一线程通过检查 → 双重插入岛屿。
+        Object lock = createIslandLocks.computeIfAbsent(ownerId, k -> new Object());
+        synchronized (lock) {
+            if (islandsByOwner.containsKey(ownerId)) {
+                throw new IllegalStateException("该玩家已经拥有一个岛屿！");
+            }
 
         int islandId = nextIslandId.getAndIncrement();
         int defaultRadius = configManager.getIslandRadius();
@@ -230,6 +240,7 @@ public class IslandManager {
         MessageUtil.consolePrint("玩家" + playerName + "已创建岛屿 ID:" + islandId + " 中心区块坐标: " + location);
 
         return island;
+        } // synchronized (lock)
     }
 
     /** 根据岛屿 ID 查询岛屿 */
@@ -319,15 +330,15 @@ public class IslandManager {
 
         Island island = optionalIsland.get();
         return island.isChunkWithinIsland(
-                player.getLocation().getChunk().getX(),
-                player.getLocation().getChunk().getZ());
+                player.getLocation().getBlockX() >> 4,
+                player.getLocation().getBlockZ() >> 4);
     }
 
     /** 判断某玩家当前是否在指定岛屿范围内 */
     public boolean isPlayerOnIsland(Player player, Island island) {
         return island.isChunkWithinIsland(
-                player.getLocation().getChunk().getX(),
-                player.getLocation().getChunk().getZ());
+                player.getLocation().getBlockX() >> 4,
+                player.getLocation().getBlockZ() >> 4);
     }
 
     /** 更新岛屿半径（不超过配置的最大值），同步写库 */
@@ -375,13 +386,13 @@ public class IslandManager {
         return false;
     }
 
-    /** 更新岛屿自定义传送点，同步写库 */
-    public boolean updateIslandCustomHome(int id, Island.WorldType worldType, double x, double y, double z) {
+    /** 更新岛屿自定义传送点（含朝向），同步写库 */
+    public boolean updateIslandCustomHome(int id, Island.WorldType worldType, double x, double y, double z, float yaw, float pitch) {
         Island island = islandsById.get(id);
         if (island != null) {
-            String json = "{\"world\":\"" + worldType.name() + "\",\"x\":" + x + ",\"y\":" + y + ",\"z\":" + z + "}";
+            String json = HomeLocation.toJson(worldType, x, y, z, yaw, pitch);
             islandRepo.updateHomeData(id, json);
-            island.setCustomHome(worldType, x, y, z);
+            island.setCustomHome(worldType, x, y, z, yaw, pitch);
             return true;
         }
         return false;
@@ -399,7 +410,7 @@ public class IslandManager {
     }
 
     /** 更新岛屿设置（PVP、生成等开关），同步写库 */
-    public boolean updateIslandSettings(int islandId, Island island) {
+    public boolean updateIslandSettings(int islandId) {
         Island stored = islandsById.get(islandId);
         if (stored != null) {
             islandRepo.updateSettings(islandId, stored.getSettingsJson());
@@ -681,24 +692,7 @@ public class IslandManager {
 
     /** 从内存索引中移除岛屿（保留数据库记录，用于重载等场景） */
     public void removeIslandFromMemory(Island island) {
-        islandsById.remove(island.getId());
-        islandsByOwner.remove(island.getOwnerId());
-        removeFromGridIndex(island);
-        for (UUID memberUuid : island.getMembers().keySet()) {
-            memberToIslandIndex.remove(memberUuid);
-        }
-        memberToIslandIndex.remove(island.getOwnerId());
-        for (UUID coopUuid : island.getCoops()) {
-            Set<Integer> coopIslands = coopToIslandsIndex.get(coopUuid);
-            if (coopIslands != null) {
-                coopIslands.remove(island.getId());
-                if (coopIslands.isEmpty()) {
-                    coopToIslandsIndex.remove(coopUuid);
-                }
-            }
-        }
-        deleteCountCache.remove(island.getOwnerId());
-        removeFromNameIndex(island);
+        cleanupIndices(island);
     }
 
     /** 从数据库删除岛屿（含成员和合作者级联删除），保留内存索引 */
@@ -711,7 +705,16 @@ public class IslandManager {
     /** 完整删除岛屿：数据库 + 所有内存索引全部清理 */
     public boolean deleteIsland(Island island) {
         islandRepo.deleteIslandCascade(island.getId());
+        cleanupIndices(island);
+        return true;
+    }
 
+    /**
+     * 从 6 个内存索引中清理岛屿。
+     * 由 {@link #removeIslandFromMemory(Island)} 和 {@link #deleteIsland(Island)} 共用，
+     * 避免两处维护同一份索引清理逻辑产生漂移。
+     */
+    private void cleanupIndices(Island island) {
         islandsById.remove(island.getId());
         islandsByOwner.remove(island.getOwnerId());
         removeFromGridIndex(island);
@@ -732,8 +735,6 @@ public class IslandManager {
         }
         deleteCountCache.remove(island.getOwnerId());
         removeFromNameIndex(island);
-
-        return true;
     }
 
     /**

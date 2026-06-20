@@ -250,13 +250,7 @@ public class ToolPermissionManager extends BasePermissionManager {
      * @param event 桶事件实例
      */
     private void handleBucketEvent(PlayerBucketEvent event) {
-        Player player = event.getPlayer();
-        Block block = event.getBlockClicked();
-        Location location = block.getLocation();
-        if (!checkPermission(location, player.getUniqueId(), IslandPermission.BUCKET_USE)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.BUCKET_USE);
-        }
+        enforce(event, event.getBlockClicked().getLocation(), event.getPlayer(), IslandPermission.BUCKET_USE);
     }
 
     /**
@@ -270,11 +264,7 @@ public class ToolPermissionManager extends BasePermissionManager {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerFish(PlayerFishEvent event) {
         if (event.getState() == PlayerFishEvent.State.FISHING) {
-            Player player = event.getPlayer();
-            if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.FISHING_ROD_USE)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.FISHING_ROD_USE);
-            }
+            enforce(event, event.getPlayer().getLocation(), event.getPlayer(), IslandPermission.FISHING_ROD_USE);
         }
     }
 

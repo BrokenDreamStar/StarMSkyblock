@@ -46,6 +46,7 @@ public class DeleteCommand extends SubCommand {
 
         World mainWorld = Bukkit.getWorlds().getFirst();
         for (Player p : Bukkit.getOnlinePlayers()) {
+            if (!plugin.getWorldManager().isSkyblockWorld(p.getWorld())) continue;
             if (islandManager.isPlayerOnIsland(p, island)) {
                 p.teleport(mainWorld.getSpawnLocation());
                 MessageUtil.sendMessage(p, "&c由于当前所在岛屿被删除，你已被传送到出生点。");

@@ -108,6 +108,10 @@ public class StarMSkyblock extends JavaPlugin {
     // Vault 经济
     private net.milkbowl.vault.economy.Economy economy;
 
+    // 具名监听器字段（onDisable 时由 HandlerList.unregisterAll(this) 统一注销）
+    private org.bukkit.event.Listener skullRefreshListener;
+    private org.bukkit.event.Listener trMenuLateLoadListener;
+
     /**
      * 插件启用入口。将初始化分解为独立步骤，保证依赖关系正确。
      */
@@ -118,7 +122,8 @@ public class StarMSkyblock extends JavaPlugin {
 
         if (!checkWorldEdit()) return;
         initConfigs();
-        extractSchematics();
+        // extractSchematics 是纯文件 IO,异步执行不阻塞主线程启动链
+        Bukkit.getScheduler().runTaskAsynchronously(this, this::extractSchematics);
         initDatabase();         // 必须在 initTasks() 之前，因为 TaskManager 依赖 PlayerRepository
         initTasks();
         initSchematicManager();
@@ -203,7 +208,8 @@ public class StarMSkyblock extends JavaPlugin {
         sqliteManager = new SQLiteManager(getDataFolder());
         sqliteManager.init();
         playerRepo = new PlayerRepository(sqliteManager);
-        playerRepo.warmUpPlayerNameCache();
+        // warmUpPlayerNameCache 是纯 DB 全表扫描 + 缓存填充,异步执行避免主线程启动阻塞
+        Bukkit.getScheduler().runTaskAsynchronously(this, playerRepo::warmUpPlayerNameCache);
         SkullManager.initDatabase(sqliteManager);
     }
 
@@ -257,7 +263,7 @@ public class StarMSkyblock extends JavaPlugin {
             MessageUtil.consolePrint("已注册 PlaceholderAPI 扩展");
         }
 
-        getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener() {
+        skullRefreshListener = new org.bukkit.event.Listener() {
             @org.bukkit.event.EventHandler
             public void onJoin(org.bukkit.event.player.PlayerJoinEvent event) {
                 org.bukkit.entity.Player player = event.getPlayer();
@@ -265,9 +271,33 @@ public class StarMSkyblock extends JavaPlugin {
                         StarMSkyblock.this,
                         () -> SkullManager.refreshTexture(player.getUniqueId(), player.getName()));
             }
-        }, this);
+        };
+        getServer().getPluginManager().registerEvents(skullRefreshListener, this);
+
+        // TrMenu 后加载场景：PluginEnableEvent 触发时再 hook 一次
+        trMenuLateLoadListener = new org.bukkit.event.Listener() {
+            @org.bukkit.event.EventHandler
+            public void onPluginEnable(org.bukkit.event.server.PluginEnableEvent event) {
+                if ("TrMenu".equals(event.getPlugin().getName())) {
+                    hookTrMenu();
+                }
+            }
+        };
+        getServer().getPluginManager().registerEvents(trMenuLateLoadListener, this);
 
         if (getServer().getPluginManager().getPlugin("TrMenu") != null) {
+            hookTrMenu();
+        }
+
+        setupVault();
+    }
+
+    /**
+     * 注册 TrMenu JS 桥接 + 提取菜单文件。幂等：putBinding 走 Map.put，extractSkyblockMenu 内部判存在。
+     * try/catch Throwable 兜住 TrMenu 缺类时的 NoClassDefFoundError / LinkageError。
+     */
+    private void hookTrMenu() {
+        try {
             JavaScriptAgent.INSTANCE.putBinding("StarMSkyblockAPI", new StarMSkyblockHook());
             MessageUtil.consolePrint("已注册 TrMenu JS 物品源桥接");
 
@@ -275,9 +305,9 @@ public class StarMSkyblock extends JavaPlugin {
             if (!menuDir.exists()) {
                 extractSkyblockMenu();
             }
+        } catch (Throwable t) {
+            MessageUtil.consoleError("TrMenu hook 失败: " + t.getMessage(), t);
         }
-
-        setupVault();
     }
 
     private void setupVault() {
@@ -360,6 +390,10 @@ public class StarMSkyblock extends JavaPlugin {
         if (taskManager != null) {
             taskManager.saveAll();
         }
+
+        // 注销本插件注册的所有 Listener（含权限/设置组合监听器、skullRefresh、trMenuLateLoad 等），
+        // 避免 /reload 后旧监听器残留导致内存泄漏和重复触发
+        org.bukkit.event.HandlerList.unregisterAll(this);
 
         org.bukkit.Bukkit.getScheduler().cancelTasks(this);
 

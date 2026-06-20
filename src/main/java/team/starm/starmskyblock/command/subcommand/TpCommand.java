@@ -96,7 +96,8 @@ public class TpCommand extends SubCommand {
                 default -> worldManager.getSkyblockWorld();
             };
             spawnLocation = new Location(targetWorld,
-                    targetIsland.getCustomHomeX(), targetIsland.getCustomHomeY(), targetIsland.getCustomHomeZ());
+                    targetIsland.getCustomHomeX(), targetIsland.getCustomHomeY(), targetIsland.getCustomHomeZ(),
+                    targetIsland.getCustomHomeYaw(), targetIsland.getCustomHomePitch());
         } else {
             targetWorld = worldManager.getSkyblockWorld();
             double[] offsets = config.getTeleportOffsetsBySchematicAndWorldType(
@@ -104,7 +105,8 @@ public class TpCommand extends SubCommand {
             double teleportX = (targetIsland.getCenterChunkX() * 16) + 8 + offsets[0];
             double teleportY = config.getIslandHeight() + offsets[1];
             double teleportZ = (targetIsland.getCenterChunkZ() * 16) + 8 + offsets[2];
-            spawnLocation = new Location(targetWorld, teleportX, teleportY, teleportZ);
+            spawnLocation = new Location(targetWorld, teleportX, teleportY, teleportZ,
+                    (float) offsets[3], (float) offsets[4]);
         }
 
         boolean confirmed = args.length > confirmArgIndex && args[confirmArgIndex].equalsIgnoreCase("confirm");

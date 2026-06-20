@@ -79,9 +79,8 @@ public class EntityPermissionManager extends BasePermissionManager {
             default -> null;
         };
 
-        if (permission != null && !checkPermission(targetEntity.getLocation(), player.getUniqueId(), permission)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, permission);
+        if (permission != null) {
+            enforce(event, targetEntity.getLocation(), player, permission);
         }
     }
 
@@ -95,12 +94,8 @@ public class EntityPermissionManager extends BasePermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onArmorStandManipulate(PlayerArmorStandManipulateEvent event) {
-        Player player = event.getPlayer();
-        ArmorStand armorStand = event.getRightClicked();
-        if (!checkPermission(armorStand.getLocation(), player.getUniqueId(), IslandPermission.ARMOR_STAND_INTERACT)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.ARMOR_STAND_INTERACT);
-        }
+        enforce(event, event.getRightClicked().getLocation(), event.getPlayer(),
+                IslandPermission.ARMOR_STAND_INTERACT);
     }
 
     /**
@@ -126,10 +121,7 @@ public class EntityPermissionManager extends BasePermissionManager {
         }
 
         if (isAnimalFeedItem(entity, item.getType())) {
-            if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.ANIMAL_FEED)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.ANIMAL_FEED);
-            }
+            enforce(event, entity.getLocation(), player, IslandPermission.ANIMAL_FEED);
         }
     }
 
@@ -190,10 +182,7 @@ public class EntityPermissionManager extends BasePermissionManager {
         }
 
         if ((targetSlot != null && equipment.getItem(targetSlot).getType().isAir()) || isEquippingChest) {
-            if (!checkPermission(entity.getLocation(), player.getUniqueId(), IslandPermission.ENTITY_EQUIP)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.ENTITY_EQUIP);
-            }
+            enforce(event, entity.getLocation(), player, IslandPermission.ENTITY_EQUIP);
         }
     }
 
@@ -212,10 +201,7 @@ public class EntityPermissionManager extends BasePermissionManager {
         }
         Entity mount = event.getMount();
         if (EntityTags.RIDEABLE.contains(mount.getType())) {
-            if (!checkPermission(mount.getLocation(), player.getUniqueId(), IslandPermission.ENTITY_RIDE)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.ENTITY_RIDE);
-            }
+            enforce(event, mount.getLocation(), player, IslandPermission.ENTITY_RIDE);
         }
     }
 
@@ -232,11 +218,8 @@ public class EntityPermissionManager extends BasePermissionManager {
             return;
         }
         if (event.getRightClicked() instanceof AbstractVillager) {
-            Player player = event.getPlayer();
-            if (!checkPermission(event.getRightClicked().getLocation(), player.getUniqueId(), IslandPermission.VILLAGER_TRADE)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.VILLAGER_TRADE);
-            }
+            enforce(event, event.getRightClicked().getLocation(), event.getPlayer(),
+                    IslandPermission.VILLAGER_TRADE);
         }
     }
 
@@ -263,10 +246,7 @@ public class EntityPermissionManager extends BasePermissionManager {
             return;
         }
 
-        if (!checkPermission(event.getRightClicked().getLocation(), player.getUniqueId(), IslandPermission.BARTERING)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.BARTERING);
-        }
+        enforce(event, event.getRightClicked().getLocation(), player, IslandPermission.BARTERING);
     }
 
     /**

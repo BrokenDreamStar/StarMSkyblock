@@ -24,6 +24,8 @@ public class SQLiteManager {
     private final File dataFolder;
     private Connection connection;
     private PreparedStatement saveSkinStmt;
+    /** 按 SQL 语句缓存的 PreparedStatement,避免每次执行重新编译。在 close() 中统一释放。 */
+    private final java.util.Map<String, PreparedStatement> preparedStatementCache = new java.util.HashMap<>();
     private final ReentrantReadWriteLock dbLock = new ReentrantReadWriteLock();
 
     public SQLiteManager(File dataFolder) {
@@ -34,6 +36,7 @@ public class SQLiteManager {
         dbLock.writeLock().lock();
         try {
             if (connection != null) {
+                closePreparedStatements();
                 try { connection.close(); } catch (SQLException ignored) {}
             }
             if (!dataFolder.exists()) {
@@ -157,6 +160,30 @@ public class SQLiteManager {
         }
     }
 
+    // ==================== PreparedStatement 缓存 ====================
+
+    /**
+     * 获取或创建缓存的 PreparedStatement。
+     * 调用方<b>不应当</b>在 try-with-resources 中关闭返回的语句,关闭由 {@link #close()} 统一执行。
+     * 注意:当连接重新创建(init())时,缓存的语句会失效,届时需由调用方调用
+     * {@link #closePreparedStatements()} 或重新 init。
+     */
+    public PreparedStatement prepareCached(String sql) throws SQLException {
+        PreparedStatement ps = preparedStatementCache.get(sql);
+        if (ps == null || ps.isClosed()) {
+            ps = connection.prepareStatement(sql);
+            preparedStatementCache.put(sql, ps);
+        }
+        return ps;
+    }
+
+    public void closePreparedStatements() {
+        for (PreparedStatement ps : preparedStatementCache.values()) {
+            try { ps.close(); } catch (SQLException ignored) {}
+        }
+        preparedStatementCache.clear();
+    }
+
     // ==================== 公共同步锁与连接 ====================
 
     public ReentrantReadWriteLock getDbLock() {
@@ -182,9 +209,19 @@ public class SQLiteManager {
                 T result = callback.execute(connection);
                 connection.commit();
                 return result;
-            } catch (SQLException e) {
-                connection.rollback();
-                throw e;
+            } catch (Throwable t) {
+                // 必须 catch Throwable 而非 SQLException：callback 抛 RuntimeException 时
+                // 原实现只 catch SQLException，rollback() 不会执行，finally 的
+                // setAutoCommit(true) 会把已写入的部分静默提交。
+                try {
+                    connection.rollback();
+                } catch (SQLException re) {
+                    MessageUtil.consoleWarn("事务回滚失败: " + re.getMessage());
+                }
+                if (t instanceof SQLException sqle) throw sqle;
+                if (t instanceof Error error) throw error;
+                if (t instanceof RuntimeException re) throw re;
+                throw new RuntimeException(t);
             } finally {
                 connection.setAutoCommit(true);
             }
@@ -202,15 +239,19 @@ public class SQLiteManager {
                     op.accept(connection);
                 }
                 connection.commit();
-            } catch (SQLException e) {
+            } catch (RuntimeException | SQLException e) {
+                // 回调抛 RuntimeException 或 SQL 失败时统一 rollback，
+                // 避免半提交数据残留。原实现仅 catch SQLException，
+                // 回调 RuntimeException 会跳过 rollback 直接外溢。
                 try { connection.rollback(); } catch (SQLException ignored) {}
-                throw new RuntimeException(e);
+                throw e instanceof RuntimeException re ? re : new RuntimeException(e);
             } finally {
                 try { connection.setAutoCommit(true); } catch (SQLException e) {
                     MessageUtil.consoleWarn("batchWrite 恢复 autoCommit 失败");
                 }
             }
         } catch (SQLException e) {
+            // 仅 setAutoCommit(false) 失败路径：未进入事务，无需 rollback。
             throw new RuntimeException(e);
         } finally {
             dbLock.writeLock().unlock();
@@ -263,6 +304,7 @@ public class SQLiteManager {
         dbLock.writeLock().lock();
         try {
             try {
+                closePreparedStatements();
                 if (saveSkinStmt != null && !saveSkinStmt.isClosed()) {
                     saveSkinStmt.close();
                 }

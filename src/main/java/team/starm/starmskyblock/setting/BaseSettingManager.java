@@ -67,8 +67,8 @@ public abstract class BaseSettingManager implements Listener {
         // 先检查最大范围，判断是否在锁定区域
         Island maxRangeIsland = getIslandAtMaxRange(location);
         if (maxRangeIsland != null) {
-            int chunkX = location.getChunk().getX();
-            int chunkZ = location.getChunk().getZ();
+            int chunkX = location.getBlockX() >> 4;
+            int chunkZ = location.getBlockZ() >> 4;
             if (maxRangeIsland.isChunkWithinIsland(chunkX, chunkZ)) {
                 // 在已解锁区域内 → 使用岛屿自身的设置
                 return maxRangeIsland.getSetting(setting);
@@ -97,8 +97,8 @@ public abstract class BaseSettingManager implements Listener {
         }
 
         return islandManager.getIslandAtMaxRange(
-                location.getChunk().getX(),
-                location.getChunk().getZ()
+                location.getBlockX() >> 4,
+                location.getBlockZ() >> 4
         ).orElse(null);
     }
 
@@ -119,8 +119,8 @@ public abstract class BaseSettingManager implements Listener {
         }
 
         return islandManager.getIslandAt(
-                location.getChunk().getX(),
-                location.getChunk().getZ()
+                location.getBlockX() >> 4,
+                location.getBlockZ() >> 4
         ).orElse(null);
     }
 }

@@ -44,14 +44,18 @@ public class BlockBreakTaskListener extends BaseTaskListener {
         if (player == null) return;
         Block block = event.getBlock();
         long ck = chunkKey(block);
-        Set<Long> inner = playerPlacedBlocks.get(ck);
-        boolean isNatural = true;
-        if (inner != null) {
-            isNatural = !inner.remove(blockKey(block));
-            if (inner.isEmpty()) {
-                playerPlacedBlocks.remove(ck);
-            }
-        }
+        long bk = blockKey(block);
+
+        // 用 computeIfPresent 原子化"移除方块键 + 空集清理"，避免原实现
+        // `inner.isEmpty()` 与 `remove(ck)` 之间另一线程 `computeIfAbsent().add()`
+        // 被抹掉 → 误判为自然方块的竞态。
+        boolean[] removed = { false };
+        playerPlacedBlocks.computeIfPresent(ck, (k, set) -> {
+            removed[0] = set.remove(bk);
+            return set.isEmpty() ? null : set;
+        });
+        boolean isNatural = !removed[0];
+
         taskManager.incrementNaturalProgress(player, TaskType.BLOCK_BREAK,
                 block.getType().name(), 1, isNatural);
     }
@@ -72,9 +76,14 @@ public class BlockBreakTaskListener extends BaseTaskListener {
     private static long chunkKey(String worldName, int cx, int cz) {
         int worldIndex = WORLD_INDICES.computeIfAbsent(
                 worldName, k -> NEXT_WORLD_INDEX.getAndIncrement());
-        return ((long) (worldIndex & 0xFF) << 56)
-             | ((long) (cx & 0xFFFFFF) << 32)
-             | (cz & 0xFFFFFFFFL);
+        if ((worldIndex & 0xFFFF) != worldIndex) {
+            throw new IllegalStateException("worldIndex exceeds 16 bits: " + worldIndex);
+        }
+        // 16-bit worldIndex | 16-bit chunkX | 16-bit chunkZ = 48 bits, fits in a long.
+        // chunkX/Z cover ±32767 chunks = ±524272 blocks, far beyond island sizes.
+        return ((long) (worldIndex & 0xFFFF) << 32)
+             | ((long) (cx & 0xFFFF) << 16)
+             | (cz & 0xFFFFL);
     }
 
     private static long blockKey(Block block) {

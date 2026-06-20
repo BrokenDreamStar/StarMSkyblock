@@ -55,11 +55,9 @@ public class WorkblockPermissionManager extends BasePermissionManager {
 
         IslandPermission permission = getWorkblockPermission(material);
         // 营火：只有烹饪操作才检查权限，单纯交互（如熄灭/点火）不受限
-        if (permission != null
-                && !(permission == IslandPermission.CAMPFIRE_USE && !isCookingAttempt(event))
-                && !checkPermission(block.getLocation(), player.getUniqueId(), permission)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, permission);
+        boolean isCampfireNonCooking = permission == IslandPermission.CAMPFIRE_USE && !isCookingAttempt(event);
+        if (permission != null && !isCampfireNonCooking) {
+            enforce(event, block.getLocation(), player, permission);
         }
     }
 

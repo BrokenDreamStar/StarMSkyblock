@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,6 +39,13 @@ public class TaskManager {
     private final Map<UUID, Boolean> dirtyPlayers;
 
     private static final Type PROGRESS_MAP_TYPE = new TypeToken<Map<String, TaskProgress>>() {}.getType();
+
+    /**
+     * 每玩家已完成(claimed)任务 ID 集合,用于 {@link #incrementNaturalProgress}
+     * 热路径快速跳过已完成任务,避免在 BLOCK_BREAK/ENTITY_KILL 等高频事件中
+     * 反复迭代全量任务列表、调用 {@code isChapterUnlocked} 等开销。
+     */
+    private final Map<UUID, Set<String>> completedTaskIds = new ConcurrentHashMap<>();
 
     public TaskManager(StarMSkyblock plugin, TaskConfigScanner taskConfig) {
         this.plugin = plugin;
@@ -98,6 +106,7 @@ public class TaskManager {
                 savePlayerProgress(uuid);
                 playerProgress.remove(uuid);
                 dirtyPlayers.remove(uuid);
+                completedTaskIds.remove(uuid);
             }
         }, plugin);
     }
@@ -113,6 +122,7 @@ public class TaskManager {
                 savePlayerProgress(uuid);
                 playerProgress.remove(uuid);
                 dirtyPlayers.remove(uuid);
+                completedTaskIds.remove(uuid);
             }
         }
     }
@@ -126,7 +136,33 @@ public class TaskManager {
             progress = new HashMap<>();
         }
         if (progress == null) progress = new HashMap<>();
-        playerProgress.put(uuid, progress);
+
+        // 内层 Map 必须使用 ConcurrentHashMap，避免主线程事件监听器写、
+        // 异步保存线程 gson.toJson 迭代时发生 CME / 丢数据 / 扩容死循环。
+        Map<String, TaskProgress> concurrent = new ConcurrentHashMap<>(progress.size());
+        for (Map.Entry<String, TaskProgress> entry : progress.entrySet()) {
+            TaskProgress tp = entry.getValue();
+            if (tp != null) {
+                tp.setProgress(ensureConcurrent(tp.getProgress()));
+            }
+            concurrent.put(entry.getKey(), tp);
+        }
+        playerProgress.put(uuid, concurrent);
+
+        // 预热 completedTaskIds 集合,方便 incrementNaturalProgress 热路径快速跳过
+        Set<String> completed = ConcurrentHashMap.newKeySet();
+        for (Map.Entry<String, TaskProgress> entry : concurrent.entrySet()) {
+            if (entry.getValue() != null && entry.getValue().isClaimed()) {
+                completed.add(entry.getKey());
+            }
+        }
+        completedTaskIds.put(uuid, completed);
+    }
+
+    private static Map<String, Integer> ensureConcurrent(Map<String, Integer> map) {
+        if (map == null) return new ConcurrentHashMap<>();
+        if (map instanceof ConcurrentHashMap) return map;
+        return new ConcurrentHashMap<>(map);
     }
 
     public void savePlayerProgress(UUID uuid) {
@@ -165,8 +201,8 @@ public class TaskManager {
     }
 
     public TaskProgress getOrCreateProgress(UUID uuid, String taskId) {
-        Map<String, TaskProgress> progressMap = playerProgress.computeIfAbsent(uuid, k -> new HashMap<>());
-        return progressMap.computeIfAbsent(taskId, k -> new TaskProgress(new HashMap<>(), 0, false));
+        Map<String, TaskProgress> progressMap = playerProgress.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>());
+        return progressMap.computeIfAbsent(taskId, k -> new TaskProgress(new ConcurrentHashMap<>(), 0, false));
     }
 
     public Map<String, TaskProgress> getPlayerProgressMap(UUID uuid) {
@@ -196,15 +232,25 @@ public class TaskManager {
         ensureLoaded(uuid);
 
         Map<String, TaskProgress> progressMap = playerProgress.get(uuid);
+        Set<String> completed = completedTaskIds.get(uuid);
+        if (completed == null) {
+            completed = ConcurrentHashMap.newKeySet();
+            completedTaskIds.put(uuid, completed);
+        }
         boolean updated = false;
 
         for (TaskDefinition def : tasks) {
             if (def.isOnlyNatural() && !isNatural) continue;
 
-            TaskProgress prog = progressMap.get(def.getId());
+            // 快路径:已 claim 的任务直接跳过,避免 per-task isChapterUnlocked/
+            // hasCompletedRequired 等嵌套遍历开销
+            String defId = def.getId();
+            if (completed.contains(defId)) continue;
+
+            TaskProgress prog = progressMap.get(defId);
             if (prog == null) {
-                prog = new TaskProgress(new HashMap<>(), 0, false);
-                progressMap.put(def.getId(), prog);
+                prog = new TaskProgress(new ConcurrentHashMap<>(), 0, false);
+                progressMap.put(defId, prog);
             }
 
             if (prog.isClaimed()) continue;
@@ -220,16 +266,16 @@ public class TaskManager {
 
             Map<String, Integer> pMap = prog.getProgress();
             if (pMap == null) {
-                pMap = new HashMap<>();
+                pMap = new ConcurrentHashMap<>();
                 prog.setProgress(pMap);
             }
 
             pMap.merge(upperKey, amount, Integer::sum);
             updated = true;
 
-            if (!prog.isClaimed() && !prog.isNotified() && prog.isCompleted(def)) {
+            if (!prog.isNotified() && prog.isCompleted(def)) {
                 prog.setNotified(true);
-                int ch = taskConfig.getChapterNumberByTaskId(def.getId());
+                int ch = taskConfig.getChapterNumberByTaskId(defId);
                 int ms = def.getMissionNumber();
                 MessageUtil.sendMessage(player, "&a任务 &e" + def.getName() + " &a已完成！使用 &e/is task claim "
                         + ch + " " + ms + " &a领取奖励。");
@@ -321,7 +367,7 @@ public class TaskManager {
         }
 
         if (prog == null) {
-            prog = new TaskProgress(new HashMap<>(), 0, false);
+            prog = new TaskProgress(new ConcurrentHashMap<>(), 0, false);
             progressMap.put(taskId, prog);
         }
 
@@ -411,6 +457,9 @@ public class TaskManager {
         prog.setClaimed(true);
         prog.getProgress().clear();
         markDirty(player.getUniqueId());
+        // 加入快路径跳过集合
+        Set<String> completed = completedTaskIds.get(player.getUniqueId());
+        if (completed != null) completed.add(def.getId());
         MessageUtil.sendMessage(player, "&a✔ 已领取任务 &e" + def.getName() + " &a的奖励！");
         return true;
     }
@@ -518,6 +567,8 @@ public class TaskManager {
         prog.getProgress().clear();
         markDirty(uuid);
         savePlayerProgress(uuid);
+        Set<String> completed = completedTaskIds.get(uuid);
+        if (completed != null) completed.add(def.getId());
 
         boolean online = false;
         Player player = Bukkit.getPlayer(uuid);

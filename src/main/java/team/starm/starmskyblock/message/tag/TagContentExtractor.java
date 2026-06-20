@@ -71,9 +71,13 @@ public class TagContentExtractor
         if (text == null || text.isEmpty()) return results;
         int openTagLength = openTag.length();
         int closeTagLength = closeTag.length();
+        int textLength = text.length();
+        // 一次性小写化,避免 while 每轮重复全串拷贝
+        String textLower = ignoreCase ? text.toLowerCase() : null;
+        String openTagLower = ignoreCase ? openTag.toLowerCase() : null;
         int index = 0;
-        List<Integer[]> skip = new ArrayList<>();
-        while (index < text.length()) {
+        List<int[]> skip = new ArrayList<>();
+        while (index < textLength) {
             String attributeResult = null;
             int extraLength = 0;
             int startPos = -1;
@@ -82,7 +86,8 @@ public class TagContentExtractor
             if (!attributes.isEmpty()) {
                 for (String attribute : attributes) {
                     String newOpenTag = openTag.substring(0, openTagLength - 1) + ":" + attribute + ">";
-                    tempPos = (ignoreCase ? text.toLowerCase() : text).indexOf(ignoreCase ? newOpenTag.toLowerCase() : newOpenTag, index);
+                    String newOpenTagLower = ignoreCase ? newOpenTag.toLowerCase() : null;
+                    tempPos = (ignoreCase ? textLower : text).indexOf(ignoreCase ? newOpenTagLower : newOpenTag, index);
                     if (tempPos != -1 && (startPos > tempPos || startPos == -1)) {
                         startPos = tempPos;
                         extraLength = (":" + attribute).length();
@@ -91,7 +96,7 @@ public class TagContentExtractor
                 }
             }
             //Search original tag
-            tempPos = (ignoreCase ? text.toLowerCase() : text).indexOf(ignoreCase ? openTag.toLowerCase() : openTag, index);
+            tempPos = (ignoreCase ? textLower : text).indexOf(ignoreCase ? openTagLower : openTag, index);
             if (tempPos != -1 && (startPos > tempPos || startPos == -1)){
                 startPos = tempPos;
                 extraLength = 0;
@@ -103,26 +108,26 @@ public class TagContentExtractor
             int endPos = -1;
             index = contentStart;
             //Check nesting and find the correct closed tag
-            while (index < text.length()) {
+            while (index < textLength) {
                 //Skip processed inner tags
-                for (Integer[] pos : skip) {
+                for (int[] pos : skip) {
                     if (index >= pos[0] && index <= pos[1]) {
                         index += pos[1] - pos[0];
                         break;
                     }
                 }
-                if (index + openTagLength <= text.length() &&
-                    (ignoreCase ? text.substring(index, index + openTagLength).equalsIgnoreCase(openTag) : text.substring(index, index + openTagLength).equals(openTag))) {
+                if (index + openTagLength <= textLength &&
+                    text.regionMatches(ignoreCase, index, openTag, 0, openTagLength)) {
                     depth++;
-                } else if (index + closeTagLength <= text.length() &&
-                    (ignoreCase ? text.substring(index, index + closeTagLength).equalsIgnoreCase(closeTag) : text.substring(index, index + closeTagLength).equals(closeTag))) {
+                } else if (index + closeTagLength <= textLength &&
+                    text.regionMatches(ignoreCase, index, closeTag, 0, closeTagLength)) {
                     depth--;
                 } else if (!attributes.isEmpty()) {
                     for (String attribute : attributes) {
                         String newOpenTag = openTag.substring(0, openTagLength - 1) + ":" + attribute + ">";
                         int newOpenTagLength = newOpenTag.length();
-                        if (index + newOpenTagLength <= text.length() &&
-                            (ignoreCase ? text.substring(index, index + newOpenTagLength).equalsIgnoreCase(newOpenTag) : text.substring(index, index + newOpenTagLength).equals(newOpenTag))) {
+                        if (index + newOpenTagLength <= textLength &&
+                            text.regionMatches(ignoreCase, index, newOpenTag, 0, newOpenTagLength)) {
                             depth++;
                             break;
                         }
@@ -143,7 +148,7 @@ public class TagContentExtractor
                     startPos,
                     endPos + closeTagLength
                 ).setAttribute(attributeResult));
-                skip.add(new Integer[] {endPos, endPos + closeTagLength});
+                skip.add(new int[] {endPos, endPos + closeTagLength});
             //Single tag
             } else {
                 results.add(new TagContentInfo(
@@ -171,18 +176,21 @@ public class TagContentExtractor
         if (text == null || text.isEmpty()) return null;
         int openTagLength = openTag.length();
         int closeTagLength = closeTag.length();
-        int startPos = (ignoreCase ? text.toLowerCase() : text).indexOf(ignoreCase ? openTag.toLowerCase() : openTag);
+        int textLength = text.length();
+        String textLower = ignoreCase ? text.toLowerCase() : null;
+        String openTagLower = ignoreCase ? openTag.toLowerCase() : null;
+        int startPos = (ignoreCase ? textLower : text).indexOf(ignoreCase ? openTagLower : openTag);
         if (startPos == -1) return null;
         int contentStart = startPos + openTagLength;
         int depth = 1;
         int endPos = -1;
         int index = contentStart;
-        while (index < text.length()) {
-            if (index + openTagLength <= text.length() &&
-                (ignoreCase ? text.substring(index, index + openTagLength).equalsIgnoreCase(openTag) : text.substring(index, index + openTagLength).equals(openTag))) {
+        while (index < textLength) {
+            if (index + openTagLength <= textLength &&
+                text.regionMatches(ignoreCase, index, openTag, 0, openTagLength)) {
                 depth++;
-            } else if (index + closeTagLength <= text.length() &&
-                (ignoreCase ? text.substring(index, index + closeTagLength).equalsIgnoreCase(closeTag) : text.substring(index, index + closeTagLength).equals(closeTag))) {
+            } else if (index + closeTagLength <= textLength &&
+                text.regionMatches(ignoreCase, index, closeTag, 0, closeTagLength)) {
                 depth--;
             }
             if (depth == 0) {
@@ -239,9 +247,13 @@ public class TagContentExtractor
      * @return
      */
     public static TagContentInfo getSection(String text, char targetChar, boolean ignoreCase) {
+        if (text == null || text.isEmpty()) return null;
+        int textLength = text.length();
+        char effectiveChar = ignoreCase ? Character.toLowerCase(targetChar) : targetChar;
+        String textLower = ignoreCase ? text.toLowerCase() : text;
         int index = 0;
-        while (index < text.length()) {
-            int startPos = (ignoreCase ? text.toLowerCase() : text).indexOf(ignoreCase ? Character.toLowerCase(targetChar) : targetChar, index);
+        while (index < textLength) {
+            int startPos = textLower.indexOf(effectiveChar, index);
             if (startPos == -1) break;
             if (text.charAt(startPos - 1) == '\\') {
                 index = startPos + 1;
@@ -249,10 +261,10 @@ public class TagContentExtractor
             }
             int contentStart = startPos + 1;
             int offset = 0;
-            int endPos = text.indexOf(ignoreCase ? Character.toLowerCase(targetChar) : targetChar, contentStart);
+            int endPos = textLower.indexOf(effectiveChar, contentStart);
             while (endPos != -1 && text.charAt(endPos - 1) == '\\') {
                 offset++;
-                endPos = text.indexOf(ignoreCase ? Character.toLowerCase(targetChar) : targetChar, contentStart + offset);
+                endPos = textLower.indexOf(effectiveChar, contentStart + offset);
             }
             if (endPos != -1) {
                 return new TagContentInfo(
@@ -279,9 +291,12 @@ public class TagContentExtractor
     public static List<TagContentInfo> getSections(String text, char targetChar, boolean ignoreCase) {
         List<TagContentInfo> results = new ArrayList<>();
         if (text == null || text.isEmpty()) return results;
+        int textLength = text.length();
+        char effectiveChar = ignoreCase ? Character.toLowerCase(targetChar) : targetChar;
+        String textLower = ignoreCase ? text.toLowerCase() : text;
         int index = 0;
-        while (index < text.length()) {
-            int startPos = (ignoreCase ? text.toLowerCase() : text).indexOf(ignoreCase ? Character.toLowerCase(targetChar) : targetChar, index);
+        while (index < textLength) {
+            int startPos = textLower.indexOf(effectiveChar, index);
             if (startPos == -1) break;
             if (text.charAt(startPos - 1) == '\\') {
                 index = startPos + 1;
@@ -289,10 +304,10 @@ public class TagContentExtractor
             }
             int contentStart = startPos + 1;
             int offset = 0;
-            int endPos = text.indexOf(ignoreCase ? Character.toLowerCase(targetChar) : targetChar, contentStart);
+            int endPos = textLower.indexOf(effectiveChar, contentStart);
             while (endPos != -1 && text.charAt(endPos - 1) == '\\') {
                 offset++;
-                endPos = text.indexOf(ignoreCase ? Character.toLowerCase(targetChar) : targetChar, contentStart + offset);
+                endPos = textLower.indexOf(effectiveChar, contentStart + offset);
             }
             if (endPos != -1) {
                 results.add(new TagContentInfo(
@@ -320,6 +335,8 @@ public class TagContentExtractor
         int i = 0;
         int startLength = startString.length();
         int endLength = endString.length();
+        // 一次性计算,避免内层每次循环都equalsIgnoreCase
+        boolean startEqualsEnd = ignoreCase ? startString.equalsIgnoreCase(endString) : startString.equals(endString);
         while (i <= builder.length() - (startLength <= endLength ? startLength : endLength)) {
             if (i + startLength <= builder.length() && (ignoreCase ? builder.substring(i, i + startLength).equalsIgnoreCase(startString) : builder.substring(i, i + startLength).equals(startString))) {
                 int start = i;
@@ -327,7 +344,7 @@ public class TagContentExtractor
                 i += startLength;
                 while (i <= builder.length() - Math.min(startLength, endLength) && depth > 0) {
                     if (i + startLength <= builder.length() && (ignoreCase ? builder.substring(i, i + startLength).equalsIgnoreCase(startString) : builder.substring(i, i + startLength).equals(startString))) {
-                        if (ignoreCase ? !startString.equalsIgnoreCase(endString) : !startString.equals(endString)) {
+                        if (!startEqualsEnd) {
                             depth++;
                             i += startLength;
                         } else {
@@ -335,7 +352,7 @@ public class TagContentExtractor
                             i += startLength;
                         }
                     } else if (i + endLength <= builder.length() &&
-                        (ignoreCase ? !startString.equalsIgnoreCase(endString) : !startString.equals(endString)) &&
+                        !startEqualsEnd &&
                         (ignoreCase ? builder.substring(i, i + endLength).equalsIgnoreCase(endString) : builder.substring(i, i + endLength).equals(endString))) {
                         depth--;
                         i += endLength;

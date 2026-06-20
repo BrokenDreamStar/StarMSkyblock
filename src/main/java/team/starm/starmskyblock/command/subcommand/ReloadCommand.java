@@ -14,7 +14,7 @@ public class ReloadCommand extends AdminSubCommand {
     public boolean execute(CommandSender sender, String[] args) {
         long start = System.currentTimeMillis();
 
-        plugin.getConfigManager().loadConfig();
+        plugin.getConfigManager().reload();
         plugin.getGeneratorConfigManager().reload();
         plugin.getUpgradeConfigManager().reload();
         plugin.getSignConfigManager().reloadSignConfig();

@@ -337,12 +337,21 @@ public class PlayerRepository {
 
     // ==================== LRU 缓存工厂 ====================
 
+    /**
+     * 创建一个线程安全的有界 LRU 缓存。
+     * <p>
+     * 原实现使用 {@code accessOrder=true} 的 {@link LinkedHashMap}，其 {@code get()} 会修改内部链表，
+     * 多线程并发读会破坏链表结构。这里使用 {@link Collections#synchronizedMap(Map)} 包装，
+     * 每次操作均在 mutex 上同步，保证 {@code get} / {@code put} / {@code remove} 的原子性。
+     * 迭代时调用方需自行持有同步块（当前代码无迭代需求）。
+     */
     private static <K, V> Map<K, V> createBoundedCache(int maxSize) {
-        return new LinkedHashMap<K, V>(maxSize, 0.75f, true) {
+        LinkedHashMap<K, V> backing = new LinkedHashMap<>(maxSize, 0.75f, true) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
                 return size() > maxSize;
             }
         };
+        return java.util.Collections.synchronizedMap(backing);
     }
 }

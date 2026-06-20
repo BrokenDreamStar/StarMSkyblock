@@ -31,6 +31,7 @@ import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.BasePermissionManager;
+import team.starm.starmskyblock.permission.PermissionCheckResult;
 import team.starm.starmskyblock.tag.EntityTags;
 
 /**
@@ -91,18 +92,17 @@ public class ContainerPermissionManager extends BasePermissionManager {
                 && player.isSneaking()
                 && event.getItem() != null
                 && Tag.ITEMS_AXES.isTagged(event.getItem().getType())) {
-            if (!checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.AXE_USE)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.AXE_USE);
-            }
+            enforce(event, block.getLocation(), player, IslandPermission.AXE_USE);
             return;
         }
 
+        // 一次解析 Location→Player/Island 状态，后续 7+ 次权限判定复用同一 result
+        PermissionCheckResult r = resolve(block.getLocation(), player);
+
         // 常规容器交互（实现了 InventoryHolder 接口的方块）
         IslandPermission permission = getContainerPermission(block, material);
-        if (permission != null && !checkPermission(block.getLocation(), player.getUniqueId(), permission)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, permission);
+        if (permission != null) {
+            enforce(event, r, player, permission);
         }
 
         // 唱片机：放入唱片或取出唱片时需要检查 JUKEBOX_USE 权限
@@ -113,10 +113,8 @@ public class ContainerPermissionManager extends BasePermissionManager {
             boolean isMusicDisc = heldItem != null && heldItem.getType().isRecord();
             boolean hasRecord = jukebox.getRecord().getType() != Material.AIR;
 
-            if ((isMusicDisc || hasRecord)
-                    && !checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.JUKEBOX_USE)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.JUKEBOX_USE);
+            if (isMusicDisc || hasRecord) {
+                enforce(event, r, player, IslandPermission.JUKEBOX_USE);
             }
         }
 
@@ -135,10 +133,8 @@ public class ContainerPermissionManager extends BasePermissionManager {
                 }
             }
 
-            if ((hasHeldItem || hasContent)
-                    && !checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.SHELF_USE)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.SHELF_USE);
+            if (hasHeldItem || hasContent) {
+                enforce(event, r, player, IslandPermission.SHELF_USE);
             }
         }
 
@@ -150,10 +146,8 @@ public class ContainerPermissionManager extends BasePermissionManager {
                     && (heldItem.getType() == Material.WRITABLE_BOOK || heldItem.getType() == Material.WRITTEN_BOOK);
             boolean hasBook = lectern.hasBook();
 
-            if ((holdingValidBook || hasBook)
-                    && !checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.LECTERN_USE)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.LECTERN_USE);
+            if (holdingValidBook || hasBook) {
+                enforce(event, r, player, IslandPermission.LECTERN_USE);
             }
         }
 
@@ -183,10 +177,8 @@ public class ContainerPermissionManager extends BasePermissionManager {
             boolean isEmptyHand = (heldItem == null || heldItem.getType() == Material.AIR);
             boolean isTaking = isEmptyHand && hasBook;
 
-            if ((isPlacing || isTaking)
-                    && !checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.CHISELED_BOOKSHELF_USE)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.CHISELED_BOOKSHELF_USE);
+            if (isPlacing || isTaking) {
+                enforce(event, r, player, IslandPermission.CHISELED_BOOKSHELF_USE);
             }
         }
 
@@ -198,10 +190,8 @@ public class ContainerPermissionManager extends BasePermissionManager {
             boolean isPlacing = (heldItem != null && heldItem.getType() != Material.AIR);
             boolean isTaking = (composterData.getLevel() == composterData.getMaximumLevel());
 
-            if ((isPlacing || isTaking)
-                    && !checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.COMPOSTER_USE)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.COMPOSTER_USE);
+            if (isPlacing || isTaking) {
+                enforce(event, r, player, IslandPermission.COMPOSTER_USE);
             }
         }
 
@@ -218,10 +208,8 @@ public class ContainerPermissionManager extends BasePermissionManager {
                 }
             }
 
-            if ((isPlanting || isTaking)
-                    && !checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.FLOWER_POT_USE)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.FLOWER_POT_USE);
+            if (isPlanting || isTaking) {
+                enforce(event, r, player, IslandPermission.FLOWER_POT_USE);
             }
         }
     }
@@ -239,10 +227,7 @@ public class ContainerPermissionManager extends BasePermissionManager {
         if (event.getEntity() instanceof ItemFrame itemFrame && event.getDamager() instanceof Player player) {
             boolean hasFramedItem = itemFrame.getItem().getType() != Material.AIR;
             if (hasFramedItem) {
-                if (!checkPermission(itemFrame.getLocation(), player.getUniqueId(), IslandPermission.ITEM_FRAME_USE)) {
-                    event.setCancelled(true);
-                    sendDenyMessage(player, IslandPermission.ITEM_FRAME_USE);
-                }
+                enforce(event, itemFrame.getLocation(), player, IslandPermission.ITEM_FRAME_USE);
             }
         }
     }
@@ -267,10 +252,7 @@ public class ContainerPermissionManager extends BasePermissionManager {
             boolean hasFramedItem = itemFrame.getItem().getType() != Material.AIR;
 
             if (hasHeldItem || hasFramedItem) {
-                if (!checkPermission(itemFrame.getLocation(), player.getUniqueId(), IslandPermission.ITEM_FRAME_USE)) {
-                    event.setCancelled(true);
-                    sendDenyMessage(player, IslandPermission.ITEM_FRAME_USE);
-                }
+                enforce(event, itemFrame.getLocation(), player, IslandPermission.ITEM_FRAME_USE);
             }
         }
     }
@@ -300,10 +282,7 @@ public class ContainerPermissionManager extends BasePermissionManager {
         }
 
         Location loc = player.getLocation();
-        if (!checkPermission(loc, player.getUniqueId(), IslandPermission.ENDER_CHEST_OPEN)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.ENDER_CHEST_OPEN);
-        }
+        enforce(event, loc, player, IslandPermission.ENDER_CHEST_OPEN);
     }
 
     /**
@@ -343,9 +322,8 @@ public class ContainerPermissionManager extends BasePermissionManager {
             neededPerm = IslandPermission.ANIMAL_INVENTORY_OPEN;
         }
 
-        if (neededPerm != null && !checkPermission(loc, player.getUniqueId(), neededPerm)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, neededPerm);
+        if (neededPerm != null) {
+            enforce(event, loc, player, neededPerm);
         }
     }
 
@@ -374,10 +352,7 @@ public class ContainerPermissionManager extends BasePermissionManager {
             return;
         }
 
-        if (!checkPermission(clicked.getLocation(), player.getUniqueId(), IslandPermission.ANIMAL_INVENTORY_OPEN)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.ANIMAL_INVENTORY_OPEN);
-        }
+        enforce(event, clicked.getLocation(), player, IslandPermission.ANIMAL_INVENTORY_OPEN);
     }
 
     /**

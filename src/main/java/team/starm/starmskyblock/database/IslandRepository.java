@@ -154,7 +154,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setInt(1, id);
                 pstmt.setString(2, name);
                 pstmt.setString(3, ownerUuid.toString());
@@ -181,7 +181,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setInt(1, newRadius);
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
@@ -198,7 +198,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setInt(1, unlocked ? 1 : 0);
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
@@ -215,7 +215,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, newName != null ? newName : "");
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
@@ -232,7 +232,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setInt(1, generatorLevel);
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
@@ -249,7 +249,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, json);
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
@@ -266,7 +266,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, json);
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
@@ -283,7 +283,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setInt(1, id);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
@@ -299,7 +299,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, json);
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
@@ -316,7 +316,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, json);
                 pstmt.setInt(2, id);
                 pstmt.executeUpdate();
@@ -332,7 +332,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(
                     "UPDATE islands SET name=?, radius=?, generator_level=?, generator_disabled=? WHERE id=?")) {
                 pstmt.setString(1, name != null ? name : "");
                 pstmt.setInt(2, radius);
@@ -355,7 +355,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setInt(1, islandId);
                 pstmt.setString(2, memberUuid.toString());
                 pstmt.setString(3, role);
@@ -369,7 +369,7 @@ public class IslandRepository {
     }
 
     public void deleteCoopsForIsland(Connection conn, int islandId) throws SQLException {
-        try (PreparedStatement pstmt = conn.prepareStatement(
+        try (PreparedStatement pstmt = sqliteManager.prepareCached(
                 "DELETE FROM island_coops WHERE island_id = ?")) {
             pstmt.setInt(1, islandId);
             pstmt.executeUpdate();
@@ -381,7 +381,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setInt(1, islandId);
                 pstmt.setString(2, playerUuid.toString());
                 pstmt.executeUpdate();
@@ -398,7 +398,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setInt(1, islandId);
                 pstmt.setString(2, playerUuid.toString());
                 pstmt.executeUpdate();
@@ -415,7 +415,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setInt(1, islandId);
                 pstmt.setString(2, memberUuid.toString());
                 pstmt.executeUpdate();
@@ -432,7 +432,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, newRole);
                 pstmt.setInt(2, islandId);
                 pstmt.setString(3, memberUuid.toString());
@@ -453,12 +453,12 @@ public class IslandRepository {
         try {
             sqliteManager.executeInTransaction(conn -> {
                 deleteCoopsForIsland(conn, islandId);
-                try (PreparedStatement pstmt = conn.prepareStatement(
+                try (PreparedStatement pstmt = sqliteManager.prepareCached(
                         "DELETE FROM island_members WHERE island_id = ?")) {
                     pstmt.setInt(1, islandId);
                     pstmt.executeUpdate();
                 }
-                try (PreparedStatement pstmt = conn.prepareStatement(
+                try (PreparedStatement pstmt = sqliteManager.prepareCached(
                         "DELETE FROM islands WHERE id = ?")) {
                     pstmt.setInt(1, islandId);
                     pstmt.executeUpdate();
@@ -479,13 +479,13 @@ public class IslandRepository {
     public void migrateCoopToMember(int islandId, UUID playerUuid, String role) {
         try {
             sqliteManager.executeInTransaction(conn -> {
-                try (PreparedStatement pstmt = conn.prepareStatement(
+                try (PreparedStatement pstmt = sqliteManager.prepareCached(
                         "DELETE FROM island_coops WHERE island_id = ? AND player_uuid = ?")) {
                     pstmt.setInt(1, islandId);
                     pstmt.setString(2, playerUuid.toString());
                     pstmt.executeUpdate();
                 }
-                try (PreparedStatement pstmt = conn.prepareStatement(
+                try (PreparedStatement pstmt = sqliteManager.prepareCached(
                         "INSERT INTO island_members (island_id, player_uuid, role) VALUES (?, ?, ?)")) {
                     pstmt.setInt(1, islandId);
                     pstmt.setString(2, playerUuid.toString());
@@ -506,7 +506,7 @@ public class IslandRepository {
         dbLock.readLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, playerUuid.toString());
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
@@ -528,7 +528,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, playerUuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
@@ -549,7 +549,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setDouble(1, baselineExperience);
                 pstmt.setString(2, baselineBlockCountsJson != null ? baselineBlockCountsJson : "{}");
                 pstmt.setInt(3, id);
@@ -577,7 +577,7 @@ public class IslandRepository {
         dbLock.writeLock().lock();
         try {
             Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setInt(1, level);
                 pstmt.setDouble(2, totalExperience);
                 pstmt.setString(3, blockCountsJson != null ? blockCountsJson : "{}");
@@ -589,6 +589,30 @@ public class IslandRepository {
             }
         } finally {
             dbLock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * 批量保存岛屿默认权限 JSON —— 供启动期 {@code loadIslandsFromDatabase} 使用,
+     * 把 N 次独立 writeLock + prepareStatement + executeUpdate 压为一次事务批量提交。
+     */
+    public void batchSavePermissions(java.util.Map<Integer, String> idToJson) {
+        if (idToJson == null || idToJson.isEmpty()) return;
+        String sql = "UPDATE islands SET permissions = ? WHERE id = ?";
+        try {
+            sqliteManager.executeInTransaction(conn -> {
+                try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
+                    for (java.util.Map.Entry<Integer, String> entry : idToJson.entrySet()) {
+                        pstmt.setString(1, entry.getValue());
+                        pstmt.setInt(2, entry.getKey());
+                        pstmt.addBatch();
+                    }
+                    pstmt.executeBatch();
+                }
+                return null;
+            });
+        } catch (SQLException e) {
+            MessageUtil.consoleError("批量保存权限数据失败！涉及 " + idToJson.size() + " 个岛屿", e);
         }
     }
 

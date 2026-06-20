@@ -44,11 +44,7 @@ public class BuildPermissionManager extends BasePermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-        Player player = event.getPlayer();
-        if (!checkPermission(event.getBlock().getLocation(), player.getUniqueId(), IslandPermission.BREAK)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.BREAK);
-        }
+        enforce(event, event.getBlock().getLocation(), event.getPlayer(), IslandPermission.BREAK);
     }
 
     /**
@@ -59,11 +55,7 @@ public class BuildPermissionManager extends BasePermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        Player player = event.getPlayer();
-        if (!checkPermission(event.getBlock().getLocation(), player.getUniqueId(), IslandPermission.BUILD)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.BUILD);
-        }
+        enforce(event, event.getBlock().getLocation(), event.getPlayer(), IslandPermission.BUILD);
     }
 
     /**
@@ -76,10 +68,7 @@ public class BuildPermissionManager extends BasePermissionManager {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onHangingBreak(HangingBreakByEntityEvent event) {
         if (event.getRemover() instanceof Player player) {
-            if (!checkPermission(event.getEntity().getLocation(), player.getUniqueId(), IslandPermission.BREAK)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.BREAK);
-            }
+            enforce(event, event.getEntity().getLocation(), player, IslandPermission.BREAK);
         }
     }
 
@@ -92,9 +81,8 @@ public class BuildPermissionManager extends BasePermissionManager {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onHangingPlace(HangingPlaceEvent event) {
         Player player = event.getPlayer();
-        if (player != null && !checkPermission(event.getEntity().getLocation(), player.getUniqueId(), IslandPermission.BUILD)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.BUILD);
+        if (player != null) {
+            enforce(event, event.getEntity().getLocation(), player, IslandPermission.BUILD);
         }
     }
 
@@ -136,10 +124,7 @@ public class BuildPermissionManager extends BasePermissionManager {
 
             // 计算物品将放置的位置
             Location placeLoc = event.getClickedBlock().getRelative(event.getBlockFace()).getLocation();
-            if (!checkPermission(placeLoc, player.getUniqueId(), IslandPermission.BUILD)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.BUILD);
-            }
+            enforce(event, placeLoc, player, IslandPermission.BUILD);
         }
     }
 }

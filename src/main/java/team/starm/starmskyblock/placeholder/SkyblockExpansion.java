@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 import net.milkbowl.vault.economy.Economy;
 import team.starm.starmskyblock.config.GeneratorConfigManager;
@@ -32,12 +33,168 @@ public class SkyblockExpansion extends PlaceholderExpansion {
     private final SettingsHandler settingsHandler;
     private final TaskPlaceholderHandler taskHandler;
 
+    /**
+     * 精确匹配 placeholder 派发表(键已小写化)。
+     * 取代原 {@code onPlaceholderRequest} 内 30+ 个 {@code equalsIgnoreCase} 串,
+     * 将 O(n) 线性扫描压为 O(1) 哈希查找。带前缀的 placeholder(如 {@code generator_*}
+     * /{@code upgrades_*})不在此表,仍走下方 fallback chain。
+     */
+    private final Map<String, Function<LazyContext, String>> exactDispatch = new java.util.HashMap<>();
+
     public SkyblockExpansion(StarMSkyblock plugin) {
         this.plugin = plugin;
         this.islandListHandler = new IslandListHandler(plugin);
         this.permissionHandler = new PermissionHandler(plugin);
         this.settingsHandler = new SettingsHandler(plugin);
         this.taskHandler = new TaskPlaceholderHandler(plugin);
+        registerExactDispatch();
+    }
+
+    private void registerExactDispatch() {
+        // 注:lambda 捕获 this.plugin,执行时再解析当前 plugin 状态(而非构造时快照)
+        exactDispatch.put("island_name_here", ctx -> {
+            if (!plugin.getWorldManager().isSkyblockWorld(ctx.player.getWorld())) {
+                return "公共区域";
+            }
+            return getIslandName(plugin.getIslandManager(), ctx.chunkX(), ctx.chunkZ());
+        });
+        exactDispatch.put("island_name", ctx ->
+                getPlayerOwnIslandName(plugin.getIslandManager(), ctx.player.getUniqueId()));
+        exactDispatch.put("role_here", ctx -> {
+            if (!plugin.getWorldManager().isSkyblockWorld(ctx.player.getWorld())) {
+                return IslandPermissionLevel.VISITOR.getDisplayName();
+            }
+            return getPlayerRole(plugin.getIslandManager(), ctx.chunkX(), ctx.chunkZ(), ctx.player.getUniqueId());
+        });
+        exactDispatch.put("role", ctx ->
+                getPlayerOwnRole(plugin.getIslandManager(), ctx.player.getUniqueId()));
+        exactDispatch.put("level_here", ctx -> {
+            if (!plugin.getWorldManager().isSkyblockWorld(ctx.player.getWorld())) {
+                return "&f-";
+            }
+            return getIslandLevelHere(plugin.getIslandManager(), ctx.chunkX(), ctx.chunkZ());
+        });
+        exactDispatch.put("total_points_here", ctx -> {
+            if (!plugin.getWorldManager().isSkyblockWorld(ctx.player.getWorld())) {
+                return "&f-";
+            }
+            return getIslandValueHere(plugin.getIslandManager(), ctx.chunkX(), ctx.chunkZ(), "total_points");
+        });
+        exactDispatch.put("experience_here", ctx -> {
+            if (!plugin.getWorldManager().isSkyblockWorld(ctx.player.getWorld())) {
+                return "&f-";
+            }
+            return getIslandValueHere(plugin.getIslandManager(), ctx.chunkX(), ctx.chunkZ(), "experience");
+        });
+        exactDispatch.put("blocks_counted_here", ctx -> {
+            if (!plugin.getWorldManager().isSkyblockWorld(ctx.player.getWorld())) {
+                return "&f-";
+            }
+            return getIslandValueHere(plugin.getIslandManager(), ctx.chunkX(), ctx.chunkZ(), "blocks_counted");
+        });
+        exactDispatch.put("generator_level_here", ctx -> {
+            if (!plugin.getWorldManager().isSkyblockWorld(ctx.player.getWorld())) {
+                return "&f-";
+            }
+            return getGeneratorLevelHere(plugin.getIslandManager(), ctx.chunkX(), ctx.chunkZ());
+        });
+        exactDispatch.put("dimension", ctx -> switch (ctx.player.getWorld().getEnvironment()) {
+            case NORMAL -> "主世界";
+            case NETHER -> "下界";
+            case THE_END -> "末地";
+            default -> ctx.player.getWorld().getEnvironment().name();
+        });
+        exactDispatch.put("own_island", ctx -> {
+            Optional<Island> islandOpt = ctx.playerIsland();
+            if (islandOpt.isEmpty()) return "false";
+            Island island = islandOpt.get();
+            return String.valueOf(island.isChunkWithinIsland(ctx.chunkX(), ctx.chunkZ()));
+        });
+        exactDispatch.put("has_island", ctx -> String.valueOf(ctx.playerIsland().isPresent()));
+        exactDispatch.put("creationtime", ctx -> {
+            Optional<Island> islandOpt = ctx.playerIsland();
+            if (islandOpt.isEmpty()) return null;
+            String time = islandOpt.get().getCreatedAt();
+            return time != null ? time : null;
+        });
+        exactDispatch.put("level", ctx -> {
+            Optional<Island> islandOpt = ctx.playerIsland();
+            if (islandOpt.isEmpty()) return "&f-";
+            return String.valueOf(islandOpt.get().getLevel());
+        });
+        exactDispatch.put("total_points", ctx -> {
+            Optional<Island> islandOpt = ctx.playerIsland();
+            if (islandOpt.isEmpty()) return "&f-";
+            return String.format("%.2f", islandOpt.get().getExperience());
+        });
+        exactDispatch.put("experience", ctx -> {
+            Optional<Island> islandOpt = ctx.playerIsland();
+            if (islandOpt.isEmpty()) return "&f-";
+            return String.format("%.2f", islandOpt.get().getExperience());
+        });
+        exactDispatch.put("blocks_counted", ctx -> {
+            Optional<Island> islandOpt = ctx.playerIsland();
+            if (islandOpt.isEmpty()) return "&f-";
+            long total = 0;
+            for (long count : islandOpt.get().getBlockCounts().values()) {
+                total += count;
+            }
+            return String.valueOf(total);
+        });
+        exactDispatch.put("generator_level", ctx -> {
+            Optional<Island> islandOpt = ctx.playerIsland();
+            if (islandOpt.isEmpty()) return "&f-";
+            return String.valueOf(islandOpt.get().getGeneratorLevel());
+        });
+        exactDispatch.put("generator_level_next", ctx -> {
+            Optional<Island> islandOpt = ctx.playerIsland();
+            if (islandOpt.isEmpty()) return "&f-";
+            GeneratorConfigManager genConfig = plugin.getGeneratorConfigManager();
+            int currentLevel = islandOpt.get().getGeneratorLevel();
+            Optional<GeneratorConfigManager.GeneratorTier> nextTierOpt = genConfig.getNextTier(currentLevel);
+            if (nextTierOpt.isEmpty()) return "&f已达到最高等级";
+            return buildGeneratorLevelString(nextTierOpt.get());
+        });
+        exactDispatch.put("upgrades_generator_next_level_money", ctx -> {
+            var islandOpt = ctx.playerIsland();
+            if (islandOpt.isEmpty()) return "&f-";
+            Island island = islandOpt.get();
+            UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
+            var next = upgradeConfig.getNextGeneratorUpgrade(island.getGeneratorLevel());
+            if (next.isEmpty()) return "&f已达到最高等级";
+            return String.valueOf((long) next.get().money());
+        });
+        exactDispatch.put("upgrades_island_radius_next_level_money", ctx -> {
+            var islandOpt = ctx.playerIsland();
+            if (islandOpt.isEmpty()) return "&f-";
+            Island island = islandOpt.get();
+            UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
+            var next = upgradeConfig.getNextRadiusUpgrade(island.getRadius());
+            if (next.isEmpty()) return "&f已达到最高等级";
+            return String.valueOf((long) next.get().money());
+        });
+        exactDispatch.put("upgrades_generator_has_money", ctx -> {
+            var islandOpt = ctx.playerIsland();
+            if (islandOpt.isEmpty()) return "false";
+            Island island = islandOpt.get();
+            UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
+            var next = upgradeConfig.getNextGeneratorUpgrade(island.getGeneratorLevel());
+            if (next.isEmpty()) return "false";
+            Economy economy = plugin.getEconomy();
+            if (economy == null) return "false";
+            return String.valueOf(economy.has(ctx.player, next.get().money()));
+        });
+        exactDispatch.put("upgrades_island_radius_has_money", ctx -> {
+            var islandOpt = ctx.playerIsland();
+            if (islandOpt.isEmpty()) return "false";
+            Island island = islandOpt.get();
+            UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
+            var next = upgradeConfig.getNextRadiusUpgrade(island.getRadius());
+            if (next.isEmpty()) return "false";
+            Economy economy = plugin.getEconomy();
+            if (economy == null) return "false";
+            return String.valueOf(economy.has(ctx.player, next.get().money()));
+        });
     }
 
     @Override
@@ -92,133 +249,13 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             IslandManager islandManager = plugin.getIslandManager();
             LazyContext ctx = new LazyContext(player, islandManager);
 
-            if (params.equalsIgnoreCase("island_name_here")) {
-                if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
-                    return "公共区域";
-                }
-                return getIslandName(islandManager, ctx.chunkX(), ctx.chunkZ());
+            // 精确匹配 placeholder —— Map 派发,O(1)
+            Function<LazyContext, String> exactHandler = exactDispatch.get(params.toLowerCase(java.util.Locale.ROOT));
+            if (exactHandler != null) {
+                return exactHandler.apply(ctx);
             }
 
-            if (params.equalsIgnoreCase("island_name")) {
-                return getPlayerOwnIslandName(islandManager, player.getUniqueId());
-            }
-
-            if (params.equalsIgnoreCase("role_here")) {
-                if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
-                    return IslandPermissionLevel.VISITOR.getDisplayName();
-                }
-                return getPlayerRole(islandManager, ctx.chunkX(), ctx.chunkZ(), player.getUniqueId());
-            }
-
-            if (params.equalsIgnoreCase("role")) {
-                return getPlayerOwnRole(islandManager, player.getUniqueId());
-            }
-
-            if (params.equalsIgnoreCase("level_here")) {
-                if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
-                    return "&f-";
-                }
-                return getIslandLevelHere(islandManager, ctx.chunkX(), ctx.chunkZ());
-            }
-
-            if (params.equalsIgnoreCase("total_points_here") || params.equalsIgnoreCase("experience_here")) {
-                if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
-                    return "&f-";
-                }
-                return getIslandValueHere(islandManager, ctx.chunkX(), ctx.chunkZ(), params.equalsIgnoreCase("total_points_here") ? "total_points" : "experience");
-            }
-
-            if (params.equalsIgnoreCase("blocks_counted_here")) {
-                if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
-                    return "&f-";
-                }
-                return getIslandValueHere(islandManager, ctx.chunkX(), ctx.chunkZ(), "blocks_counted");
-            }
-
-            if (params.equalsIgnoreCase("generator_level_here")) {
-                if (!plugin.getWorldManager().isSkyblockWorld(player.getWorld())) {
-                    return "&f-";
-                }
-                return getGeneratorLevelHere(islandManager, ctx.chunkX(), ctx.chunkZ());
-            }
-
-            if (params.equalsIgnoreCase("dimension")) {
-                return switch (player.getWorld().getEnvironment()) {
-                    case NORMAL -> "主世界";
-                    case NETHER -> "下界";
-                    case THE_END -> "末地";
-                    default -> player.getWorld().getEnvironment().name();
-                };
-            }
-
-            if (params.equalsIgnoreCase("own_island")) {
-                Optional<Island> islandOpt = ctx.playerIsland();
-                if (islandOpt.isEmpty()) {
-                    return "false";
-                }
-                Island island = islandOpt.get();
-                return String.valueOf(island.isChunkWithinIsland(ctx.chunkX(), ctx.chunkZ()));
-            }
-
-            if (params.equalsIgnoreCase("has_island")) {
-                return String.valueOf(ctx.playerIsland().isPresent());
-            }
-
-            if (params.equalsIgnoreCase("creationtime")) {
-
-                Optional<Island> islandOpt = ctx.playerIsland();
-
-                if (islandOpt.isEmpty()) {
-                    return null;
-                }
-
-                String time = islandOpt.get().getCreatedAt();
-
-                return time != null ? time : null;
-            }
-
-            if (params.equalsIgnoreCase("level")) {
-
-                Optional<Island> islandOpt = ctx.playerIsland();
-
-                if (islandOpt.isEmpty()) {
-                    return "&f-";
-                }
-
-                return String.valueOf(islandOpt.get().getLevel());
-            }
-
-            if (params.equalsIgnoreCase("total_points") || params.equalsIgnoreCase("experience")) {
-                Optional<Island> islandOpt = ctx.playerIsland();
-                if (islandOpt.isEmpty()) {
-                    return "&f-";
-                }
-                return String.format("%.2f", islandOpt.get().getExperience());
-            }
-
-            if (params.equalsIgnoreCase("blocks_counted")) {
-                Optional<Island> islandOpt = ctx.playerIsland();
-                if (islandOpt.isEmpty()) {
-                    return "&f-";
-                }
-                long total = 0;
-                for (long count : islandOpt.get().getBlockCounts().values()) {
-                    total += count;
-                }
-                return String.valueOf(total);
-            }
-
-            if (params.equalsIgnoreCase("generator_level")) {
-
-                Optional<Island> islandOpt = ctx.playerIsland();
-
-                if (islandOpt.isEmpty()) {
-                    return "&f-";
-                }
-
-                return String.valueOf(islandOpt.get().getGeneratorLevel());
-            }
-
+            // 带前缀的 placeholder —— fallback chain
             if (params.startsWith("generator_level_next_")) {
                 String dim = params.substring("generator_level_next_".length()).toLowerCase();
                 if (!Set.of("normal", "nether", "end").contains(dim)) return "&f-";
@@ -240,18 +277,6 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                 };
                 if (rates.isEmpty()) return "&f-";
                 return buildDimensionRatesString(rates);
-            }
-
-            if (params.equalsIgnoreCase("generator_level_next")) {
-                Optional<Island> islandOpt = ctx.playerIsland();
-                if (islandOpt.isEmpty()) return "&f-";
-
-                GeneratorConfigManager genConfig = plugin.getGeneratorConfigManager();
-                int currentLevel = islandOpt.get().getGeneratorLevel();
-                Optional<GeneratorConfigManager.GeneratorTier> nextTierOpt = genConfig.getNextTier(currentLevel);
-                if (nextTierOpt.isEmpty()) return "&f已达到最高等级";
-
-                return buildGeneratorLevelString(nextTierOpt.get());
             }
 
             if (params.startsWith("generator_level_")) {
@@ -372,50 +397,6 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                 return taskHandler.handle(player, params);
             }
 
-            if (params.equalsIgnoreCase("upgrades_generator_next_level_money")) {
-                var islandOpt = ctx.playerIsland();
-                if (islandOpt.isEmpty()) return "&f-";
-                Island island = islandOpt.get();
-                UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
-                var next = upgradeConfig.getNextGeneratorUpgrade(island.getGeneratorLevel());
-                if (next.isEmpty()) return "&f已达到最高等级";
-                return String.valueOf((long) next.get().money());
-            }
-
-            if (params.equalsIgnoreCase("upgrades_island_radius_next_level_money")) {
-                var islandOpt = ctx.playerIsland();
-                if (islandOpt.isEmpty()) return "&f-";
-                Island island = islandOpt.get();
-                UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
-                var next = upgradeConfig.getNextRadiusUpgrade(island.getRadius());
-                if (next.isEmpty()) return "&f已达到最高等级";
-                return String.valueOf((long) next.get().money());
-            }
-
-            if (params.equalsIgnoreCase("upgrades_generator_has_money")) {
-                var islandOpt = ctx.playerIsland();
-                if (islandOpt.isEmpty()) return "false";
-                Island island = islandOpt.get();
-                UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
-                var next = upgradeConfig.getNextGeneratorUpgrade(island.getGeneratorLevel());
-                if (next.isEmpty()) return "false";
-                Economy economy = plugin.getEconomy();
-                if (economy == null) return "false";
-                return String.valueOf(economy.has(player, next.get().money()));
-            }
-
-            if (params.equalsIgnoreCase("upgrades_island_radius_has_money")) {
-                var islandOpt = ctx.playerIsland();
-                if (islandOpt.isEmpty()) return "false";
-                Island island = islandOpt.get();
-                UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
-                var next = upgradeConfig.getNextRadiusUpgrade(island.getRadius());
-                if (next.isEmpty()) return "false";
-                Economy economy = plugin.getEconomy();
-                if (economy == null) return "false";
-                return String.valueOf(economy.has(player, next.get().money()));
-            }
-
         } catch (Throwable throwable) {
             MessageUtil.consoleError("处理 PlaceholderAPI 请求时发生错误", throwable);
         }
@@ -453,7 +434,8 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
             return name;
 
-        } catch (Throwable ignored) {
+        } catch (RuntimeException e) {
+            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
         }
 
         return "公共区域";
@@ -495,7 +477,8 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
             return IslandPermissionLevel.VISITOR.getColor() + IslandPermissionLevel.VISITOR.getDisplayName();
 
-        } catch (Throwable ignored) {
+        } catch (RuntimeException e) {
+            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
         }
 
         return IslandPermissionLevel.VISITOR.getColor() + IslandPermissionLevel.VISITOR.getDisplayName();
@@ -521,7 +504,8 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
             return String.valueOf(islandOpt.get().getLevel());
 
-        } catch (Throwable ignored) {
+        } catch (RuntimeException e) {
+            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
         }
 
         return "&f-";
@@ -560,7 +544,8 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
             return "&f-";
 
-        } catch (Throwable ignored) {
+        } catch (RuntimeException e) {
+            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
         }
 
         return "&f-";
@@ -586,7 +571,8 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
             return String.valueOf(islandOpt.get().getGeneratorLevel());
 
-        } catch (Throwable ignored) {
+        } catch (RuntimeException e) {
+            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
         }
 
         return "&f-";
@@ -614,7 +600,8 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
             return name;
 
-        } catch (Throwable ignored) {
+        } catch (RuntimeException e) {
+            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
         }
 
         return null;
@@ -818,7 +805,8 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
             return IslandPermissionLevel.VISITOR.getColor() + IslandPermissionLevel.VISITOR.getDisplayName();
 
-        } catch (Throwable ignored) {
+        } catch (RuntimeException e) {
+            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
         }
 
         return IslandPermissionLevel.VISITOR.getColor() + IslandPermissionLevel.VISITOR.getDisplayName();
@@ -830,7 +818,9 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         private int chunkX;
         private int chunkZ;
         private boolean chunkResolved;
-        private Optional<Island> playerIsland;
+        // volatile:同一 LazyContext 实例理论上只在单一线程使用,但保持可见性语义以匹配
+        // 后续可能的跨线程使用,且消除字段发布(JMM)上的潜在重排隐患。
+        private volatile Optional<Island> playerIsland;
 
         LazyContext(Player player, IslandManager islandManager) {
             this.player = player;
@@ -848,16 +838,20 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         }
 
         private void resolveChunk() {
-            chunkX = player.getLocation().getChunk().getX();
-            chunkZ = player.getLocation().getChunk().getZ();
+            // 用位运算避免 location.getChunk() 强制加载区块,且只取一次 Location
+            org.bukkit.Location loc = player.getLocation();
+            chunkX = loc.getBlockX() >> 4;
+            chunkZ = loc.getBlockZ() >> 4;
             chunkResolved = true;
         }
 
         Optional<Island> playerIsland() {
-            if (playerIsland == null) {
-                playerIsland = islandManager.getIslandByPlayer(player.getUniqueId());
+            Optional<Island> snapshot = playerIsland;
+            if (snapshot == null) {
+                snapshot = islandManager.getIslandByPlayer(player.getUniqueId());
+                playerIsland = snapshot;
             }
-            return playerIsland;
+            return snapshot;
         }
     }
 }

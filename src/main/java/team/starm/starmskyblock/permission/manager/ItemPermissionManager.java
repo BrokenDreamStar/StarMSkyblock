@@ -158,21 +158,13 @@ public class ItemPermissionManager extends BasePermissionManager {
             if (meta == null || !meta.hasDisplayName()) {
                 return;
             }
-            Location loc = event.getRightClicked().getLocation();
-            if (!checkPermission(loc, player.getUniqueId(), IslandPermission.NAME_TAG_USE)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.NAME_TAG_USE);
-            }
+            enforce(event, event.getRightClicked().getLocation(), player, IslandPermission.NAME_TAG_USE);
             return;
         }
 
         if (event.getRightClicked() instanceof Sheep sheep) {
             if (ItemTags.DYES.contains(itemType)) {
-                Location loc = sheep.getLocation();
-                if (!checkPermission(loc, player.getUniqueId(), IslandPermission.DYE_USE)) {
-                    event.setCancelled(true);
-                    sendDenyMessage(player, IslandPermission.DYE_USE);
-                }
+                enforce(event, sheep.getLocation(), player, IslandPermission.DYE_USE);
             }
         }
     }
@@ -193,11 +185,7 @@ public class ItemPermissionManager extends BasePermissionManager {
             return;
         }
         if (item.getType() == Material.CHORUS_FRUIT) {
-            Location loc = player.getLocation();
-            if (!checkPermission(loc, player.getUniqueId(), IslandPermission.CHORUS_FRUIT_EAT)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.CHORUS_FRUIT_EAT);
-            }
+            enforce(event, player.getLocation(), player, IslandPermission.CHORUS_FRUIT_EAT);
         }
     }
 
@@ -216,11 +204,7 @@ public class ItemPermissionManager extends BasePermissionManager {
         if (player == null) {
             return;
         }
-        Location loc = event.getBlock().getLocation();
-        if (!checkPermission(loc, player.getUniqueId(), IslandPermission.BONE_MEAL_USE)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.BONE_MEAL_USE);
-        }
+        enforce(event, event.getBlock().getLocation(), player, IslandPermission.BONE_MEAL_USE);
     }
 
     /**

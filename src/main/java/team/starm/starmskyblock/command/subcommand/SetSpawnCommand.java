@@ -68,7 +68,8 @@ public class SetSpawnCommand extends SubCommand {
         }
 
         if (plugin.getIslandManager().updateIslandCustomHome(island.getId(), worldType,
-                playerLocation.getX(), playerLocation.getY(), playerLocation.getZ())) {
+                playerLocation.getX(), playerLocation.getY(), playerLocation.getZ(),
+                playerLocation.getYaw(), playerLocation.getPitch())) {
             MessageUtil.sendMessage(player, "&a已成功设置传送点！");
         } else {
             MessageUtil.sendMessage(player, "&c设置失败，请稍后重试。");

@@ -1,5 +1,6 @@
 package team.starm.starmskyblock.listener;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -48,22 +49,55 @@ RespawnListener implements Listener {
 
         Player player = event.getPlayer();
         Optional<Island> islandOpt = islandManager.getIslandByPlayer(player.getUniqueId());
-        if (islandOpt.isEmpty()) {
-            return;
+
+        if (islandOpt.isPresent()) {
+            Island island = islandOpt.get();
+
+            // 优先使用玩家自定义的岛屿传送点（/is setspawn）
+            if (island.hasCustomHome()) {
+                World homeWorld = switch (island.getCustomHomeWorldType()) {
+                    case NETHER -> worldManager.getSkyblockNether();
+                    case END -> worldManager.getSkyblockEnd();
+                    default -> worldManager.getSkyblockWorld();
+                };
+                if (homeWorld != null) {
+                    event.setRespawnLocation(new Location(
+                            homeWorld,
+                            island.getCustomHomeX(), island.getCustomHomeY(), island.getCustomHomeZ(),
+                            island.getCustomHomeYaw(), island.getCustomHomePitch()
+                    ));
+                    return;
+                }
+            }
+
+            // 未设置自定义传送点时，使用岛屿默认出生点
+            World normalWorld = worldManager.getSkyblockWorld();
+            if (normalWorld != null) {
+                double[] offsets = configManager.getTeleportOffsetsBySchematicAndWorldType(
+                        island.getSchematicId(), Island.WorldType.NORMAL);
+                double teleportX = (island.getCenterChunkX() * 16) + 8 + offsets[0];
+                double teleportY = configManager.getIslandHeight() + offsets[1];
+                double teleportZ = (island.getCenterChunkZ() * 16) + 8 + offsets[2];
+
+                event.setRespawnLocation(new Location(normalWorld, teleportX, teleportY, teleportZ,
+                        (float) offsets[3], (float) offsets[4]));
+                return;
+            }
         }
 
-        Island island = islandOpt.get();
-        World normalWorld = worldManager.getSkyblockWorld();
-        if (normalWorld == null) {
-            return;
+        // 岛屿传送点不可用且无床/重生锚时，使用配置的 fallback-spawn
+        if (configManager.hasFallbackSpawn()) {
+            World fallbackWorld = Bukkit.getWorld(configManager.getFallbackSpawnWorld());
+            if (fallbackWorld != null) {
+                event.setRespawnLocation(new Location(
+                        fallbackWorld,
+                        configManager.getFallbackSpawnX(),
+                        configManager.getFallbackSpawnY(),
+                        configManager.getFallbackSpawnZ(),
+                        configManager.getFallbackSpawnYaw(),
+                        configManager.getFallbackSpawnPitch()
+                ));
+            }
         }
-
-        double[] offsets = configManager.getTeleportOffsetsBySchematicAndWorldType(
-                island.getSchematicId(), Island.WorldType.NORMAL);
-        double teleportX = (island.getCenterChunkX() * 16) + 8 + offsets[0];
-        double teleportY = configManager.getIslandHeight() + offsets[1];
-        double teleportZ = (island.getCenterChunkZ() * 16) + 8 + offsets[2];
-
-        event.setRespawnLocation(new Location(normalWorld, teleportX, teleportY, teleportZ));
     }
 }

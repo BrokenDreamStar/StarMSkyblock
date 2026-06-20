@@ -38,7 +38,8 @@ public class SpawnCommand extends SubCommand {
                 default -> plugin.getWorldManager().getSkyblockWorld();
             };
             spawnLocation = new Location(targetWorld,
-                    island.getCustomHomeX(), island.getCustomHomeY(), island.getCustomHomeZ());
+                    island.getCustomHomeX(), island.getCustomHomeY(), island.getCustomHomeZ(),
+                    island.getCustomHomeYaw(), island.getCustomHomePitch());
 
             if (!isLocationSafe(spawnLocation) && (args.length == 1 || !args[1].equalsIgnoreCase("confirm"))) {
                 MessageUtil.sendMessage(player, "&c警告：传送点不安全！");
@@ -59,7 +60,8 @@ public class SpawnCommand extends SubCommand {
             double teleportY = config.getIslandHeight() + offsets[1];
             double teleportZ = (island.getCenterChunkZ() * 16) + 8 + offsets[2];
 
-            spawnLocation = new Location(targetWorld, teleportX, teleportY, teleportZ);
+            spawnLocation = new Location(targetWorld, teleportX, teleportY, teleportZ,
+                    (float) offsets[3], (float) offsets[4]);
 
             if (!isLocationSafe(spawnLocation) && (args.length == 1 || !args[1].equalsIgnoreCase("confirm"))) {
                 MessageUtil.sendMessage(player, "&c警告：传送点不安全！");

@@ -137,7 +137,8 @@ public class InvitationManager {
                     double teleportY = configManager.getIslandHeight() + offsets[1];
                     double teleportZ = (islandObj.getCenterChunkZ() * 16) + 8 + offsets[2];
 
-                    Location targetLocation = new Location(worldManager.getSkyblockWorld(), teleportX, teleportY, teleportZ);
+                    Location targetLocation = new Location(worldManager.getSkyblockWorld(), teleportX, teleportY, teleportZ,
+                            (float) offsets[3], (float) offsets[4]);
                     target.teleport(targetLocation);
                     MessageUtil.sendMessage(target, "&a欢迎来到岛屿！");
 

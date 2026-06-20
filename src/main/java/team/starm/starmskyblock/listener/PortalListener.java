@@ -436,7 +436,7 @@ public class PortalListener implements Listener {
         double teleportY = islandHeight + offsets[1];
         double teleportZ = startZ + 8 + offsets[2];
 
-        return new Location(world, teleportX, teleportY, teleportZ);
+        return new Location(world, teleportX, teleportY, teleportZ, (float) offsets[3], (float) offsets[4]);
     }
 
     /** 根据世界类型和岛屿结构 ID 获取传送点偏移量 */

@@ -58,9 +58,8 @@ public class VehiclePermissionManager extends BasePermissionManager {
             default -> null;
         };
 
-        if (permission != null && !checkPermission(vehicle.getLocation(), player.getUniqueId(), permission)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, permission);
+        if (permission != null) {
+            enforce(event, vehicle.getLocation(), player, permission);
         }
     }
 
@@ -84,9 +83,8 @@ public class VehiclePermissionManager extends BasePermissionManager {
             default -> null;
         };
 
-        if (permission != null && !checkPermission(vehicle.getLocation(), player.getUniqueId(), permission)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, permission);
+        if (permission != null) {
+            enforce(event, vehicle.getLocation(), player, permission);
         }
     }
 
@@ -133,9 +131,6 @@ public class VehiclePermissionManager extends BasePermissionManager {
         }
 
         Location checkLoc = (clickedBlock != null) ? clickedBlock.getLocation() : player.getLocation();
-        if (!checkPermission(checkLoc, player.getUniqueId(), permission)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, permission);
-        }
+        enforce(event, checkLoc, player, permission);
     }
 }

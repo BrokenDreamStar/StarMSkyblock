@@ -55,11 +55,13 @@ public class MessageUtil {
     }
 
     /**
-     * 转换字符串并返回旧版的 § 字符串（用于兼容某些仅支持 String 的旧 API）
+     * 转换字符串并返回旧版的 § 字符串（用于兼容某些仅支持 String 的旧 API）。
+     * <p>
+     * {@code ColorUtils.toColor(text)} 已经输出 §-字符串,无需再 deserialize→serialize 往返。
      */
     public static String colorize(@Nullable String text) {
         if (text == null) return null;
-        return LegacyComponentSerializer.legacySection().serialize(parse(text));
+        return ColorUtils.toColor(text);
     }
 
     /**
@@ -109,14 +111,16 @@ public class MessageUtil {
     }
 
     /**
-     * 剔除字符串中的所有颜色代码（包括 & 格式和 § 格式）
+     * 剔除字符串中的所有颜色代码（包括 & 格式和 § 格式）。
+     * <p>
+     * 直接对 {@code ColorUtils.toColor(text)} 的 §-字符串结果剥色,避免 Component 往返。
      *
      * @param text 原始字符串（可包含 &a, &b, &#RRGGBB 等颜色代码）
      * @return 剔除颜色代码后的纯文本
      */
     public static String stripColor(@Nullable String text) {
         if (text == null) return null;
-        return ChatColor.stripColor(colorize(text));
+        return ChatColor.stripColor(ColorUtils.toColor(text));
     }
 
     /**

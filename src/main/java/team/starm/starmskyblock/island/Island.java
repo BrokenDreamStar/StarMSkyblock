@@ -77,6 +77,14 @@ public class Island {
      */
     private double customHomeZ;
     /**
+     * 自定义传送点偏航角（水平朝向）
+     */
+    private float customHomeYaw;
+    /**
+     * 自定义传送点俯仰角（垂直朝向）
+     */
+    private float customHomePitch;
+    /**
      * 自定义传送点所在的世界类型
      */
     private WorldType customHomeWorldType;
@@ -505,13 +513,15 @@ public class Island {
         return hasCustomHome;
     }
 
-    public void setCustomHome(WorldType worldType, double x, double y, double z) {
+    public void setCustomHome(WorldType worldType, double x, double y, double z, float yaw, float pitch) {
         this.customHomeX = x;
         this.customHomeY = y;
         this.customHomeZ = z;
+        this.customHomeYaw = yaw;
+        this.customHomePitch = pitch;
         this.customHomeWorldType = worldType;
         this.hasCustomHome = true;
-        this.homeJson = "{\"world\":\"" + worldType.name() + "\",\"x\":" + x + ",\"y\":" + y + ",\"z\":" + z + "}";
+        this.homeJson = HomeLocation.toJson(worldType, x, y, z, yaw, pitch);
     }
 
     public void clearCustomHome() {
@@ -545,6 +555,14 @@ public class Island {
 
     public double getCustomHomeZ() {
         return customHomeZ;
+    }
+
+    public float getCustomHomeYaw() {
+        return customHomeYaw;
+    }
+
+    public float getCustomHomePitch() {
+        return customHomePitch;
     }
 
     public WorldType getCustomHomeWorldType() {

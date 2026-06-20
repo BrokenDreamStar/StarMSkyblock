@@ -33,9 +33,10 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         subCommands.put("border", new BorderCommand(plugin));
         subCommands.put("delete", new DeleteCommand(plugin));
         subCommands.put("info", new InfoCommand(plugin));
-        subCommands.put("promote", new PromoteDemoteCommand(plugin));
+        SubCommand promoteDemote = new PromoteDemoteCommand(plugin);
+        subCommands.put("promote", promoteDemote);
         subCommands.put("team", new TeamCommand(plugin));
-        subCommands.put("demote", new PromoteDemoteCommand(plugin));
+        subCommands.put("demote", promoteDemote);
 
         subCommands.put("coops", new MembersInfoCommand(plugin));
         subCommands.put("mycoops", new MembersInfoCommand(plugin));

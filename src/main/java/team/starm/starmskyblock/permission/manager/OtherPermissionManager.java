@@ -77,9 +77,8 @@ public class OtherPermissionManager extends BasePermissionManager {
                 permission = IslandPermission.TURTLE_EGG_TRAMPLE;
             }
 
-            if (permission != null && !checkPermission(block.getLocation(), player.getUniqueId(), permission)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, permission);
+            if (permission != null) {
+                enforce(event, block.getLocation(), player, permission);
             }
             return;
         }
@@ -89,9 +88,8 @@ public class OtherPermissionManager extends BasePermissionManager {
                 return;
             }
             IslandPermission permission = getRightClickPermission(block);
-            if (permission != null && !checkPermission(block.getLocation(), player.getUniqueId(), permission)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, permission);
+            if (permission != null) {
+                enforce(event, block.getLocation(), player, permission);
             }
         }
     }
@@ -106,12 +104,7 @@ public class OtherPermissionManager extends BasePermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onSignChange(SignChangeEvent event) {
-        Player player = event.getPlayer();
-        Block block = event.getBlock();
-        if (!checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.SIGN_EDIT)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.SIGN_EDIT);
-        }
+        enforce(event, event.getBlock().getLocation(), event.getPlayer(), IslandPermission.SIGN_EDIT);
     }
 
     /**
@@ -123,12 +116,7 @@ public class OtherPermissionManager extends BasePermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBedEnter(PlayerBedEnterEvent event) {
-        Player player = event.getPlayer();
-        Block block = event.getBed();
-        if (!checkPermission(block.getLocation(), player.getUniqueId(), IslandPermission.BED_USE)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.BED_USE);
-        }
+        enforce(event, event.getBed().getLocation(), event.getPlayer(), IslandPermission.BED_USE);
     }
 
     /**
@@ -155,10 +143,7 @@ public class OtherPermissionManager extends BasePermissionManager {
         }
 
         if (player != null) {
-            if (!checkPermission(crystal.getLocation(), player.getUniqueId(), IslandPermission.END_CRYSTAL_DAMAGE)) {
-                event.setCancelled(true);
-                sendDenyMessage(player, IslandPermission.END_CRYSTAL_DAMAGE);
-            }
+            enforce(event, crystal.getLocation(), player, IslandPermission.END_CRYSTAL_DAMAGE);
         }
     }
 
@@ -171,11 +156,7 @@ public class OtherPermissionManager extends BasePermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onRaidTrigger(RaidTriggerEvent event) {
-        Player player = event.getPlayer();
-        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.RAID_TRIGGER)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.RAID_TRIGGER);
-        }
+        enforce(event, event.getPlayer().getLocation(), event.getPlayer(), IslandPermission.RAID_TRIGGER);
     }
 
     /**
@@ -206,10 +187,7 @@ public class OtherPermissionManager extends BasePermissionManager {
         Location loc = (event.getClickedBlock() != null)
                 ? event.getClickedBlock().getLocation()
                 : player.getLocation();
-        if (!checkPermission(loc, player.getUniqueId(), IslandPermission.SPAWN_EGG_USE)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.SPAWN_EGG_USE);
-        }
+        enforce(event, loc, player, IslandPermission.SPAWN_EGG_USE);
     }
 
     /**
@@ -232,10 +210,7 @@ public class OtherPermissionManager extends BasePermissionManager {
         }
 
         Location loc = event.getRightClicked().getLocation();
-        if (!checkPermission(loc, player.getUniqueId(), IslandPermission.SPAWN_EGG_USE)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.SPAWN_EGG_USE);
-        }
+        enforce(event, loc, player, IslandPermission.SPAWN_EGG_USE);
     }
 
     /**

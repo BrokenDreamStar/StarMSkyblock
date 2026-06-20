@@ -31,12 +31,22 @@ import team.starm.starmskyblock.util.reflection.FaweReflection;
 public class SchematicManager {
 
     private final File schematicFolder;
-    private final Map<String, Clipboard> schematicCache = new ConcurrentHashMap<>();
-    private final Map<String, List<BlockVector3>> signOffsetCache = new ConcurrentHashMap<>();
+    private final Map<String, SchematicEntry> schematicCache = new ConcurrentHashMap<>();
     private final boolean faweMode;
     private final boolean faweAvailable;
 
     private FaweReflection faweReflection;
+
+    /** 结构文件缓存条目 —— 把 clipboard 与 signOffsets 打包成单一对象，确保两者要么同时可见要么同时不可见 */
+    private static final class SchematicEntry {
+        final Clipboard clipboard;
+        final List<BlockVector3> signOffsets;
+
+        SchematicEntry(Clipboard clipboard, List<BlockVector3> signOffsets) {
+            this.clipboard = clipboard;
+            this.signOffsets = signOffsets;
+        }
+    }
 
     public SchematicManager(File schematicFolder, boolean faweMode) {
         this.schematicFolder = schematicFolder;
@@ -55,6 +65,15 @@ public class SchematicManager {
         }
     }
 
+    /**
+     * 指示当前是否启用 FAWE 异步引擎。非 FAWE 路径调用 {@link EditSession} /
+     * {@link Operations#complete} 会从调用线程直接改 chunk —— 异步线程调用会导致区块损坏，
+     * 调用方必须据此把操作调度回主线程。
+     */
+    public boolean isFaweActive() {
+        return faweMode && faweAvailable && faweReflection != null && faweReflection.isAvailable();
+    }
+
     private static boolean isFaweInstalled() {
         try {
             Class.forName("com.fastasyncworldedit.core.Fawe");
@@ -66,10 +85,27 @@ public class SchematicManager {
 
     @SuppressWarnings("deprecation")
     public Clipboard getSchematic(String fileName) {
-        if (schematicCache.containsKey(fileName)) {
-            return schematicCache.get(fileName);
-        }
+        SchematicEntry entry = getEntry(fileName);
+        return entry == null ? null : entry.clipboard;
+    }
 
+    public List<BlockVector3> getSignOffsets(String fileName) {
+        SchematicEntry entry = getEntry(fileName);
+        return entry == null ? null : entry.signOffsets;
+    }
+
+    /**
+     * 原子地获取结构缓存条目。{@link #schematicCache} 单独维护 clipboard 与 signOffsets，
+     * 原实现两次独立 {@code put} 让 {@code getSignOffsets} 可观察 schematic 已缓存但 offset 为空 → NPE/漏 sign。
+     * 改用 {@link ConcurrentHashMap#computeIfAbsent} 串行化加载，二者打包为 {@link SchematicEntry}。
+     */
+    private SchematicEntry getEntry(String fileName) {
+        SchematicEntry cached = schematicCache.get(fileName);
+        if (cached != null) return cached;
+        return schematicCache.computeIfAbsent(fileName, this::loadEntry);
+    }
+
+    private SchematicEntry loadEntry(String fileName) {
         File file = new File(schematicFolder, fileName);
         if (!file.exists()) {
             MessageUtil.consoleWarn("找不到岛屿结构文件: " + file.getAbsolutePath());
@@ -119,20 +155,19 @@ public class SchematicManager {
             }
         }
 
+        List<BlockVector3> signOffsets;
         if (bedrockLoc != null) {
             clipboard.setOrigin(bedrockLoc);
-            List<BlockVector3> relativeSigns = new ArrayList<>(signPositions.size());
+            signOffsets = new ArrayList<>(signPositions.size());
             for (BlockVector3 signPos : signPositions) {
-                relativeSigns.add(signPos.subtract(bedrockLoc));
+                signOffsets.add(signPos.subtract(bedrockLoc));
             }
-            signOffsetCache.put(fileName, relativeSigns);
         } else {
             MessageUtil.consoleWarn("在结构文件 " + fileName + " 中未找到基岩方块！将使用默认原点进行粘贴。");
-            signOffsetCache.put(fileName, signPositions);
+            signOffsets = signPositions;
         }
 
-        schematicCache.put(fileName, clipboard);
-        return clipboard;
+        return new SchematicEntry(clipboard, signOffsets);
     }
 
     /**
@@ -140,12 +175,19 @@ public class SchematicManager {
      * 到标准 Sponge v2 格式。
      */
     private Clipboard readSchematicWithFallback(File file, ClipboardFormat primaryFormat, String fileName) {
-        // 首次尝试
+        // 首次尝试：FAWE FastSchematicReaderV3 在遇到无法解析的方块类型时可能抛 NPE，
+        // 此处捕获并显式记录一行警告后回退到 Sponge（v2）格式，避免静默吞掉
+        // 与 schematic 无关的 NPE 造成排障困难。
         try (ClipboardReader reader = primaryFormat.getReader(new FileInputStream(file))) {
-            return reader.read();
+            Clipboard clipboard = reader.read();
+            if (clipboard == null) {
+                MessageUtil.consoleWarn("读取结构文件返回 null，将尝试回退格式: " + fileName);
+            } else {
+                return clipboard;
+            }
         } catch (NullPointerException e) {
-            // FAWE FastSchematicReaderV3 可能因无法解析的方块类型抛出 NPE
-            // 尝试回退到 Sponge（v2）格式
+            MessageUtil.consoleWarn("读取结构文件时遇到 NPE（疑似 FAWE 不兼容的方块类型），将尝试回退: "
+                    + fileName + " - " + e.getMessage());
         } catch (IOException e) {
             MessageUtil.consoleError("读取结构文件时发生错误: " + fileName, e);
             return null;
@@ -170,11 +212,6 @@ public class SchematicManager {
     private static boolean isSignBlockType(BlockType type) {
         String id = type.getId();
         return id.contains("sign") || id.contains("SIGN");
-    }
-
-    public List<BlockVector3> getSignOffsets(String fileName) {
-        getSchematic(fileName);
-        return signOffsetCache.get(fileName);
     }
 
     /**

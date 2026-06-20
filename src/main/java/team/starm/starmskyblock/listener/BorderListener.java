@@ -19,7 +19,6 @@ import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.util.reflection.WorldBorderReflection;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,13 +37,12 @@ public class BorderListener implements Listener {
     private final SkyblockWorldManager worldManager;
     private final PlayerRepository playerRepo;
     private final ConfigManager configManager;
-    /** 玩家边界显示开关的 LRU 缓存（容量 1000），减少数据库读取 */
-    private final Map<UUID, Boolean> borderCache = new LinkedHashMap<UUID, Boolean>(1000, 0.75f, true) {
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<UUID, Boolean> eldest) {
-            return size() > 1000;
-        }
-    };
+    /**
+     * 玩家边界显示开关缓存(容量无上限 —— 玩家总量有界,且 {@link #setPlayerShowBorder} 在玩家指令中触发,
+     * 频率极低;PlayerMove 热路径只读)。改用 {@link ConcurrentHashMap} 避免 {@code accessOrder=true} 的
+     * LinkedHashMap 在并发 {@code getOrDefault} 时破坏链表结构。
+     */
+    private final Map<UUID, Boolean> borderCache = new ConcurrentHashMap<>();
     /** 岛屿边界缓存：islandId → CachedBorder，避免每次跨区块移动都创建 WorldBorder 对象 */
     private final Map<Integer, CachedBorder> islandBorderCache = new ConcurrentHashMap<>();
 
@@ -156,7 +154,7 @@ public class BorderListener implements Listener {
         }
 
         Optional<Island> currentIsland = islandManager.getIslandAtMaxRange(
-                location.getChunk().getX(), location.getChunk().getZ());
+                location.getBlockX() >> 4, location.getBlockZ() >> 4);
         currentIsland.ifPresentOrElse(
                 island -> WorldBorderReflection.sendWorldBorder(player, getOrCreateIslandBorder(island)),
                 () -> WorldBorderReflection.resetWorldBorder(player, playerWorld));

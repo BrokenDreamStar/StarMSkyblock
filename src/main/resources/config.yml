@@ -34,14 +34,20 @@ schematics:
         x: 0.5
         y: 5
         z: 2.5
+        yaw: 0.0
+        pitch: 0.0
       nether:
         x: 0.5
         y: 5
         z: 0.5
+        yaw: 0.0
+        pitch: 0.0
       end:
         x: 0.5
         y: 5
         z: 0.5
+        yaw: 0.0
+        pitch: 0.0
 
 # 默认使用的岛屿类型（玩家未指定时使用）
 default-type: 'default'
@@ -105,6 +111,21 @@ obsidian-to-lava: true
 # 是否在创建或加入岛屿时自动将重生点设为岛屿传送点
 # 启用后，玩家死亡后将在岛屿传送点复活而非世界出生点
 set-respawn-on-join: true
+
+# 当玩家没有床或重生锚时的默认重生点坐标
+# 玩家在没有设置床或重生锚的情况下死亡时，会在此处复活
+# 此配置在 set-respawn-on-join 启用时生效，优先于岛屿传送点
+# 若 world 为空则禁用此功能，回退到岛屿传送点或世界出生点
+fallback-spawn:
+  # 世界名称，设为 '' 禁用
+  world: 'world'
+  # 重生点坐标
+  x: 0.5
+  y: 61
+  z: 0.5
+  # 朝向（角度制）
+  yaw: 90.0
+  pitch: 0.0
 
 # 公共世界列表
 # 这些世界会被视为空岛世界中的"公共区域"，

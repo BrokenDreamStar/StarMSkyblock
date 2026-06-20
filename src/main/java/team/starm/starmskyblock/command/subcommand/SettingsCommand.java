@@ -71,7 +71,7 @@ public class SettingsCommand extends SubCommand {
 
         island.setSetting(setting, value);
 
-        if (plugin.getIslandManager().updateIslandSettings(island.getId(), island)) {
+        if (plugin.getIslandManager().updateIslandSettings(island.getId())) {
             MessageUtil.sendMessage(player, "&a设置项 &e" + setting.getDisplayName()
                     + " &a已" + (value ? "&a启用" : "&c禁用"));
         } else {

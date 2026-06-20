@@ -51,11 +51,7 @@ public class DropPickupPermissionManager extends BasePermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerDropItem(PlayerDropItemEvent event) {
-        Player player = event.getPlayer();
-        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_DROP)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.ITEM_DROP);
-        }
+        enforce(event, event.getPlayer().getLocation(), event.getPlayer(), IslandPermission.ITEM_DROP);
     }
 
     /**
@@ -70,10 +66,7 @@ public class DropPickupPermissionManager extends BasePermissionManager {
         if (!(event.getEntity() instanceof Player player)) {
             return;
         }
-        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.ITEM_PICKUP)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, IslandPermission.ITEM_PICKUP);
-        }
+        enforce(event, player.getLocation(), player, IslandPermission.ITEM_PICKUP);
     }
 
     /**

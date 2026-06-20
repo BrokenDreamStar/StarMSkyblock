@@ -62,87 +62,49 @@ public class IslandDeleteTask extends BukkitRunnable {
             int minZ = minChunkZ * 16;
             int maxZ = maxChunkZ * 16 + 15;
 
-            if (world != null) {
-                plugin.getSchematicManager().clearArea(world, minX, world.getMinHeight(), minZ, maxX,
-                        world.getMaxHeight(), maxZ);
-            }
-            if (netherWorld != null) {
-                plugin.getSchematicManager().clearArea(netherWorld, minX, netherWorld.getMinHeight(), minZ, maxX,
-                        netherWorld.getMaxHeight(), maxZ);
-            }
-            if (endWorld != null) {
-                plugin.getSchematicManager().clearArea(endWorld, minX, endWorld.getMinHeight(), minZ, maxX,
-                        endWorld.getMaxHeight(), maxZ);
-            }
+            // FAWE 引擎可在异步线程安全修改区块；标准 WorldEdit 必须在主线程执行，
+            // 否则会从异步线程直接改 chunk → 区块损坏。
+            boolean faweActive = plugin.getSchematicManager().isFaweActive();
 
-            // 2. 同步阶段：在主线程传送玩家 + 清理非玩家实体 + 删除数据库记录
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    try {
-                        java.util.List<World> worlds = new java.util.ArrayList<>();
-                        if (world != null) worlds.add(world);
-                        if (netherWorld != null) worlds.add(netherWorld);
-                        if (endWorld != null) worlds.add(endWorld);
+            Runnable clearTask = () -> {
+                if (world != null) {
+                    plugin.getSchematicManager().clearArea(world, minX, world.getMinHeight(), minZ, maxX,
+                            world.getMaxHeight(), maxZ);
+                }
+                if (netherWorld != null) {
+                    plugin.getSchematicManager().clearArea(netherWorld, minX, netherWorld.getMinHeight(), minZ, maxX,
+                            netherWorld.getMaxHeight(), maxZ);
+                }
+                if (endWorld != null) {
+                    plugin.getSchematicManager().clearArea(endWorld, minX, endWorld.getMinHeight(), minZ, maxX,
+                            endWorld.getMaxHeight(), maxZ);
+                }
+            };
 
-                        Location spawnLoc = world != null ? world.getSpawnLocation() : null;
+            Runnable finalizeTask = () -> finalizeDeletion(world, netherWorld, endWorld, minX, maxX, minZ, maxZ);
 
-                        BoundingBox islandBox = new BoundingBox(minX, -64, minZ, maxX + 1, 320, maxZ + 1);
-                        for (Player p : Bukkit.getOnlinePlayers()) {
-                            if (islandBox.contains(p.getLocation().toVector())) {
-                                if (spawnLoc != null) p.teleport(spawnLoc);
-                                p.sendMessage("§c你的岛屿已被删除，你已被传送至主城！");
-                            }
-                        }
-
-                        if (world != null) {
-                            BoundingBox box = new BoundingBox(minX, world.getMinHeight(), minZ, maxX + 1, world.getMaxHeight(), maxZ + 1);
-                            world.getNearbyEntities(box).stream()
-                                    .filter(e -> !(e instanceof Player))
-                                    .forEach(e -> e.remove());
-                        }
-                        if (netherWorld != null) {
-                            BoundingBox box = new BoundingBox(minX, netherWorld.getMinHeight(), minZ, maxX + 1, netherWorld.getMaxHeight(), maxZ + 1);
-                            netherWorld.getNearbyEntities(box).stream()
-                                    .filter(e -> !(e instanceof Player))
-                                    .forEach(e -> e.remove());
-                        }
-                        if (endWorld != null) {
-                            BoundingBox box = new BoundingBox(minX, endWorld.getMinHeight(), minZ, maxX + 1, endWorld.getMaxHeight(), maxZ + 1);
-                            endWorld.getNearbyEntities(box).stream()
-                                    .filter(e -> !(e instanceof Player))
-                                    .forEach(e -> e.remove());
-                        }
-
-                        boolean success = islandManager.deleteIslandFromDatabase(island);
-                        if (success) {
-                            islandManager.incrementDeleteCount(playerUuid);
-
-                            Player player = Bukkit.getPlayer(playerUuid);
-                            if (player != null && player.isOnline()) {
-                                player.sendMessage("§a岛屿已成功删除！你已删除 " + (deleteCount + 1) + "/" + maxDeleteTimes + " 次岛屿。");
-                            }
-
-                            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-                                if (onlinePlayer.hasPermission("skyblock.admin") && !onlinePlayer.getUniqueId().equals(playerUuid)) {
-                                    onlinePlayer.sendMessage("§e玩家 " + (player != null ? player.getName() : playerUuid.toString()) + " 已删除其岛屿。");
-                                }
-                            }
-                        } else {
-                            Player player = Bukkit.getPlayer(playerUuid);
-                            if (player != null && player.isOnline()) {
-                                player.sendMessage("§c删除岛屿数据时发生错误，请联系管理员！");
-                            }
-                        }
-                    } catch (Exception e) {
-                        MessageUtil.consoleError("在主线程中清理实体时发生错误！", e);
-                        Player player = Bukkit.getPlayer(playerUuid);
-                        if (player != null && player.isOnline()) {
-                            player.sendMessage("§c删除岛屿时发生意外错误，请联系管理员！");
+            if (faweActive) {
+                // FAWE：异步线程清空方块 → 主线程清理实体和数据库
+                clearTask.run();
+                new BukkitRunnable() {
+                    @Override
+                    public void run() { finalizeTask.run(); }
+                }.runTask(plugin);
+            } else {
+                // 非 FAWE：clearArea 必须在主线程执行，clearArea + finalize 一起调度
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            clearTask.run();
+                            finalizeTask.run();
+                        } catch (Exception e) {
+                            MessageUtil.consoleError("在主线程中执行岛屿删除时发生错误！", e);
+                            notifyError();
                         }
                     }
-                }
-            }.runTask(plugin);
+                }.runTask(plugin);
+            }
 
         } catch (Exception e) {
             MessageUtil.consoleError("异步删除岛屿时发生错误！", e);
@@ -155,6 +117,86 @@ public class IslandDeleteTask extends BukkitRunnable {
                     }
                 }
             }.runTask(plugin);
+        }
+    }
+
+    /** 主线程阶段：传送玩家、清理实体、删除数据库记录、通知玩家 */
+    private void finalizeDeletion(World world, World netherWorld, World endWorld,
+                                  int minX, int maxX, int minZ, int maxZ) {
+        try {
+            Location spawnLoc = world != null ? world.getSpawnLocation() : null;
+
+            // 玩家检测：用岛屿 chunk 集合做 O(1) 包含判定，替代对每个在线玩家
+            // 调用 BoundingBox.contains(Vector)。高度信息对"是否站在岛上"无意义
+            // （玩家在岛屿 XZ 范围内的任意高度都应被踢出）。
+            java.util.Set<Long> islandChunks = new java.util.HashSet<>();
+            for (int cz = minZ >> 4; cz <= maxZ >> 4; cz++) {
+                for (int cx = minX >> 4; cx <= maxX >> 4; cx++) {
+                    islandChunks.add(((long) cx << 32) | (cz & 0xffffffffL));
+                }
+            }
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                World pWorld = p.getWorld();
+                boolean inSkyblockWorld = pWorld != null &&
+                        (pWorld.equals(world) || pWorld.equals(netherWorld) || pWorld.equals(endWorld));
+                if (!inSkyblockWorld) continue;
+                long chunkKey = ((long) (p.getLocation().getBlockX() >> 4) << 32)
+                        | ((p.getLocation().getBlockZ() >> 4) & 0xffffffffL);
+                if (islandChunks.contains(chunkKey)) {
+                    if (spawnLoc != null) p.teleport(spawnLoc);
+                    p.sendMessage("§c你的岛屿已被删除，你已被传送至主城！");
+                }
+            }
+
+            if (world != null) {
+                BoundingBox box = new BoundingBox(minX, world.getMinHeight(), minZ, maxX + 1, world.getMaxHeight(), maxZ + 1);
+                world.getNearbyEntities(box).stream()
+                        .filter(e -> !(e instanceof Player))
+                        .forEach(e -> e.remove());
+            }
+            if (netherWorld != null) {
+                BoundingBox box = new BoundingBox(minX, netherWorld.getMinHeight(), minZ, maxX + 1, netherWorld.getMaxHeight(), maxZ + 1);
+                netherWorld.getNearbyEntities(box).stream()
+                        .filter(e -> !(e instanceof Player))
+                        .forEach(e -> e.remove());
+            }
+            if (endWorld != null) {
+                BoundingBox box = new BoundingBox(minX, endWorld.getMinHeight(), minZ, maxX + 1, endWorld.getMaxHeight(), maxZ + 1);
+                endWorld.getNearbyEntities(box).stream()
+                        .filter(e -> !(e instanceof Player))
+                        .forEach(e -> e.remove());
+            }
+
+            boolean success = islandManager.deleteIslandFromDatabase(island);
+            if (success) {
+                islandManager.incrementDeleteCount(playerUuid);
+
+                Player player = Bukkit.getPlayer(playerUuid);
+                if (player != null && player.isOnline()) {
+                    player.sendMessage("§a岛屿已成功删除！你已删除 " + (deleteCount + 1) + "/" + maxDeleteTimes + " 次岛屿。");
+                }
+
+                for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                    if (onlinePlayer.hasPermission("skyblock.admin") && !onlinePlayer.getUniqueId().equals(playerUuid)) {
+                        onlinePlayer.sendMessage("§e玩家 " + (player != null ? player.getName() : playerUuid.toString()) + " 已删除其岛屿。");
+                    }
+                }
+            } else {
+                Player player = Bukkit.getPlayer(playerUuid);
+                if (player != null && player.isOnline()) {
+                    player.sendMessage("§c删除岛屿数据时发生错误，请联系管理员！");
+                }
+            }
+        } catch (Exception e) {
+            MessageUtil.consoleError("在主线程中清理实体时发生错误！", e);
+            notifyError();
+        }
+    }
+
+    private void notifyError() {
+        Player player = Bukkit.getPlayer(playerUuid);
+        if (player != null && player.isOnline()) {
+            player.sendMessage("§c删除岛屿时发生意外错误，请联系管理员！");
         }
     }
 }

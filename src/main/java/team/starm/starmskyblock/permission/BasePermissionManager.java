@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Listener;
 
 import org.bukkit.entity.Player;
@@ -79,14 +80,14 @@ public abstract class BasePermissionManager implements Listener {
      * 根据坐标获取当前位置所属的岛屿对象（委托至 IslandManager）
      */
     public static Optional<Island> getPlayerCurrentIsland(IslandManager islandManager, Location location) {
-        return islandManager.getIslandAt(location.getChunk().getX(), location.getChunk().getZ());
+        return islandManager.getIslandAt(location.getBlockX() >> 4, location.getBlockZ() >> 4);
     }
 
     /**
      * 根据坐标获取当前所属岛屿（使用最大范围，用于权限判断）
      */
     public static Optional<Island> getPlayerCurrentIslandMaxRange(IslandManager islandManager, Location location) {
-        return islandManager.getIslandAtMaxRange(location.getChunk().getX(), location.getChunk().getZ());
+        return islandManager.getIslandAtMaxRange(location.getBlockX() >> 4, location.getBlockZ() >> 4);
     }
 
     /**
@@ -98,38 +99,135 @@ public abstract class BasePermissionManager implements Listener {
         if (bypassPlayer != null && (bypassPlayer.isOp() || bypassPlayer.hasPermission("skyblock.bypass"))) {
             return true;
         }
+        if (bypassPlayer == null) {
+            // 离线玩家 —— 退化为无 bypass 路径(岛屿权限仍可基于 UUID 判定)
+            PermissionCheckResult r = resolveOffline(location, uuid);
+            return check(r, permission);
+        }
+        return check(resolve(location, bypassPlayer), permission);
+    }
 
+    /**
+     * 权限检查重载 —— 当调用方已持有 Player 引用时直接传入,免去内部 Bukkit.getPlayer(uuid) 反查。
+     */
+    public boolean checkPermission(Location location, Player player, IslandPermission permission) {
+        if (player.isOp() || player.hasPermission("skyblock.bypass")) {
+            return true;
+        }
+        return check(resolve(location, player), permission);
+    }
+
+    /**
+     * 子监听器样板收敛：检查权限失败时取消事件并发送拒绝消息。
+     * <p>
+     * 替代每个子监听器里重复出现的
+     * {@code if (!checkPermission(loc, player, perm)) { event.setCancelled(true); sendDenyMessage(player, perm); }}
+     * 三行样板，使每个事件处理器聚焦于"提取 Location + 决定权限类型"两件事。
+     */
+    protected void enforce(Cancellable event, Location location, Player player, IslandPermission permission) {
+        if (!checkPermission(location, player, permission)) {
+            event.setCancelled(true);
+            sendDenyMessage(player, permission);
+        }
+    }
+
+    /**
+     * 子监听器样板收敛（已解析 result 重载）：复用同一 {@link PermissionCheckResult}
+     * 进行多次权限判定时使用，避免每次重复 Location→Island 解析。
+     * 典型场景见 {@code ContainerPermissionManager.onContainerInteract}。
+     */
+    protected void enforce(Cancellable event, PermissionCheckResult r, Player player, IslandPermission permission) {
+        if (!check(r, permission)) {
+            event.setCancelled(true);
+            sendDenyMessage(player, permission);
+        }
+    }
+
+    /**
+     * 单次解析 Location → 玩家/岛屿/锁定/公共区域状态,产出不可变 {@link PermissionCheckResult}。
+     * 同一事件内多次权限检查可复用同一 result,避免重复执行 Bukkit.getPlayer、island grid 索引、
+     * chunk 坐标计算等开销(原实现每次 checkPermission 都重复 7-8 次同样的解析)。
+     */
+    public PermissionCheckResult resolve(Location location, Player player) {
+        if (player.isOp() || player.hasPermission("skyblock.bypass")) {
+            return PermissionCheckResult.bypass(player);
+        }
         String worldName = location.getWorld().getName();
         if (!StarMSkyblock.getInstance().getWorldManager().isSkyblockWorldName(worldName)) {
-            if (StarMSkyblock.getInstance().getWorldManager().isPublicWorld(worldName)) {
-                lastCheckWasPublicArea = true;
-                return !publicAreaConfig.isEnabled() || publicAreaConfig.getPermission(permission);
-            }
-            return true;
+            boolean inPublicWorld = StarMSkyblock.getInstance().getWorldManager().isPublicWorld(worldName);
+            lastCheckWasAreaLocked = false;
+            lastCheckWasPublicArea = inPublicWorld;
+            return PermissionCheckResult.outsideSkyblockWorld(player, inPublicWorld);
         }
 
         Optional<Island> optIsland = getPlayerCurrentIslandMaxRange(islandManager, location);
 
-        lastCheckWasAreaLocked = false;
-        lastCheckWasPublicArea = false;
-
         if (optIsland.isEmpty()) {
+            lastCheckWasAreaLocked = false;
             lastCheckWasPublicArea = true;
-            return !publicAreaConfig.isEnabled() || publicAreaConfig.getPermission(permission);
+            return PermissionCheckResult.publicArea(player);
         }
 
         Island island = optIsland.get();
+        int chunkX = location.getBlockX() >> 4;
+        int chunkZ = location.getBlockZ() >> 4;
+        boolean onUnlockedIsland = island.isChunkWithinIsland(chunkX, chunkZ);
 
-        int chunkX = location.getChunk().getX();
-        int chunkZ = location.getChunk().getZ();
-
-        if (!island.isChunkWithinIsland(chunkX, chunkZ)) {
-            lastCheckWasAreaLocked = true;
+        lastCheckWasAreaLocked = !onUnlockedIsland;
+        lastCheckWasPublicArea = false;
+        if (!onUnlockedIsland) {
             lastAreaLockedIsland = island;
+        }
+        return onUnlockedIsland
+                ? PermissionCheckResult.onIsland(player, island)
+                : PermissionCheckResult.lockedArea(player, island);
+    }
+
+    /** 离线玩家解析 —— 仅做世界判断与岛屿定位,无法判定 bypass(已在调用方过滤) */
+    private PermissionCheckResult resolveOffline(Location location, UUID uuid) {
+        String worldName = location.getWorld().getName();
+        if (!StarMSkyblock.getInstance().getWorldManager().isSkyblockWorldName(worldName)) {
+            boolean inPublicWorld = StarMSkyblock.getInstance().getWorldManager().isPublicWorld(worldName);
+            lastCheckWasAreaLocked = false;
+            lastCheckWasPublicArea = inPublicWorld;
+            return PermissionCheckResult.outsideSkyblockWorld(uuid, inPublicWorld);
+        }
+        Optional<Island> optIsland = getPlayerCurrentIslandMaxRange(islandManager, location);
+        if (optIsland.isEmpty()) {
+            lastCheckWasAreaLocked = false;
+            lastCheckWasPublicArea = true;
+            return PermissionCheckResult.publicArea(uuid);
+        }
+        Island island = optIsland.get();
+        int chunkX = location.getBlockX() >> 4;
+        int chunkZ = location.getBlockZ() >> 4;
+        boolean onUnlockedIsland = island.isChunkWithinIsland(chunkX, chunkZ);
+        lastCheckWasAreaLocked = !onUnlockedIsland;
+        lastCheckWasPublicArea = false;
+        if (!onUnlockedIsland) {
+            lastAreaLockedIsland = island;
+        }
+        return onUnlockedIsland
+                ? PermissionCheckResult.onIsland(uuid, island)
+                : PermissionCheckResult.lockedArea(uuid, island);
+    }
+
+    /**
+     * 基于 {@link PermissionCheckResult} 执行具体权限判定 —— 内部不再访问 Location/Bukkit,
+     * 因此同一事件内多次 check 复用同一 result 时只付出 O(1) 哈希/位运算开销。
+     */
+    public boolean check(PermissionCheckResult r, IslandPermission permission) {
+        if (r.bypass()) return true;
+        if (r.outsideSkyblockWorld()) return true;
+        if (r.island() == null) {
+            // 公共区域(无岛屿归属 或 公共世界)
+            return !publicAreaConfig.isEnabled() || publicAreaConfig.getPermission(permission);
+        }
+        if (!r.onUnlockedIsland()) {
+            // 锁定区域(岛屿范围内但未解锁半径)
             return !lockedAreaConfig.isEnabled() || lockedAreaConfig.getPermission(permission);
         }
-
-        return hasPermission(island, uuid, permission);
+        return r.island().hasPermission(r.uuid(), permission);
     }
 
     /**

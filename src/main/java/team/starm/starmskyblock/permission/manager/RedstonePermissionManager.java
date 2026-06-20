@@ -88,10 +88,7 @@ public class RedstonePermissionManager extends BasePermissionManager {
             return;
         }
 
-        if (!checkPermission(block.getLocation(), player.getUniqueId(), permission)) {
-            event.setCancelled(true);
-            sendDenyMessage(player, permission);
-        }
+        enforce(event, block.getLocation(), player, permission);
     }
 
     /**

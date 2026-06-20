@@ -80,9 +80,9 @@ public class IslandCreateTask extends BukkitRunnable {
     }
 
     /**
-     * 在主线程中完成岛屿创建：粘贴三个世界的结构文件。
-     * 主世界 → 下界 → 末地通过 BukkitRunnable 链式延迟执行，
-     * 每步之间间隔一个 tick 以避免单帧造成服务器卡顿。
+     * 在主线程中完成岛屿创建：依次粘贴主世界 → 下界 → 末地结构。
+     * 每步在独立 tick 中执行以避免单帧卡顿，任一步失败则记录日志并跳过后续阶段，
+     * 但仍会发送完成消息（success=false），调用方可据此感知部分失败。
      */
     private void completeCreation() {
         sendMessage("§e正在准备世界...");
@@ -98,40 +98,81 @@ public class IslandCreateTask extends BukkitRunnable {
         int pasteX = startX + 8;
         int pasteZ = startZ + 8;
 
-        sendMessage("§e正在生成主世界结构...");
         String schematicName = plugin.getConfigManager().getNormalSchematicFileName(schematicId);
-        boolean pasteSuccess = plugin.getSchematicManager().pasteSchematic(schematicName, world, pasteX, y, pasteZ);
-
-        // 将下界和末地粘贴分散到后续tick，避免单帧卡顿
         String netherSchematicName = plugin.getConfigManager().getNetherSchematicFileName(schematicId);
         String endSchematicName = plugin.getConfigManager().getEndSchematicFileName(schematicId);
 
+        // 阶段 1：主世界（同步执行，复用当前 tick）
+        sendMessage("§e正在生成主世界结构...");
+        boolean normalOk = pasteSchematicSync(schematicName, world, pasteX, y, pasteZ, "主世界");
+
+        // 阶段 2：下界（下一 tick），失败则跳过末地
+        scheduleNext(() -> {
+            if (!normalOk) {
+                finishCreation(world, startX, startZ, y, schematicName, false);
+                return;
+            }
+            sendMessage("§e正在生成下界结构...");
+            boolean netherOk = pasteSchematicSync(netherSchematicName, netherWorld, pasteX, y, pasteZ, "下界");
+
+            // 阶段 3：末地（下一 tick）
+            scheduleNext(() -> {
+                if (!netherOk) {
+                    finishCreation(world, startX, startZ, y, schematicName, false);
+                    return;
+                }
+                sendMessage("§e正在生成末地结构...");
+                boolean endOk = pasteSchematicSync(endSchematicName, endWorld, pasteX, y, pasteZ, "末地");
+                finishCreation(world, startX, startZ, y, schematicName, endOk);
+            });
+        });
+    }
+
+    /** 粘贴单个 schematic 并返回是否成功；失败时记录一行错误日志，便于排障。 */
+    private boolean pasteSchematicSync(String schematicName, World targetWorld, int x, int y, int z, String stageLabel) {
+        if (targetWorld == null) {
+            MessageUtil.consoleError("岛屿创建阶段 [" + stageLabel + "] 跳过：目标世界未加载。岛屿 ID=" + createdIsland.getId());
+            return false;
+        }
+        try {
+            boolean ok = plugin.getSchematicManager().pasteSchematic(schematicName, targetWorld, x, y, z);
+            if (!ok) {
+                MessageUtil.consoleError("岛屿创建阶段 [" + stageLabel + "] 粘贴失败：schematic=" + schematicName
+                        + "，岛屿 ID=" + createdIsland.getId());
+            }
+            return ok;
+        } catch (Exception e) {
+            MessageUtil.consoleError("岛屿创建阶段 [" + stageLabel + "] 粘贴异常：schematic=" + schematicName
+                    + "，岛屿 ID=" + createdIsland.getId(), e);
+            return false;
+        }
+    }
+
+    /** 在下一 tick 执行任务，捕获异常避免调度链断裂。 */
+    private void scheduleNext(Runnable task) {
         new BukkitRunnable() {
             @Override
             public void run() {
-                sendMessage("§e正在生成下界结构...");
-                plugin.getSchematicManager().pasteSchematic(netherSchematicName, netherWorld, pasteX, y, pasteZ);
-
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        sendMessage("§e正在生成末地结构...");
-                        plugin.getSchematicManager().pasteSchematic(endSchematicName, endWorld, pasteX, y, pasteZ);
-
-                        // 保存模板基线（用于等级系统忽略模板方块）
-                        plugin.getLevelManager().saveBaseline(createdIsland, schematicId);
-
-                        // 更新主世界告示牌文字
-                        updateSigns(world, pasteX, y, pasteZ, schematicName);
-
-                        long endTime = System.currentTimeMillis();
-                        long duration = endTime - startTime;
-
-                        sendCompletionMessage(createdIsland, world, startX, startZ, y, duration, pasteSuccess);
-                    }
-                }.runTask(plugin);
+                try {
+                    task.run();
+                } catch (Exception e) {
+                    MessageUtil.consoleError("岛屿创建调度链中发生错误，岛屿 ID=" + createdIsland.getId(), e);
+                    sendMessage("§c创建岛屿时发生意外错误，请联系管理员！");
+                }
             }
         }.runTask(plugin);
+    }
+
+    /** 末地粘贴完成（或被跳过）后的收尾：保存基线、更新告示牌、发送完成消息。 */
+    private void finishCreation(World world, int startX, int startZ, int y, String schematicName, boolean success) {
+        try {
+            plugin.getLevelManager().saveBaseline(createdIsland, schematicId);
+            updateSigns(world, startX + 8, y, startZ + 8, schematicName);
+        } catch (Exception e) {
+            MessageUtil.consoleError("岛屿创建收尾阶段发生错误，岛屿 ID=" + createdIsland.getId(), e);
+        }
+        long duration = System.currentTimeMillis() - startTime;
+        sendCompletionMessage(createdIsland, world, startX, startZ, y, duration, success);
     }
 
     /**
@@ -223,7 +264,8 @@ public class IslandCreateTask extends BukkitRunnable {
                 double teleportX = startX + 8 + offsets[0];
                 double teleportY = y + offsets[1];
                 double teleportZ = startZ + 8 + offsets[2];
-                Location spawnLocation = new Location(world, teleportX, teleportY, teleportZ);
+                Location spawnLocation = new Location(world, teleportX, teleportY, teleportZ,
+                        (float) offsets[3], (float) offsets[4]);
                 player.teleport(spawnLocation);
                 player.sendMessage("§a已自动传送到你的岛屿！");
 
