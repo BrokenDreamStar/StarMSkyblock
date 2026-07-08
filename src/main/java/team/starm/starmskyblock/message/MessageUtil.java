@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import org.bukkit.ChatColor;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +37,17 @@ public class MessageUtil {
 
     private static final Logger LOGGER = LogManager.getLogger("StarMSkyblock");
     private static final Set<UUID> SILENT_PLAYERS = ConcurrentHashMap.newKeySet();
+
+    /** 启动期由 StarMSkyblock 注入；未初始化时 send(key) 返回字面 key 文本 */
+    private static volatile LanguageManager languageManager;
+
+    /**
+     * 启动期注入 LanguageManager 引用。
+     * 由 StarMSkyblock.onEnable() 在 LanguageManager.initialize() 之后调用。
+     */
+    public static void setLanguageManager(@org.jetbrains.annotations.Nullable LanguageManager lm) {
+        languageManager = lm;
+    }
 
     private static final String LOG_PREFIX = "&7[<gradient:#14bcfe:#495aff>&lStarM Skyblock</gradient>&7]&r";
 
@@ -100,6 +112,64 @@ public class MessageUtil {
     public static void broadcast(@Nullable String message) {
         if (message == null) return;
         Bukkit.broadcastMessage(colorize(message));
+    }
+
+    // ==================== i18n key-based API ====================
+
+    /**
+     * 发送 i18n 消息（无占位符）。
+     * 静默模式下自动跳过玩家消息。
+     */
+    public static void send(@NotNull CommandSender sender, @NotNull String key) {
+        send(sender, key, null);
+    }
+
+    /**
+     * 发送 i18n 消息（带命名占位符 {name}）。
+     * 静默模式下自动跳过玩家消息。
+     * LanguageManager 未初始化时回退到字面 key 文本。
+     */
+    public static void send(@NotNull CommandSender sender, @NotNull String key, @Nullable Map<String, ?> args) {
+        if (sender instanceof Player player && SILENT_PLAYERS.contains(player.getUniqueId())) return;
+        if (languageManager == null) {
+            sender.sendMessage(key);
+            return;
+        }
+        sender.sendMessage(colorize(languageManager.format(key, args)));
+    }
+
+    /**
+     * 广播 i18n 消息（无占位符）。
+     * 命名为 broadcastKey 以避免与 {@link #broadcast(String)} 字面字符串 API 签名冲突。
+     */
+    public static void broadcastKey(@NotNull String key) {
+        broadcastKey(key, null);
+    }
+
+    /**
+     * 广播 i18n 消息（带命名占位符）。
+     */
+    public static void broadcastKey(@NotNull String key, @Nullable Map<String, ?> args) {
+        if (languageManager == null) {
+            Bukkit.broadcastMessage(key);
+            return;
+        }
+        Bukkit.broadcastMessage(colorize(languageManager.format(key, args)));
+    }
+
+    /**
+     * 取已格式化 i18n 字符串（不发送），用于 TrMenu JS bridge 或 PAPI 等场景。
+     */
+    public static String format(@NotNull String key) {
+        return format(key, null);
+    }
+
+    /**
+     * 取已格式化 i18n 字符串（不发送）。
+     */
+    public static String format(@NotNull String key, @Nullable Map<String, ?> args) {
+        if (languageManager == null) return key;
+        return languageManager.format(key, args);
     }
 
     /**

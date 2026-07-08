@@ -1,0 +1,6 @@
+# StarMSkyblock i18n 默认语言文件（zh_CN）
+# 键命名约定：层级点分式 kebab-case，最多 4 层
+# 占位符：{name} 命名式
+
+general:
+  placeholder: "&7i18n 系统已就绪"
