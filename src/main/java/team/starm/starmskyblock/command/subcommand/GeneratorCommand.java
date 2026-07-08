@@ -1,5 +1,6 @@
 package team.starm.starmskyblock.command.subcommand;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
@@ -49,7 +50,7 @@ public class GeneratorCommand extends SubCommand {
 
         Optional<Island> islandOpt = getIsland(player);
         if (islandOpt.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+            MessageUtil.send(player, "general.island-not-found");
             return true;
         }
 
@@ -66,7 +67,7 @@ public class GeneratorCommand extends SubCommand {
         // /is generator <维度> — 查看指定维度状态
         if (args.length == 2) {
             if (!DIMENSIONS.contains(dimension)) {
-                MessageUtil.sendMessage(player, "&c无效的维度！可选: normal, end, nether");
+                MessageUtil.send(player, "generator.invalid-dimension");
                 return true;
             }
             showGeneratorStatus(player, island, dimension);
@@ -76,7 +77,7 @@ public class GeneratorCommand extends SubCommand {
         // /is generator <维度> all <true/false/toggle> — 批量切换所有矿石
         if (args[2].equalsIgnoreCase("all")) {
             if (!island.hasPermission(player.getUniqueId(), IslandPermission.SET_GENERATOR)) {
-                MessageUtil.sendMessage(player, "&c你没有权限管理刷石机！");
+                MessageUtil.send(player, "generator.no-permission");
                 return true;
             }
 
@@ -84,7 +85,7 @@ public class GeneratorCommand extends SubCommand {
                     .getTier(island.getGeneratorLevel());
             Map<String, Double> rates = getDimensionRates(tier, dimension);
             if (rates.isEmpty()) {
-                MessageUtil.sendMessage(player, "&c该维度没有可配置的矿石！");
+                MessageUtil.send(player, "generator.dimension-empty");
                 return true;
             }
 
@@ -92,7 +93,7 @@ public class GeneratorCommand extends SubCommand {
 
             int toggled = 0;
             if (args.length < 4) {
-                MessageUtil.sendMessage(player, "&c用法: /is generator " + dimension + " all <true/false>");
+                MessageUtil.send(player, "generator.usage.all", Map.of("dimension", dimension));
                 return true;
             }
             Boolean enableAll;
@@ -101,7 +102,7 @@ public class GeneratorCommand extends SubCommand {
             } else if (args[3].equalsIgnoreCase("false")) {
                 enableAll = Boolean.FALSE;
             } else {
-                MessageUtil.sendMessage(player, "&c无效的值！可选: true, false");
+                MessageUtil.send(player, "generator.invalid-boolean-value");
                 return true;
             }
 
@@ -115,14 +116,19 @@ public class GeneratorCommand extends SubCommand {
             plugin.getIslandManager().updateIslandGeneratorDisabled(island.getId(), json);
 
             String dimDisplay = DIMENSION_DISPLAY.getOrDefault(dimension, dimension);
-            String statusDisplay = enableAll ? "已全部启用" : "已全部禁用";
-            MessageUtil.sendMessage(player, "&a已将 " + dimDisplay + " 的 " + toggled + " 种矿石" + statusDisplay);
+            if (enableAll) {
+                MessageUtil.send(player, "generator.all-enabled",
+                        Map.of("dimension", dimDisplay, "count", toggled));
+            } else {
+                MessageUtil.send(player, "generator.all-disabled",
+                        Map.of("dimension", dimDisplay, "count", toggled));
+            }
             return true;
         }
 
         // /is generator <维度> <矿石> <true/false/toggle> — 切换单个矿石
         if (!island.hasPermission(player.getUniqueId(), IslandPermission.SET_GENERATOR)) {
-            MessageUtil.sendMessage(player, "&c你没有权限管理刷石机！");
+            MessageUtil.send(player, "generator.no-permission");
             return true;
         }
 
@@ -132,7 +138,7 @@ public class GeneratorCommand extends SubCommand {
 
         String materialName = resolveOreName(args[2], rates);
         if (materialName == null) {
-            MessageUtil.sendMessage(player, "&c该矿石不存在于当前等级的 " + dimension + " 维度的刷石机概率表中！");
+            MessageUtil.send(player, "generator.ore-not-found", Map.of("dimension", dimension));
             return true;
         }
 
@@ -140,10 +146,13 @@ public class GeneratorCommand extends SubCommand {
         String defaultOre = DIMENSION_DEFAULT_ORE.get(dimension);
         if (materialName.equals(defaultOre)) {
             String dimDisplay = DIMENSION_DISPLAY.getOrDefault(dimension, dimension);
-            MessageUtil.sendMessage(player, Component.textOfChildren(
-                    NameTranslator.translatable(defaultOre).color(NamedTextColor.YELLOW),
-                    MessageUtil.parse(" &c是 " + dimDisplay + " 维度的默认产物，无法禁用！")
-            ));
+            if (!MessageUtil.isSilent(player.getUniqueId())) {
+                ((Audience) player).sendMessage(Component.textOfChildren(
+                        NameTranslator.translatable(defaultOre).color(NamedTextColor.YELLOW),
+                        MessageUtil.parse(MessageUtil.format("generator.default-ore-cannot-disable",
+                                Map.of("dimension", dimDisplay)))
+                ));
+            }
             return true;
         }
 
@@ -157,7 +166,7 @@ public class GeneratorCommand extends SubCommand {
             } else if (toggleArg.equals("false")) {
                 enable = false;
             } else {
-                MessageUtil.sendMessage(player, "&c无效的值！可选: true, false, toggle");
+                MessageUtil.send(player, "generator.invalid-toggle-value");
                 return true;
             }
         }
@@ -167,11 +176,14 @@ public class GeneratorCommand extends SubCommand {
         plugin.getIslandManager().updateIslandGeneratorDisabled(island.getId(), json);
 
         String dimDisplay = DIMENSION_DISPLAY.getOrDefault(dimension, dimension);
-        MessageUtil.sendMessage(player, Component.textOfChildren(
-                MessageUtil.parse("&a刷石机 " + dimDisplay + " 维度的 "),
-                NameTranslator.translatable(materialName).color(NamedTextColor.YELLOW),
-                MessageUtil.parse(result ? " &a已启用" : " &c已禁用")
-        ));
+        if (!MessageUtil.isSilent(player.getUniqueId())) {
+            ((Audience) player).sendMessage(Component.textOfChildren(
+                    MessageUtil.parse(MessageUtil.format("generator.toggle-prefix",
+                            Map.of("dimension", dimDisplay))),
+                    NameTranslator.translatable(materialName).color(NamedTextColor.YELLOW),
+                    MessageUtil.parse(MessageUtil.format(result ? "generator.toggle-enabled" : "generator.toggle-disabled"))
+            ));
+        }
         return true;
     }
 
@@ -242,7 +254,7 @@ public class GeneratorCommand extends SubCommand {
         GeneratorConfigManager.GeneratorTier tier = plugin.getGeneratorConfigManager()
                 .getTier(island.getGeneratorLevel());
 
-        MessageUtil.sendMessage(player, "&a=== 刷石机状态 &7(等级: &e" + island.getGeneratorLevel() + "&7) ===");
+        MessageUtil.send(player, "generator.status.header", Map.of("level", island.getGeneratorLevel()));
 
         for (String dim : DIMENSIONS) {
             if (targetDim != null && !dim.equals(targetDim)) continue;
@@ -253,7 +265,7 @@ public class GeneratorCommand extends SubCommand {
             Map<String, Boolean> enabledMap = buildEnabledMap(island, dim, rates);
 
             String display = DIMENSION_DISPLAY.getOrDefault(dim, dim);
-            MessageUtil.sendMessage(player, "&b▶ " + dim + " &7(" + display + ")");
+            MessageUtil.send(player, "generator.status.dimension", Map.of("dimension", dim, "display", display));
 
             double totalWeight = rates.values().stream().mapToDouble(Double::doubleValue).sum();
 
@@ -263,18 +275,20 @@ public class GeneratorCommand extends SubCommand {
                 double pct = totalWeight > 0 ? (weight * 100.0 / totalWeight) : 0;
                 boolean enabled = enabledMap.getOrDefault(material, true);
 
-                MessageUtil.sendMessage(player, Component.textOfChildren(
-                        Component.text("  "),
-                        NameTranslator.translatable(material).color(NamedTextColor.YELLOW),
-                        Component.text(": ", NamedTextColor.GRAY),
-                        Component.text(String.format("%.1f%%", pct), NamedTextColor.GRAY),
-                        Component.text("  "),
-                        enabled ? Component.text("✓", NamedTextColor.GREEN) : Component.text("✗", NamedTextColor.RED)
-                ));
+                if (!MessageUtil.isSilent(player.getUniqueId())) {
+                    ((Audience) player).sendMessage(Component.textOfChildren(
+                            Component.text("  "),
+                            NameTranslator.translatable(material).color(NamedTextColor.YELLOW),
+                            Component.text(": ", NamedTextColor.GRAY),
+                            Component.text(String.format("%.1f%%", pct), NamedTextColor.GRAY),
+                            Component.text("  "),
+                            enabled ? Component.text("✓", NamedTextColor.GREEN) : Component.text("✗", NamedTextColor.RED)
+                    ));
+                }
             }
         }
 
-        MessageUtil.sendMessage(player, "&7使用 &e/is generator <维度> <矿石> <true/false/toggle> &7设置矿石是否生成");
+        MessageUtil.send(player, "generator.usage.help");
     }
 
     private Map<String, Boolean> buildEnabledMap(Island island, String dim, Map<String, Double> rates) {

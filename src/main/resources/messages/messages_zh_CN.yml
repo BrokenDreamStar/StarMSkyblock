@@ -8,6 +8,7 @@ general:
   player-not-found: "&c玩家不存在或不在线！"
   cannot-remove-owner: "&c你不能移除岛主！"
   operation-failed: "&c操作失败，请稍后重试。"
+  empty-line: ""
 team:
   usage:
     header: "&c用法:"
@@ -66,3 +67,65 @@ coop:
     not-coop: "&c该玩家不是合作者！"
     success: "&a已移除合作者 &e{name}"
     removed: "&c你已被 &e{player} &c移出岛屿合作者队伍"
+upgrade:
+  economy-not-loaded: "&c经济系统未接入，无法使用升级功能！"
+  no-island: "&c你没有岛屿！"
+  owner-only: "&c只有岛主才能升级岛屿！"
+  target-exceeds-max: "&c升级目标超过服务器最大限制！"
+  insufficient-funds: "&c余额不足！需要 &6{cost}"
+  info:
+    header: "&a=== 岛屿升级信息 ==="
+    radius-current: "&7当前岛屿范围: &e{radius} &7区块"
+    radius-current-max: "&7当前岛屿范围: &e{radius} &7区块 &c(已达最大)"
+    generator-current: "&7当前刷石机等级: &e{level}"
+    generator-current-max: "&7当前刷石机等级: &e{level} &c(已达最大)"
+    radius-next: "&7下个范围等级: &e{radius} &7区块 - 费用: &6{cost}"
+    radius-next-none: "&7下个范围等级: &c无更多配置"
+    generator-next: "&7下个刷石机等级: &e{level} &7- 费用: &6{cost}"
+    generator-next-none: "&7下个刷石机等级: &c无更多配置"
+  usage:
+    radius: "&a/is upgrade radius &f- 升级岛屿范围"
+    generator: "&a/is upgrade generator &f- 升级刷石机"
+  radius:
+    max-reached: "&c岛屿范围已达最大等级！"
+    config-not-found: "&c未找到下一级范围升级配置！"
+    success: "&a岛屿范围已升级至 &e{radius} &a区块！"
+  generator:
+    max-reached: "&c刷石机已达最大等级！"
+    config-not-found: "&c未找到下一级刷石机升级配置！"
+    success: "&a刷石机已升级至 &e{level} &a级！"
+generator:
+  invalid-dimension: "&c无效的维度！可选: normal, end, nether"
+  no-permission: "&c你没有权限管理刷石机！"
+  dimension-empty: "&c该维度没有可配置的矿石！"
+  invalid-boolean-value: "&c无效的值！可选: true, false"
+  invalid-toggle-value: "&c无效的值！可选: true, false, toggle"
+  ore-not-found: "&c该矿石不存在于当前等级的 {dimension} 维度的刷石机概率表中！"
+  default-ore-cannot-disable: " &c是 {dimension} 维度的默认产物，无法禁用！"
+  toggle-prefix: "&a刷石机 {dimension} 维度的 "
+  toggle-enabled: " &a已启用"
+  toggle-disabled: " &c已禁用"
+  all-enabled: "&a已将 {dimension} 的 {count} 种矿石已全部启用"
+  all-disabled: "&a已将 {dimension} 的 {count} 种矿石已全部禁用"
+  usage:
+    all: "&c用法: /is generator {dimension} all <true/false>"
+    help: "&7使用 &e/is generator <维度> <矿石> <true/false/toggle> &7设置矿石是否生成"
+  status:
+    header: "&a=== 刷石机状态 &7(等级: &e{level}&7) ==="
+    dimension: "&b▶ {dimension} &7({display})"
+members:
+  coop:
+    header: "&a=== 合作者列表 ==="
+    empty: "&7暂无合作者"
+    entry: "&b合作者: &e{name}{status}"
+  mycoops:
+    header: "&a=== 我的合作者身份 ==="
+    empty: "&c你不是任何岛屿的合作者！"
+    entry: "&b岛屿 #{id} &e(岛主: {name}){status}"
+  perms:
+    header: "&a=== 我的岛屿权限 ==="
+    current: "&7当前权限组: &e{role} &7(等级 {level})"
+    perm-enabled: "&a✔ &7{name}"
+    perm-disabled: "&c✘ &7{name}"
+  role:
+    display: "&a你的岛屿权限组: &e{role}"

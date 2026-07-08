@@ -8,6 +8,7 @@ import team.starm.starmskyblock.message.MessageUtil;
 import net.milkbowl.vault.economy.Economy;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class UpgradeCommand extends SubCommand {
@@ -20,19 +21,19 @@ public class UpgradeCommand extends SubCommand {
     public boolean execute(Player player, String[] args) {
         Economy economy = plugin.getEconomy();
         if (economy == null) {
-            MessageUtil.sendMessage(player, "&c经济系统未接入，无法使用升级功能！");
+            MessageUtil.send(player, "upgrade.economy-not-loaded");
             return true;
         }
 
         Optional<Island> optional = plugin.getIslandManager().getIsland(player.getUniqueId());
         if (optional.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你没有岛屿！");
+            MessageUtil.send(player, "upgrade.no-island");
             return true;
         }
         Island island = optional.get();
 
         if (!island.getOwnerId().equals(player.getUniqueId())) {
-            MessageUtil.sendMessage(player, "&c只有岛主才能升级岛屿！");
+            MessageUtil.send(player, "upgrade.owner-only");
             return true;
         }
 
@@ -65,36 +66,42 @@ public class UpgradeCommand extends SubCommand {
         int maxRadius = plugin.getConfigManager().getIslandMaxRadius();
         int genMaxLevel = plugin.getGeneratorConfigManager().getMaxLevel();
 
-        MessageUtil.sendMessage(player, "&a=== 岛屿升级信息 ===");
-        MessageUtil.sendMessage(player, "&7当前岛屿范围: &e" + island.getRadius() + " &7区块" +
-                (island.getRadius() >= maxRadius ? " &c(已达最大)" : ""));
-        MessageUtil.sendMessage(player, "&7当前刷石机等级: &e" + island.getGeneratorLevel() +
-                (island.getGeneratorLevel() >= genMaxLevel ? " &c(已达最大)" : ""));
+        MessageUtil.send(player, "upgrade.info.header");
+        if (island.getRadius() >= maxRadius) {
+            MessageUtil.send(player, "upgrade.info.radius-current-max", Map.of("radius", island.getRadius()));
+        } else {
+            MessageUtil.send(player, "upgrade.info.radius-current", Map.of("radius", island.getRadius()));
+        }
+        if (island.getGeneratorLevel() >= genMaxLevel) {
+            MessageUtil.send(player, "upgrade.info.generator-current-max", Map.of("level", island.getGeneratorLevel()));
+        } else {
+            MessageUtil.send(player, "upgrade.info.generator-current", Map.of("level", island.getGeneratorLevel()));
+        }
 
         UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
 
         if (island.getRadius() < maxRadius) {
             upgradeConfig.getNextRadiusUpgrade(island.getRadius()).ifPresentOrElse(
-                    next -> MessageUtil.sendMessage(player, "&7下个范围等级: &e" + next.radius() +
-                            " &7区块 - 费用: &6" + economy.format(next.money())),
-                    () -> MessageUtil.sendMessage(player, "&7下个范围等级: &c无更多配置"));
+                    next -> MessageUtil.send(player, "upgrade.info.radius-next",
+                            Map.of("radius", next.radius(), "cost", economy.format(next.money()))),
+                    () -> MessageUtil.send(player, "upgrade.info.radius-next-none"));
         }
 
         if (island.getGeneratorLevel() < genMaxLevel) {
             upgradeConfig.getNextGeneratorUpgrade(island.getGeneratorLevel()).ifPresentOrElse(
-                    next -> MessageUtil.sendMessage(player, "&7下个刷石机等级: &e" + next.generatorLevel() +
-                            " &7- 费用: &6" + economy.format(next.money())),
-                    () -> MessageUtil.sendMessage(player, "&7下个刷石机等级: &c无更多配置"));
+                    next -> MessageUtil.send(player, "upgrade.info.generator-next",
+                            Map.of("level", next.generatorLevel(), "cost", economy.format(next.money()))),
+                    () -> MessageUtil.send(player, "upgrade.info.generator-next-none"));
         }
 
-        MessageUtil.sendMessage(player, "&a/is upgrade radius &f- 升级岛屿范围");
-        MessageUtil.sendMessage(player, "&a/is upgrade generator &f- 升级刷石机");
+        MessageUtil.send(player, "upgrade.usage.radius");
+        MessageUtil.send(player, "upgrade.usage.generator");
     }
 
     private void handleRadiusUpgrade(Player player, Island island, Economy economy) {
         int maxRadius = plugin.getConfigManager().getIslandMaxRadius();
         if (island.getRadius() >= maxRadius) {
-            MessageUtil.sendMessage(player, "&c岛屿范围已达最大等级！");
+            MessageUtil.send(player, "upgrade.radius.max-reached");
             return;
         }
 
@@ -102,31 +109,31 @@ public class UpgradeCommand extends SubCommand {
         Optional<UpgradeConfigManager.RadiusUpgrade> next = upgradeConfig.getNextRadiusUpgrade(island.getRadius());
 
         if (next.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c未找到下一级范围升级配置！");
+            MessageUtil.send(player, "upgrade.radius.config-not-found");
             return;
         }
 
         UpgradeConfigManager.RadiusUpgrade upgrade = next.get();
 
         if (upgrade.radius() > maxRadius) {
-            MessageUtil.sendMessage(player, "&c升级目标超过服务器最大限制！");
+            MessageUtil.send(player, "upgrade.target-exceeds-max");
             return;
         }
 
         if (!economy.has(player, upgrade.money())) {
-            MessageUtil.sendMessage(player, "&c余额不足！需要 &6" + economy.format(upgrade.money()));
+            MessageUtil.send(player, "upgrade.insufficient-funds", Map.of("cost", economy.format(upgrade.money())));
             return;
         }
 
         economy.withdrawPlayer(player, upgrade.money());
         plugin.getIslandManager().updateIslandRadius(island.getId(), upgrade.radius());
-        MessageUtil.sendMessage(player, "&a岛屿范围已升级至 &e" + upgrade.radius() + " &a区块！");
+        MessageUtil.send(player, "upgrade.radius.success", Map.of("radius", upgrade.radius()));
     }
 
     private void handleGeneratorUpgrade(Player player, Island island, Economy economy) {
         int genMaxLevel = plugin.getGeneratorConfigManager().getMaxLevel();
         if (island.getGeneratorLevel() >= genMaxLevel) {
-            MessageUtil.sendMessage(player, "&c刷石机已达最大等级！");
+            MessageUtil.send(player, "upgrade.generator.max-reached");
             return;
         }
 
@@ -134,24 +141,24 @@ public class UpgradeCommand extends SubCommand {
         Optional<UpgradeConfigManager.GeneratorUpgrade> next = upgradeConfig.getNextGeneratorUpgrade(island.getGeneratorLevel());
 
         if (next.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c未找到下一级刷石机升级配置！");
+            MessageUtil.send(player, "upgrade.generator.config-not-found");
             return;
         }
 
         UpgradeConfigManager.GeneratorUpgrade upgrade = next.get();
 
         if (upgrade.generatorLevel() > genMaxLevel) {
-            MessageUtil.sendMessage(player, "&c升级目标超过服务器最大限制！");
+            MessageUtil.send(player, "upgrade.target-exceeds-max");
             return;
         }
 
         if (!economy.has(player, upgrade.money())) {
-            MessageUtil.sendMessage(player, "&c余额不足！需要 &6" + economy.format(upgrade.money()));
+            MessageUtil.send(player, "upgrade.insufficient-funds", Map.of("cost", economy.format(upgrade.money())));
             return;
         }
 
         economy.withdrawPlayer(player, upgrade.money());
         plugin.getIslandManager().updateIslandGeneratorLevel(island.getId(), upgrade.generatorLevel());
-        MessageUtil.sendMessage(player, "&a刷石机已升级至 &e" + upgrade.generatorLevel() + " &a级！");
+        MessageUtil.send(player, "upgrade.generator.success", Map.of("level", upgrade.generatorLevel()));
     }
 }
