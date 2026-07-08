@@ -63,12 +63,12 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            MessageUtil.sendMessage(sender, "&c只有玩家才能执行该命令！");
+            MessageUtil.send(sender, "general.player-only");
             return true;
         }
 
         if (!sender.hasPermission("skyblock.is")) {
-            MessageUtil.sendMessage(sender, "&c你没有权限执行此命令！");
+            MessageUtil.send(sender, "general.no-permission");
             return true;
         }
 
@@ -109,42 +109,42 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
             return permissionCommand.handlePermissionCommand(player, args);
         }
 
-        MessageUtil.sendMessage(player, "&c未知命令。输入 /is help 查看帮助。");
+        MessageUtil.send(player, "command.is.unknown");
         return true;
     }
 
     public void sendHelpMessage(Player player) {
-        MessageUtil.sendMessage(player, "&a=== <gradient:#14bcfe:#495aff>&lStarM Skyblock</gradient>&a帮助 ===");
-        MessageUtil.sendMessage(player, "&b/is create [类型] [名称] &f- 创建岛屿");
-        MessageUtil.sendMessage(player, "&b/is tp <岛屿名称> [岛屿ID]&f- 传送到指定岛屿");
-        MessageUtil.sendMessage(player, "&b/is rename <名称> &f- 修改岛屿名称");
-        MessageUtil.sendMessage(player, "&b/is spawn &f- 传送回岛屿");
-        MessageUtil.sendMessage(player, "&b/is setspawn &f- 设置岛屿传送点");
-        MessageUtil.sendMessage(player, "&b/is border [true|false|toggle] &f- 开启/关闭/切换岛屿边界显示");
-        MessageUtil.sendMessage(player, "&b/is delete &f- 删除岛屿");
-        MessageUtil.sendMessage(player, "&b/is info &f- 查看岛屿信息");
-        MessageUtil.sendMessage(player, "&b/is team invite <玩家> &f- 邀请玩家加入岛屿");
-        MessageUtil.sendMessage(player, "&b/is team remove <玩家> [confirm] &f- 移除岛屿成员");
-        MessageUtil.sendMessage(player, "&b/is team accept &f- 接受岛屿邀请");
-        MessageUtil.sendMessage(player, "&b/is team decline &f- 拒绝岛屿邀请");
-        MessageUtil.sendMessage(player, "&b/is team list &f- 查看岛屿成员列表");
-        MessageUtil.sendMessage(player, "&b/is coop add <玩家> &f- 添加合作者");
-        MessageUtil.sendMessage(player, "&b/is coop remove <玩家> &f- 移除合作者");
-        MessageUtil.sendMessage(player, "&b/is coops &f- 查看合作者列表");
-        MessageUtil.sendMessage(player, "&b/is mycoops &f- 查看自己是哪些岛屿的合作者");
-//        MessageUtil.sendMessage(player, "&b/is list [next|prev|home] &f- 翻页浏览岛屿列表");
-        MessageUtil.sendMessage(player, "&b/is permission <权限> <等级> &f- 设置权限最低等级");
-        MessageUtil.sendMessage(player, "&b/is promote <玩家> &f- 晋升成员权限组");
-        MessageUtil.sendMessage(player, "&b/is demote <玩家> &f- 降级成员权限组");
-        MessageUtil.sendMessage(player, "&b/is myperms &f- 查看自己拥有的权限");
-        MessageUtil.sendMessage(player, "&b/is role &f- 查看自己的岛屿权限组");
-        MessageUtil.sendMessage(player, "&b/is settings &f- 查看岛屿设置");
-        MessageUtil.sendMessage(player, "&b/is settings <设置项> <true|false> &f- 修改岛屿设置");
-        MessageUtil.sendMessage(player, "&b/is setchunkbiome <生物群系> &f- 修改当前区块生物群系");
-        MessageUtil.sendMessage(player, "&b/is setbiome <生物群系> &f- 修改整个岛屿生物群系");
-        MessageUtil.sendMessage(player, "&b/is generator [维度] [矿石] [true/false/toggle] &f- 查看/控制刷石机矿石生成");
-        MessageUtil.sendMessage(player, "&b/is upgrade [radius|generator] &f- 升级岛屿范围或刷石机等级");
-        MessageUtil.sendMessage(player, "&b/is level &f- 扫描全岛并计算等级");
+        MessageUtil.send(player, "help.header");
+        MessageUtil.send(player, "help.entry.create");
+        MessageUtil.send(player, "help.entry.tp");
+        MessageUtil.send(player, "help.entry.rename");
+        MessageUtil.send(player, "help.entry.spawn");
+        MessageUtil.send(player, "help.entry.setspawn");
+        MessageUtil.send(player, "help.entry.border");
+        MessageUtil.send(player, "help.entry.delete");
+        MessageUtil.send(player, "help.entry.info");
+        MessageUtil.send(player, "help.entry.team-invite");
+        MessageUtil.send(player, "help.entry.team-remove");
+        MessageUtil.send(player, "help.entry.team-accept");
+        MessageUtil.send(player, "help.entry.team-decline");
+        MessageUtil.send(player, "help.entry.team-list");
+        MessageUtil.send(player, "help.entry.coop-add");
+        MessageUtil.send(player, "help.entry.coop-remove");
+        MessageUtil.send(player, "help.entry.coops");
+        MessageUtil.send(player, "help.entry.mycoops");
+//        MessageUtil.send(player, "help.entry.list");
+        MessageUtil.send(player, "help.entry.permission");
+        MessageUtil.send(player, "help.entry.promote");
+        MessageUtil.send(player, "help.entry.demote");
+        MessageUtil.send(player, "help.entry.myperms");
+        MessageUtil.send(player, "help.entry.role");
+        MessageUtil.send(player, "help.entry.settings");
+        MessageUtil.send(player, "help.entry.settings-set");
+        MessageUtil.send(player, "help.entry.setchunkbiome");
+        MessageUtil.send(player, "help.entry.setbiome");
+        MessageUtil.send(player, "help.entry.generator");
+        MessageUtil.send(player, "help.entry.upgrade");
+        MessageUtil.send(player, "help.entry.level");
     }
 
     @Override

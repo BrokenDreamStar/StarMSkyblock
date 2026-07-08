@@ -41,7 +41,7 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("skyblock.admin")) {
-            MessageUtil.sendMessage(sender, "&c你没有权限执行此命令！");
+            MessageUtil.send(sender, "general.no-permission");
             return true;
         }
 
@@ -75,11 +75,11 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendUsage(CommandSender sender) {
-        MessageUtil.sendMessage(sender, "&c用法:");
-        MessageUtil.sendMessage(sender, "&c  /isadmin setradius <岛屿ID> <新半径>");
-        MessageUtil.sendMessage(sender, "&c  /isadmin setgenerator <岛屿ID> <等级>");
-        MessageUtil.sendMessage(sender, "&c  /isadmin settask <玩家> <章节ID> <任务ID> complete|reset");
-        MessageUtil.sendMessage(sender, "&c  /isadmin reload - 重载所有配置文件");
+        MessageUtil.send(sender, "command.admin.usage-header");
+        MessageUtil.send(sender, "command.admin.usage-setradius");
+        MessageUtil.send(sender, "command.admin.usage-setgenerator");
+        MessageUtil.send(sender, "command.admin.usage-settask");
+        MessageUtil.send(sender, "command.admin.usage-reload");
     }
 
     @Override

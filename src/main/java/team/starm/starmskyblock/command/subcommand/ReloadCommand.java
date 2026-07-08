@@ -4,6 +4,8 @@ import org.bukkit.command.CommandSender;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.message.MessageUtil;
 
+import java.util.Map;
+
 public class ReloadCommand extends AdminSubCommand {
 
     public ReloadCommand(StarMSkyblock plugin) {
@@ -23,7 +25,7 @@ public class ReloadCommand extends AdminSubCommand {
         plugin.getLanguageManager().reload();
 
         long elapsed = System.currentTimeMillis() - start;
-        MessageUtil.sendMessage(sender, "&a所有配置文件已重载！(耗时 " + elapsed + "ms)");
+        MessageUtil.send(sender, "command.admin.reload-success", Map.of("elapsed", elapsed));
         return true;
     }
 }

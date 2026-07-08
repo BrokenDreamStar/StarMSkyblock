@@ -12,6 +12,7 @@ import team.starm.starmskyblock.message.MessageUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -37,31 +38,31 @@ public class IslandPermissionCommand {
     public boolean handlePermissionCommand(Player player, String[] args) {
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+            MessageUtil.send(player, "general.island-not-found");
             return true;
         }
 
         Island island = optionalIsland.get();
 
         if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.EDIT_PERMISSIONS)) {
-            MessageUtil.sendMessage(player, "&c你没有权限管理岛屿权限！");
+            MessageUtil.send(player, "island.permission.no-permission");
             return true;
         }
 
         if (args.length < 2) {
-            MessageUtil.sendMessage(player, "&c用法: /is permission <权限> [权限组/等级/cycle/rcycle]");
-            MessageUtil.sendMessage(player, "&c示例: /is permission build 2");
-            MessageUtil.sendMessage(player, "&c示例: /is permission build cycle — 0→1→2→3→4→5→0 循环");
-            MessageUtil.sendMessage(player, "&c示例: /is permission build rcycle — 5→4→3→2→1→0→5 循环");
-            MessageUtil.sendMessage(player, "&c查询当前配置: /is permission build");
-            MessageUtil.sendMessage(player, "&7管理权限仅可分配给岛主(5)/管理员(4)/风纪委员(3)");
+            MessageUtil.send(player, "island.permission.usage");
+            MessageUtil.send(player, "island.permission.example-basic");
+            MessageUtil.send(player, "island.permission.example-cycle");
+            MessageUtil.send(player, "island.permission.example-rcycle");
+            MessageUtil.send(player, "island.permission.example-query");
+            MessageUtil.send(player, "island.permission.management-restriction");
             return true;
         }
 
         String permissionInput = args[1].toLowerCase();
 
         if (args.length > 3) {
-            MessageUtil.sendMessage(player, "&c用法: /is permission <权限> [权限组/等级/cycle/rcycle]");
+            MessageUtil.send(player, "island.permission.usage");
             return true;
         }
 
@@ -87,22 +88,20 @@ public class IslandPermissionCommand {
     private boolean showPermissionConfig(Player player, Island island, String permissionInput) {
         IslandPermission permission = resolvePermission(permissionInput);
         if (permission == null) {
-            MessageUtil.sendMessage(player, "&c无效的权限: " + permissionInput);
+            MessageUtil.send(player, "island.permission.invalid", Map.of("permission", permissionInput));
             return true;
         }
 
-        MessageUtil.sendMessage(player, "&a=== 权限 " + permission.name().toLowerCase() + " 当前配置 ===");
+        MessageUtil.send(player, "island.permission.config-header", Map.of("permission", permission.name().toLowerCase()));
 
-        boolean hasCustom = false;
         for (IslandPermissionLevel role : IslandPermissionLevel.values()) {
-            String status;
             if (island.hasPermission(role, permission)) {
-                status = "&a拥有";
+                MessageUtil.send(player, "island.permission.config-entry-has",
+                        Map.of("role", role.getDisplayName(), "level", role.getPermissionLevel()));
             } else {
-                status = "&c无";
+                MessageUtil.send(player, "island.permission.config-entry-none",
+                        Map.of("role", role.getDisplayName(), "level", role.getPermissionLevel()));
             }
-            MessageUtil.sendMessage(player,
-                    "&e" + role.getDisplayName() + "(&6" + role.getPermissionLevel() + "&e): " + status);
         }
         return true;
     }
@@ -112,7 +111,7 @@ public class IslandPermissionCommand {
 
         IslandPermission permission = resolvePermission(permissionInput);
         if (permission == null) {
-            MessageUtil.sendMessage(player, "&c无效的权限: " + permissionInput);
+            MessageUtil.send(player, "island.permission.invalid", Map.of("permission", permissionInput));
             return true;
         }
 
@@ -126,9 +125,8 @@ public class IslandPermissionCommand {
 
         IslandPermissionLevel targetRole = parseTargetRole(roleInput);
         if (targetRole == null) {
-            MessageUtil.sendMessage(player, "&c无效的权限组: " + roleInput);
-            MessageUtil.sendMessage(player,
-                    "&c可用权限组: OWNER(5), ADMIN(4), MOD(3), MEMBER(2), COOP(1), VISITOR(0) 或数字 0-5");
+            MessageUtil.send(player, "island.permission.invalid-role", Map.of("role", roleInput));
+            MessageUtil.send(player, "island.permission.available-roles");
             return true;
         }
 
@@ -136,7 +134,7 @@ public class IslandPermissionCommand {
 
         // 检查玩家是否有权限管理目标权限组的权限
         if (!IslandPermissionLevel.getManageableRoles(playerRole).contains(targetRole)) {
-            MessageUtil.sendMessage(player, "&c你不能管理 " + targetRole.getDisplayName() + " 的权限！");
+            MessageUtil.send(player, "island.permission.cannot-manage", Map.of("role", targetRole.getDisplayName()));
             return true;
         }
 
@@ -144,7 +142,7 @@ public class IslandPermissionCommand {
 
         // 管理权限仅允许分配给风纪委员(3)及以上权限组
         if (permission.isManagement() && targetLevel < 3) {
-            MessageUtil.sendMessage(player, "&c管理权限不能分配给 " + targetRole.getDisplayName() + " 及以下的权限组！");
+            MessageUtil.send(player, "island.permission.management-level-too-low", Map.of("role", targetRole.getDisplayName()));
             return true;
         }
         IslandManager islandManager = plugin.getIslandManager();
@@ -221,29 +219,28 @@ public class IslandPermissionCommand {
 
     private void sendPermissionUpdateMessage(Player player, IslandPermission permission,
                                              String permissionInput, IslandPermissionLevel targetRole, int targetLevel) {
-        MessageUtil.sendMessage(player,
-                "&a已将权限 &b" + permissionInput +
-                        " &a的最低等级设置为 &e" + targetRole.getDisplayName() +
-                        " &a(&6" + targetLevel + "&e) 及以上权限组拥有");
+        MessageUtil.send(player, "island.permission.update-success",
+                Map.of("permission", permissionInput, "role", targetRole.getDisplayName(), "level", targetLevel));
     }
 
     public boolean handlePermissionsListCommand(Player player) {
-        MessageUtil.sendMessage(player, "&a=== 所有可用权限列表 ===");
+        MessageUtil.send(player, "island.permission.list-header");
 
         // 动态按类别分组显示权限
         for (PermissionCategory category : PermissionCategory.values()) {
             var perms = category.getPermissions();
             if (perms.isEmpty()) continue;
 
-            MessageUtil.sendMessage(player, "&e=== " + category.displayName + " ===");
-            MessageUtil.sendMessage(player, "&7" + String.join(", ", perms.stream().map(String::toLowerCase).toList()));
+            MessageUtil.send(player, "island.permission.category-header", Map.of("category", category.displayName));
+            MessageUtil.send(player, "island.permission.category-entries", Map.of("permissions",
+                    String.join(", ", perms.stream().map(String::toLowerCase).toList())));
         }
 
-        MessageUtil.sendMessage(player, "&a=== 使用示例 ===");
-        MessageUtil.sendMessage(player, "&7/is permission all 4 → admin(4) 及以上（含岛主）拥有全部权限");
-        MessageUtil.sendMessage(player, "&7/is permission all 5 → 仅岛主拥有全部权限");
-        MessageUtil.sendMessage(player, "&7/is permission build 2 → member(2) 及以上拥有建造权限");
-        MessageUtil.sendMessage(player, "&7管理权限仅可分配给 风纪委员(3)/管理员(4)/岛主(5)");
+        MessageUtil.send(player, "island.permission.examples-header");
+        MessageUtil.send(player, "island.permission.example-all-4");
+        MessageUtil.send(player, "island.permission.example-all-5");
+        MessageUtil.send(player, "island.permission.example-build-2");
+        MessageUtil.send(player, "island.permission.management-restriction");
 
         return true;
     }
