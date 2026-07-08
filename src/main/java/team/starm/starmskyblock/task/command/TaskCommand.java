@@ -30,7 +30,7 @@ public class TaskCommand extends SubCommand {
 
         Optional<Island> islandOpt = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (islandOpt.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+            MessageUtil.send(player, "general.island-not-found");
             return true;
         }
 
@@ -47,7 +47,7 @@ public class TaskCommand extends SubCommand {
                 try {
                     chapterFilter = Integer.parseInt(args[2]);
                 } catch (NumberFormatException e) {
-                    MessageUtil.sendMessage(player, "&c章节号必须为数字！");
+                    MessageUtil.send(player, "task.chapter-not-number");
                     return true;
                 }
             }
@@ -57,7 +57,7 @@ public class TaskCommand extends SubCommand {
 
         if (sub.equals("submit")) {
             if (args.length < 4) {
-                MessageUtil.sendMessage(player, "&c用法: /is task submit <章节ID> <任务ID>");
+                MessageUtil.send(player, "task.submit.usage");
                 return true;
             }
             try {
@@ -65,19 +65,19 @@ public class TaskCommand extends SubCommand {
                 int mission = Integer.parseInt(args[3]);
                 TaskDefinition def = taskManager.getTaskConfig().getTaskByChapterAndMission(chapter, mission);
                 if (def == null) {
-                    MessageUtil.sendMessage(player, "&c任务不存在！章节 " + chapter + " 任务 " + mission);
+                    MessageUtil.send(player, "task.not-found", Map.of("chapter", chapter, "mission", mission));
                     return true;
                 }
                 taskManager.submitItems(player, def.getId());
             } catch (NumberFormatException e) {
-                MessageUtil.sendMessage(player, "&c章节号和任务号必须为数字！");
+                MessageUtil.send(player, "task.chapter-mission-not-number");
             }
             return true;
         }
 
         if (sub.equals("claim")) {
             if (args.length < 4) {
-                MessageUtil.sendMessage(player, "&c用法: /is task claim <章节ID> <任务ID>");
+                MessageUtil.send(player, "task.claim.usage");
                 return true;
             }
             try {
@@ -85,17 +85,17 @@ public class TaskCommand extends SubCommand {
                 int mission = Integer.parseInt(args[3]);
                 TaskDefinition def = taskManager.getTaskConfig().getTaskByChapterAndMission(chapter, mission);
                 if (def == null) {
-                    MessageUtil.sendMessage(player, "&c任务不存在！章节 " + chapter + " 任务 " + mission);
+                    MessageUtil.send(player, "task.not-found", Map.of("chapter", chapter, "mission", mission));
                     return true;
                 }
                 taskManager.claimTask(player, def.getId());
             } catch (NumberFormatException e) {
-                MessageUtil.sendMessage(player, "&c章节号和任务号必须为数字！");
+                MessageUtil.send(player, "task.chapter-mission-not-number");
             }
             return true;
         }
 
-        MessageUtil.sendMessage(player, "&c未知的子命令！可用: list, submit, claim");
+        MessageUtil.send(player, "task.unknown-subcommand");
         return true;
     }
 
@@ -103,15 +103,16 @@ public class TaskCommand extends SubCommand {
         UUID uuid = player.getUniqueId();
         Map<String, TaskCategory> categories = taskManager.getTaskConfig().getCategories();
 
-        MessageUtil.sendMessage(player, "&a=== 任务列表 ===");
+        MessageUtil.send(player, "task.list.header");
 
         for (TaskCategory cat : categories.values()) {
             if (chapterFilter > 0 && cat.getChapterNumber() != chapterFilter) continue;
 
             boolean chapterLocked = !taskManager.isChapterUnlocked(uuid, cat.getId());
             String chapterIcon = chapterLocked ? "&8🔒" : "&b▶";
-            MessageUtil.sendMessage(player, "");
-            MessageUtil.sendMessage(player, "  " + chapterIcon + " " + cat.getName() + " &7(ID:" + cat.getChapterNumber() + ")");
+            MessageUtil.send(player, "general.empty-line");
+            MessageUtil.send(player, "task.list.chapter-entry",
+                    Map.of("icon", chapterIcon, "name", cat.getName(), "id", cat.getChapterNumber()));
 
             for (TaskDefinition def : cat.getTasks()) {
                 boolean locked = chapterLocked || !taskManager.isTaskUnlocked(uuid, def.getId());
@@ -138,14 +139,14 @@ public class TaskCommand extends SubCommand {
                 int chapterNum = cat.getChapterNumber();
                 TaskProgress prog = taskManager.getPlayerProgressMap(uuid).get(def.getId());
                 int pct = (prog != null && !locked) ? (int) Math.round(prog.getProgressPercent(def) * 100) : 0;
-                MessageUtil.sendMessage(player, "    &f" + missionNum + ": " + def.getName()
-                        + " &7[" + pct + "%] " + icon);
+                MessageUtil.send(player, "task.list.task-entry",
+                        Map.of("number", missionNum, "name", def.getName(), "pct", pct, "icon", icon));
             }
         }
 
-        MessageUtil.sendMessage(player, "");
-        MessageUtil.sendMessage(player, "&e/is task submit <章节ID> <任务ID> &7- 提交物品（ITEM 类型）");
-        MessageUtil.sendMessage(player, "&e/is task claim <章节ID> <任务ID> &7- 领取奖励");
+        MessageUtil.send(player, "general.empty-line");
+        MessageUtil.send(player, "task.list.footer-submit");
+        MessageUtil.send(player, "task.list.footer-claim");
     }
 
     @Override

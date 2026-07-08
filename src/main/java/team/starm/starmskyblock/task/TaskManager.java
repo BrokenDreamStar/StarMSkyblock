@@ -277,8 +277,8 @@ public class TaskManager {
                 prog.setNotified(true);
                 int ch = taskConfig.getChapterNumberByTaskId(defId);
                 int ms = def.getMissionNumber();
-                MessageUtil.sendMessage(player, "&a任务 &e" + def.getName() + " &a已完成！使用 &e/is task claim "
-                        + ch + " " + ms + " &a领取奖励。");
+                MessageUtil.send(player, "task.completed-message",
+                        Map.of("task", def.getName(), "chapter", ch, "mission", ms));
             }
         }
 
@@ -293,29 +293,29 @@ public class TaskManager {
 
         TaskDefinition def = taskConfig.getTask(taskId);
         if (def == null) {
-            MessageUtil.sendMessage(player, "&c任务不存在！");
+            MessageUtil.send(player, "task.not-found-simple");
             return false;
         }
         if (def.getTaskType() != TaskType.ITEM) {
-            MessageUtil.sendMessage(player, "&c该任务类型不支持物品提交！");
+            MessageUtil.send(player, "task.submit.unsupported-type");
             return false;
         }
 
         if (!def.getRequiredMissionIds().isEmpty() && !hasCompletedRequired(uuid, def)) {
-            MessageUtil.sendMessage(player, "&c请先完成前置任务！");
+            MessageUtil.send(player, "task.required-tasks-not-completed");
             return false;
         }
 
         String categoryId = def.getCategoryId();
         if (!isChapterUnlocked(uuid, categoryId)) {
-            MessageUtil.sendMessage(player, "&c请先完成前置章节！");
+            MessageUtil.send(player, "task.chapter-not-unlocked");
             return false;
         }
 
         Map<String, TaskProgress> progressMap = playerProgress.get(uuid);
         TaskProgress prog = progressMap.get(taskId);
         if (prog != null && (prog.isClaimed() || prog.isCompleted(def))) {
-            MessageUtil.sendMessage(player, "&c该任务已完成！");
+            MessageUtil.send(player, "task.already-completed");
             return false;
         }
 
@@ -340,9 +340,9 @@ public class TaskManager {
                             NameTranslator.translatable(req.getTypes().get(i)).color(NamedTextColor.YELLOW));
                 }
                 MessageUtil.sendMessage(player, Component.textOfChildren(
-                        MessageUtil.parse("&c物品不足！需要 "),
+                        MessageUtil.parse(MessageUtil.format("task.submit.insufficient-header")),
                         typesComponent,
-                        MessageUtil.parse(" &cx "),
+                        MessageUtil.parse(MessageUtil.format("task.submit.insufficient-separator")),
                         Component.text(req.getAmount(), NamedTextColor.RED)
                 ));
                 return false;
@@ -382,7 +382,7 @@ public class TaskManager {
         markDirty(uuid);
         int ch = taskConfig.getChapterNumberByTaskId(def.getId());
         int ms = def.getMissionNumber();
-        MessageUtil.sendMessage(player, "&a✔ 已提交物品！使用 &e/is task claim " + ch + " " + ms + " &a领取奖励。");
+        MessageUtil.send(player, "task.submit.success", Map.of("chapter", ch, "mission", ms));
         return true;
     }
 
@@ -392,7 +392,7 @@ public class TaskManager {
 
         TaskDefinition def = taskConfig.getTask(taskId);
         if (def == null) {
-            MessageUtil.sendMessage(player, "&c任务不存在！");
+            MessageUtil.send(player, "task.not-found-simple");
             return false;
         }
 
@@ -401,12 +401,12 @@ public class TaskManager {
 
         TaskProgress prog = progressMap.get(taskId);
         if (prog == null || !prog.isCompleted(def)) {
-            MessageUtil.sendMessage(player, "&c该任务尚未完成！");
+            MessageUtil.send(player, "task.not-completed");
             return false;
         }
 
         if (prog.isClaimed()) {
-            MessageUtil.sendMessage(player, "&c该任务奖励已领取！");
+            MessageUtil.send(player, "task.reward-already-claimed");
             return false;
         }
 
@@ -419,7 +419,7 @@ public class TaskManager {
             prog.setClaimed(true);
             prog.getProgress().clear();
             markDirty(player.getUniqueId());
-            MessageUtil.sendMessage(player, "&a✔ 任务 &e" + def.getName() + " &a已完成！");
+            MessageUtil.send(player, "task.completed-no-reward", Map.of("task", def.getName()));
             return true;
         }
 
@@ -460,7 +460,7 @@ public class TaskManager {
         // 加入快路径跳过集合
         Set<String> completed = completedTaskIds.get(player.getUniqueId());
         if (completed != null) completed.add(def.getId());
-        MessageUtil.sendMessage(player, "&a✔ 已领取任务 &e" + def.getName() + " &a的奖励！");
+        MessageUtil.send(player, "task.reward-claimed", Map.of("task", def.getName()));
         return true;
     }
 
@@ -583,7 +583,7 @@ public class TaskManager {
 
         if (rewards.isEmpty()) {
             if (online) {
-                MessageUtil.sendMessage(player, "&a✔ 任务 &e" + def.getName() + " &a已完成（管理员强制完成）！");
+                MessageUtil.send(player, "task.admin-force-complete", Map.of("task", def.getName()));
             }
             return;
         }
@@ -625,7 +625,7 @@ public class TaskManager {
         }
 
         if (online) {
-            MessageUtil.sendMessage(player, "&a✔ 任务 &e" + def.getName() + " &a已完成（管理员强制完成）！奖励已发放。");
+            MessageUtil.send(player, "task.admin-force-complete-with-rewards", Map.of("task", def.getName()));
         }
     }
 
