@@ -45,7 +45,7 @@ public class MessageUtil {
      * 启动期注入 LanguageManager 引用。
      * 由 StarMSkyblock.onEnable() 在 LanguageManager.initialize() 之后调用。
      */
-    public static void setLanguageManager(@org.jetbrains.annotations.Nullable LanguageManager lm) {
+    public static void setLanguageManager(@Nullable LanguageManager lm) {
         languageManager = lm;
     }
 
@@ -131,11 +131,7 @@ public class MessageUtil {
      */
     public static void send(@NotNull CommandSender sender, @NotNull String key, @Nullable Map<String, ?> args) {
         if (sender instanceof Player player && SILENT_PLAYERS.contains(player.getUniqueId())) return;
-        if (languageManager == null) {
-            sender.sendMessage(key);
-            return;
-        }
-        sender.sendMessage(colorize(languageManager.format(key, args)));
+        sender.sendMessage(colorize(format(key, args)));
     }
 
     /**
@@ -150,11 +146,7 @@ public class MessageUtil {
      * 广播 i18n 消息（带命名占位符）。
      */
     public static void broadcastKey(@NotNull String key, @Nullable Map<String, ?> args) {
-        if (languageManager == null) {
-            Bukkit.broadcastMessage(key);
-            return;
-        }
-        Bukkit.broadcastMessage(colorize(languageManager.format(key, args)));
+        Bukkit.broadcastMessage(colorize(format(key, args)));
     }
 
     /**
