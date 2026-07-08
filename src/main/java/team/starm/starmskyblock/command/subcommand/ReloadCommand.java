@@ -20,6 +20,7 @@ public class ReloadCommand extends AdminSubCommand {
         plugin.getSignConfigManager().reloadSignConfig();
         plugin.getSettingsConfigManager().reloadSettingsConfig();
         plugin.getPermissionConfigManager().reloadPermissionsConfig();
+        plugin.getLanguageManager().reload();
 
         long elapsed = System.currentTimeMillis() - start;
         MessageUtil.sendMessage(sender, "&a所有配置文件已重载！(耗时 " + elapsed + "ms)");

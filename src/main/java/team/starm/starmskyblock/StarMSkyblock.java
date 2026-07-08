@@ -45,6 +45,7 @@ import team.starm.starmskyblock.setting.IslandSettingManager;
 import team.starm.starmskyblock.permission.IslandPermissionManager;
 import team.starm.starmskyblock.placeholder.SkyblockExpansion;
 import team.starm.starmskyblock.message.MessageUtil;
+import team.starm.starmskyblock.message.LanguageManager;
 import team.starm.starmskyblock.util.SkullManager;
 import team.starm.starmskyblock.bridge.StarMSkyblockHook;
 import me.arasple.mc.trmenu.module.internal.script.js.JavaScriptAgent;
@@ -95,6 +96,9 @@ public class StarMSkyblock extends JavaPlugin {
     private AuraSkillsContributionConfig auraskillsContributionConfig;
     private LevelManager levelManager;
 
+    // ========== i18n ==========
+    private LanguageManager languageManager;
+
     // ========== 公共区域 ==========
     private PublicAreaConfigManager publicAreaConfigManager;
 
@@ -122,6 +126,7 @@ public class StarMSkyblock extends JavaPlugin {
 
         if (!checkWorldEdit()) return;
         initConfigs();
+        initLanguage();
         // extractSchematics 是纯文件 IO,异步执行不阻塞主线程启动链
         Bukkit.getScheduler().runTaskAsynchronously(this, this::extractSchematics);
         initDatabase();         // 必须在 initTasks() 之前，因为 TaskManager 依赖 PlayerRepository
@@ -202,6 +207,12 @@ public class StarMSkyblock extends JavaPlugin {
 
         lockedAreaConfigManager = new LockedAreaConfigManager(this);
         lockedAreaConfigManager.initialize();
+    }
+
+    private void initLanguage() {
+        languageManager = new LanguageManager(this);
+        languageManager.initialize();
+        MessageUtil.setLanguageManager(languageManager);
     }
 
     private void initDatabase() {
@@ -437,6 +448,10 @@ public class StarMSkyblock extends JavaPlugin {
 
     public UpgradeConfigManager getUpgradeConfigManager() {
         return upgradeConfigManager;
+    }
+
+    public LanguageManager getLanguageManager() {
+        return languageManager;
     }
 
     public net.milkbowl.vault.economy.Economy getEconomy() {
