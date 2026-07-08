@@ -165,11 +165,13 @@ public final class LanguageManager {
                 return null;
             }
         }
-        try (InputStream in = plugin.getResource(MESSAGES_DIR + "/" + MESSAGES_FILE_PREFIX + locale + MESSAGES_FILE_SUFFIX)) {
-            if (in == null) {
-                return null;
-            }
-            return YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
+        InputStream in = plugin.getResource(MESSAGES_DIR + "/" + MESSAGES_FILE_PREFIX + locale + MESSAGES_FILE_SUFFIX);
+        if (in == null) {
+            return null;
+        }
+        try (InputStream resource = in;
+             java.io.InputStreamReader reader = new java.io.InputStreamReader(resource, java.nio.charset.StandardCharsets.UTF_8)) {
+            return YamlConfiguration.loadConfiguration(reader);
         } catch (IOException e) {
             MessageUtil.consoleError("读取内置语言文件失败: messages_" + locale + ".yml - " + e.getMessage());
             return null;
@@ -187,10 +189,10 @@ public final class LanguageManager {
                 continue;
             }
             Object value = yaml.get(key);
-            if (value == null) {
+            if (!(value instanceof String)) {
                 continue;
             }
-            result.put(key, value.toString());
+            result.put(key, (String) value);
         }
         return result;
     }

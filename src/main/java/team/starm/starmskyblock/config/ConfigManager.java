@@ -254,12 +254,8 @@ public class ConfigManager {
         this.publicWorlds = new HashSet<>(config.getStringList(ConfigKeys.PUBLIC_WORLDS));
 
         // ====================== i18n locale ======================
-        String rawLocale = config.getString(ConfigKeys.LOCALE, "zh_CN");
-        if (!rawLocale.matches("[a-z]{2}_[A-Z]{2}")) {
-            MessageUtil.consoleWarn("locale 字段格式非法（期望 xx_XX 如 zh_CN），已回退到 zh_CN");
-            rawLocale = "zh_CN";
-        }
-        this.locale = rawLocale;
+        // 仅原样存储，校验由 LanguageManager.validateLocale() 统一处理（避免正则重复）。
+        this.locale = config.getString(ConfigKeys.LOCALE, "zh_CN");
     }
 
     // ==================== Getter 方法（按功能分类） ====================
