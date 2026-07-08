@@ -17,28 +17,28 @@ public class AcceptDeclineCommand extends SubCommand {
 
         if (args[0].equalsIgnoreCase("accept")) {
             if (!invitationManager.hasPendingInvitation(player.getUniqueId())) {
-                MessageUtil.sendMessage(player, "&c你没有待处理的岛屿邀请！");
+                MessageUtil.send(player, "team.invite.no-pending");
                 return true;
             }
 
             if (invitationManager.acceptInvitation(player.getUniqueId())) {
-                MessageUtil.sendMessage(player, "&a你已成功加入岛屿！");
+                MessageUtil.send(player, "team.accept.success");
             } else {
-                MessageUtil.sendMessage(player, "&c接受邀请失败，邀请可能已过期或你已有岛屿。");
+                MessageUtil.send(player, "team.accept.failed");
             }
             return true;
         }
 
         if (args[0].equalsIgnoreCase("decline")) {
             if (!invitationManager.hasPendingInvitation(player.getUniqueId())) {
-                MessageUtil.sendMessage(player, "&c你没有待处理的岛屿邀请！");
+                MessageUtil.send(player, "team.invite.no-pending");
                 return true;
             }
 
             if (invitationManager.declineInvitation(player.getUniqueId())) {
-                MessageUtil.sendMessage(player, "&c你已拒绝岛屿邀请");
+                MessageUtil.send(player, "team.decline.success");
             } else {
-                MessageUtil.sendMessage(player, "&c拒绝邀请失败，请稍后重试。");
+                MessageUtil.send(player, "team.decline.failed");
             }
             return true;
         }

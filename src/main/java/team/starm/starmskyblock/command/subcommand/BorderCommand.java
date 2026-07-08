@@ -17,8 +17,12 @@ public class BorderCommand extends SubCommand {
 
         if (args.length < 2) {
             boolean current = borderListener.isPlayerShowBorder(player.getUniqueId());
-            MessageUtil.sendMessage(player, "&a岛屿边界显示: " + (current ? "&a已开启" : "&c已关闭"));
-            MessageUtil.sendMessage(player, "&7使用 &e/is border toggle &7切换，或 &e/is border <true|false> &7直接设置。");
+            if (current) {
+                MessageUtil.send(player, "border.show.status-enabled");
+            } else {
+                MessageUtil.send(player, "border.show.status-disabled");
+            }
+            MessageUtil.send(player, "border.show.hint");
             return true;
         }
 
@@ -32,16 +36,16 @@ public class BorderCommand extends SubCommand {
         } else if (args[1].equalsIgnoreCase("false")) {
             show = false;
         } else {
-            MessageUtil.sendMessage(player, "&c用法: /is border [true|false|toggle]");
+            MessageUtil.send(player, "border.usage");
             return true;
         }
 
         borderListener.setPlayerShowBorder(player.getUniqueId(), show);
 
         if (show) {
-            MessageUtil.sendMessage(player, "&a岛屿边界显示已开启！");
+            MessageUtil.send(player, "border.enabled");
         } else {
-            MessageUtil.sendMessage(player, "&c岛屿边界显示已关闭！");
+            MessageUtil.send(player, "border.disabled");
         }
 
         borderListener.updatePlayerBorder(player);

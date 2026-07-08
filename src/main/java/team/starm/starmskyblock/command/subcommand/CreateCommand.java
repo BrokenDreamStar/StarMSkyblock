@@ -4,6 +4,8 @@ import org.bukkit.entity.Player;
 import team.starm.starmskyblock.island.IslandCreateTask;
 import team.starm.starmskyblock.message.MessageUtil;
 
+import java.util.Map;
+
 public class CreateCommand extends SubCommand {
 
     public CreateCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
@@ -16,7 +18,7 @@ public class CreateCommand extends SubCommand {
 
         var islandManager = plugin.getIslandManager();
         if (islandManager.getIsland(player.getUniqueId()).isPresent()) {
-            MessageUtil.sendMessage(player, "&c你已经拥有一个岛屿了！使用 /is spawn 返回。");
+            MessageUtil.send(player, "island.create.already-have");
             return true;
         }
 
@@ -39,11 +41,11 @@ public class CreateCommand extends SubCommand {
             islandName = player.getName() + "的岛屿";
         }
 
-        MessageUtil.sendMessage(player, "&a================================");
-        MessageUtil.sendMessage(player, "&a开始创建岛屿...");
-        MessageUtil.sendMessage(player, "&a岛屿类型: &e" + schematicId);
-        MessageUtil.sendMessage(player, "&a岛屿名称: " + islandName);
-        MessageUtil.sendMessage(player, "&a================================");
+        MessageUtil.send(player, "island.create.divider");
+        MessageUtil.send(player, "island.create.starting");
+        MessageUtil.send(player, "island.create.type", Map.of("type", schematicId));
+        MessageUtil.send(player, "island.create.name", Map.of("name", islandName));
+        MessageUtil.send(player, "island.create.divider");
 
         IslandCreateTask createTask = new IslandCreateTask(plugin, islandManager,
                 player.getUniqueId(), schematicId, islandName);

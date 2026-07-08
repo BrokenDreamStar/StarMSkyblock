@@ -24,13 +24,13 @@ public class RenameCommand extends SubCommand {
     public boolean execute(Player player, String[] args) {
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+            MessageUtil.send(player, "general.island-not-found");
             return true;
         }
 
         Island island = optionalIsland.get();
         if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.RENAME_ISLAND)) {
-            MessageUtil.sendMessage(player, "&c你没有权限修改岛屿名称！");
+            MessageUtil.send(player, "island.rename.no-permission");
             return true;
         }
 
@@ -42,14 +42,14 @@ public class RenameCommand extends SubCommand {
                 long elapsed = System.currentTimeMillis() - lastRename;
                 if (elapsed < cooldownMs) {
                     long remaining = cooldown - (elapsed / 1000);
-                    MessageUtil.sendMessage(player, "&c岛屿重命名冷却中，请等待 &e" + remaining + " &c秒后再试！");
+                    MessageUtil.send(player, "island.rename.cooldown", Map.of("remaining", remaining));
                     return true;
                 }
             }
         }
 
         if (args.length < 2) {
-            MessageUtil.sendMessage(player, "&c用法: /is rename <新名称>");
+            MessageUtil.send(player, "island.rename.usage");
             return true;
         }
 
@@ -57,15 +57,15 @@ public class RenameCommand extends SubCommand {
 
         int maxLength = plugin.getConfigManager().getMaxNameLength();
         if (MessageUtil.stripColor(newName).length() > maxLength) {
-            MessageUtil.sendMessage(player, "&c岛屿名称不能超过 &e" + maxLength + " &c个字符（颜色代码不计入）！");
+            MessageUtil.send(player, "island.rename.too-long", Map.of("max", maxLength));
             return true;
         }
 
         if (plugin.getIslandManager().updateIslandName(island.getId(), newName)) {
             renameCooldowns.put(player.getUniqueId(), System.currentTimeMillis());
-            MessageUtil.sendMessage(player, "&a岛屿名称已修改为: &e" + newName);
+            MessageUtil.send(player, "island.rename.success", Map.of("name", newName));
         } else {
-            MessageUtil.sendMessage(player, "&c修改失败，请稍后重试。");
+            MessageUtil.send(player, "general.operation-failed");
         }
         return true;
     }

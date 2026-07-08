@@ -7,6 +7,7 @@ import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.message.MessageUtil;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class SetGeneratorCommand extends AdminSubCommand {
@@ -18,7 +19,7 @@ public class SetGeneratorCommand extends AdminSubCommand {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (args.length != 3) {
-            MessageUtil.sendMessage(sender, "&c用法: /isadmin setgenerator <岛屿ID> <等级>");
+            MessageUtil.send(sender, "generator.set.usage");
             return true;
         }
 
@@ -26,7 +27,7 @@ public class SetGeneratorCommand extends AdminSubCommand {
         try {
             islandId = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
-            MessageUtil.sendMessage(sender, "&c岛屿ID必须是整数！");
+            MessageUtil.send(sender, "generator.set.island-id-not-int");
             return true;
         }
 
@@ -34,19 +35,19 @@ public class SetGeneratorCommand extends AdminSubCommand {
         try {
             level = Integer.parseInt(args[2]);
         } catch (NumberFormatException e) {
-            MessageUtil.sendMessage(sender, "&c刷石机等级必须是整数！");
+            MessageUtil.send(sender, "generator.set.level-not-int");
             return true;
         }
 
         GeneratorConfigManager genConfig = plugin.getGeneratorConfigManager();
         if (!genConfig.isEnabled()) {
-            MessageUtil.sendMessage(sender, "&c刷石机功能未启用！");
+            MessageUtil.send(sender, "generator.set.not-enabled");
             return true;
         }
 
         int maxLevel = genConfig.getMaxLevel();
         if (level < 1 || level > maxLevel) {
-            MessageUtil.sendMessage(sender, "&c等级必须在 1 ~ " + maxLevel + " 之间！");
+            MessageUtil.send(sender, "generator.set.level-out-of-range", Map.of("max", maxLevel));
             return true;
         }
 
@@ -54,12 +55,12 @@ public class SetGeneratorCommand extends AdminSubCommand {
         Optional<Island> optionalIsland = islandManager.getIsland(islandId);
 
         if (optionalIsland.isEmpty()) {
-            MessageUtil.sendMessage(sender, "&c找不到ID为 " + islandId + " 的岛屿！");
+            MessageUtil.send(sender, "generator.set.island-id-not-found", Map.of("id", islandId));
             return true;
         }
 
         islandManager.updateIslandGeneratorLevel(islandId, level);
-        MessageUtil.sendMessage(sender, "&a成功将岛屿 &e#" + islandId + " &a的刷石机等级设置为 &e" + level);
+        MessageUtil.send(sender, "generator.set.success", Map.of("id", islandId, "level", level));
         return true;
     }
 }

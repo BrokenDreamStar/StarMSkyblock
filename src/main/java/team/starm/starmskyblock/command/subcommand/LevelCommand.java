@@ -26,7 +26,7 @@ public class LevelCommand extends SubCommand {
 
         Optional<Island> islandOpt = getIsland(player);
         if (islandOpt.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你没有岛屿！使用 /is create 创建一个。");
+            MessageUtil.send(player, "island.level.no-island");
             return true;
         }
 
