@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.List;
+import java.util.Map;
 
 public class ListCommand extends SubCommand {
 
@@ -15,12 +16,12 @@ public class ListCommand extends SubCommand {
     public boolean execute(Player player, String[] args) {
         var expansion = plugin.getSkyblockExpansion();
         if (expansion == null) {
-            MessageUtil.sendMessage(player, "&cPlaceholderAPI 未加载，无法使用此功能。");
+            MessageUtil.send(player, "island.list.papi-not-loaded");
             return true;
         }
 
         if (args.length < 2) {
-            MessageUtil.sendMessage(player, "&c用法: /is list <next|prev|home>");
+            MessageUtil.send(player, "island.list.usage");
             return true;
         }
 
@@ -34,25 +35,27 @@ public class ListCommand extends SubCommand {
         switch (action) {
             case "next" -> {
                 if (currentPage >= totalPages) {
-                    MessageUtil.sendMessage(player, "&c已经是最后一页了。");
+                    MessageUtil.send(player, "island.list.last-page");
                     return true;
                 }
                 expansion.setPlayerPage(player, currentPage + 1);
-                MessageUtil.sendMessage(player, "&a已切换到第 &e" + (currentPage + 1) + " &a页，共 &e" + totalPages + " &a页");
+                MessageUtil.send(player, "island.list.page-switched",
+                        Map.of("current", currentPage + 1, "total", totalPages));
             }
             case "prev" -> {
                 if (currentPage <= 1) {
-                    MessageUtil.sendMessage(player, "&c已经在第一页了。");
+                    MessageUtil.send(player, "island.list.first-page");
                     return true;
                 }
                 expansion.setPlayerPage(player, currentPage - 1);
-                MessageUtil.sendMessage(player, "&a已切换到第 &e" + (currentPage - 1) + " &a页，共 &e" + totalPages + " &a页");
+                MessageUtil.send(player, "island.list.page-switched",
+                        Map.of("current", currentPage - 1, "total", totalPages));
             }
             case "spawn", "first" -> {
                 expansion.resetPlayerPage(player);
-                MessageUtil.sendMessage(player, "&a已返回第 1 页，共 &e" + totalPages + " &a页");
+                MessageUtil.send(player, "island.list.page-reset", Map.of("total", totalPages));
             }
-            default -> MessageUtil.sendMessage(player, "&c用法: /is list <next|prev|home>");
+            default -> MessageUtil.send(player, "island.list.usage");
         }
 
         return true;

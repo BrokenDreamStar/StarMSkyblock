@@ -26,24 +26,27 @@ public class InfoCommand extends SubCommand {
 
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+            MessageUtil.send(player, "general.island-not-found");
             return true;
         }
 
         Island island = optionalIsland.get();
 
-        MessageUtil.sendMessage(player, "&a=== 岛屿信息 ===");
+        MessageUtil.send(player, "island.info.header");
 
         String islandName = island.getName();
         if (islandName == null || islandName.isBlank()) {
             islandName = "岛屿 #" + island.getId();
         }
-        MessageUtil.sendMessage(player, "&b名称: &e" + islandName);
-        MessageUtil.sendMessage(player, "&bID: &e" + island.getId());
-        MessageUtil.sendMessage(player, "&b等级: &e" + island.getLevel());
-        MessageUtil.sendMessage(player, "&b已解锁大小: &e" + island.getRadius() + " &7(半径) / &e" + (island.getRadius() * 2 + 1) + "×" + (island.getRadius() * 2 + 1) + " &7(区块)");
+        MessageUtil.send(player, "island.info.name", Map.of("name", islandName));
+        MessageUtil.send(player, "island.info.id", Map.of("id", island.getId()));
+        MessageUtil.send(player, "island.info.level", Map.of("level", island.getLevel()));
+        int radius = island.getRadius();
+        int chunkDim = radius * 2 + 1;
+        String chunkSize = chunkDim + "×" + chunkDim;
+        MessageUtil.send(player, "island.info.size", Map.of("radius", radius, "chunk_size", chunkSize));
 
-        MessageUtil.sendMessage(player, "&a--- 岛屿成员 ---");
+        MessageUtil.send(player, "island.info.members-header");
 
         Map<IslandPermissionLevel, List<String>> groups = new LinkedHashMap<>();
         groups.put(IslandPermissionLevel.OWNER, new ArrayList<>());
@@ -66,12 +69,13 @@ public class InfoCommand extends SubCommand {
             String color = entry.getKey().getColor();
             String roleName = entry.getKey().getDisplayName();
             for (String name : entry.getValue()) {
-                MessageUtil.sendMessage(player, "&f - " + color + name + "(" + color + roleName + ")");
+                MessageUtil.send(player, "island.info.member-entry",
+                        Map.of("color", color, "name", name, "role", roleName));
             }
         }
 
         if (island.getCreatedAt() != null && !island.getCreatedAt().isBlank()) {
-            MessageUtil.sendMessage(player, "&b创建时间: &e" + island.getCreatedAt());
+            MessageUtil.send(player, "island.info.created-at", Map.of("time", island.getCreatedAt()));
         }
 
         return true;

@@ -9,6 +9,7 @@ import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.message.MessageUtil;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.List;
 
@@ -31,19 +32,19 @@ public class PortalInfoCommand extends SubCommand {
         boolean fromEnd = worldManager.isEndWorld(worldName);
 
         if (!fromNormal && !fromNether && !fromEnd) {
-            MessageUtil.sendMessage(player, "§c当前世界不支持下界传送门。");
+            MessageUtil.send(player, "island.portal.world-not-supported");
             return true;
         }
 
         if (fromEnd) {
-            MessageUtil.sendMessage(player, "§c当前处于末地维度，无法传送至下界/主世界传送门。");
+            MessageUtil.send(player, "island.portal.end-dimension");
             return true;
         }
 
         IslandManager islandManager = plugin.getIslandManager();
         Optional<Island> islandOpt = islandManager.getIslandByPlayer(player.getUniqueId());
         if (islandOpt.isEmpty()) {
-            MessageUtil.sendMessage(player, "§c你还没有岛屿！");
+            MessageUtil.send(player, "general.island-not-found");
             return true;
         }
         Island island = islandOpt.get();
@@ -74,21 +75,25 @@ public class PortalInfoCommand extends SubCommand {
         boolean withinIsland = island.isChunkWithinIsland(targetChunkX, targetChunkZ);
         boolean withinMax = island.isChunkWithinMaxRange(targetChunkX, targetChunkZ);
 
-        MessageUtil.sendMessage(player, String.format(
-                "§b[岛屿] 当前位置：%s (%.0f, %.0f, %.0f)",
-                currentName, loc.getX(), loc.getY(), loc.getZ()
+        MessageUtil.send(player, "island.portal.current-position", Map.of(
+                "world", currentName,
+                "x", String.format("%.0f", loc.getX()),
+                "y", String.format("%.0f", loc.getY()),
+                "z", String.format("%.0f", loc.getZ())
         ));
-        MessageUtil.sendMessage(player, String.format(
-                "§b[岛屿] 下界传送门目标：%s (%.0f, %.0f, %.0f)",
-                targetName, targetX, loc.getY(), targetZ
+        MessageUtil.send(player, "island.portal.target-position", Map.of(
+                "world", targetName,
+                "x", String.format("%.0f", targetX),
+                "y", String.format("%.0f", loc.getY()),
+                "z", String.format("%.0f", targetZ)
         ));
 
         if (withinIsland) {
-            MessageUtil.sendMessage(player, "§a[岛屿] 是否在岛屿范围内：是 ✓");
+            MessageUtil.send(player, "island.portal.within-island-yes");
         } else if (withinMax) {
-            MessageUtil.sendMessage(player, "§c[岛屿] 是否在岛屿范围内：目标位置岛屿区域未解锁 ✗");
+            MessageUtil.send(player, "island.portal.within-island-locked");
         } else {
-            MessageUtil.sendMessage(player, "§c[岛屿] 是否在岛屿范围内：目标位置超出你的岛屿范围 ✗");
+            MessageUtil.send(player, "island.portal.within-island-out");
         }
 
         return true;

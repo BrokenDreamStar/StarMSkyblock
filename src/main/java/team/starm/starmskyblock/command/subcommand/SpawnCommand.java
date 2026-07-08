@@ -8,6 +8,7 @@ import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.Island.WorldType;
 import team.starm.starmskyblock.message.MessageUtil;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class SpawnCommand extends SubCommand {
@@ -22,7 +23,7 @@ public class SpawnCommand extends SubCommand {
 
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你还没有岛屿！使用 /is create <岛屿名称> <岛屿类型>创建。");
+            MessageUtil.send(player, "spawn.no-island-hint");
             return true;
         }
 
@@ -42,14 +43,14 @@ public class SpawnCommand extends SubCommand {
                     island.getCustomHomeYaw(), island.getCustomHomePitch());
 
             if (!isLocationSafe(spawnLocation) && (args.length == 1 || !args[1].equalsIgnoreCase("confirm"))) {
-                MessageUtil.sendMessage(player, "&c警告：传送点不安全！");
-                MessageUtil.sendMessage(player, "&c使用 &e/is spawn confirm &c强制传送");
+                MessageUtil.send(player, "spawn.unsafe-warning");
+                MessageUtil.send(player, "spawn.force-hint");
                 return true;
             }
 
             String worldName = worldType == WorldType.NORMAL ? "主世界"
                     : worldType == WorldType.NETHER ? "下界" : "末地";
-            MessageUtil.sendMessage(player, "&a已传送到你设置的岛屿 &e" + worldName + " &a传送点！");
+            MessageUtil.send(player, "spawn.teleported-custom", Map.of("world", worldName));
         } else {
             targetWorld = plugin.getWorldManager().getSkyblockWorld();
             ConfigManager config = plugin.getConfigManager();
@@ -64,12 +65,12 @@ public class SpawnCommand extends SubCommand {
                     (float) offsets[3], (float) offsets[4]);
 
             if (!isLocationSafe(spawnLocation) && (args.length == 1 || !args[1].equalsIgnoreCase("confirm"))) {
-                MessageUtil.sendMessage(player, "&c警告：传送点不安全！");
-                MessageUtil.sendMessage(player, "&c使用 &e/is spawn confirm &c强制传送");
+                MessageUtil.send(player, "spawn.unsafe-warning");
+                MessageUtil.send(player, "spawn.force-hint");
                 return true;
             }
 
-            MessageUtil.sendMessage(player, "&a欢迎回到你的岛屿！");
+            MessageUtil.send(player, "spawn.welcome-back");
         }
 
         player.teleport(spawnLocation);

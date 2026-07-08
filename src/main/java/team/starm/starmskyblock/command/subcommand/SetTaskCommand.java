@@ -11,6 +11,7 @@ import team.starm.starmskyblock.task.config.TaskConfigScanner;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,7 @@ public class SetTaskCommand extends AdminSubCommand {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (args.length != 5) {
-            MessageUtil.sendMessage(sender, "&c用法: /isadmin settask <玩家> <章节编号> <任务编号> complete|reset");
+            MessageUtil.send(sender, "task.set.usage");
             return true;
         }
 
@@ -31,7 +32,7 @@ public class SetTaskCommand extends AdminSubCommand {
         String action = args[4].toLowerCase();
 
         if (!action.equals("complete") && !action.equals("reset")) {
-            MessageUtil.sendMessage(sender, "&c操作必须是 complete 或 reset！");
+            MessageUtil.send(sender, "task.set.invalid-action");
             return true;
         }
 
@@ -41,20 +42,21 @@ public class SetTaskCommand extends AdminSubCommand {
             chapterNumber = Integer.parseInt(args[2]);
             missionNumber = Integer.parseInt(args[3]);
         } catch (NumberFormatException e) {
-            MessageUtil.sendMessage(sender, "&c章节编号和任务编号必须是数字！");
+            MessageUtil.send(sender, "task.set.not-number");
             return true;
         }
 
         UUID targetUuid = resolvePlayer(playerName);
         if (targetUuid == null) {
-            MessageUtil.sendMessage(sender, "&c找不到玩家 " + playerName + "！");
+            MessageUtil.send(sender, "task.set.player-not-found", Map.of("name", playerName));
             return true;
         }
 
         TaskConfigScanner taskConfig = plugin.getTaskManager().getTaskConfig();
         TaskDefinition def = taskConfig.getTaskByChapterAndMission(chapterNumber, missionNumber);
         if (def == null) {
-            MessageUtil.sendMessage(sender, "&c找不到章节 " + chapterNumber + " 的第 " + missionNumber + " 个任务！");
+            MessageUtil.send(sender, "task.set.task-not-found",
+                    Map.of("chapter", chapterNumber, "mission", missionNumber));
             return true;
         }
 
@@ -63,10 +65,20 @@ public class SetTaskCommand extends AdminSubCommand {
 
         if (action.equals("complete")) {
             taskManager.adminForceComplete(targetUuid, fullTaskId);
-            MessageUtil.sendMessage(sender, "&a已强制完成玩家 &e" + playerName + " &a的任务 &e" + def.getName() + " &a(第" + chapterNumber + "章 第" + missionNumber + "个)");
+            MessageUtil.send(sender, "task.set.complete-success", Map.of(
+                    "player", playerName,
+                    "task", def.getName(),
+                    "chapter", chapterNumber,
+                    "mission", missionNumber
+            ));
         } else {
             taskManager.adminResetTask(targetUuid, fullTaskId);
-            MessageUtil.sendMessage(sender, "&a已重置玩家 &e" + playerName + " &a的任务 &e" + def.getName() + " &a(第" + chapterNumber + "章 第" + missionNumber + "个)");
+            MessageUtil.send(sender, "task.set.reset-success", Map.of(
+                    "player", playerName,
+                    "task", def.getName(),
+                    "chapter", chapterNumber,
+                    "mission", missionNumber
+            ));
         }
 
         return true;

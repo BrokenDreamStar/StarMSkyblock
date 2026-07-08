@@ -21,7 +21,7 @@ public class SetSpawnCommand extends SubCommand {
 
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+            MessageUtil.send(player, "general.island-not-found");
             return true;
         }
 
@@ -31,23 +31,23 @@ public class SetSpawnCommand extends SubCommand {
         var worldManager = plugin.getWorldManager();
 
         if (!worldManager.isSkyblockWorld(playerWorld)) {
-            MessageUtil.sendMessage(player, "&c你只能在空岛维度设置传送点！");
+            MessageUtil.send(player, "spawn.set.skyblock-dimension-only");
             return true;
         }
 
         if (!plugin.getIslandManager().isPlayerOnIsland(player, island)) {
-            MessageUtil.sendMessage(player, "&c你只能在你的岛屿范围内设置传送点！");
+            MessageUtil.send(player, "spawn.set.within-island-only");
             return true;
         }
 
         if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.SET_SPAWN)) {
-            MessageUtil.sendMessage(player, "&c你没有权限设置传送点！");
+            MessageUtil.send(player, "spawn.set.no-permission");
             return true;
         }
 
         org.bukkit.Location blockBelow = playerLocation.clone().subtract(0, 1, 0);
         if (blockBelow.getBlock().getType().isAir()) {
-            MessageUtil.sendMessage(player, "&c脚下不能是空气！请站在实心方块上设置传送点。");
+            MessageUtil.send(player, "spawn.set.no-block-below");
             return true;
         }
 
@@ -59,20 +59,20 @@ public class SetSpawnCommand extends SubCommand {
 
         var configManager = plugin.getConfigManager();
         if (worldType == Island.WorldType.NETHER && !configManager.isAllowSetspawnInNether()) {
-            MessageUtil.sendMessage(player, "&c暂不支持在下界设置传送点！");
+            MessageUtil.send(player, "spawn.set.nether-not-supported");
             return true;
         }
         if (worldType == Island.WorldType.END && !configManager.isAllowSetspawnInEnd()) {
-            MessageUtil.sendMessage(player, "&c暂不支持在末地设置传送点！");
+            MessageUtil.send(player, "spawn.set.end-not-supported");
             return true;
         }
 
         if (plugin.getIslandManager().updateIslandCustomHome(island.getId(), worldType,
                 playerLocation.getX(), playerLocation.getY(), playerLocation.getZ(),
                 playerLocation.getYaw(), playerLocation.getPitch())) {
-            MessageUtil.sendMessage(player, "&a已成功设置传送点！");
+            MessageUtil.send(player, "spawn.set.success");
         } else {
-            MessageUtil.sendMessage(player, "&c设置失败，请稍后重试。");
+            MessageUtil.send(player, "general.operation-failed");
         }
         return true;
     }
