@@ -12,6 +12,7 @@ import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("deprecation")
@@ -25,7 +26,7 @@ public class SetChunkBiomeCommand extends SubCommand {
     public boolean execute(Player player, String[] args) {
         var optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+            MessageUtil.send(player, "general.island-not-found");
             return true;
         }
 
@@ -34,12 +35,12 @@ public class SetChunkBiomeCommand extends SubCommand {
         var worldManager = plugin.getWorldManager();
 
         if (!worldManager.isSkyblockWorld(playerWorld)) {
-            MessageUtil.sendMessage(player, "&c你只能在空岛世界修改生物群系！");
+            MessageUtil.send(player, "biome.skyblock-only");
             return true;
         }
 
         if (worldManager.isEndWorld(playerWorld.getName())) {
-            MessageUtil.sendMessage(player, "&c末地维度不支持修改生物群系！");
+            MessageUtil.send(player, "biome.end-not-supported");
             return true;
         }
 
@@ -48,20 +49,20 @@ public class SetChunkBiomeCommand extends SubCommand {
 
         if (!island.isChunkWithinIsland(chunkX, chunkZ)) {
             if (island.isChunkWithinMaxRange(chunkX, chunkZ)) {
-                MessageUtil.sendMessage(player, "&c该区域未解锁，无法修改生物群系！");
+                MessageUtil.send(player, "biome.chunk.area-locked");
             } else {
-                MessageUtil.sendMessage(player, "&c你只能在你的岛屿范围内修改生物群系！");
+                MessageUtil.send(player, "biome.chunk.out-of-island");
             }
             return true;
         }
 
         if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.SET_BIOME)) {
-            MessageUtil.sendMessage(player, "&c你没有权限修改岛屿生物群系！");
+            MessageUtil.send(player, "biome.no-permission");
             return true;
         }
 
         if (args.length < 2) {
-            MessageUtil.sendMessage(player, "&c用法: /is setchunkbiome <生物群系>");
+            MessageUtil.send(player, "biome.chunk.usage");
             return true;
         }
 
@@ -69,20 +70,20 @@ public class SetChunkBiomeCommand extends SubCommand {
 
         SkyblockBiome target = SkyblockBiome.fromInput(args[1]);
         if (target == null) {
-            MessageUtil.sendMessage(player, "&c未知生物群系: " + args[1]);
+            MessageUtil.send(player, "biome.unknown", Map.of("input", args[1]));
             return true;
         }
 
         boolean isNether = worldManager.isNetherWorld(playerWorld.getName());
         SkyblockBiome.Dimension currentDim = isNether ? SkyblockBiome.Dimension.NETHER : SkyblockBiome.Dimension.OVERWORLD;
         if (target.getDimension() != currentDim) {
-            MessageUtil.sendMessage(player, "&c该生物群系在当前维度不可用！");
+            MessageUtil.send(player, "biome.dimension-not-available");
             return true;
         }
 
         Biome bukkitBiome = target.toBukkitBiome();
         if (bukkitBiome == null) {
-            MessageUtil.sendMessage(player, "&c无法加载生物群系数据，请稍后重试。");
+            MessageUtil.send(player, "biome.load-failed");
             return true;
         }
 
@@ -102,7 +103,7 @@ public class SetChunkBiomeCommand extends SubCommand {
 
         playerWorld.refreshChunk(chunk.getX(), chunk.getZ());
 
-        MessageUtil.sendMessage(player, "&a已将当前所在区块生物群系修改为" + target.getColoredDisplayName());
+        MessageUtil.send(player, "biome.chunk.success", Map.of("biome", target.getColoredDisplayName()));
         return true;
     }
 

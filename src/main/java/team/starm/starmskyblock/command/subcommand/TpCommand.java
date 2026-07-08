@@ -10,6 +10,7 @@ import team.starm.starmskyblock.setting.IslandSetting;
 import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -22,7 +23,7 @@ public class TpCommand extends SubCommand {
     @Override
     public boolean execute(Player player, String[] args) {
         if (args.length < 2) {
-            MessageUtil.sendMessage(player, "&c用法: /is tp <岛屿名称> [岛屿ID] [confirm]");
+            MessageUtil.send(player, "tp.usage");
             return true;
         }
 
@@ -44,7 +45,7 @@ public class TpCommand extends SubCommand {
                 }
             }
             if (matchingIslands.isEmpty()) {
-                MessageUtil.sendMessage(player, "&c未找到名称为 &e" + islandName + " &c的岛屿！");
+                MessageUtil.send(player, "tp.not-found", Map.of("name", islandName));
                 return true;
             }
         }
@@ -63,7 +64,7 @@ public class TpCommand extends SubCommand {
                         .filter(i -> i.getId() == islandId)
                         .findFirst();
                 if (matched.isEmpty()) {
-                    MessageUtil.sendMessage(player, "&c未找到ID为 &e" + islandId + " &c的匹配岛屿！");
+                    MessageUtil.send(player, "tp.id-not-found", Map.of("id", islandId));
                     showIslandList(player, matchingIslands);
                     return true;
                 }
@@ -79,7 +80,7 @@ public class TpCommand extends SubCommand {
         }
 
         if (!targetIsland.getSetting(IslandSetting.TP)) {
-            MessageUtil.sendMessage(player, "&c该岛屿未开放传送！");
+            MessageUtil.send(player, "tp.disabled");
             return true;
         }
 
@@ -111,29 +112,31 @@ public class TpCommand extends SubCommand {
 
         boolean confirmed = args.length > confirmArgIndex && args[confirmArgIndex].equalsIgnoreCase("confirm");
         if (!isLocationSafe(spawnLocation) && !confirmed) {
-            MessageUtil.sendMessage(player, "&c警告：该岛屿传送点不安全！");
-            MessageUtil.sendMessage(player, "&c使用 &e/is tp " + islandName + " confirm &c强制传送");
+            MessageUtil.send(player, "tp.unsafe-warning");
+            MessageUtil.send(player, "tp.force-hint", Map.of("name", islandName));
             return true;
         }
 
         int countdown = plugin.getConfigManager().getTeleportCountdown();
         if (countdown > 0) {
             plugin.getTeleportCountdownListener().startCountdown(player, spawnLocation, countdown,
-                    "&a已传送到&r" + targetIsland.getName());
+                    MessageUtil.format("tp.success", Map.of("name", targetIsland.getName())));
         } else {
             player.teleport(spawnLocation);
-            MessageUtil.sendMessage(player, "&a已传送到&r" + targetIsland.getName());
+            MessageUtil.send(player, "tp.success", Map.of("name", targetIsland.getName()));
         }
         return true;
     }
 
     private void showIslandList(Player player, List<Island> islands) {
-        MessageUtil.sendMessage(player, "&a找到多个同名岛屿：");
+        MessageUtil.send(player, "tp.list.header");
         for (Island island : islands) {
             String ownerName = getPlayerName(island.getOwnerId());
-            MessageUtil.sendMessage(player, "  &e#" + island.getId() + " &7- &f" + ownerName);
+            MessageUtil.send(player, "tp.list.entry", Map.of(
+                    "id", island.getId(),
+                    "owner", ownerName));
         }
-        MessageUtil.sendMessage(player, "&7使用 &e/is tp <名称> <ID> &7指定具体岛屿");
+        MessageUtil.send(player, "tp.list.footer");
     }
 
     @Override

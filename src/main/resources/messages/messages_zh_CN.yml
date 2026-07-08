@@ -45,6 +45,21 @@ team:
     success: "&a成功踢出 &e{name} &a从岛屿"
     removed: "&c你已被 {player} &c从岛屿移除"
     failed: "&c移除失败，该玩家可能不是岛屿成员。"
+  role:
+    no-permission: "&c你没有权限管理成员权限组！"
+    usage: "&c用法: /is {subcommand} <玩家名>"
+    self: "&c你不能对自己使用此命令！"
+    higher-or-equal: "&c你无法管理同权限或更高权限的成员！"
+  promote:
+    max-reached: "&c该玩家已经是最高权限组！"
+    invalid-target: "&c只能晋升岛员、风纪委员、管理员！"
+    success: "&a成功晋升 &e{name} &a为 &e{role}"
+    target-notify: "&a你的岛屿权限组已被 &e{player} &a晋升为 &e{role}"
+  demote:
+    min-reached: "&c该玩家已经是最低权限组！"
+    invalid-target: "&c只能降级岛员、风纪委员、管理员！"
+    success: "&a成功降级 &e{name} &a为 &e{role}"
+    target-notify: "&a你的岛屿权限组已被 &e{player} &a降级为 &e{role}"
 coop:
   usage:
     header: "&c用法:"
@@ -129,3 +144,49 @@ members:
     perm-disabled: "&c✘ &7{name}"
   role:
     display: "&a你的岛屿权限组: &e{role}"
+settings:
+  no-permission: "&c你没有权限修改岛屿设置！"
+  unknown-key: "&c未知的设置项: &e{key}"
+  unknown-key-hint: "&c可用设置项: &e/is settings &7查看所有设置"
+  current-value-enabled: "&e{name} &f| &a已启用"
+  current-value-disabled: "&e{name} &f| &c已禁用"
+  invalid-value: "&c值必须为 true 或 false！"
+  save-failed: "&c设置保存失败，请稍后重试。"
+  list:
+    header: "&a=== 岛屿设置 ==="
+    entry-enabled: "&e{name} &7({key}) &f| &a✔ 启用"
+    entry-disabled: "&e{name} &7({key}) &f| &c✘ 禁用"
+    footer: "&7使用 &e/is settings <设置项> <true|false> &7来修改设置。"
+  toggle:
+    hint: "&7使用 &e/is settings {key} toggle &7切换，或 &e/is settings {key} <true|false> &7直接设置。"
+    success-enabled: "&a设置项 &e{name} &a已&a启用"
+    success-disabled: "&a设置项 &e{name} &a已&c禁用"
+biome:
+  skyblock-only: "&c你只能在空岛世界修改生物群系！"
+  end-not-supported: "&c末地维度不支持修改生物群系！"
+  no-permission: "&c你没有权限修改岛屿生物群系！"
+  unknown: "&c未知生物群系: {input}"
+  dimension-not-available: "&c该生物群系在当前维度不可用！"
+  load-failed: "&c无法加载生物群系数据，请稍后重试。"
+  chunk:
+    area-locked: "&c该区域未解锁，无法修改生物群系！"
+    out-of-island: "&c你只能在你的岛屿范围内修改生物群系！"
+    usage: "&c用法: /is setchunkbiome <生物群系>"
+    success: "&a已将当前所在区块生物群系修改为{biome}"
+  set:
+    usage: "&c用法: /is setbiome <生物群系>"
+    confirm-warning: "&c警告：此操作将修改整个岛屿（共 {count} 个区块）的生物群系为 {biome}！"
+    confirm-hint: "&e请使用 &b/is setbiome {biome} confirm &e确认操作。"
+    success: "&a已将整个岛屿的生物群系修改为{biome}"
+tp:
+  usage: "&c用法: /is tp <岛屿名称> [岛屿ID] [confirm]"
+  not-found: "&c未找到名称为 &e{name} &c的岛屿！"
+  id-not-found: "&c未找到ID为 &e{id} &c的匹配岛屿！"
+  disabled: "&c该岛屿未开放传送！"
+  unsafe-warning: "&c警告：该岛屿传送点不安全！"
+  force-hint: "&c使用 &e/is tp {name} confirm &c强制传送"
+  success: "&a已传送到&r{name}"
+  list:
+    header: "&a找到多个同名岛屿："
+    entry: "  &e#{id} &7- &f{owner}"
+    footer: "&7使用 &e/is tp <名称> <ID> &7指定具体岛屿"
