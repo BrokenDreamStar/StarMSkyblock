@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 /**
  * 加载、缓存、查询 i18n 消息。
  * <p>
- * 启动期从 config.yml 读取 locale，加载 messages/messages_<locale>.yml，
+ * 启动期从 config.yml 读取 locale，加载 messages/<locale>.yml，
  * 扁平化为 Map<String, String>（key 全路径 -> 字符串值）。
  * 缺失 key 时返回字面 key 文本并一次性 consoleWarn。
  * <p>
@@ -30,7 +30,7 @@ public final class LanguageManager {
     private static final Pattern LOCALE_PATTERN = Pattern.compile("[a-z]{2}_[A-Z]{2}");
     private static final String DEFAULT_LOCALE = "zh_CN";
     private static final String MESSAGES_DIR = "messages";
-    private static final String MESSAGES_FILE_PREFIX = "messages_";
+    private static final String MESSAGES_FILE_PREFIX = "";
     private static final String MESSAGES_FILE_SUFFIX = ".yml";
 
     private final StarMSkyblock plugin;
@@ -107,7 +107,7 @@ public final class LanguageManager {
         }
         try (InputStream in = plugin.getResource(MESSAGES_DIR + "/" + MESSAGES_FILE_PREFIX + DEFAULT_LOCALE + MESSAGES_FILE_SUFFIX)) {
             if (in == null) {
-                MessageUtil.consoleError("内置语言文件缺失: messages/messages_" + DEFAULT_LOCALE + ".yml");
+                MessageUtil.consoleError("内置语言文件缺失: messages/" + DEFAULT_LOCALE + ".yml");
                 return;
             }
             Files.copy(in, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -126,12 +126,12 @@ public final class LanguageManager {
 
         YamlConfiguration yaml = loadYamlFile(this.locale);
         if (yaml == null && !this.locale.equals(DEFAULT_LOCALE)) {
-            MessageUtil.consoleWarn("语言文件缺失，回退到 " + DEFAULT_LOCALE + ": messages/messages_" + this.locale + ".yml");
+            MessageUtil.consoleWarn("语言文件缺失，回退到 " + DEFAULT_LOCALE + ": messages/" + this.locale + ".yml");
             this.locale = DEFAULT_LOCALE;
             yaml = loadYamlFile(DEFAULT_LOCALE);
         }
         if (yaml == null) {
-            MessageUtil.consoleError("内置语言文件缺失，i18n 系统不可用：messages/messages_" + DEFAULT_LOCALE + ".yml");
+            MessageUtil.consoleError("内置语言文件缺失，i18n 系统不可用：messages/" + DEFAULT_LOCALE + ".yml");
             plugin.getServer().getPluginManager().disablePlugin(plugin);
             return;
         }
@@ -150,8 +150,8 @@ public final class LanguageManager {
     }
 
     /**
-     * 优先加载 plugins/StarMSkyblock/messages/messages_<locale>.yml，
-     * 不存在则尝试 jar 内 messages/messages_<locale>.yml。
+     * 优先加载 plugins/StarMSkyblock/messages/<locale>.yml，
+     * 不存在则尝试 jar 内 messages/<locale>.yml。
      * 返回 null 表示两者都缺失。
      */
     private YamlConfiguration loadYamlFile(@NotNull String locale) {
@@ -173,7 +173,7 @@ public final class LanguageManager {
              java.io.InputStreamReader reader = new java.io.InputStreamReader(resource, java.nio.charset.StandardCharsets.UTF_8)) {
             return YamlConfiguration.loadConfiguration(reader);
         } catch (IOException e) {
-            MessageUtil.consoleError("读取内置语言文件失败: messages_" + locale + ".yml - " + e.getMessage());
+            MessageUtil.consoleError("读取内置语言文件失败: " + locale + ".yml - " + e.getMessage());
             return null;
         }
     }
