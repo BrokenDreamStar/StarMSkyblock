@@ -9,6 +9,7 @@ general:
   cannot-remove-owner: "&c你不能移除岛主！"
   operation-failed: "&c操作失败，请稍后重试。"
   empty-line: ""
+  usage: "&c用法: {usage}"
 team:
   usage:
     header: "&c用法:"

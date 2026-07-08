@@ -7,6 +7,7 @@ import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -48,7 +49,7 @@ public abstract class SubCommand {
 
     protected boolean assertMaxArgs(Player player, String[] args, int max, String usage) {
         if (args.length > max) {
-            MessageUtil.sendMessage(player, "&c用法: " + usage);
+            MessageUtil.send(player, "general.usage", Map.of("usage", usage));
             return false;
         }
         return true;
