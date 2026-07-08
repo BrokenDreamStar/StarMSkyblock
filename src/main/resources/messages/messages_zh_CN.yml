@@ -3,7 +3,6 @@
 # 占位符：{name} 命名式
 
 general:
-  placeholder: "&7i18n 系统已就绪"
   island-not-found: "&c你还没有岛屿！"
   player-not-found: "&c玩家不存在或不在线！"
   cannot-remove-owner: "&c你不能移除岛主！"

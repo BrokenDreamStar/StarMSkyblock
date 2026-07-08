@@ -138,7 +138,7 @@ public final class LanguageManager {
 
         Map<String, String> flat = flatten(yaml);
         this.messages = flat;
-        MessageUtil.consolePrint("已加载 i18n 语言文件: " + this.locale + "（" + flat.size() + " 个键）");
+        MessageUtil.consolePrint("i18n 系统已就绪 | 已加载语言文件: " + this.locale + "（" + flat.size() + " 个键）");
     }
 
     private String validateLocale(@NotNull String locale) {
