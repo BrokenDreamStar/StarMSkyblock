@@ -59,6 +59,9 @@ public final class ConfigKeys {
     // 回退重生点
     public static final String FALLBACK_SPAWN = "fallback-spawn";
 
+    // i18n
+    public static final String LOCALE = "locale";
+
     // 公共世界
     public static final String PUBLIC_WORLDS = "public-worlds";
 }

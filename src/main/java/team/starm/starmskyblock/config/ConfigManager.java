@@ -69,6 +69,7 @@ public class ConfigManager {
     private volatile float fallbackSpawnYaw; // 无床/重生锚时的重生点偏航角（水平朝向）
     private volatile float fallbackSpawnPitch; // 无床/重生锚时的重生点俯仰角（垂直朝向）
     private volatile Set<String> publicWorlds = Collections.emptySet(); // 公共世界列表
+    private volatile String locale = "zh_CN"; // 当前激活的 i18n locale
 
     public ConfigManager(StarMSkyblock plugin) {
         this.plugin = plugin;
@@ -251,6 +252,14 @@ public class ConfigManager {
         }
 
         this.publicWorlds = new HashSet<>(config.getStringList(ConfigKeys.PUBLIC_WORLDS));
+
+        // ====================== i18n locale ======================
+        String rawLocale = config.getString(ConfigKeys.LOCALE, "zh_CN");
+        if (!rawLocale.matches("[a-z]{2}_[A-Z]{2}")) {
+            MessageUtil.consoleWarn("locale 字段格式非法（期望 xx_XX 如 zh_CN），已回退到 zh_CN");
+            rawLocale = "zh_CN";
+        }
+        this.locale = rawLocale;
     }
 
     // ==================== Getter 方法（按功能分类） ====================
@@ -486,6 +495,13 @@ public class ConfigManager {
      */
     public boolean isPublicWorld(String worldName) {
         return publicWorlds.contains(worldName);
+    }
+
+    /**
+     * @return 当前激活的 i18n locale（如 zh_CN、en_US）
+     */
+    public String getLocale() {
+        return locale;
     }
 
     /**

@@ -135,3 +135,8 @@ fallback-spawn:
 #   - "resource"
 public-worlds:
   - 'world'
+
+# i18n 设置
+# 当前激活的语言代码，需对应 messages/messages_<locale>.yml 文件
+# 内置仅 zh_CN，可自行添加其他语言文件
+locale: 'zh_CN'
