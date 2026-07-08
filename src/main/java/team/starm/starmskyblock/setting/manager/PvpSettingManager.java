@@ -61,7 +61,7 @@ public class PvpSettingManager extends BaseSettingManager {
         Location location = target.getLocation();
         if (!checkSetting(location, IslandSetting.PVP)) {
             event.setCancelled(true);
-            MessageUtil.sendMessage(damager, "&e岛屿保护 &f|&c 该岛屿已禁用PVP！");
+            MessageUtil.send(damager, "protection.pvp-disabled");
         }
     }
 

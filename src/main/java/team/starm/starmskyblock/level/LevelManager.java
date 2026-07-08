@@ -78,14 +78,14 @@ public class LevelManager {
                 long elapsed = now - lastCalc;
                 if (elapsed < cooldownMs) {
                     long remaining = cooldownSeconds - (elapsed / 1000);
-                    MessageUtil.sendMessage(player, "&c等级计算冷却中，请等待 &e" + remaining + " &c秒后再试");
+                    MessageUtil.send(player, "level.cooldown", Map.of("remaining", remaining));
                     return;
                 }
             }
             cooldowns.put(ownerId, now);
         }
 
-        MessageUtil.sendMessage(player, "&a开始计算岛屿等级，请稍候...");
+        MessageUtil.send(player, "level.calculating");
 
         IslandLevelCalculator calculator = new IslandLevelCalculator(
                 plugin, island, worldManager, experienceConfig, this,
@@ -164,15 +164,21 @@ public class LevelManager {
         int levelChange = results.getLevel() - oldLevel;
 
         // ===== 等级概览 =====
-        MessageUtil.sendMessage(player, "");
-        MessageUtil.sendMessage(player, "&a=== 岛屿等级计算完成 ===");
-        MessageUtil.sendMessage(player, "&d岛屿等级: &f" + oldLevel + " &7→ &d" + results.getLevel()
-                + (levelChange > 0 ? " &7(&a+" + levelChange + "&7)" : ""));
+        MessageUtil.send(player, "general.empty-line");
+        MessageUtil.send(player, "level.header");
+        if (levelChange > 0) {
+            MessageUtil.send(player, "level.level-update-change",
+                    Map.of("old", oldLevel, "new", results.getLevel(), "change", levelChange));
+        } else {
+            MessageUtil.send(player, "level.level-update",
+                    Map.of("old", oldLevel, "new", results.getLevel()));
+        }
 
         // ===== 方块信息 =====
-        MessageUtil.sendMessage(player, "&a岛屿方块:");
-        MessageUtil.sendMessage(player, "  &a方块等级: &f" + blockLevel);
-        MessageUtil.sendMessage(player, "  &a总经验值: &f" + String.format("%.2f", results.getTotalExperience()));
+        MessageUtil.send(player, "level.blocks-header");
+        MessageUtil.send(player, "level.blocks-level", Map.of("level", blockLevel));
+        MessageUtil.send(player, "level.total-experience",
+                Map.of("exp", String.format("%.2f", results.getTotalExperience())));
 
         // 计算升到下一级所需经验值
         if (experienceConfig.hasLevelCost()) {
@@ -184,10 +190,10 @@ public class LevelManager {
                 totalForNext += Math.round(base * Math.pow(i, power));
             }
             long needed = Math.max(0, totalForNext - (long) results.getTotalExperience());
-            MessageUtil.sendMessage(player, "  &a升到下级所需: &f" + needed);
+            MessageUtil.send(player, "level.next-level-needed", Map.of("needed", needed));
         }
 
-        MessageUtil.sendMessage(player, "  &a有效方块数: &f" + results.getBlocksCounted());
+        MessageUtil.send(player, "level.blocks-count", Map.of("count", results.getBlocksCounted()));
 
         // 显示超阈值信息（使用 TranslatableComponent 显示方块译名）
         if (!results.getBlocksOverLimit().isEmpty()) {
@@ -205,28 +211,28 @@ public class LevelManager {
             MessageUtil.sendMessage(player, builder.build());
         }
 
-        MessageUtil.sendMessage(player, "  &a扫描区块: &f" + results.getTotalChunksScanned() + " (" + results.getWorldsScanned() + " 个世界)");
+        MessageUtil.send(player, "level.chunks-scanned",
+                Map.of("chunks", results.getTotalChunksScanned(), "worlds", results.getWorldsScanned()));
         long timeMs = results.getTimeTaken() / 1_000_000;
         String timeStr = timeMs < 1000
                 ? timeMs + "ms"
                 : String.format("%.2fs", timeMs / 1000.0);
-        MessageUtil.sendMessage(player, "  &a耗时: &f" + timeStr);
+        MessageUtil.send(player, "level.time-elapsed", Map.of("time", timeStr));
 
         // ===== 额外加成（AuraSkills）移至底部 =====
         if (results.getAuraSkillsContribution() > 0) {
-            MessageUtil.sendMessage(player, "&b额外加成(AuraSkills):");
+            MessageUtil.send(player, "level.aura-skills-header");
             double coeff = results.getCoefficient();
             for (MemberSkillData member : results.getMemberSkillData()) {
                 int memberContribution = (int) (member.powerLevel() / coeff);
                 if (memberContribution > 0 || member.powerLevel() > 0) {
-                    MessageUtil.sendMessage(player, "  &f" + member.playerName()
-                            + "&7(Lv." + member.powerLevel() + ")"
-                            + "&b→" + memberContribution);
+                    MessageUtil.send(player, "level.aura-skills-entry",
+                            Map.of("player", member.playerName(), "level", member.powerLevel(), "contribution", memberContribution));
                 }
             }
         }
 
-        MessageUtil.sendMessage(player, "");
+        MessageUtil.send(player, "general.empty-line");
     }
 
     /**

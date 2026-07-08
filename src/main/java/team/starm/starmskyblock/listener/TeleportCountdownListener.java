@@ -46,7 +46,8 @@ public class TeleportCountdownListener implements Listener {
                     cancel();
                     return;
                 }
-                ((net.kyori.adventure.audience.Audience) player).sendActionBar(MessageUtil.parse("&a传送倒计时: &e" + remaining + " &a秒..."));
+                ((net.kyori.adventure.audience.Audience) player).sendActionBar(
+                        MessageUtil.parse(MessageUtil.format("teleport.countdown.actionbar", Map.of("remaining", remaining))));
                 remaining--;
             }
         };

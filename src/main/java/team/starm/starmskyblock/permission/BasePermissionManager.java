@@ -243,23 +243,22 @@ public abstract class BasePermissionManager implements Listener {
 
         if (lastCheckWasAreaLocked) {
             if (lastAreaLockedIsland != null && lastAreaLockedIsland.getOwnerId().equals(player.getUniqueId())) {
-                MessageUtil.sendMessage(player, "&e岛屿保护 &f|&c 当前区域未解锁，请升级岛屿！");
+                MessageUtil.send(player, "protection.locked-area");
             } else if (lastAreaLockedIsland != null) {
                 String islandName = lastAreaLockedIsland.getName().isEmpty()
                         ? "岛屿 #" + lastAreaLockedIsland.getId()
                         : lastAreaLockedIsland.getName();
-                MessageUtil.sendMessage(player, String.format(
-                        "&e岛屿保护 &f|&c 当前区域为 %s 的未解锁区域，没有权限进行操作！", islandName));
+                MessageUtil.send(player, "protection.locked-area-other", Map.of("island", islandName));
             }
             return;
         }
 
         if (lastCheckWasPublicArea) {
-            MessageUtil.sendMessage(player, "&e岛屿保护 &f|&c 公共区域不允许进行操作！");
+            MessageUtil.send(player, "protection.public-area");
             return;
         }
 
-        MessageUtil.sendMessage(player, String.format("&e岛屿保护 &f|&c 你没有&e %s &c权限！", permission.getDisplayName()));
+        MessageUtil.send(player, "protection.no-permission", Map.of("permission", permission.getDisplayName()));
     }
 
     public Optional<Island> getPlayerCurrentIsland(Location location) {

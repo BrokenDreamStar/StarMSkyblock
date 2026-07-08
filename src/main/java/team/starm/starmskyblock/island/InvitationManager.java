@@ -75,20 +75,20 @@ public class InvitationManager {
 
         if (inviter != null) {
             if (target != null) {
-                MessageUtil.sendMessage(inviter, "&a已向 &e" + target.getName() + " &a发送岛屿邀请！");
+                MessageUtil.send(inviter, "island.invitation.sent", Map.of("player", target.getName()));
             } else {
-                MessageUtil.sendMessage(inviter, "&a已发送岛屿邀请！");
+                MessageUtil.send(inviter, "island.invitation.sent-noname");
             }
         }
 
         if (target != null) {
             if (inviter != null) {
-                MessageUtil.sendMessage(target, "&a你收到了来自 &e" + inviter.getName() + " &a的岛屿邀请！");
+                MessageUtil.send(target, "island.invitation.received", Map.of("player", inviter.getName()));
             } else {
-                MessageUtil.sendMessage(target, "&a你收到了岛屿邀请！");
+                MessageUtil.send(target, "island.invitation.received-anonymous");
             }
-            MessageUtil.sendMessage(target, "&a使用 &e/is accept &a接受邀请，或 &e/is decline &a拒绝邀请");
-            MessageUtil.sendMessage(target, "&7邀请将在5分钟后过期");
+            MessageUtil.send(target, "island.invitation.prompt");
+            MessageUtil.send(target, "island.invitation.expiry-note");
         }
 
         return true;
@@ -126,10 +126,10 @@ public class InvitationManager {
                     Player inviter = Bukkit.getPlayer(invitation.inviterUuid());
 
                     if (inviter != null) {
-                        MessageUtil.sendMessage(inviter, "&a玩家 &e" + target.getName() + " &a已接受你的岛屿邀请！");
+                        MessageUtil.send(inviter, "island.invitation.accepted", Map.of("player", target.getName()));
                     }
 
-                    MessageUtil.sendMessage(target, "&a你已成功加入岛屿！正在传送...");
+                    MessageUtil.send(target, "island.invitation.join-success");
 
                     double[] offsets = configManager.getTeleportOffsetsBySchematicAndWorldType(
                             islandObj.getSchematicId(), Island.WorldType.NORMAL);
@@ -140,7 +140,7 @@ public class InvitationManager {
                     Location targetLocation = new Location(worldManager.getSkyblockWorld(), teleportX, teleportY, teleportZ,
                             (float) offsets[3], (float) offsets[4]);
                     target.teleport(targetLocation);
-                    MessageUtil.sendMessage(target, "&a欢迎来到岛屿！");
+                    MessageUtil.send(target, "island.invitation.welcome");
 
                 }
             }
@@ -164,14 +164,14 @@ public class InvitationManager {
         Player inviter = Bukkit.getPlayer(invitation.inviterUuid());
 
         if (target != null) {
-            MessageUtil.sendMessage(target, "&c你已拒绝岛屿邀请");
+            MessageUtil.send(target, "team.decline.success");
         }
 
         if (inviter != null) {
             if (target != null) {
-                MessageUtil.sendMessage(inviter, "&c玩家 &e" + target.getName() + " &c拒绝了你的岛屿邀请");
+                MessageUtil.send(inviter, "island.invitation.declined", Map.of("player", target.getName()));
             } else {
-                MessageUtil.sendMessage(inviter, "&c玩家拒绝了你的岛屿邀请");
+                MessageUtil.send(inviter, "island.invitation.declined-anonymous");
             }
         }
 
