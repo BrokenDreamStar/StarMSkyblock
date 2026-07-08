@@ -53,7 +53,7 @@ public class SetRadiusCommand extends AdminSubCommand {
         Optional<Island> optionalIsland = islandManager.getIsland(islandId);
 
         if (optionalIsland.isEmpty()) {
-            MessageUtil.send(sender, "tp.id-not-found", Map.of("id", islandId));
+            MessageUtil.send(sender, "radius.set.island-id-not-found", Map.of("id", islandId));
             return true;
         }
 

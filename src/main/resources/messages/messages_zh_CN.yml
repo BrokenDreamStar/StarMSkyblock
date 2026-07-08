@@ -242,6 +242,7 @@ radius:
   set:
     usage: "&c用法: /isadmin setradius <岛屿ID> <新半径>"
     island-id-not-int: "&c岛屿ID必须是整数！"
+    island-id-not-found: "&c找不到ID为 &e{id} &c的岛屿！"
     not-int: "&c新半径必须是整数！"
     exceeds-max: "&c新的半径不能超过配置文件中的最大半径限制: {max}"
     must-be-positive: "&c半径必须大于0！"
