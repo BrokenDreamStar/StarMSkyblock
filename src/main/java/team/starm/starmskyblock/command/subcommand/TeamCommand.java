@@ -23,12 +23,12 @@ public class TeamCommand extends SubCommand {
     @Override
     public boolean execute(Player player, String[] args) {
         if (args.length < 2) {
-            MessageUtil.sendMessage(player, "&c用法:");
-            MessageUtil.sendMessage(player, "&b/is team list &f- 查看岛屿成员列表");
-            MessageUtil.sendMessage(player, "&b/is team invite <玩家> &f- 邀请玩家加入岛屿");
-            MessageUtil.sendMessage(player, "&b/is team remove <玩家> [confirm] &f- 移除岛屿成员");
-            MessageUtil.sendMessage(player, "&b/is team accept &f- 接受岛屿邀请");
-            MessageUtil.sendMessage(player, "&b/is team decline &f- 拒绝岛屿邀请");
+            MessageUtil.send(player, "team.usage.header");
+            MessageUtil.send(player, "team.usage.list");
+            MessageUtil.send(player, "team.usage.invite");
+            MessageUtil.send(player, "team.usage.remove");
+            MessageUtil.send(player, "team.usage.accept");
+            MessageUtil.send(player, "team.usage.decline");
             return true;
         }
 
@@ -39,8 +39,8 @@ public class TeamCommand extends SubCommand {
             case "accept" -> handleAccept(player);
             case "decline" -> handleDecline(player);
             default -> {
-                MessageUtil.sendMessage(player, "&c未知的子命令: &e" + args[1]);
-                MessageUtil.sendMessage(player, "&c用法: /is team list|invite|remove|accept|decline");
+                MessageUtil.send(player, "team.unknown-subcommand", Map.of("subcommand", args[1]));
+                MessageUtil.send(player, "team.usage.summary");
                 yield true;
             }
         };
@@ -49,29 +49,33 @@ public class TeamCommand extends SubCommand {
     private boolean handleList(Player player) {
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+            MessageUtil.send(player, "general.island-not-found");
             return true;
         }
 
         Island island = optionalIsland.get();
-        MessageUtil.sendMessage(player, "&a=== 岛屿成员列表 ===");
+        MessageUtil.send(player, "team.list.header");
 
         String ownerName = getPlayerName(island.getOwnerId());
         boolean ownerOnline = Bukkit.getPlayer(island.getOwnerId()) != null;
         String ownerStatus = ownerOnline ? "" : " &7(离线)";
-        MessageUtil.sendMessage(player, "&6岛主: &e" + ownerName + " &6("
-                + IslandPermissionLevel.OWNER.getDisplayName() + ")" + ownerStatus);
+        MessageUtil.send(player, "team.list.owner", Map.of(
+                "name", ownerName,
+                "role", IslandPermissionLevel.OWNER.getDisplayName(),
+                "status", ownerStatus));
 
         for (Map.Entry<UUID, IslandPermissionLevel> entry : island.getMembers().entrySet()) {
             String memberName = getPlayerName(entry.getKey());
             boolean memberOnline = Bukkit.getPlayer(entry.getKey()) != null;
             String status = memberOnline ? "" : " &7(离线)";
-            MessageUtil.sendMessage(player, "&b成员: &e" + memberName +
-                    " &b(" + entry.getValue().getDisplayName() + ")" + status);
+            MessageUtil.send(player, "team.list.member", Map.of(
+                    "name", memberName,
+                    "role", entry.getValue().getDisplayName(),
+                    "status", status));
         }
 
         if (island.getMembers().isEmpty()) {
-            MessageUtil.sendMessage(player, "&7暂无其他成员");
+            MessageUtil.send(player, "team.list.no-members");
         }
         return true;
     }
@@ -81,37 +85,37 @@ public class TeamCommand extends SubCommand {
 
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+            MessageUtil.send(player, "general.island-not-found");
             return true;
         }
 
         Island island = optionalIsland.get();
         if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.INVITE_MEMBER)) {
-            MessageUtil.sendMessage(player, "&c你没有权限邀请成员！");
+            MessageUtil.send(player, "team.invite.no-permission");
             return true;
         }
 
         if (args.length < 3) {
-            MessageUtil.sendMessage(player, "&c用法: /is team invite <玩家名>");
+            MessageUtil.send(player, "team.invite.usage");
             return true;
         }
 
         Player targetPlayer = Bukkit.getPlayer(args[2]);
         if (targetPlayer == null) {
-            MessageUtil.sendMessage(player, "&c玩家不存在或不在线！");
+            MessageUtil.send(player, "general.player-not-found");
             return true;
         }
 
         if (targetPlayer.getUniqueId().equals(player.getUniqueId())) {
-            MessageUtil.sendMessage(player, "&c你不能邀请自己！");
+            MessageUtil.send(player, "team.invite.self");
             return true;
         }
 
         InvitationManager invitationManager = plugin.getInvitationManager();
         if (invitationManager.sendInvitation(player.getUniqueId(), targetPlayer.getUniqueId(), island.getId())) {
-            MessageUtil.sendMessage(player, "&7等待对方确认...");
+            MessageUtil.send(player, "team.invite.waiting");
         } else {
-            MessageUtil.sendMessage(player, "&c邀请失败！该玩家可能已有岛屿或已有待处理的邀请。");
+            MessageUtil.send(player, "team.invite.failed");
         }
         return true;
     }
@@ -120,14 +124,14 @@ public class TeamCommand extends SubCommand {
         var invitationManager = plugin.getInvitationManager();
 
         if (!invitationManager.hasPendingInvitation(player.getUniqueId())) {
-            MessageUtil.sendMessage(player, "&c你没有待处理的岛屿邀请！");
+            MessageUtil.send(player, "team.invite.no-pending");
             return true;
         }
 
         if (invitationManager.acceptInvitation(player.getUniqueId())) {
-            MessageUtil.sendMessage(player, "&a你已成功加入岛屿！");
+            MessageUtil.send(player, "team.accept.success");
         } else {
-            MessageUtil.sendMessage(player, "&c接受邀请失败，邀请可能已过期或你已有岛屿。");
+            MessageUtil.send(player, "team.accept.failed");
         }
         return true;
     }
@@ -136,14 +140,14 @@ public class TeamCommand extends SubCommand {
         var invitationManager = plugin.getInvitationManager();
 
         if (!invitationManager.hasPendingInvitation(player.getUniqueId())) {
-            MessageUtil.sendMessage(player, "&c你没有待处理的岛屿邀请！");
+            MessageUtil.send(player, "team.invite.no-pending");
             return true;
         }
 
         if (invitationManager.declineInvitation(player.getUniqueId())) {
-            MessageUtil.sendMessage(player, "&c你已拒绝岛屿邀请");
+            MessageUtil.send(player, "team.decline.success");
         } else {
-            MessageUtil.sendMessage(player, "&c拒绝邀请失败，请稍后重试。");
+            MessageUtil.send(player, "team.decline.failed");
         }
         return true;
     }
@@ -153,18 +157,18 @@ public class TeamCommand extends SubCommand {
 
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+            MessageUtil.send(player, "general.island-not-found");
             return true;
         }
 
         Island island = optionalIsland.get();
         if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.REMOVE_MEMBER)) {
-            MessageUtil.sendMessage(player, "&c你没有权限踢出成员！");
+            MessageUtil.send(player, "team.remove.no-permission");
             return true;
         }
 
         if (args.length < 3) {
-            MessageUtil.sendMessage(player, "&c用法: /is team remove <玩家名> [confirm]");
+            MessageUtil.send(player, "team.remove.usage");
             return true;
         }
 
@@ -175,30 +179,30 @@ public class TeamCommand extends SubCommand {
                 })
                 .findFirst().orElse(null);
         if (targetUuid == null) {
-            MessageUtil.sendMessage(player, "&c该玩家不是岛屿成员！");
+            MessageUtil.send(player, "team.remove.not-member");
             return true;
         }
 
         String targetName = getPlayerName(targetUuid);
 
         if (targetUuid.equals(island.getOwnerId())) {
-            MessageUtil.sendMessage(player, "&c你不能移除岛主！");
+            MessageUtil.send(player, "general.cannot-remove-owner");
             return true;
         }
 
         if (args.length < 4 || !args[3].equalsIgnoreCase("confirm")) {
-            MessageUtil.sendMessage(player, "&c警告：将移除 &e" + targetName + " &c，使用 &e/is team remove " + targetName + " confirm &c确认。");
+            MessageUtil.send(player, "team.remove.confirm", Map.of("name", targetName));
             return true;
         }
 
         if (plugin.getIslandManager().removeMemberFromIsland(island.getId(), targetUuid)) {
-            MessageUtil.sendMessage(player, "&a成功踢出 &e" + targetName + " &a从岛屿");
+            MessageUtil.send(player, "team.remove.success", Map.of("name", targetName));
             Player targetPlayer = Bukkit.getPlayer(targetUuid);
             if (targetPlayer != null) {
-                MessageUtil.sendMessage(targetPlayer, "&c你已被 &e" + player.getName() + " &c从岛屿移除");
+                MessageUtil.send(targetPlayer, "team.remove.removed", Map.of("player", player.getName()));
             }
         } else {
-            MessageUtil.sendMessage(player, "&c移除失败，该玩家可能不是岛屿成员。");
+            MessageUtil.send(player, "team.remove.failed");
         }
         return true;
     }

@@ -8,6 +8,7 @@ import team.starm.starmskyblock.permission.manager.ManagementPermissionManager;
 import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,9 +22,9 @@ public class CoopCommand extends SubCommand {
     @Override
     public boolean execute(Player player, String[] args) {
         if (args.length < 2) {
-            MessageUtil.sendMessage(player, "&c用法:");
-            MessageUtil.sendMessage(player, "&b/is coop add <玩家> &f- 添加合作者");
-            MessageUtil.sendMessage(player, "&b/is coop remove <玩家> &f- 移除合作者");
+            MessageUtil.send(player, "coop.usage.header");
+            MessageUtil.send(player, "coop.usage.add");
+            MessageUtil.send(player, "coop.usage.remove");
             return true;
         }
 
@@ -31,8 +32,8 @@ public class CoopCommand extends SubCommand {
             case "add" -> handleAdd(player, args);
             case "remove" -> handleRemove(player, args);
             default -> {
-                MessageUtil.sendMessage(player, "&c未知的子命令: &e" + args[1]);
-                MessageUtil.sendMessage(player, "&c用法: /is coop add|remove <玩家名>");
+                MessageUtil.send(player, "coop.unknown-subcommand", Map.of("subcommand", args[1]));
+                MessageUtil.send(player, "coop.usage.summary");
                 yield true;
             }
         };
@@ -43,53 +44,53 @@ public class CoopCommand extends SubCommand {
 
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+            MessageUtil.send(player, "general.island-not-found");
             return true;
         }
 
         Island island = optionalIsland.get();
         if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.INVITE_COOP)) {
-            MessageUtil.sendMessage(player, "&c你没有权限邀请合作者！");
+            MessageUtil.send(player, "coop.add.no-permission");
             return true;
         }
 
         if (args.length < 3) {
-            MessageUtil.sendMessage(player, "&c用法: /is coop add <玩家名>");
+            MessageUtil.send(player, "coop.add.usage");
             return true;
         }
 
         Player targetPlayer = Bukkit.getPlayer(args[2]);
         if (targetPlayer == null) {
-            MessageUtil.sendMessage(player, "&c玩家不存在或不在线！");
+            MessageUtil.send(player, "general.player-not-found");
             return true;
         }
 
         if (targetPlayer.getUniqueId().equals(player.getUniqueId())) {
-            MessageUtil.sendMessage(player, "&c你不能将自己添加为合作者！");
+            MessageUtil.send(player, "coop.add.self");
             return true;
         }
 
         var islandManager = plugin.getIslandManager();
         if (islandManager.getIslandByPlayer(targetPlayer.getUniqueId()).isEmpty()) {
-            MessageUtil.sendMessage(player, "&c该玩家没有岛屿，无法添加为合作者！");
+            MessageUtil.send(player, "coop.add.target-no-island");
             return true;
         }
 
         if (island.isCoop(targetPlayer.getUniqueId())) {
-            MessageUtil.sendMessage(player, "&c该玩家已经是合作者！");
+            MessageUtil.send(player, "coop.add.already-coop");
             return true;
         }
 
         if (island.getMembers().containsKey(targetPlayer.getUniqueId())) {
-            MessageUtil.sendMessage(player, "&c该玩家已经是岛屿成员，无法添加为合作者！");
+            MessageUtil.send(player, "coop.add.already-member");
             return true;
         }
 
         if (islandManager.addCoopToIsland(island.getId(), targetPlayer.getUniqueId())) {
-            MessageUtil.sendMessage(player, "&a已将 &e" + targetPlayer.getName() + " &a添加为合作者！");
-            MessageUtil.sendMessage(targetPlayer, "&a你已被 &e" + player.getName() + " &a添加为岛屿合作者！");
+            MessageUtil.send(player, "coop.add.success", Map.of("name", targetPlayer.getName()));
+            MessageUtil.send(targetPlayer, "coop.add.added", Map.of("player", player.getName()));
         } else {
-            MessageUtil.sendMessage(player, "&c操作失败，请稍后重试。");
+            MessageUtil.send(player, "general.operation-failed");
         }
         return true;
     }
@@ -99,18 +100,18 @@ public class CoopCommand extends SubCommand {
 
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
-            MessageUtil.sendMessage(player, "&c你还没有岛屿！");
+            MessageUtil.send(player, "general.island-not-found");
             return true;
         }
 
         Island island = optionalIsland.get();
         if (ManagementPermissionManager.lacksPermission(island, player.getUniqueId(), IslandPermission.REMOVE_COOP)) {
-            MessageUtil.sendMessage(player, "&c你没有权限移除合作者！");
+            MessageUtil.send(player, "coop.remove.no-permission");
             return true;
         }
 
         if (args.length < 3) {
-            MessageUtil.sendMessage(player, "&c用法: /is coop remove <玩家名>");
+            MessageUtil.send(player, "coop.remove.usage");
             return true;
         }
 
@@ -121,25 +122,25 @@ public class CoopCommand extends SubCommand {
                 })
                 .findFirst().orElse(null);
         if (targetUuid == null) {
-            MessageUtil.sendMessage(player, "&c该玩家不是合作者！");
+            MessageUtil.send(player, "coop.remove.not-coop");
             return true;
         }
 
         String targetName = getPlayerName(targetUuid);
 
         if (targetUuid.equals(island.getOwnerId())) {
-            MessageUtil.sendMessage(player, "&c你不能移除岛主！");
+            MessageUtil.send(player, "general.cannot-remove-owner");
             return true;
         }
 
         if (plugin.getIslandManager().removeCoopFromIsland(island.getId(), targetUuid)) {
-            MessageUtil.sendMessage(player, "&a已移除合作者 &e" + targetName);
+            MessageUtil.send(player, "coop.remove.success", Map.of("name", targetName));
             Player targetPlayer = Bukkit.getPlayer(targetUuid);
             if (targetPlayer != null) {
-                MessageUtil.sendMessage(targetPlayer, "&c你已被 &e" + player.getName() + " &c移出岛屿合作者队伍");
+                MessageUtil.send(targetPlayer, "coop.remove.removed", Map.of("player", player.getName()));
             }
         } else {
-            MessageUtil.sendMessage(player, "&c操作失败，请稍后重试。");
+            MessageUtil.send(player, "general.operation-failed");
         }
         return true;
     }
