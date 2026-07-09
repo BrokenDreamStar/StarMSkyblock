@@ -265,8 +265,8 @@ public class OtherPermissionManager extends BasePermissionManager {
 
         if (!optionalIsland.get().hasPermission(player.getUniqueId(), permission)) {
             event.setCancelled(true);
-            lastCheckWasAreaLocked = false;
-            lastCheckWasPublicArea = false;
+            // 此分支未走标准 resolve 路径，清除该玩家上次的解析缓存，使 sendDenyMessage 走默认 no-permission 提示
+            lastCheckResult.remove(player.getUniqueId());
             sendDenyMessage(player, permission);
         }
     }

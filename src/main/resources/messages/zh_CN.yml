@@ -417,3 +417,5 @@ level:
   time-elapsed: "  &a耗时: &f{time}"
   aura-skills-header: "&b额外加成(AuraSkills):"
   aura-skills-entry: "  &f{player}&7(Lv.{level})&b→{contribution}"
+  mcmmo-skills-header: "&b额外加成(mcMMO):"
+  mcmmo-skills-entry: "  &f{player}&7(Lv.{level})&b→{contribution}"

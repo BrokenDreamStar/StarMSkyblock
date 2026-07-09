@@ -37,6 +37,7 @@ public class ExperienceConfig {
     private boolean diminishingEnabled = false;
     private double diminishingDecay = 0.001;
     private double diminishingMinimum = 1.0;
+    private boolean baselineEnabled = true;
 
     public ExperienceConfig(StarMSkyblock plugin) {
         this.plugin = plugin;
@@ -123,6 +124,10 @@ public class ExperienceConfig {
             this.diminishingEnabled = false;
         }
 
+        // 加载模板基线开关（默认启用，保持历史行为）
+        ConfigurationSection baselineSection = config.getConfigurationSection("baseline");
+        this.baselineEnabled = baselineSection == null || baselineSection.getBoolean("enabled", true);
+
         MessageUtil.consolePrint("已加载 " + experienceValues.size() + " 种方块经验值和 " + blockLimits.size() + " 种方块阈值");
     }
 
@@ -177,6 +182,18 @@ public class ExperienceConfig {
      */
     public boolean isDiminishingEnabled() {
         return diminishingEnabled;
+    }
+
+    /**
+     * 模板基线扣除是否启用。
+     * <p>
+     * 启用时：岛屿创建时扫描模板(schematic)保存基线方块计数，等级计算时扣除基线数量，
+     * 使玩家仅凭"新放置的方块"获得经验。
+     * 关闭时：创建岛屿时不保存基线，等级计算时也不扣除（模板方块全额计入经验）。
+     * 已保存基线的旧岛屿在关闭后也会停止扣除，重新启用即恢复，不会丢失已保存的基线数据。
+     */
+    public boolean isBaselineEnabled() {
+        return baselineEnabled;
     }
 
     /**

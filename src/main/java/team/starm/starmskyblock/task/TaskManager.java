@@ -133,6 +133,8 @@ public class TaskManager {
         try {
             progress = gson.fromJson(json, PROGRESS_MAP_TYPE);
         } catch (Exception e) {
+            // JSON 损坏会静默返回空进度（相当于清空玩家任务进度），必须记录告警以便排查
+            MessageUtil.consoleError("解析玩家 " + uuid + " 的任务进度 JSON 失败，已重置为空进度", e);
             progress = new HashMap<>();
         }
         if (progress == null) progress = new HashMap<>();

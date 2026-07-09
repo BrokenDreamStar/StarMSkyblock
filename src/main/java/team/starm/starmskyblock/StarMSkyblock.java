@@ -349,10 +349,8 @@ public class StarMSkyblock extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new BlockPlaceListener(worldManager, configManager), this);
 
-        if (publicAreaConfigManager.isEnabled()) {
-            getServer().getPluginManager().registerEvents(
-                    new IslandBoundaryListener(islandManager, worldManager, configManager), this);
-        }
+        getServer().getPluginManager().registerEvents(
+                new IslandBoundaryListener(islandManager, worldManager, configManager), this);
 
         if (generatorConfigManager.isEnabled()) {
             getServer().getPluginManager().registerEvents(
@@ -501,6 +499,10 @@ public class StarMSkyblock extends JavaPlugin {
 
     public ExperienceConfig getExperienceConfig() {
         return experienceConfig;
+    }
+
+    public AuraSkillsContributionConfig getAuraskillsContributionConfig() {
+        return auraskillsContributionConfig;
     }
 
     public LevelManager getLevelManager() {

@@ -56,10 +56,11 @@ public abstract class BaseSettingManager implements Listener {
      * @return true=设置已启用/不适用，false=设置被禁用（调用方应取消事件）
      */
     public boolean checkSetting(Location location, IslandSetting setting) {
+        if (location.getWorld() == null) return true; // 位置无关联世界（已卸载或非法构造），视为非空岛世界放行
         String worldName = location.getWorld().getName();
         if (!StarMSkyblock.getInstance().getWorldManager().isSkyblockWorldName(worldName)) {
             if (StarMSkyblock.getInstance().getWorldManager().isPublicWorld(worldName)) {
-                return !publicAreaConfig.isEnabled() || publicAreaConfig.getSetting(setting);
+                return publicAreaConfig.getSetting(setting);
             }
             return true;
         }
@@ -74,11 +75,11 @@ public abstract class BaseSettingManager implements Listener {
                 return maxRangeIsland.getSetting(setting);
             }
             // 在未解锁区域（锁定区域） → 使用锁定区域配置
-            return !lockedAreaConfig.isEnabled() || lockedAreaConfig.getSetting(setting);
+            return lockedAreaConfig.getSetting(setting);
         }
 
         // 无主区域（公共区域） → 使用公共区域配置
-        return !publicAreaConfig.isEnabled() || publicAreaConfig.getSetting(setting);
+        return publicAreaConfig.getSetting(setting);
     }
 
     /**

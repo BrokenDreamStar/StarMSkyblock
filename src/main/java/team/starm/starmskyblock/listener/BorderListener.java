@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import team.starm.starmskyblock.database.PlayerRepository;
 import team.starm.starmskyblock.island.Island;
@@ -84,6 +85,12 @@ public class BorderListener implements Listener {
 
         borderCache.put(uuid, showBorder);
         updatePlayerBorder(player);
+    }
+
+    /** 玩家退出时清理其边界开关缓存，避免随独特玩家数无界增长（下次加入时由 onPlayerJoin 重新加载） */
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        borderCache.remove(event.getPlayer().getUniqueId());
     }
 
     /** 玩家传送后更新边界 */

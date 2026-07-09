@@ -24,8 +24,9 @@ public class SQLiteManager {
     private final File dataFolder;
     private Connection connection;
     private PreparedStatement saveSkinStmt;
-    /** 按 SQL 语句缓存的 PreparedStatement,避免每次执行重新编译。在 close() 中统一释放。 */
-    private final java.util.Map<String, PreparedStatement> preparedStatementCache = new java.util.HashMap<>();
+    /** 按 SQL 语句缓存的 PreparedStatement,避免每次执行重新编译。在 close() 中统一释放。
+     *  ConcurrentHashMap 保证多线程下 get/put 不破坏内部结构（语句本身的并发使用仍由 dbLock 串行化）。 */
+    private final java.util.Map<String, PreparedStatement> preparedStatementCache = new java.util.concurrent.ConcurrentHashMap<>();
     private final ReentrantReadWriteLock dbLock = new ReentrantReadWriteLock();
 
     public SQLiteManager(File dataFolder) {
@@ -296,6 +297,29 @@ public class SQLiteManager {
             dbLock.readLock().unlock();
         }
         return result;
+    }
+
+    /**
+     * 查询单个玩家的皮肤纹理（缓存未命中时的 DB 回退，避免向 Mojang 重复请求）。
+     */
+    public String getSkinTexture(UUID uuid) {
+        dbLock.readLock().lock();
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(
+                    "SELECT texture FROM skin_textures WHERE uuid = ?")) {
+                stmt.setString(1, uuid.toString());
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getString("texture");
+                    }
+                }
+            } catch (SQLException e) {
+                MessageUtil.consoleError("查询皮肤纹理失败！UUID: " + uuid, e);
+            }
+        } finally {
+            dbLock.readLock().unlock();
+        }
+        return null;
     }
 
     // ==================== 连接管理 ====================

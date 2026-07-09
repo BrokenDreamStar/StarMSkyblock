@@ -1,5 +1,6 @@
 package team.starm.starmskyblock.level;
 
+import com.google.gson.Gson;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.world.block.BlockTypes;
@@ -11,6 +12,7 @@ import team.starm.starmskyblock.config.ExperienceConfig;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.integration.AuraSkillsIntegration;
 import team.starm.starmskyblock.integration.AuraSkillsIslandResult;
+import team.starm.starmskyblock.integration.McMMOIntegration;
 import team.starm.starmskyblock.integration.MemberSkillData;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
@@ -23,6 +25,8 @@ import team.starm.starmskyblock.world.SkyblockWorldManager;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 岛屿等级管理器 —— 负责等级计算的协调、冷却控制和结果持久化。
@@ -47,7 +51,9 @@ public class LevelManager {
     /**
      * 玩家冷却 Map（玩家 UUID → 上次触发时间戳）
      */
-    private final Map<UUID, Long> cooldowns = new HashMap<>();
+    private static final Gson GSON = new Gson();
+
+    private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
 
     public LevelManager(StarMSkyblock plugin, ExperienceConfig experienceConfig,
                         AuraSkillsContributionConfig auraskillsConfig,
@@ -119,10 +125,22 @@ public class LevelManager {
         island.setExperience(results.getTotalExperience());
         island.setBlockCounts(results.getBlockCounts());
 
-        // 如果 AuraSkills 可用且功能启用，异步计算加成等级
-        if (AuraSkillsIntegration.isAvailable() && auraskillsConfig.isEnabled()) {
+        // 如果配置的技能插件可用且功能启用，异步计算加成等级
+        String skillType = auraskillsConfig.getType();
+        boolean useAuraSkills = "auraskills".equalsIgnoreCase(skillType) && AuraSkillsIntegration.isAvailable();
+        boolean useMcMMO = "mcmmo".equalsIgnoreCase(skillType) && McMMOIntegration.isAvailable();
+
+        if (useAuraSkills || useMcMMO) {
             int finalBlockLevel = blockLevel;
-            AuraSkillsIntegration.getIslandResult(island).thenAccept(result -> {
+
+            CompletableFuture<AuraSkillsIslandResult> futureResult;
+            if (useMcMMO) {
+                futureResult = McMMOIntegration.getIslandResult(island);
+            } else {
+                futureResult = AuraSkillsIntegration.getIslandResult(island);
+            }
+
+            futureResult.thenAccept(result -> {
                 double coefficient = auraskillsConfig.getCoefficient();
                 int rawBonus = (int) (result.getTotalPowerLevel() / coefficient);
                 int maxBonus = auraskillsConfig.getMaxBonusLevel();
@@ -148,7 +166,7 @@ public class LevelManager {
                 });
             });
         } else {
-            // 无 AuraSkills：直接持久化并发送结果
+            // 无技能加成：直接持久化并发送结果
             islandManager.getIslandRepository().updateLevel(
                     island.getId(), blockLevel, results.getTotalExperience(),
                     serializeBlockCounts(results.getBlockCounts())
@@ -219,14 +237,24 @@ public class LevelManager {
                 : String.format("%.2fs", timeMs / 1000.0);
         MessageUtil.send(player, "level.time-elapsed", Map.of("time", timeStr));
 
-        // ===== 额外加成（AuraSkills）移至底部 =====
-        if (results.getAuraSkillsContribution() > 0) {
-            MessageUtil.send(player, "level.aura-skills-header");
+        // ===== 额外加成（技能等级）移至底部 =====
+        // 始终显示该段（即使加成为 0），让玩家能看到自身 PowerLevel 与贡献值；
+        // 仅在技能插件路径实际执行过（成员数据已填充）时显示，else 分支不显示。
+        if (!results.getMemberSkillData().isEmpty()) {
+            String skillType = auraskillsConfig.getType();
+            String headerKey = "mcmmo".equalsIgnoreCase(skillType)
+                    ? "level.mcmmo-skills-header"
+                    : "level.aura-skills-header";
+            String entryKey = "mcmmo".equalsIgnoreCase(skillType)
+                    ? "level.mcmmo-skills-entry"
+                    : "level.aura-skills-entry";
+
+            MessageUtil.send(player, headerKey);
             double coeff = results.getCoefficient();
             for (MemberSkillData member : results.getMemberSkillData()) {
                 int memberContribution = (int) (member.powerLevel() / coeff);
                 if (memberContribution > 0 || member.powerLevel() > 0) {
-                    MessageUtil.send(player, "level.aura-skills-entry",
+                    MessageUtil.send(player, entryKey,
                             Map.of("player", member.playerName(), "level", member.powerLevel(), "contribution", memberContribution));
                 }
             }
@@ -266,6 +294,10 @@ public class LevelManager {
      * @param schematicId 模板 ID（如 "default"）
      */
     public void saveBaseline(Island island, String schematicId) {
+        if (!experienceConfig.isBaselineEnabled()) {
+            // 模板基线扣除已关闭：不保存基线，等级计算时也不会扣除
+            return;
+        }
         ConfigManager configManager = plugin.getConfigManager();
         var schematicManager = plugin.getSchematicManager();
 
@@ -329,29 +361,13 @@ public class LevelManager {
      * 将 String→Long Map 序列化为 JSON 字符串（用于模板基线）
      */
     private String serializeStringMap(Map<String, Long> map) {
-        StringBuilder json = new StringBuilder("{");
-        boolean first = true;
-        for (Map.Entry<String, Long> entry : map.entrySet()) {
-            if (!first) json.append(",");
-            first = false;
-            json.append("\"").append(entry.getKey()).append("\":").append(entry.getValue());
-        }
-        json.append("}");
-        return json.toString();
+        return GSON.toJson(map);
     }
 
     /**
      * 将方块计数 Map 序列化为 JSON 字符串
      */
     private String serializeBlockCounts(Map<Material, Long> blockCounts) {
-        StringBuilder json = new StringBuilder("{");
-        boolean first = true;
-        for (Map.Entry<Material, Long> entry : blockCounts.entrySet()) {
-            if (!first) json.append(",");
-            first = false;
-            json.append("\"").append(entry.getKey().name()).append("\":").append(entry.getValue());
-        }
-        json.append("}");
-        return json.toString();
+        return GSON.toJson(blockCounts);
     }
 }

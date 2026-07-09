@@ -15,9 +15,10 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.database.SQLiteManager;
@@ -41,7 +42,15 @@ import org.bukkit.inventory.meta.SkullMeta;
  */
 public class SkullManager {
 
-    private static final Map<UUID, String> base64Meta = new ConcurrentHashMap<>();
+    /** 纹理缓存：synchronizedMap 包裹的 accessOrder LinkedHashMap，LRU 淘汰上限 2000 条，
+     *  避免大服上随独特玩家数无界增长。淘汰后由 {@link #refreshTexture} 的 DB 回退兜底。 */
+    private static final Map<UUID, String> base64Meta = Collections.synchronizedMap(
+            new LinkedHashMap<UUID, String>(512, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<UUID, String> eldest) {
+                    return size() > 2000;
+                }
+            });
     private static SQLiteManager database;
     private static Gson gson;
 
@@ -76,6 +85,14 @@ public class SkullManager {
         if (base64Meta.containsKey(uuid)) return;
         if (UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes()).equals(uuid)) {
             return;
+        }
+        // 缓存未命中（含被 LRU 淘除）时优先从 DB 读取已持久化的纹理，避免向 Mojang 重复请求被限流
+        if (database != null) {
+            String dbTexture = database.getSkinTexture(uuid);
+            if (dbTexture != null) {
+                base64Meta.put(uuid, dbTexture);
+                return;
+            }
         }
         StringBuilder source = new StringBuilder();
         try {

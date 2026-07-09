@@ -1,5 +1,6 @@
 package team.starm.starmskyblock.permission;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -7,6 +8,7 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Listener;
 
@@ -43,19 +45,26 @@ public abstract class BasePermissionManager implements Listener {
     protected final PublicAreaConfigManager publicAreaConfig;
     /** 未解锁区域配置管理器 */
     protected final LockedAreaConfigManager lockedAreaConfig;
-    /** 记录每个玩家最近一次收到权限拒绝消息的时间戳，用于消息冷却防刷屏 */
-    protected final Map<UUID, Long> lastDenyMessageTime = new LinkedHashMap<>(256, 0.75f, true) {
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<UUID, Long> eldest) {
-            return size() > 256;
-        }
-    };
-    /** 上次权限检查结果：是否因为区域未锁定而拒绝 */
-    protected boolean lastCheckWasAreaLocked = false;
-    /** 上次权限检查结果：是否因为处于公共区域而拒绝 */
-    protected boolean lastCheckWasPublicArea = false;
-    /** 上次触发区域锁定的岛屿引用（用于发送更精准的提示消息） */
-    protected Island lastAreaLockedIsland = null;
+    /** 记录每个玩家最近一次收到权限拒绝消息的时间戳，用于消息冷却防刷屏。
+     *  synchronizedMap 包裹保证多线程访问安全（accessOrder=true 提供 LRU 淘汰，上限 256 条）。 */
+    protected final Map<UUID, Long> lastDenyMessageTime = Collections.synchronizedMap(
+            new LinkedHashMap<UUID, Long>(256, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<UUID, Long> eldest) {
+                    return size() > 256;
+                }
+            });
+    /** 每个玩家最近一次权限解析结果，供 {@link #sendDenyMessage} 读取拒绝原因。
+     *  <p>原实现把"是否锁定区域/公共区域/锁定岛屿"存在实例布尔字段上，12 个子管理器各为全局单例，
+     *  跨玩家复用同一组字段会导致玩家 A 的检查状态污染玩家 B 的拒绝消息。改为按 UUID 存储解析结果，
+     *  每个玩家读自己的 {@link PermissionCheckResult}，从根上消除跨玩家串扰。 */
+    protected final Map<UUID, PermissionCheckResult> lastCheckResult = Collections.synchronizedMap(
+            new LinkedHashMap<UUID, PermissionCheckResult>(256, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<UUID, PermissionCheckResult> eldest) {
+                    return size() > 512;
+                }
+            });
 
     public BasePermissionManager(IslandManager islandManager, ConfigManager configManager,
                                   PublicAreaConfigManager publicAreaConfig,
@@ -152,64 +161,70 @@ public abstract class BasePermissionManager implements Listener {
         if (player.isOp() || player.hasPermission("skyblock.bypass")) {
             return PermissionCheckResult.bypass(player);
         }
-        String worldName = location.getWorld().getName();
+        World world = location.getWorld();
+        if (world == null) {
+            // 位置无关联世界（已卸载或非法构造），视为空岛世界之外，不阻断
+            PermissionCheckResult r = PermissionCheckResult.outsideSkyblockWorld(player, false);
+            lastCheckResult.put(player.getUniqueId(), r);
+            return r;
+        }
+        String worldName = world.getName();
         if (!StarMSkyblock.getInstance().getWorldManager().isSkyblockWorldName(worldName)) {
             boolean inPublicWorld = StarMSkyblock.getInstance().getWorldManager().isPublicWorld(worldName);
-            lastCheckWasAreaLocked = false;
-            lastCheckWasPublicArea = inPublicWorld;
-            return PermissionCheckResult.outsideSkyblockWorld(player, inPublicWorld);
+            PermissionCheckResult r = PermissionCheckResult.outsideSkyblockWorld(player, inPublicWorld);
+            lastCheckResult.put(player.getUniqueId(), r);
+            return r;
         }
 
         Optional<Island> optIsland = getPlayerCurrentIslandMaxRange(islandManager, location);
 
         if (optIsland.isEmpty()) {
-            lastCheckWasAreaLocked = false;
-            lastCheckWasPublicArea = true;
-            return PermissionCheckResult.publicArea(player);
+            PermissionCheckResult r = PermissionCheckResult.publicArea(player);
+            lastCheckResult.put(player.getUniqueId(), r);
+            return r;
         }
 
         Island island = optIsland.get();
         int chunkX = location.getBlockX() >> 4;
         int chunkZ = location.getBlockZ() >> 4;
         boolean onUnlockedIsland = island.isChunkWithinIsland(chunkX, chunkZ);
-
-        lastCheckWasAreaLocked = !onUnlockedIsland;
-        lastCheckWasPublicArea = false;
-        if (!onUnlockedIsland) {
-            lastAreaLockedIsland = island;
-        }
-        return onUnlockedIsland
+        PermissionCheckResult r = onUnlockedIsland
                 ? PermissionCheckResult.onIsland(player, island)
                 : PermissionCheckResult.lockedArea(player, island);
+        lastCheckResult.put(player.getUniqueId(), r);
+        return r;
     }
 
     /** 离线玩家解析 —— 仅做世界判断与岛屿定位,无法判定 bypass(已在调用方过滤) */
     private PermissionCheckResult resolveOffline(Location location, UUID uuid) {
-        String worldName = location.getWorld().getName();
+        World world = location.getWorld();
+        if (world == null) {
+            PermissionCheckResult r = PermissionCheckResult.outsideSkyblockWorld(uuid, false);
+            lastCheckResult.put(uuid, r);
+            return r;
+        }
+        String worldName = world.getName();
         if (!StarMSkyblock.getInstance().getWorldManager().isSkyblockWorldName(worldName)) {
             boolean inPublicWorld = StarMSkyblock.getInstance().getWorldManager().isPublicWorld(worldName);
-            lastCheckWasAreaLocked = false;
-            lastCheckWasPublicArea = inPublicWorld;
-            return PermissionCheckResult.outsideSkyblockWorld(uuid, inPublicWorld);
+            PermissionCheckResult r = PermissionCheckResult.outsideSkyblockWorld(uuid, inPublicWorld);
+            lastCheckResult.put(uuid, r);
+            return r;
         }
         Optional<Island> optIsland = getPlayerCurrentIslandMaxRange(islandManager, location);
         if (optIsland.isEmpty()) {
-            lastCheckWasAreaLocked = false;
-            lastCheckWasPublicArea = true;
-            return PermissionCheckResult.publicArea(uuid);
+            PermissionCheckResult r = PermissionCheckResult.publicArea(uuid);
+            lastCheckResult.put(uuid, r);
+            return r;
         }
         Island island = optIsland.get();
         int chunkX = location.getBlockX() >> 4;
         int chunkZ = location.getBlockZ() >> 4;
         boolean onUnlockedIsland = island.isChunkWithinIsland(chunkX, chunkZ);
-        lastCheckWasAreaLocked = !onUnlockedIsland;
-        lastCheckWasPublicArea = false;
-        if (!onUnlockedIsland) {
-            lastAreaLockedIsland = island;
-        }
-        return onUnlockedIsland
+        PermissionCheckResult r = onUnlockedIsland
                 ? PermissionCheckResult.onIsland(uuid, island)
                 : PermissionCheckResult.lockedArea(uuid, island);
+        lastCheckResult.put(uuid, r);
+        return r;
     }
 
     /**
@@ -221,17 +236,23 @@ public abstract class BasePermissionManager implements Listener {
         if (r.outsideSkyblockWorld()) return true;
         if (r.island() == null) {
             // 公共区域(无岛屿归属 或 公共世界)
-            return !publicAreaConfig.isEnabled() || publicAreaConfig.getPermission(permission);
+            return publicAreaConfig.getPermission(permission);
         }
         if (!r.onUnlockedIsland()) {
             // 锁定区域(岛屿范围内但未解锁半径)
-            return !lockedAreaConfig.isEnabled() || lockedAreaConfig.getPermission(permission);
+            return lockedAreaConfig.getPermission(permission);
         }
         return r.island().hasPermission(r.uuid(), permission);
     }
 
     /**
      * 权限消息提示（带冷却控制，防止刷屏）
+     * <p>拒绝原因从该玩家最近一次 {@link PermissionCheckResult} 派生，而非实例字段，避免跨玩家串扰：
+     * <ul>
+     *   <li>锁定区域：岛屿存在但不在已解锁半径内（{@code island != null && !onUnlockedIsland}）</li>
+     *   <li>公共区域：无岛屿归属且处于公共世界（{@code island == null && inPublicWorld}）</li>
+     *   <li>其他：默认无权限提示</li>
+     * </ul>
      */
     protected void sendDenyMessage(Player player, IslandPermission permission) {
         long now = System.currentTimeMillis();
@@ -241,19 +262,24 @@ public abstract class BasePermissionManager implements Listener {
         }
         lastDenyMessageTime.put(player.getUniqueId(), now);
 
-        if (lastCheckWasAreaLocked) {
-            if (lastAreaLockedIsland != null && lastAreaLockedIsland.getOwnerId().equals(player.getUniqueId())) {
+        PermissionCheckResult r = lastCheckResult.get(player.getUniqueId());
+        boolean areaLocked = r != null && r.island() != null && !r.onUnlockedIsland();
+        boolean publicArea = r != null && r.island() == null && r.inPublicWorld();
+
+        if (areaLocked) {
+            Island lockedIsland = r.island();
+            if (lockedIsland.getOwnerId().equals(player.getUniqueId())) {
                 MessageUtil.send(player, "protection.locked-area");
-            } else if (lastAreaLockedIsland != null) {
-                String islandName = lastAreaLockedIsland.getName().isEmpty()
-                        ? "岛屿 #" + lastAreaLockedIsland.getId()
-                        : lastAreaLockedIsland.getName();
+            } else {
+                String islandName = lockedIsland.getName().isEmpty()
+                        ? "岛屿 #" + lockedIsland.getId()
+                        : lockedIsland.getName();
                 MessageUtil.send(player, "protection.locked-area-other", Map.of("island", islandName));
             }
             return;
         }
 
-        if (lastCheckWasPublicArea) {
+        if (publicArea) {
             MessageUtil.send(player, "protection.public-area");
             return;
         }

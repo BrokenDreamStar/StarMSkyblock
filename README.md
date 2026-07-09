@@ -60,7 +60,7 @@
 | **加载时机**    | POSTWORLD                                     |
 | **软依赖**     | PlaceholderAPI, WorldEdit/FAWE, TrMenu, Vault, AuraSkills |
 | **构建工具**    | Gradle (Shadow JAR)                           |
-| **输出文件**    | `build/libs/StarMSkyblock.jar`                |
+| **输出文件**    | `build/libs/StarMSkyblock-1.0.0.jar`                |
 
 ## 快速开始
 
@@ -70,11 +70,11 @@
 ./gradlew build
 ```
 
-产物位于 `build/libs/StarMSkyblock.jar`，是一个包含所有依赖的 fat JAR。
+产物位于 `build/libs/StarMSkyblock-1.0.0.jar`，是一个包含所有依赖的 fat JAR。
 
 ### 安装
 
-1. 将 `StarMSkyblock.jar` 放入服务器的 `plugins/` 目录
+1. 将 `StarMSkyblock-1.0.0.jar` 放入服务器的 `plugins/` 目录
 2. 确保已安装 **WorldEdit** 或 **FastAsyncWorldEdit**（必需）
 3. （可选）安装 **PlaceholderAPI** 以使用变量占位符
 4. （可选）安装 **TrMenu** 以使用菜单桥接功能

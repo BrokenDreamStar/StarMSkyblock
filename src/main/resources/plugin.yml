@@ -4,7 +4,7 @@ version: '${version}'
 main: team.starm.starmskyblock.StarMSkyblock
 api-version: '26.1.2'
 load: POSTWORLD
-softdepend: [ FastAsyncWorldEdit, WorldEdit, Multiverse-Core, PlaceholderAPI, TrMenu, Vault, AuraSkills ]
+softdepend: [ FastAsyncWorldEdit, WorldEdit, Multiverse-Core, PlaceholderAPI, TrMenu, Vault, AuraSkills, mcMMO ]
 
 authors: [ BrokenDream_Star,DeepSeek,Gemini,Grok ]
 website: https://starm.team/

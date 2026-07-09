@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockGrowEvent;
 import team.starm.starmskyblock.task.TaskManager;
 import team.starm.starmskyblock.task.TaskType;
 
@@ -25,13 +24,6 @@ public class FarmingTaskListener extends BaseTaskListener {
 
     public FarmingTaskListener(TaskManager taskManager) {
         super(taskManager, TaskType.FARMING);
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onCropGrow(BlockGrowEvent event) {
-        Block block = event.getBlock();
-        if (!CROPS.contains(block.getType())) return;
-        taskManager.incrementProgress(null, taskType, block.getType().name(), 0);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

@@ -62,8 +62,8 @@ public class IslandLevelCalculator extends BukkitRunnable {
     private final AtomicInteger pendingAsyncTasks = new AtomicInteger(0);
     /** 扫描结果 */
     private final LevelResults results = new LevelResults();
-    /** 各世界已扫描区块数 */
-    private int chunksScanned;
+    /** 各世界已扫描区块数（processSnapshots 在异步线程累加，用原子类型避免并发丢增量） */
+    private final AtomicInteger chunksScanned = new AtomicInteger(0);
 
     /** 当前阶段 */
     private Phase phase = Phase.INIT;
@@ -197,8 +197,10 @@ public class IslandLevelCalculator extends BukkitRunnable {
             Material material = entry.getKey();
             long count = entry.getValue();
 
-            // 扣除模板基线中的方块数量
-            long baselineCount = baselineBlockCounts.getOrDefault(material.name(), 0L);
+            // 扣除模板基线中的方块数量（可在 level.yml 中通过 baseline.enabled 关闭）
+            long baselineCount = experienceConfig.isBaselineEnabled()
+                    ? baselineBlockCounts.getOrDefault(material.name(), 0L)
+                    : 0L;
             long adjustedCount = Math.max(0, count - baselineCount);
 
             if (adjustedCount == 0) continue;
@@ -279,10 +281,14 @@ public class IslandLevelCalculator extends BukkitRunnable {
                 MessageUtil.consoleError("等级公式计算失败: " + expr, e);
                 level = (int) (totalExp / 100);
             }
+            // 旧版公式兜底：岛屿上有方块时至少为 1 级。
+            // 注意：此兜底仅对旧版 level-formula 生效，不得应用到 level-cost 幂函数模型——
+            // 在扣除模板基线后，level 0 是合法的初始状态（经验未达到 base 阈值），
+            // 若在此处强制提升到 1 级，会用 < base 的经验绕过配置的升 1 级阈值。
+            if (level == 0 && results.getBlocksCounted() > 0) level = 1;
         }
 
         if (level < 0) level = 0;
-        if (level == 0 && results.getBlocksCounted() > 0) level = 1;
 
         results.setLevel(level);
         results.setTimeTaken(System.nanoTime() - start);
@@ -321,10 +327,10 @@ public class IslandLevelCalculator extends BukkitRunnable {
             }
         }
 
-        chunksScanned += tasks.size();
+        chunksScanned.addAndGet(tasks.size());
 
         // 通过 LevelManager 发送进度更新
-        int done = results.getTotalChunksScanned() - remainingPositions + chunksScanned;
+        int done = results.getTotalChunksScanned() - remainingPositions + chunksScanned.get();
         int total = results.getTotalChunksScanned();
         levelManager.sendProgress(island.getOwnerId(), done, total);
     }

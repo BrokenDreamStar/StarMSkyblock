@@ -34,6 +34,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class IslandManager {
 
     private static final com.google.gson.Gson GSON = new com.google.gson.Gson();
+    /** 岛屿创建时间格式（不可变、线程安全，替代每次 createIsland 都新建 SimpleDateFormat） */
+    private static final java.time.format.DateTimeFormatter CREATED_AT_FORMAT =
+            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final ConfigManager configManager;
     private final PermissionConfigManager permissionConfigManager;
@@ -227,8 +230,7 @@ public class IslandManager {
                 island.getPermissionsJson(), island.getSettingsJson(),
                 island.getGeneratorLevel());
 
-        island.setCreatedAt(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-                .format(new java.util.Date()));
+        island.setCreatedAt(java.time.LocalDateTime.now().format(CREATED_AT_FORMAT));
 
         islandsById.put(islandId, island);
         islandsByOwner.put(ownerId, island);

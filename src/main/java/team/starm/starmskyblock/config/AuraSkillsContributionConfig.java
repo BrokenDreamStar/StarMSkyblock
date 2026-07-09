@@ -25,6 +25,7 @@ public class AuraSkillsContributionConfig {
     private final StarMSkyblock plugin;
     private final File configFile;
 
+    private String type = "mcmmo";
     private boolean enabled = true;
     private double coefficient = 45.0;
     private int maxBonusLevel = 0;
@@ -56,6 +57,7 @@ public class AuraSkillsContributionConfig {
             return;
         }
 
+        this.type = section.getString("type", "mcmmo");
         this.enabled = section.getBoolean("enabled", true);
         this.coefficient = section.getDouble("coefficient", 45.0);
         this.maxBonusLevel = section.getInt("max-bonus-level", 0);
@@ -66,12 +68,16 @@ public class AuraSkillsContributionConfig {
         }
 
         if (enabled) {
-            MessageUtil.consolePrint("检测到 AuraSkills 岛屿等级额外经验来源功能已启用");
+            MessageUtil.consolePrint("检测到技能等级岛屿等级额外经验来源功能已启用（类型: " + type + "）");
         }
     }
 
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public String getType() {
+        return type;
     }
 
     public double getCoefficient() {

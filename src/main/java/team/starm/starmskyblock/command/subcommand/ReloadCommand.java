@@ -17,12 +17,15 @@ public class ReloadCommand extends AdminSubCommand {
         long start = System.currentTimeMillis();
 
         plugin.getConfigManager().reload();
+        plugin.getExperienceConfig().reload();
+        plugin.getAuraskillsContributionConfig().reload();
         plugin.getGeneratorConfigManager().reload();
         plugin.getUpgradeConfigManager().reload();
         plugin.getSettingsConfigManager().reloadSettingsConfig();
         plugin.getPermissionConfigManager().reloadPermissionsConfig();
         plugin.getPublicAreaConfigManager().reload();
         plugin.getLockedAreaConfigManager().reload();
+        plugin.getTaskConfigManager().scan();
         plugin.getLanguageManager().reload();
 
         long elapsed = System.currentTimeMillis() - start;

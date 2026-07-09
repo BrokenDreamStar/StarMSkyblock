@@ -29,6 +29,10 @@ dependencies {
     // 将 AuraSkills-2.3.12.jar 放到项目根目录的 libs/ 文件夹中
     compileOnly files('libs/AuraSkills-2.3.12.jar')
 
+    // mcMMO API（用于岛屿等级加成计算）
+    // 将 mcMMO.jar 放到项目根目录的 libs/ 文件夹中
+    compileOnly files('libs/mcMMO.jar')
+
     // Adventure（部分序列化模块需要显式声明）
     compileOnly 'net.kyori:adventure-api:4.19.0'
     compileOnly 'net.kyori:adventure-text-serializer-legacy:4.19.0'
@@ -61,6 +65,8 @@ dependencies {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+    // 字节码目标 Java 21（对齐 CLAUDE.md "运行于 Java 21+" 的部署要求；此前未设 release，字节码目标 Java 25 会在 Java 21 运行时报 UnsupportedClassVersionError）
+    options.release = 21
     options.compilerArgs.addAll(['-Xlint:all', '-Xlint:-classfile'])
 }
 
@@ -69,12 +75,17 @@ processResources {
     filesMatching('plugin.yml') {
         expand 'version': projectVersion
     }
+    // schematics 位于 src/main/resources/schematics/，processResources 默认已包含，无需重复声明
+}
 
-    // 包含schematics文件夹中的所有文件
-    from('src/main/resources') {
-        include 'schematics/**'
-        duplicatesStrategy = 'INCLUDE'
-    }
+jar {
+    enabled = false
+}
+
+shadowJar {
+    // 产出单一 StarMSkyblock-<version>.jar，不再额外生成带 -all 后缀的重复副本
+    archiveBaseName = 'StarMSkyblock'
+    archiveClassifier = ''
 }
 
 build {

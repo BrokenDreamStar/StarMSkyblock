@@ -174,24 +174,9 @@ VISITOR:
 # 适用于空岛世界中所有不归属于任何岛屿的区域
 # =============================================
 public-area:
-  # 是否启用公共区域保护
-  enabled: true
 
   # 权限定义
   permissions:
-    # 管理权限（公共区域禁止所有管理操作）
-    RENAME_ISLAND: false
-    EDIT_PERMISSIONS: false
-    EDIT_SETTINGS: false
-    INVITE_MEMBER: false
-    REMOVE_MEMBER: false
-    SET_ROLE: false
-    INVITE_COOP: false
-    REMOVE_COOP: false
-    SET_SPAWN: false
-    SET_BIOME: false
-    SET_GENERATOR: false
-
     # 物品丢弃/拾取
     ITEM_DROP: true
     ITEM_PICKUP: true
@@ -336,24 +321,9 @@ public-area:
 # 适用于已归属岛屿但尚未解锁（未扩展半径）的区域
 # =============================================
 locked-area:
-  # 是否启用未解锁区域保护
-  enabled: true
 
   # 权限定义 - 默认全部禁止，需升级岛屿才能解锁
   permissions:
-    # 管理权限
-    RENAME_ISLAND: false
-    EDIT_PERMISSIONS: false
-    EDIT_SETTINGS: false
-    INVITE_MEMBER: false
-    REMOVE_MEMBER: false
-    SET_ROLE: false
-    INVITE_COOP: false
-    REMOVE_COOP: false
-    SET_SPAWN: false
-    SET_BIOME: false
-    SET_GENERATOR: false
-
     # 物品丢弃/拾取
     ITEM_DROP: true
     ITEM_PICKUP: true

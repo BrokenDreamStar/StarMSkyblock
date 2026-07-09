@@ -11,6 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPortalEnterEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 
 import team.starm.starmskyblock.StarMSkyblock;
@@ -50,6 +51,12 @@ public class PortalListener implements Listener {
         this.worldManager = worldManager;
         this.islandManager = islandManager;
         this.playerRepo = playerRepo;
+    }
+
+    /** 玩家退出时清理其传送门进入时间戳缓存，避免随独特玩家数无界增长 */
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        lastPortalEnter.remove(event.getPlayer().getUniqueId());
     }
 
     /** 玩家进入传送门时根据传送门类型分发到对应的处理方法 */

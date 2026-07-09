@@ -21,7 +21,6 @@ public class LockedAreaConfigManager {
 
     private final PermissionConfigManager permissionConfigManager;
 
-    private boolean enabled;
     private final Map<IslandPermission, Boolean> permissionDefaults = new EnumMap<>(IslandPermission.class);
     private final Map<IslandSetting, Boolean> settingDefaults = new EnumMap<>(IslandSetting.class);
 
@@ -44,8 +43,6 @@ public class LockedAreaConfigManager {
     }
 
     private void loadValues(FileConfiguration config) {
-        enabled = config.getBoolean(CONFIG_PREFIX + ".enabled", true);
-
         permissionDefaults.clear();
         for (IslandPermission permission : IslandPermission.values()) {
             String key = CONFIG_PREFIX + ".permissions." + permission.name();
@@ -62,7 +59,7 @@ public class LockedAreaConfigManager {
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return true;
     }
 
     public boolean getPermission(IslandPermission permission) {
