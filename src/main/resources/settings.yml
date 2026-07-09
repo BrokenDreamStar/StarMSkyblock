@@ -31,7 +31,7 @@ enderman_grief: false
 # 是否允许恶魂火球破坏方块
 ghast_fireball_grief: false
 
-# 是否允许爬行者爆炸破坏
+# 是否允许苦力怕爆炸破坏
 creeper_explosion: false
 
 # 是否允许TNT爆炸破坏

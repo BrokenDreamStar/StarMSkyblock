@@ -1,5 +1,6 @@
 package team.starm.starmskyblock.config;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.message.MessageUtil;
@@ -7,9 +8,9 @@ import team.starm.starmskyblock.message.MessageUtil;
 import java.io.File;
 
 /**
- * AuraSkills 对岛屿等级的贡献配置管理器。
+ * AuraSkills 对岛屿等级的贡献配置管理器（合并于 level.yml）。
  * <p>
- * 负责加载 {@code auraskills-contribution.yml}，提供：
+ * 从 {@code level.yml} 的 {@code auraskills} 段加载配置，提供：
  * <ul>
  *   <li>是否启用加成（{@code isEnabled()}）</li>
  *   <li>PowerLevel 转换系数（{@code getCoefficient()}）</li>
@@ -18,13 +19,14 @@ import java.io.File;
  */
 public class AuraSkillsContributionConfig {
 
-    private static final String FILE_NAME = "auraskills-contribution.yml";
+    private static final String FILE_NAME = "level.yml";
+    private static final String SECTION_NAME = "auraskills";
 
     private final StarMSkyblock plugin;
     private final File configFile;
 
     private boolean enabled = true;
-    private double coefficient = 20.0;
+    private double coefficient = 45.0;
     private int maxBonusLevel = 0;
 
     public AuraSkillsContributionConfig(StarMSkyblock plugin) {
@@ -47,17 +49,25 @@ public class AuraSkillsContributionConfig {
      */
     public void reload() {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+        ConfigurationSection section = config.getConfigurationSection(SECTION_NAME);
 
-        this.enabled = config.getBoolean("enabled", true);
-        this.coefficient = config.getDouble("coefficient", 100.0);
-        this.maxBonusLevel = config.getInt("max-bonus-level", 0);
-
-        if (coefficient <= 0) {
-            MessageUtil.consoleWarn("auraskills-contribution.yml 中 coefficient 必须大于 0，已重置为默认值 100.0");
-            this.coefficient = 100.0;
+        if (section == null) {
+            MessageUtil.consoleWarn("level.yml 缺少 '" + SECTION_NAME + "' 段，将使用默认值");
+            return;
         }
 
-        MessageUtil.consolePrint("检测到AuraSkills 岛屿等级额外经验来源功能已启用");
+        this.enabled = section.getBoolean("enabled", true);
+        this.coefficient = section.getDouble("coefficient", 45.0);
+        this.maxBonusLevel = section.getInt("max-bonus-level", 0);
+
+        if (coefficient <= 0) {
+            MessageUtil.consoleWarn("level.yml 中 auraskills.coefficient 必须大于 0，已重置为默认值 45.0");
+            this.coefficient = 45.0;
+        }
+
+        if (enabled) {
+            MessageUtil.consolePrint("检测到 AuraSkills 岛屿等级额外经验来源功能已启用");
+        }
     }
 
     public boolean isEnabled() {

@@ -1,5 +1,6 @@
-# StarMSkyblock 岛屿等级方块经验值配置
-# 配置岛屿上每种方块的经验值、数量上限和等级换算公式。
+# StarMSkyblock 岛屿等级配置
+# 包含方块经验值、方块上限、超额递减、等级公式及 AuraSkills 贡献。
+# 合并自原 block-values.yml + auraskills-contribution.yml
 
 # ============================================
 # 方块经验值
@@ -1053,3 +1054,16 @@ level-cost:
 # 支持运算: + - * / 和 ()
 # ============================================
 # level-formula: "{experience} / 100"
+
+# ============================================
+# AuraSkills 对岛屿等级的贡献配置
+# 岛屿所有成员的 AuraSkills PowerLevel 总和将按比例转换为额外的岛屿等级
+# ============================================
+auraskills:
+  # 是否启用 AuraSkills 加成
+  enabled: true
+  # 加成等级 = 全体成员 PowerLevel 总和 / coefficient
+  # 例如 coefficient: 20, 全体成员 PowerLevel 总和为 500, 则加成 25 级
+  coefficient: 45.0
+  # 最大加成等级上限，0 表示不限制
+  max-bonus-level: 0

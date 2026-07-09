@@ -22,7 +22,6 @@ import team.starm.starmskyblock.config.PermissionConfigManager;
 import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.config.PublicAreaConfigManager;
 import team.starm.starmskyblock.config.SettingsConfigManager;
-import team.starm.starmskyblock.config.SignConfigManager;
 import team.starm.starmskyblock.config.UpgradeConfigManager;
 import team.starm.starmskyblock.database.IslandRepository;
 import team.starm.starmskyblock.database.PlayerRepository;
@@ -71,7 +70,6 @@ public class StarMSkyblock extends JavaPlugin {
     private ConfigManager configManager;
     private PermissionConfigManager permissionConfigManager;
     private SettingsConfigManager settingsConfigManager;
-    private SignConfigManager signConfigManager;
     private GeneratorConfigManager generatorConfigManager;
     private UpgradeConfigManager upgradeConfigManager;
 
@@ -193,19 +191,16 @@ public class StarMSkyblock extends JavaPlugin {
         settingsConfigManager = new SettingsConfigManager(this);
         settingsConfigManager.initialize();
 
-        signConfigManager = new SignConfigManager(this);
-        signConfigManager.initialize();
-
         generatorConfigManager = new GeneratorConfigManager(this);
         generatorConfigManager.initialize();
 
         upgradeConfigManager = new UpgradeConfigManager(this);
         upgradeConfigManager.initialize();
 
-        publicAreaConfigManager = new PublicAreaConfigManager(this);
+        publicAreaConfigManager = new PublicAreaConfigManager(permissionConfigManager);
         publicAreaConfigManager.initialize();
 
-        lockedAreaConfigManager = new LockedAreaConfigManager(this);
+        lockedAreaConfigManager = new LockedAreaConfigManager(permissionConfigManager);
         lockedAreaConfigManager.initialize();
     }
 
@@ -436,10 +431,6 @@ public class StarMSkyblock extends JavaPlugin {
 
     public SettingsConfigManager getSettingsConfigManager() {
         return settingsConfigManager;
-    }
-
-    public SignConfigManager getSignConfigManager() {
-        return signConfigManager;
     }
 
     public GeneratorConfigManager getGeneratorConfigManager() {

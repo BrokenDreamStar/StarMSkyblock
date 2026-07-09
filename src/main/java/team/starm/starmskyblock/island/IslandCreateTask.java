@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.config.ConfigManager;
-import team.starm.starmskyblock.config.SignConfigManager;
 import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.List;
@@ -177,15 +176,15 @@ public class IslandCreateTask extends BukkitRunnable {
 
     /**
      * 更新结构中告示牌的文本内容。
-     * 支持 PlaceholderAPI 变量替换，从 SignConfigManager 读取模板行。
+     * 支持 PlaceholderAPI 变量替换，从 ConfigManager 读取告示牌模板行。
      */
     private void updateSigns(World world, int pasteX, int pasteY, int pasteZ, String schematicName) {
-        SignConfigManager signConfig = plugin.getSignConfigManager();
-        if (signConfig == null || !signConfig.isEnabled()) {
+        ConfigManager config = plugin.getConfigManager();
+        if (config == null || !config.isSignEnabled()) {
             return;
         }
 
-        List<String> lines = signConfig.getLines();
+        List<String> lines = config.getSignLines();
         if (lines.isEmpty()) {
             return;
         }

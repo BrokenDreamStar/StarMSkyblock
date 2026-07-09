@@ -6,9 +6,11 @@ import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.message.MessageUtil;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -70,6 +72,9 @@ public class ConfigManager {
     private volatile float fallbackSpawnPitch; // 无床/重生锚时的重生点俯仰角（垂直朝向）
     private volatile Set<String> publicWorlds = Collections.emptySet(); // 公共世界列表
     private volatile String locale = "zh_CN"; // 当前激活的 i18n locale
+    // ==================== 告示牌配置 ====================
+    private volatile boolean signEnabled; // 是否启用岛屿生成时的告示牌文字写入
+    private volatile List<String> signLines = Collections.emptyList(); // 告示牌正面文字行模板
 
     public ConfigManager(StarMSkyblock plugin) {
         this.plugin = plugin;
@@ -256,6 +261,10 @@ public class ConfigManager {
         // ====================== i18n locale ======================
         // 仅原样存储，校验由 LanguageManager.validateLocale() 统一处理（避免正则重复）。
         this.locale = config.getString(ConfigKeys.LOCALE, "zh_CN");
+
+        // ====================== 岛屿生成告示牌文字 ======================
+        this.signEnabled = config.getBoolean(ConfigKeys.SIGN_ENABLED, true);
+        this.signLines = new ArrayList<>(config.getStringList(ConfigKeys.SIGN_LINES));
     }
 
     // ==================== Getter 方法（按功能分类） ====================
@@ -531,6 +540,20 @@ public class ConfigManager {
             return schematicConfigs.get(defaultNormalSchematicId);
         }
         return schematicConfigs.get(schematicId);
+    }
+
+    /**
+     * @return 是否启用岛屿生成时的告示牌文字写入
+     */
+    public boolean isSignEnabled() {
+        return signEnabled;
+    }
+
+    /**
+     * @return 告示牌正面文字行模板（副本），支持 &amp; 颜色代码与 PlaceholderAPI 变量
+     */
+    public List<String> getSignLines() {
+        return new ArrayList<>(signLines);
     }
 
 }

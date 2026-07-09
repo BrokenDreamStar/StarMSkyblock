@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * 岛屿等级 —— 方块经验值与阈值配置管理器。
  * <p>
- * 负责加载 {@code block-values.yml}，提供：
+ * 负责加载 {@code level.yml}，提供：
  * <ul>
  *   <li>每种方块的经验值（{@code getExperience(Material)}）</li>
  *   <li>每种方块的最大计数阈值（{@code getLimit(Material)}）</li>
@@ -24,7 +24,7 @@ import java.util.Map;
  */
 public class ExperienceConfig {
 
-    private static final String FILE_NAME = "block-values.yml";
+    private static final String FILE_NAME = "level.yml";
 
     private final StarMSkyblock plugin;
     private final File configFile;
@@ -70,14 +70,14 @@ public class ExperienceConfig {
                 }
                 Material material = Material.getMaterial(key.toUpperCase());
                 if (material == null) {
-                    MessageUtil.consoleWarn("block-values.yml 中存在未知的方块类型: " + key);
+                    MessageUtil.consoleWarn("level.yml 中存在未知的方块类型: " + key);
                     continue;
                 }
                 double value = blocksSection.getDouble(key);
                 values.put(material, value);
             }
         } else {
-            MessageUtil.consoleWarn("block-values.yml 缺少 'blocks' 段");
+            MessageUtil.consoleWarn("level.yml 缺少 'blocks' 段");
         }
         this.experienceValues = values;
 
@@ -91,7 +91,7 @@ public class ExperienceConfig {
             for (String key : limitsSection.getKeys(false)) {
                 Material material = Material.getMaterial(key.toUpperCase());
                 if (material == null) {
-                    MessageUtil.consoleWarn("block-values.yml 中存在未知的方块限制类型: " + key);
+                    MessageUtil.consoleWarn("level.yml 中存在未知的方块限制类型: " + key);
                     continue;
                 }
                 long limit = limitsSection.getLong(key);

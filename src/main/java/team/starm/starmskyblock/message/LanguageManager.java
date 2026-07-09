@@ -35,11 +35,17 @@ public final class LanguageManager {
 
     private final StarMSkyblock plugin;
 
-    /** 当前激活 locale，volatile 保证 reload 后立即可见 */
+    /**
+     * 当前激活 locale，volatile 保证 reload 后立即可见
+     */
     private volatile String locale = DEFAULT_LOCALE;
-    /** 扁平化后的 key -> value 映射，volatile 保证 reload 后引用原子替换 */
+    /**
+     * 扁平化后的 key -> value 映射，volatile 保证 reload 后引用原子替换
+     */
     private volatile Map<String, String> messages = Collections.emptyMap();
-    /** 已警告过的缺失 key 集合，避免日志洪水 */
+    /**
+     * 已警告过的缺失 key 集合，避免日志洪水
+     */
     private final Set<String> warnedMissingKeys = ConcurrentHashMap.newKeySet();
 
     public LanguageManager(@NotNull StarMSkyblock plugin) {
@@ -138,7 +144,7 @@ public final class LanguageManager {
 
         Map<String, String> flat = flatten(yaml);
         this.messages = flat;
-        MessageUtil.consolePrint("i18n 系统已就绪 | 已加载语言文件: " + this.locale + "（" + flat.size() + " 个键）");
+        MessageUtil.consolePrint("已加载语言文件: " + this.locale);
     }
 
     private String validateLocale(@NotNull String locale) {

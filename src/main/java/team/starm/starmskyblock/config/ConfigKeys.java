@@ -64,4 +64,8 @@ public final class ConfigKeys {
 
     // 公共世界
     public static final String PUBLIC_WORLDS = "public-worlds";
+
+    // 岛屿生成告示牌文字
+    public static final String SIGN_ENABLED = "sign.enabled";
+    public static final String SIGN_LINES = "sign.lines";
 }

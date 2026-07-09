@@ -93,7 +93,6 @@
 | `settings.yml`     | 岛屿默认设置：PVP、传送、生物生成、火势蔓延、爆炸破坏等开关                                  |
 | `generator.yml`    | 岛屿刷石机配置：等级阈值、各维度概率权重表、深板岩替换开关、启用/禁用控制                            |
 | `upgrades.yml`     | 岛屿升级配置：范围升级与刷石机升级的等级目标及费用                                        |
-| `sign.yml`         | 岛屿出生点告示牌文本模板（支持 PAPI 变量）                                         |
 | `tasks/tasks.yml`  | 任务章节注册文件                                                         |
 | `tasks/<Chapter>/` | 章节任务定义文件（`.yml`），如 `Chapter1/Mission1_1.yml`                     |
 | `block-values.yml` | 方块经验价值表：每种方块/实体/钓鱼/合成对应的经验值                                      |
@@ -783,7 +782,6 @@ StarMSkyblock
 │   ├── AuraSkillsContributionConfig.java — auraskills-contribution.yml（AuraSkills 加成）
 │   ├── PublicAreaConfigManager.java      — public-area.yml（公共区域权限设置）
 │   ├── LockedAreaConfigManager.java      — locked-area.yml（未解锁区域权限设置）
-│   └── SignConfigManager.java       — sign.yml
 ├── database/                   — SQLite 持久层
 │   ├── SQLiteManager.java      — 连接管理与建表
 │   ├── IslandRepository.java   — 岛屿 CRUD
