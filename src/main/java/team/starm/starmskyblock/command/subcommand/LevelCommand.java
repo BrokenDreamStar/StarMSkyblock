@@ -20,6 +20,9 @@ public class LevelCommand extends SubCommand {
         super(plugin);
     }
 
+    /**
+     * 校验岛屿归属后触发异步等级计算。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         if (!assertMaxArgs(player, args, 1, "/is level")) return true;

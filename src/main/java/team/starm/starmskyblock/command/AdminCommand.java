@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.jspecify.annotations.NonNull;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.command.subcommand.AdminSubCommand;
+import team.starm.starmskyblock.command.subcommand.BypassCommand;
 import team.starm.starmskyblock.command.subcommand.ReloadCommand;
 import team.starm.starmskyblock.command.subcommand.SetGeneratorCommand;
 import team.starm.starmskyblock.command.subcommand.SetRadiusCommand;
@@ -35,6 +36,7 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
         subCommands.put("setgenerator", new SetGeneratorCommand(plugin));
         subCommands.put("settask", new SetTaskCommand(plugin));
         subCommands.put("reload", new ReloadCommand(plugin));
+        subCommands.put("bypass", new BypassCommand(plugin));
         subCommandNames.addAll(subCommands.keySet());
     }
 
@@ -80,6 +82,7 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
         MessageUtil.send(sender, "command.admin.usage-setgenerator");
         MessageUtil.send(sender, "command.admin.usage-settask");
         MessageUtil.send(sender, "command.admin.usage-reload");
+        MessageUtil.send(sender, "command.admin.usage-bypass");
     }
 
     @Override

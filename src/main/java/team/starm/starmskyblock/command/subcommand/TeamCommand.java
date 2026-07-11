@@ -13,13 +13,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import team.starm.starmskyblock.StarMSkyblock;
 
+/**
+ * 团队管理命令（/is team list|invite|remove|accept|decline）
+ * <p>
+ * 管理岛屿正式成员的邀请、加入、退出流程。邀请通过 {@link InvitationManager} 走待处理队列，
+ * 玩家可 accept/decline。移除成员需 REMOVE_MEMBER 权限并追加 confirm 确认。
+ */
 public class TeamCommand extends SubCommand {
 
-    public TeamCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public TeamCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 执行 /is team 命令：按子参数分发到对应处理器。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         if (args.length < 2) {
@@ -46,6 +56,7 @@ public class TeamCommand extends SubCommand {
         };
     }
 
+    /** 展示本岛屿岛主及全部成员名单（含在线/离线状态）。 */
     private boolean handleList(Player player) {
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
@@ -80,6 +91,7 @@ public class TeamCommand extends SubCommand {
         return true;
     }
 
+    /** 处理 /is team invite：向目标在线玩家发送入岛邀请（需 INVITE_MEMBER 权限）。 */
     private boolean handleInvite(Player player, String[] args) {
         if (!assertMaxArgs(player, args, 3, "/is team invite <玩家名>")) return true;
 
@@ -120,6 +132,7 @@ public class TeamCommand extends SubCommand {
         return true;
     }
 
+    /** 处理 /is team accept：接受当前待处理邀请加入邀请方岛屿。 */
     private boolean handleAccept(Player player) {
         var invitationManager = plugin.getInvitationManager();
 
@@ -136,6 +149,7 @@ public class TeamCommand extends SubCommand {
         return true;
     }
 
+    /** 处理 /is team decline：拒绝当前待处理邀请。 */
     private boolean handleDecline(Player player) {
         var invitationManager = plugin.getInvitationManager();
 
@@ -152,6 +166,7 @@ public class TeamCommand extends SubCommand {
         return true;
     }
 
+    /** 处理 /is team remove：移除指定成员（需 REMOVE_MEMBER 权限与 confirm 确认）。 */
     private boolean handleRemove(Player player, String[] args) {
         if (!assertMaxArgs(player, args, 4, "/is team remove <玩家名> [confirm]")) return true;
 
@@ -207,6 +222,9 @@ public class TeamCommand extends SubCommand {
         return true;
     }
 
+    /**
+     * Tab 补全：第二参数补全子命令；invite 补全可邀请的在线访客，remove 补全可移除的低权限成员。
+     */
     @Override
     public List<String> onTabComplete(Player player, String[] args) {
         if (args.length == 2) {

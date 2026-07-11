@@ -6,6 +6,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import team.starm.starmskyblock.util.SkullManager;
 
+import org.bukkit.Material;
+
 /**
  * TrMenu JS 物品源桥接 Hook — 通过 {@code HookAbstract.bindingScript()} 自动注册到 JS 引擎。
  * <p>
@@ -68,7 +70,7 @@ public class StarMSkyblockHook extends HookAbstract {
             if (resolved != null && !resolved.isEmpty() && !resolved.equals("NONE")) {
                 return SkullManager.getPlayerHead(resolved);
             }
-            return new ItemStack(org.bukkit.Material.PLAYER_HEAD);
+            return new ItemStack(Material.PLAYER_HEAD);
         }
         return SkullManager.getPlayerHead(value);
     }

@@ -28,10 +28,12 @@ public class LockedAreaConfigManager {
         this.permissionConfigManager = permissionConfigManager;
     }
 
+    /** 加载未解锁区域权限与设置配置 */
     public void initialize() {
         loadConfig();
     }
 
+    /** 从 permissions.yml 的 locked-area 章节读取权限与设置默认值 */
     public void loadConfig() {
         FileConfiguration config = permissionConfigManager.getPermissionsConfig();
         if (config == null) {
@@ -70,6 +72,7 @@ public class LockedAreaConfigManager {
         return settingDefaults.getOrDefault(setting, true);
     }
 
+    /** 重载配置 */
     public void reload() {
         loadConfig();
     }

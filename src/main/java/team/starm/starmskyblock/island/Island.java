@@ -5,9 +5,12 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import org.bukkit.Material;
 
 import team.starm.starmskyblock.message.MessageUtil;
 import team.starm.starmskyblock.permission.IslandPermission;
@@ -279,9 +282,9 @@ public class Island {
     /**
      * 设置方块计数 Map
      */
-    public void setBlockCounts(Map<org.bukkit.Material, Long> counts) {
+    public void setBlockCounts(Map<Material, Long> counts) {
         this.blockCounts = new HashMap<>();
-        for (Map.Entry<org.bukkit.Material, Long> entry : counts.entrySet()) {
+        for (Map.Entry<Material, Long> entry : counts.entrySet()) {
             this.blockCounts.put(entry.getKey().name(), entry.getValue());
         }
     }
@@ -404,7 +407,7 @@ public class Island {
             Map<String, Object> raw = GSON.fromJson(json, Map.class);
             if (raw == null) return;
             for (var entry : raw.entrySet()) {
-                if (entry.getValue() instanceof java.util.List<?> list) {
+                if (entry.getValue() instanceof List<?> list) {
                     Set<String> set = new HashSet<>();
                     for (Object item : list) {
                         if (item instanceof String s) set.add(s);
@@ -593,21 +596,11 @@ public class Island {
 
     /**
      * 基于权限组的等级数值判断是否拥有指定权限。
-     * 先检查该权限的自定义最低等级，未单独配置则回退为 ALL 的兜底值。
+     * 岛主全通过；其他权限组需达到该权限在岛屿中配置的最低等级，未配置则拒绝。
      */
     public boolean hasPermission(IslandPermissionLevel role, IslandPermission permission) {
-        // 岛主永远拥有全部权限
-        if (role == IslandPermissionLevel.OWNER) {
-            return true;
-        }
-
-        // 检查该权限的自定义最低等级（如 BUILD→3 表示 ≥3 级拥有）
-        Integer minLevel = permissionMinLevels.get(permission);
-        if (minLevel != null) {
-            return role.getPermissionLevel() >= minLevel;
-        }
-
-        return false;
+        // 委托给 IslandPermissionLevel.hasPermission（可单测）；岛主全通过，否则看该权限配置的最低等级
+        return role.hasPermission(permission, permissionMinLevels.get(permission));
     }
 
     // ==================== 自定义最低等级操作 ====================

@@ -10,7 +10,7 @@ import java.io.File;
 /**
  * AuraSkills 对岛屿等级的贡献配置管理器（合并于 level.yml）。
  * <p>
- * 从 {@code level.yml} 的 {@code auraskills} 段加载配置，提供：
+ * 从 {@code level.yml} 的 {@code skill-contribution} 段加载配置，提供：
  * <ul>
  *   <li>是否启用加成（{@code isEnabled()}）</li>
  *   <li>PowerLevel 转换系数（{@code getCoefficient()}）</li>
@@ -20,7 +20,7 @@ import java.io.File;
 public class AuraSkillsContributionConfig {
 
     private static final String FILE_NAME = "level.yml";
-    private static final String SECTION_NAME = "auraskills";
+    private static final String SECTION_NAME = "skill-contribution";
 
     private final StarMSkyblock plugin;
     private final File configFile;
@@ -63,7 +63,7 @@ public class AuraSkillsContributionConfig {
         this.maxBonusLevel = section.getInt("max-bonus-level", 0);
 
         if (coefficient <= 0) {
-            MessageUtil.consoleWarn("level.yml 中 auraskills.coefficient 必须大于 0，已重置为默认值 45.0");
+            MessageUtil.consoleWarn("level.yml 中 skill-contribution.coefficient 必须大于 0，已重置为默认值 45.0");
             this.coefficient = 45.0;
         }
 

@@ -8,13 +8,24 @@ import team.starm.starmskyblock.permission.manager.ManagementPermissionManager;
 import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.Optional;
+import org.bukkit.Location;
+import team.starm.starmskyblock.StarMSkyblock;
 
+/**
+ * {@code /is setspawn} 子命令 -- 设置岛屿自定义出生点。
+ * <p>
+ * 将玩家当前位置记录为岛屿出生点，须站在所属岛屿的已解锁范围内、
+ * 脚下有实心方块；下界/末地出生点受配置开关控制。
+ */
 public class SetSpawnCommand extends SubCommand {
 
-    public SetSpawnCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public SetSpawnCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 校验世界/岛屿归属/权限/脚下方块后写入自定义出生点。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         if (!assertMaxArgs(player, args, 1, "/is setspawn")) return true;
@@ -45,7 +56,7 @@ public class SetSpawnCommand extends SubCommand {
             return true;
         }
 
-        org.bukkit.Location blockBelow = playerLocation.clone().subtract(0, 1, 0);
+        Location blockBelow = playerLocation.clone().subtract(0, 1, 0);
         if (blockBelow.getBlock().getType().isAir()) {
             MessageUtil.send(player, "spawn.set.no-block-below");
             return true;

@@ -32,8 +32,11 @@ import java.util.Optional;
  */
 public class IslandBoundaryListener implements Listener {
 
+    /** 岛屿管理器，根据区块坐标查询所属岛屿 */
     private final IslandManager islandManager;
+    /** 世界管理器，判定方块是否处于空岛世界 */
     private final SkyblockWorldManager worldManager;
+    /** 配置管理器（保留供后续边界规则扩展使用） */
     private final ConfigManager configManager;
 
     public IslandBoundaryListener(IslandManager islandManager, SkyblockWorldManager worldManager,
@@ -149,8 +152,9 @@ public class IslandBoundaryListener implements Listener {
 
         if (!worldManager.isSkyblockWorld(world)) return false;
 
-        int chunkX = location.getChunk().getX();
-        int chunkZ = location.getChunk().getZ();
+        // 位运算取区块坐标，避免 location.getChunk() 在区块未驻留时触发主线程同步加载
+        int chunkX = location.getBlockX() >> 4;
+        int chunkZ = location.getBlockZ() >> 4;
 
         Optional<Island> islandOpt = islandManager.getIslandAt(chunkX, chunkZ);
 

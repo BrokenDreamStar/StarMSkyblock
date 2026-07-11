@@ -1,5 +1,6 @@
 package team.starm.starmskyblock.permission.manager;
 
+import io.papermc.paper.event.entity.EntityLoadCrossbowEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -9,23 +10,28 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.block.data.type.Beehive;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.Ageable;
 import org.bukkit.entity.Bogged;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.HappyGhast;
 import org.bukkit.entity.LeashHitch;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Llama;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Sheep;
 import org.bukkit.entity.Snowman;
+import org.bukkit.entity.SpectralArrow;
 import org.bukkit.entity.Steerable;
 import org.bukkit.entity.Tameable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
@@ -37,14 +43,13 @@ import org.bukkit.event.player.PlayerUnleashEntityEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.config.PublicAreaConfigManager;
 import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.world.SkyblockWorldManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.BasePermissionManager;
 import team.starm.starmskyblock.tag.EntityTags;
@@ -65,8 +70,9 @@ public class ToolPermissionManager extends BasePermissionManager {
 
     public ToolPermissionManager(IslandManager islandManager, ConfigManager configManager,
                                   PublicAreaConfigManager publicAreaConfig,
-                                  LockedAreaConfigManager lockedAreaConfig) {
-        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+                                  LockedAreaConfigManager lockedAreaConfig,
+                                  JavaPlugin plugin, SkyblockWorldManager worldManager) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig, plugin, worldManager);
     }
 
     /**
@@ -271,14 +277,14 @@ public class ToolPermissionManager extends BasePermissionManager {
     /**
      * 监听实体射箭事件
      * <p>
-     * 这是 BOW_USE 权限的第二道防线。{PlayerInterceptEvent} 只能拦截
-     * 右键蓄力的开始阶段，但某些情况下（如快速连发或利用客户端漏洞）
-     * 可能绕过蓄力事件直接射出箭矢。{EntityShootBowEvent} 在箭矢
-     * 实际射出时触发，提供了最终的拦截机会。
+     * BOW_USE 权限的第二道防线。{PlayerInteractEvent}（{onToolUse}）的 setUseItemInHand(DENY)
+     * 无法可靠阻止弓蓄力（实测弓仍可拉满发射），故必须在发射阶段拦截。
      * </p>
      * <p>
-     * 事件取消后需要将消耗的箭矢归还给玩家：
-     * 非创造模式且弓没有无限附魔时，将消耗品放回原槽位或物品栏。
+     * 取消本事件可阻止箭矢实体生成，但<b>不阻止箭矢消耗</b>，消耗在事件触发前已完成
+     * （实测确认）。因此取消后必须将消耗的箭矢退还玩家，否则造成物品损失。该退还
+     * <b>并非刷物</b>：消耗确实发生，退还只是复原已消耗的那一支；创造模式与无限附魔
+     * 不消耗，故跳过退还。弩的弹药在装填阶段消耗（见 {onLoadCrossbow}），发射时不再消耗。
      * </p>
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -291,22 +297,96 @@ public class ToolPermissionManager extends BasePermissionManager {
             event.setCancelled(true);
 
             ItemStack consumable = event.getConsumable();
-            int originalSlot = -1;
-            if (consumable != null && consumable.getType() != Material.AIR) {
-                originalSlot = findAmmoSlot(player, consumable);
+            if (consumable != null && consumable.getType() != Material.AIR
+                    && player.getGameMode() != GameMode.CREATIVE
+                    && !(event.getBow() != null && event.getBow().containsEnchantment(Enchantment.INFINITY))) {
+                player.getInventory().addItem(consumable.clone());
             }
+            sendDenyMessage(player, IslandPermission.BOW_USE);
+        }
+    }
 
-            if (consumable != null && consumable.getType() != Material.AIR) {
-                boolean isCreative = player.getGameMode() == GameMode.CREATIVE;
-                ItemStack bow = event.getBow();
-                boolean hasInfinity = bow != null && bow.containsEnchantment(Enchantment.INFINITY);
-                if (!isCreative && !hasInfinity) {
-                    ItemStack refund = consumable.clone();
-                    restoreConsumable(player, originalSlot, refund);
+    /**
+     * 监听弩装填事件
+     * <p>
+     * 弩的箭矢/烟花在装填阶段从物品栏消耗并存入弩的 ChargedProjectiles 组件，
+     * {EntityShootBowEvent}（发射）时已不再消耗。故拦截弩弹药消耗的唯一干净时机
+     * 是装填：取消本事件即"不消耗"（Paper 文档：若取消，原本要装入弩的弹射物将
+     * 不被消耗），无需、也不应退还物品。{onToolUse} 已在右键开始装填时取消，
+     * 本事件作为权威兜底，覆盖装填已在进行中或经其它路径触发的情况。
+     * </p>
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onLoadCrossbow(EntityLoadCrossbowEvent event) {
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.BOW_USE)) {
+            event.setCancelled(true);
+            sendDenyMessage(player, IslandPermission.BOW_USE);
+        }
+    }
+
+    /**
+     * 监听弹射物发射事件
+     * <p>
+     * 兜底拦截弩发射的弹射物。{EntityShootBowEvent} 实测不会为弩的发射触发（箭矢与
+     * 烟花都能从预装填的弩射出），故弩的发射在此拦截。弓的箭矢已由 {onEntityShootBow}
+     * 在更早阶段取消（取消后不生成弹射物实体，本事件不再触发），不会重复处理。
+     * </p>
+     * <p>
+     * 只处理弓/弩类弹射物：弩射出的箭矢（{AbstractArrow}）与弩射出的烟花
+     * （{Firework#isShotAtAngle()} 为 true）。投掷物（雪球/蛋/末影珍珠等）由
+     * {ItemPermissionManager} 在 {PlayerInteractEvent} 阶段拦截，此处跳过。
+     * </p>
+     * <p>
+     * 与弓同理，取消本事件不阻止已装填弹药被消耗（消耗与发射解耦，实测发射后弩变空），
+     * 故需将消耗的弹药退还玩家。该退还并非刷物：弹药确实被消耗，退还只是复原。
+     * </p>
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onProjectileLaunch(ProjectileLaunchEvent event) {
+        if (!(event.getEntity().getShooter() instanceof Player player)) {
+            return;
+        }
+        Projectile projectile = event.getEntity();
+        boolean isCrossbowFirework = projectile instanceof Firework firework && firework.isShotAtAngle();
+        boolean isArrow = projectile instanceof AbstractArrow;
+        if (!isCrossbowFirework && !isArrow) {
+            return;
+        }
+        if (!checkPermission(player.getLocation(), player.getUniqueId(), IslandPermission.BOW_USE)) {
+            event.setCancelled(true);
+            if (player.getGameMode() != GameMode.CREATIVE) {
+                ItemStack refund = projectileToItem(projectile);
+                if (refund != null) {
+                    player.getInventory().addItem(refund);
                 }
             }
             sendDenyMessage(player, IslandPermission.BOW_USE);
         }
+    }
+
+    /**
+     * 将被拦截的弹射物还原为可退还的物品
+     * <p>
+     * 烟花保留其 FireworkMeta（飞行效果）；箭矢按实体类型还原为光谱箭或普通箭。
+     * 注：药水箭（tipped）当前按普通箭退还，会丢失药水效果（非刷物，仅边缘损失）。
+     * </p>
+     */
+    private ItemStack projectileToItem(Projectile projectile) {
+        if (projectile instanceof Firework firework) {
+            ItemStack item = new ItemStack(Material.FIREWORK_ROCKET);
+            item.setItemMeta(firework.getFireworkMeta());
+            return item;
+        }
+        if (projectile instanceof SpectralArrow) {
+            return new ItemStack(Material.SPECTRAL_ARROW);
+        }
+        if (projectile instanceof AbstractArrow) {
+            return new ItemStack(Material.ARROW);
+        }
+        return null;
     }
 
     /**
@@ -463,93 +543,12 @@ public class ToolPermissionManager extends BasePermissionManager {
      * </p>
      */
     private void syncEntityStatusForPlayer(Player player, Entity entity) {
-        Plugin plugin = JavaPlugin.getProvidingPlugin(getClass());
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline() && entity.isValid()) {
                 player.hideEntity(plugin, entity);
                 player.showEntity(plugin, entity);
             }
         }, 1L);
-    }
-
-    /**
-     * 查找指定消耗品在玩家物品栏中的槽位
-     * <p>
-     * 模拟原版 Minecraft 的弹药选择优先级：
-     * <ol>
-     *   <li>副手（槽位 40）</li>
-     *   <li>快捷栏 0-8</li>
-     *   <li>背包 9-35</li>
-     * </ol>
-     * 用于在射箭事件取消后将消耗的弹药还到正确的槽位。
-     * </p>
-     *
-     * @param player 玩家
-     * @param ammo   需要匹配的弹药物品
-     * @return 槽位号，未找到返回 -1
-     */
-    private int findAmmoSlot(Player player, ItemStack ammo) {
-        PlayerInventory inv = player.getInventory();
-        if (inv.getItemInOffHand().isSimilar(ammo)) {
-            return 40;
-        }
-        for (int i = 0; i <= 8; i++) {
-            ItemStack item = inv.getItem(i);
-            if (item != null && item.isSimilar(ammo)) {
-                return i;
-            }
-        }
-        for (int i = 9; i <= 35; i++) {
-            ItemStack item = inv.getItem(i);
-            if (item != null && item.isSimilar(ammo)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * 判断指定物品栏槽位是否为空
-     *
-     * @param inv  玩家物品栏
-     * @param slot 槽位号
-     * @return true 如果该槽位没有物品或物品为空气
-     */
-    private boolean isSlotEmpty(PlayerInventory inv, int slot) {
-        ItemStack item = inv.getItem(slot);
-        return item == null || item.getType().isAir();
-    }
-
-    /**
-     * 将射箭消耗的弹药返还给玩家
-     * <p>
-     * 优先级：先尝试放回原槽位；如果原槽位被其他物品占用但可叠加则合并；
-     * 最终回退到物品栏空位。这确保了玩家不会因为权限拦截而意外损失弹药。
-     * </p>
-     *
-     * @param player         玩家
-     * @param originalSlot   原弹药所在槽位
-     * @param itemToRestore  要返还的物品
-     */
-    private void restoreConsumable(Player player, int originalSlot, ItemStack itemToRestore) {
-        if (itemToRestore == null || itemToRestore.getType().isAir()) {
-            return;
-        }
-        PlayerInventory inv = player.getInventory();
-        if (originalSlot >= 0) {
-            if (isSlotEmpty(inv, originalSlot)) {
-                inv.setItem(originalSlot, itemToRestore);
-                return;
-            } else {
-                ItemStack current = inv.getItem(originalSlot);
-                if (current != null && current.isSimilar(itemToRestore)) {
-                    current.setAmount(current.getAmount() + itemToRestore.getAmount());
-                    inv.setItem(originalSlot, current);
-                    return;
-                }
-            }
-        }
-        inv.addItem(itemToRestore);
     }
 
     /**

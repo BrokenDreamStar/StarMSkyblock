@@ -1,6 +1,7 @@
 package team.starm.starmskyblock.permission.manager;
 
 import org.bukkit.Location;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.entity.Mob;
@@ -14,6 +15,7 @@ import org.bukkit.event.block.BlockFertilizeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -21,9 +23,12 @@ import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.config.PublicAreaConfigManager;
 import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.world.SkyblockWorldManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.BasePermissionManager;
 import team.starm.starmskyblock.tag.ItemTags;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionType;
 
 /**
  * 物品权限管理器
@@ -33,8 +38,9 @@ public class ItemPermissionManager extends BasePermissionManager {
 
     public ItemPermissionManager(IslandManager islandManager, ConfigManager configManager,
                                   PublicAreaConfigManager publicAreaConfig,
-                                  LockedAreaConfigManager lockedAreaConfig) {
-        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+                                  LockedAreaConfigManager lockedAreaConfig,
+                                  JavaPlugin plugin, SkyblockWorldManager worldManager) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig, plugin, worldManager);
     }
 
     /**
@@ -52,7 +58,7 @@ public class ItemPermissionManager extends BasePermissionManager {
      * 使用 {Result.DENY} 而非简单 {setCancelled(true)} 以确保客户端完全知晓操作被拒绝。
      * </p>
      */
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemUse(PlayerInteractEvent event) {
         Action action = event.getAction();
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) {
@@ -71,8 +77,8 @@ public class ItemPermissionManager extends BasePermissionManager {
         // 水瓶右键泥土转换
         if (item.getType() == Material.POTION && event.getClickedBlock() != null
                 && Tag.CONVERTABLE_TO_MUD.isTagged(event.getClickedBlock().getType())) {
-            if (item.hasItemMeta() && item.getItemMeta() instanceof org.bukkit.inventory.meta.PotionMeta potionMeta) {
-                if (potionMeta.getBasePotionType() == org.bukkit.potion.PotionType.WATER) {
+            if (item.hasItemMeta() && item.getItemMeta() instanceof PotionMeta potionMeta) {
+                if (potionMeta.getBasePotionType() == PotionType.WATER) {
                     Location loc = event.getClickedBlock().getLocation();
                     if (!checkPermission(loc, player.getUniqueId(), IslandPermission.WATER_BOTTLE_USE)) {
                         event.setCancelled(true);
@@ -146,6 +152,11 @@ public class ItemPermissionManager extends BasePermissionManager {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+        // 仅处理主手交互：getHand() 可为 null（如潜行触发的非手部交互），传给 getItem 会 NPE；
+        // 副手交互交由主手事件处理，避免重复/错手判定（与 Entity/Container/Tool/Other 一致）。
+        if (event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItem(event.getHand());
         if (item.getType() == Material.AIR) {

@@ -1,6 +1,9 @@
 package team.starm.starmskyblock.permission;
 
+import team.starm.starmskyblock.message.MessageUtil;
+
 import java.util.EnumSet;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -10,27 +13,30 @@ import java.util.Set;
  * 岛主(OWNER) &gt; 管理员(ADMIN) &gt; 风纪委员(MOD) &gt; 岛员(MEMBER) &gt; 合作者(COOP) &gt; 访客(VISITOR)。
  * 每个等级拥有一个数值化的权限级别，用于比较大小和权限继承。
  * </p>
+ * <p>
+ * 显示名（{@link #getDisplayName()}）通过 i18n 消息键 {@code role.<name>} 解析，
+ * 见 {@code messages/zh_CN.yml}。{@link #fromString(String)} 仍通过 {@link #getDisplayName()}
+ * 反查中文，因此中文名与枚举名均可解析（行为与迁移前一致）。
+ * </p>
  */
 public enum IslandPermissionLevel {
-    OWNER("岛主", 5, "&6"),
-    ADMIN("管理员", 4, "&c"),
-    MOD("风纪委员", 3, "&2"),
-    MEMBER("岛员", 2, "&a"),
-    COOP("合作者", 1, "&b"),
-    VISITOR("访客", 0, "&f");
+    OWNER(5, "&6"),
+    ADMIN(4, "&c"),
+    MOD(3, "&2"),
+    MEMBER(2, "&a"),
+    COOP(1, "&b"),
+    VISITOR(0, "&f");
 
-    private final String displayName;
     private final int permissionLevel;
     private final String color;
 
-    IslandPermissionLevel(String displayName, int permissionLevel, String color) {
-        this.displayName = displayName;
+    IslandPermissionLevel(int permissionLevel, String color) {
         this.permissionLevel = permissionLevel;
         this.color = color;
     }
 
     public String getDisplayName() {
-        return displayName;
+        return MessageUtil.format("role." + name().toLowerCase(Locale.ROOT));
     }
 
     public int getPermissionLevel() {
@@ -44,7 +50,7 @@ public enum IslandPermissionLevel {
     /**
      * 从字符串解析岛屿等级
      * <p>
-     * 支持通过枚举名称（不区分大小写）或中文显示名称匹配。
+     * 支持通过枚举名称（不区分大小写）或本地化显示名称匹配。
      * 用于从 YAML 配置文件和外部输入中解析权限组等级，
      * 例如解析 permissions.yml 中的权限组配置或指令参数。
      *
@@ -89,5 +95,25 @@ public enum IslandPermissionLevel {
                 break;
         }
         return manageable;
+    }
+
+    /**
+     * 基于权限组与该权限配置的最低等级判定是否拥有权限。
+     * <p>
+     * 岛主(OWNER)永远拥有全部权限；其他权限组需达到该权限在岛屿中配置的最低等级，
+     * 未配置（null）则拒绝。
+     *
+     * @param permission         待检查的权限
+     * @param configuredMinLevel 该权限在此岛屿配置的最低等级（null 表示未配置）
+     * @return 是否拥有该权限
+     */
+    public boolean hasPermission(IslandPermission permission, Integer configuredMinLevel) {
+        if (this == OWNER) {
+            return true;
+        }
+        if (configuredMinLevel == null) {
+            return false;
+        }
+        return permissionLevel >= configuredMinLevel;
     }
 }

@@ -9,12 +9,20 @@ import team.starm.starmskyblock.message.MessageUtil;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * {@code /isadmin setradius <岛屿ID> <半径>} 子命令 -- 设置指定岛屿的保护半径。
+ * <p>
+ * 新半径不得超过配置上限，且必须为正整数。
+ */
 public class SetRadiusCommand extends AdminSubCommand {
 
     public SetRadiusCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 解析岛屿 ID 与新半径，校验范围后写入。
+     */
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (args.length != 3) {

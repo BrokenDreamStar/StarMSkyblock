@@ -8,11 +8,16 @@ package team.starm.starmskyblock.message.color;
 import java.awt.Color;
 import java.util.List;
 
-import net.md_5.bungee.api.ChatColor;
-
 import team.starm.starmskyblock.message.tag.TagContentExtractor;
 import team.starm.starmskyblock.message.tag.TagContentInfo;
 
+/**
+ * 过渡颜色标签处理器。
+ * <p>
+ * 解析 {@code <transition:color1:color2[:...]:ratio>text</transition>} 标签，按 ratio
+ * 在颜色列表间线性插值取单一过渡色（与渐变不同：过渡色整段文本同色，渐变逐字符变色）。
+ * ratio 位于最后一项，无法解析为 float 时跳过该标签。来源于 LiteCommandEditor 项目。
+ */
 public class TransitionColor
     implements FunctionalColor
 {
@@ -22,6 +27,15 @@ public class TransitionColor
         return instance;
     }
 
+    /**
+     * 解析文本中所有 {@code transition} 标签并着色。
+     * <p>
+     * 末位参数为 ratio（0~1），其余为颜色列表；按 ratio 取单一过渡色应用于整段文本，
+     * 并以 {@code <previousColor>} 衔接标签外的既有字体。
+     *
+     * @param content 待着色文本
+     * @return 过渡着色后的文本
+     */
     @Override
     public String coloring(String content) {
         String original = content;
@@ -42,8 +56,17 @@ public class TransitionColor
         return content;
     }
 
-    public static ChatColor makeTransition(String[] containsColors, float ratio) {
-        if (containsColors.length == 0) return ChatColor.getByChar('r');
+    /**
+     * 按 ratio 在颜色列表间线性插值，取单一过渡色。
+     * <p>
+     * 不支持 RGB 的旧版本回退到最接近的经典颜色字符。
+     *
+     * @param containsColors 颜色名/Hex 列表
+     * @param ratio          插值比例（0~1）
+     * @return 插值后的 §-字符串
+     */
+    public static String makeTransition(String[] containsColors, float ratio) {
+        if (containsColors.length == 0) return LegacyColor.legacyChar('r');
         Color color;
         if (ratio <= 0 || containsColors.length == 1) {
             color = ColorUtils.getColor(containsColors[0]);
@@ -62,9 +85,9 @@ public class TransitionColor
             );
         }
         if (ColorUtils.isSupportsRGBVersions()) {
-            return ChatColor.of(color);
+            return LegacyColor.toLegacy(color);
         } else {
-            return ChatColor.getByChar(ColorUtils.toNearestColor(color));
+            return LegacyColor.legacyChar(ColorUtils.toNearestColor(color));
         }
     }
 

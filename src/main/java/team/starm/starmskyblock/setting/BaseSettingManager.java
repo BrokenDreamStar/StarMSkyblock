@@ -3,13 +3,14 @@ package team.starm.starmskyblock.setting;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.config.PublicAreaConfigManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.world.SkyblockWorldManager;
 
 /**
  * 岛屿设置检查的抽象基类
@@ -32,14 +33,22 @@ public abstract class BaseSettingManager implements Listener {
     protected final PublicAreaConfigManager publicAreaConfig;
     /** 未解锁区域配置管理器 */
     protected final LockedAreaConfigManager lockedAreaConfig;
+    /** 插件主类实例，供子管理器调度同步任务。注入基类以统一 6 个子管理器的构造器签名。 */
+    protected final JavaPlugin plugin;
+    /** 世界管理器，用于设置检查热路径上的 isSkyblockWorldName/isPublicWorld 判定。
+     *  原实现每次检查都走 {@code worldManager}，耦合全局单例且无法单测。 */
+    protected final SkyblockWorldManager worldManager;
 
     public BaseSettingManager(IslandManager islandManager, ConfigManager configManager,
                               PublicAreaConfigManager publicAreaConfig,
-                              LockedAreaConfigManager lockedAreaConfig) {
+                              LockedAreaConfigManager lockedAreaConfig,
+                              JavaPlugin plugin, SkyblockWorldManager worldManager) {
         this.islandManager = islandManager;
         this.configManager = configManager;
         this.publicAreaConfig = publicAreaConfig;
         this.lockedAreaConfig = lockedAreaConfig;
+        this.plugin = plugin;
+        this.worldManager = worldManager;
     }
 
     /**
@@ -58,8 +67,8 @@ public abstract class BaseSettingManager implements Listener {
     public boolean checkSetting(Location location, IslandSetting setting) {
         if (location.getWorld() == null) return true; // 位置无关联世界（已卸载或非法构造），视为非空岛世界放行
         String worldName = location.getWorld().getName();
-        if (!StarMSkyblock.getInstance().getWorldManager().isSkyblockWorldName(worldName)) {
-            if (StarMSkyblock.getInstance().getWorldManager().isPublicWorld(worldName)) {
+        if (!worldManager.isSkyblockWorldName(worldName)) {
+            if (worldManager.isPublicWorld(worldName)) {
                 return publicAreaConfig.getSetting(setting);
             }
             return true;
@@ -93,7 +102,7 @@ public abstract class BaseSettingManager implements Listener {
         World world = location.getWorld();
         if (world == null) return null;
 
-        if (!StarMSkyblock.getInstance().getWorldManager().isSkyblockWorldName(world.getName())) {
+        if (!worldManager.isSkyblockWorldName(world.getName())) {
             return null;
         }
 
@@ -115,7 +124,7 @@ public abstract class BaseSettingManager implements Listener {
         World world = location.getWorld();
         if (world == null) return null;
 
-        if (!StarMSkyblock.getInstance().getWorldManager().isSkyblockWorldName(world.getName())) {
+        if (!worldManager.isSkyblockWorldName(world.getName())) {
             return null;
         }
 

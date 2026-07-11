@@ -1,5 +1,8 @@
 package team.starm.starmskyblock.island;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -87,7 +90,7 @@ public class InvitationManager {
             } else {
                 MessageUtil.send(target, "island.invitation.received-anonymous");
             }
-            MessageUtil.send(target, "island.invitation.prompt");
+            sendInvitationPrompt(target);
             MessageUtil.send(target, "island.invitation.expiry-note");
         }
 
@@ -198,5 +201,27 @@ public class InvitationManager {
     public boolean hasPendingInvitation(UUID targetUuid) {
         InvitationData invitation = getPendingInvitation(targetUuid);
         return invitation != null;
+    }
+
+    /**
+     * 向被邀请玩家发送可点击的「确认 / 拒绝」按钮组件。
+     * 按钮通过 ClickEvent.runCommand 触发 /is team accept|decline，
+     * 与命令行入口（TeamCommand）保持一致，被邀请方点击即等效于执行对应命令。
+     */
+    private void sendInvitationPrompt(Player target) {
+        Component accept = MessageUtil.parse(MessageUtil.format("island.invitation.button-accept"))
+                .clickEvent(ClickEvent.runCommand("/is team accept"))
+                .hoverEvent(HoverEvent.showText(MessageUtil.parse(MessageUtil.format("island.invitation.button-accept-hover"))));
+        Component decline = MessageUtil.parse(MessageUtil.format("island.invitation.button-decline"))
+                .clickEvent(ClickEvent.runCommand("/is team decline"))
+                .hoverEvent(HoverEvent.showText(MessageUtil.parse(MessageUtil.format("island.invitation.button-decline-hover"))));
+
+        Component prompt = MessageUtil.parse(MessageUtil.format("island.invitation.prompt"))
+                .append(Component.space())
+                .append(accept)
+                .append(Component.text("  "))
+                .append(decline);
+
+        MessageUtil.sendMessage(target, prompt);
     }
 }

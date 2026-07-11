@@ -12,13 +12,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import team.starm.starmskyblock.StarMSkyblock;
 
+/**
+ * 岛屿成员与权限信息查询命令
+ * <p>
+ * 统一处理 /is members、/is coops、/is mycoops、/is myperms、/is role 五个子命令，
+ * 通过 {@code args[0]} 分发到对应展示方法。各子命令均为只读查询，不修改岛屿状态。
+ */
 public class MembersInfoCommand extends SubCommand {
 
-    public MembersInfoCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public MembersInfoCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 执行命令：按 {@code args[0]} 分发到对应的成员/权限信息展示方法。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         if (!assertMaxArgs(player, args, 1, "/is " + args[0])) return true;
@@ -33,6 +43,7 @@ public class MembersInfoCommand extends SubCommand {
         };
     }
 
+    /** 展示本岛屿岛主及全部成员名单（含在线/离线状态）。 */
     private boolean showMembers(Player player) {
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
@@ -67,6 +78,7 @@ public class MembersInfoCommand extends SubCommand {
         return true;
     }
 
+    /** 展示本岛屿的全部协作（coop）玩家名单及在线状态。 */
     private boolean showCoops(Player player) {
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
@@ -91,6 +103,7 @@ public class MembersInfoCommand extends SubCommand {
         return true;
     }
 
+    /** 展示将本玩家设为 coop 的所有岛屿（即本玩家被协作授权的岛屿列表）。 */
     private boolean showMyCoops(Player player) {
         IslandManager islandManager = plugin.getIslandManager();
         List<Island> coopIslands = islandManager.getIslandsByCoop(player.getUniqueId());
@@ -110,6 +123,7 @@ public class MembersInfoCommand extends SubCommand {
         return true;
     }
 
+    /** 展示本玩家在所属岛屿中的角色等级及各项权限的启用/禁用明细。 */
     private boolean showMyPerms(Player player) {
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {
@@ -135,6 +149,7 @@ public class MembersInfoCommand extends SubCommand {
         return true;
     }
 
+    /** 展示本玩家在所属岛屿中的角色显示名。 */
     private boolean showRole(Player player) {
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
         if (optionalIsland.isEmpty()) {

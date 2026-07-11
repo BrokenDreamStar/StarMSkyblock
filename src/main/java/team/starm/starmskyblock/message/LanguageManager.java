@@ -16,6 +16,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+
 /**
  * 加载、缓存、查询 i18n 消息。
  * <p>
@@ -176,7 +179,7 @@ public final class LanguageManager {
             return null;
         }
         try (InputStream resource = in;
-             java.io.InputStreamReader reader = new java.io.InputStreamReader(resource, java.nio.charset.StandardCharsets.UTF_8)) {
+             InputStreamReader reader = new InputStreamReader(resource, StandardCharsets.UTF_8)) {
             return YamlConfiguration.loadConfiguration(reader);
         } catch (IOException e) {
             MessageUtil.consoleError("读取内置语言文件失败: " + locale + ".yml - " + e.getMessage());

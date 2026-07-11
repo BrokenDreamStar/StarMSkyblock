@@ -3,6 +3,8 @@ package team.starm.starmskyblock.integration;
 import com.gmail.nossr50.api.ExperienceAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import team.starm.starmskyblock.StarMSkyblock;
+import team.starm.starmskyblock.database.PlayerRepository;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.message.MessageUtil;
 
@@ -59,18 +61,31 @@ public class McMMOIntegration {
             return CompletableFuture.completedFuture(new AuraSkillsIslandResult(0, List.of()));
         }
 
+        // 主线程采集玩家名：在线用 getName，离线用预热的 playerRepo 名字缓存
+        // （避免异步线程调 Bukkit.getOfflinePlayer -- 非线程安全且未缓存时可能阻塞 Mojang 请求）
+        PlayerRepository playerRepo = StarMSkyblock.getInstance().getPlayerRepo();
+        String[] names = new String[allUuids.size()];
+        for (int i = 0; i < allUuids.size(); i++) {
+            UUID uuid = allUuids.get(i);
+            Player onlinePlayer = Bukkit.getPlayer(uuid);
+            boolean online = onlinePlayer != null && onlinePlayer.isOnline();
+            names[i] = online ? onlinePlayer.getName()
+                    : playerRepo.getPlayerName(uuid).orElseGet(() -> uuid.toString().substring(0, 8));
+        }
+
         return CompletableFuture.supplyAsync(() -> {
             int total = 0;
             List<MemberSkillData> memberDataList = new ArrayList<>();
 
-            for (UUID uuid : allUuids) {
+            for (int i = 0; i < allUuids.size(); i++) {
+                UUID uuid = allUuids.get(i);
+                // 在线态在异步线程重新判定（保持与原实现一致的当前性），名字用主线程采集值
                 Player onlinePlayer = Bukkit.getPlayer(uuid);
                 boolean online = onlinePlayer != null && onlinePlayer.isOnline();
-                String playerName = online ? onlinePlayer.getName() : getOfflinePlayerName(uuid);
 
                 int pl = queryPowerLevel(uuid, onlinePlayer, online);
                 total += pl;
-                memberDataList.add(new MemberSkillData(playerName, pl));
+                memberDataList.add(new MemberSkillData(names[i], pl));
             }
 
             return new AuraSkillsIslandResult(total, memberDataList);
@@ -111,19 +126,5 @@ public class McMMOIntegration {
                     + e.getClass().getSimpleName() + ": " + e.getMessage());
             return 0;
         }
-    }
-
-    /**
-     * 获取离线玩家名（回退方法）。
-     */
-    private static String getOfflinePlayerName(UUID uuid) {
-        try {
-            String name = Bukkit.getOfflinePlayer(uuid).getName();
-            if (name != null) return name;
-        } catch (Exception ignored) {
-        }
-        // 最终回退
-        String uuidStr = uuid.toString();
-        return uuidStr.substring(0, 8);
     }
 }

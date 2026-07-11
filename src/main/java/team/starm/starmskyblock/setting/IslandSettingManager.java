@@ -8,6 +8,7 @@ import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.config.PublicAreaConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.world.SkyblockWorldManager;
 import team.starm.starmskyblock.setting.manager.ExplosionSettingManager;
 import team.starm.starmskyblock.setting.manager.FireSpreadSettingManager;
 import team.starm.starmskyblock.setting.manager.GriefSettingManager;
@@ -43,16 +44,17 @@ public class IslandSettingManager extends BaseSettingManager implements Listener
 
     public IslandSettingManager(IslandManager islandManager, ConfigManager configManager,
                                      PublicAreaConfigManager publicAreaConfig,
-                                     LockedAreaConfigManager lockedAreaConfig, JavaPlugin plugin) {
-        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+                                     LockedAreaConfigManager lockedAreaConfig,
+                                     JavaPlugin plugin, SkyblockWorldManager worldManager) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig, plugin, worldManager);
 
         // 创建各个功能子管理器，每个管理器负责监听一类事件
-        this.pvpManager = new PvpSettingManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
-        this.spawnManager = new SpawnSettingManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
-        this.fireSpreadManager = new FireSpreadSettingManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
-        this.griefManager = new GriefSettingManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
-        this.explosionManager = new ExplosionSettingManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
-        this.phantomSpawnManager = new PhantomSpawnSettingManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+        this.pvpManager = new PvpSettingManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig, plugin, worldManager);
+        this.spawnManager = new SpawnSettingManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig, plugin, worldManager);
+        this.fireSpreadManager = new FireSpreadSettingManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig, plugin, worldManager);
+        this.griefManager = new GriefSettingManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig, plugin, worldManager);
+        this.explosionManager = new ExplosionSettingManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig, plugin, worldManager);
+        this.phantomSpawnManager = new PhantomSpawnSettingManager(islandManager, configManager, publicAreaConfig, lockedAreaConfig, plugin, worldManager);
 
         // 将所有子管理器注册为事件监听器
         registerEventListeners(plugin);

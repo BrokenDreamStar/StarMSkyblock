@@ -1,6 +1,7 @@
 package team.starm.starmskyblock.island;
 
 import com.sk89q.worldedit.math.BlockVector3;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -12,17 +13,19 @@ import org.bukkit.scheduler.BukkitRunnable;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.message.MessageUtil;
+import me.clip.placeholderapi.PlaceholderAPI;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
- * 岛屿创建异步任务 —— 分阶段完成岛屿生成。
+ * 岛屿创建异步任务 -- 分阶段完成岛屿生成。
  * <p>
  * 设计为两阶段模式：
  * <ol>
  *   <li>异步阶段（async）：分配岛屿 ID、计算坐标、写入数据库（耗时短，无世界操作）</li>
- *   <li>同步阶段（sync）：粘贴主世界结构 → 下界结构 → 末地结构（每个阶段一个 tick，
+ *   <li>同步阶段（sync）：粘贴主世界结构 -> 下界结构 -> 末地结构（每个阶段一个 tick，
  *       避免单帧卡死主线程）</li>
  * </ol>
  * 最后更新告示牌文字并传送玩家到新岛屿。
@@ -53,10 +56,10 @@ public class IslandCreateTask extends BukkitRunnable {
     @Override
     public void run() {
         try {
-            sendMessage("§a岛屿创建中，请稍候...");
+            sendKey("island.create.in-progress");
 
             // Phase 1 (async): 创建岛屿数据
-            sendMessage("§e正在分配岛屿位置...");
+            sendKey("island.create.allocating");
             createdIsland = islandManager.createIsland(playerUuid, schematicId, islandName);
 
             // Phase 2 (sync): 粘贴结构 + 发送消息（主线程）
@@ -67,24 +70,36 @@ public class IslandCreateTask extends BukkitRunnable {
                         completeCreation();
                     } catch (Exception e) {
                         MessageUtil.consoleError("在主线程中完成岛屿创建时发生错误！", e);
-                        sendMessage("§c创建岛屿时发生意外错误，请联系管理员！");
+                        // 回滚：createIsland 已写入 DB 行 + 6 个内存索引，若 completeCreation
+                        // 在世界加载/坐标计算等早期阶段抛异常，岛屿将停留于 DB+内存但无 schematic，
+                        // 玩家因 islandsByOwner 占用而无法再次 /is create。deleteIsland 仅做 DB+内存
+                        // 清理（不触碰世界方块，IslandDeleteTask 才负责清方块），适合此处回滚。
+                        try {
+                            islandManager.deleteIsland(createdIsland);
+                            MessageUtil.consoleWarn("岛屿创建失败已回滚，岛屿 ID=" + createdIsland.getId()
+                                    + "，玩家可重新创建岛屿。");
+                        } catch (Exception rollbackEx) {
+                            MessageUtil.consoleError("回滚失败岛屿时发生二次错误，岛屿 ID="
+                                    + createdIsland.getId(), rollbackEx);
+                        }
+                        sendKey("island.create.unexpected-error");
                     }
                 }
             }.runTask(plugin);
 
         } catch (Exception e) {
             MessageUtil.consoleError("异步创建岛屿时发生错误！", e);
-            sendMessage("§c创建岛屿时发生意外错误，请联系管理员！");
+            sendKey("island.create.unexpected-error");
         }
     }
 
     /**
-     * 在主线程中完成岛屿创建：依次粘贴主世界 → 下界 → 末地结构。
+     * 在主线程中完成岛屿创建：依次粘贴主世界 -> 下界 -> 末地结构。
      * 每步在独立 tick 中执行以避免单帧卡顿，任一步失败则记录日志并跳过后续阶段，
      * 但仍会发送完成消息（success=false），调用方可据此感知部分失败。
      */
     private void completeCreation() {
-        sendMessage("§e正在准备世界...");
+        sendKey("island.create.preparing-world");
         World world = plugin.getWorldManager().getOrCreateSkyblockWorld();
         World netherWorld = plugin.getWorldManager().getOrCreateSkyblockNether();
         World endWorld = plugin.getWorldManager().getOrCreateSkyblockEnd();
@@ -102,8 +117,9 @@ public class IslandCreateTask extends BukkitRunnable {
         String endSchematicName = plugin.getConfigManager().getEndSchematicFileName(schematicId);
 
         // 阶段 1：主世界（同步执行，复用当前 tick）
-        sendMessage("§e正在生成主世界结构...");
-        boolean normalOk = pasteSchematicSync(schematicName, world, pasteX, y, pasteZ, "主世界");
+        sendKey("island.create.generating-normal");
+        boolean normalOk = pasteSchematicSync(schematicName, world, pasteX, y, pasteZ,
+                MessageUtil.format("dimension.normal"));
 
         // 阶段 2：下界（下一 tick），失败则跳过末地
         scheduleNext(() -> {
@@ -111,8 +127,9 @@ public class IslandCreateTask extends BukkitRunnable {
                 finishCreation(world, startX, startZ, y, schematicName, false);
                 return;
             }
-            sendMessage("§e正在生成下界结构...");
-            boolean netherOk = pasteSchematicSync(netherSchematicName, netherWorld, pasteX, y, pasteZ, "下界");
+            sendKey("island.create.generating-nether");
+            boolean netherOk = pasteSchematicSync(netherSchematicName, netherWorld, pasteX, y, pasteZ,
+                    MessageUtil.format("dimension.nether"));
 
             // 阶段 3：末地（下一 tick）
             scheduleNext(() -> {
@@ -120,8 +137,9 @@ public class IslandCreateTask extends BukkitRunnable {
                     finishCreation(world, startX, startZ, y, schematicName, false);
                     return;
                 }
-                sendMessage("§e正在生成末地结构...");
-                boolean endOk = pasteSchematicSync(endSchematicName, endWorld, pasteX, y, pasteZ, "末地");
+                sendKey("island.create.generating-end");
+                boolean endOk = pasteSchematicSync(endSchematicName, endWorld, pasteX, y, pasteZ,
+                        MessageUtil.format("dimension.end"));
                 finishCreation(world, startX, startZ, y, schematicName, endOk);
             });
         });
@@ -156,7 +174,7 @@ public class IslandCreateTask extends BukkitRunnable {
                     task.run();
                 } catch (Exception e) {
                     MessageUtil.consoleError("岛屿创建调度链中发生错误，岛屿 ID=" + createdIsland.getId(), e);
-                    sendMessage("§c创建岛屿时发生意外错误，请联系管理员！");
+                    sendKey("island.create.unexpected-error");
                 }
             }
         }.runTask(plugin);
@@ -207,11 +225,11 @@ public class IslandCreateTask extends BukkitRunnable {
                             line = "";
                         }
                         if (papiAvailable && player != null) {
-                            line = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, line);
+                            line = PlaceholderAPI.setPlaceholders(player, line);
                         }
-                        sign.getSide(Side.FRONT).setLine(i, MessageUtil.colorize(line));
+                        sign.getSide(Side.FRONT).line(i, MessageUtil.parse(line));
                     } else {
-                        sign.getSide(Side.FRONT).setLine(i, "");
+                        sign.getSide(Side.FRONT).line(i, Component.empty());
                     }
                 }
                 sign.update();
@@ -219,11 +237,19 @@ public class IslandCreateTask extends BukkitRunnable {
         }
     }
 
-    /** 向创建者发送消息（仅在玩家在线时） */
-    private void sendMessage(String message) {
+    /** 向创建者发送 i18n 消息（仅在玩家在线时；响应 -s 静默标志） */
+    private void sendKey(String key) {
         Player player = Bukkit.getPlayer(playerUuid);
         if (player != null && player.isOnline()) {
-            player.sendMessage(message);
+            MessageUtil.send(player, key);
+        }
+    }
+
+    /** 向创建者发送带占位符的 i18n 消息（仅在玩家在线时；响应 -s 静默标志） */
+    private void sendKey(String key, Map<String, ?> args) {
+        Player player = Bukkit.getPlayer(playerUuid);
+        if (player != null && player.isOnline()) {
+            MessageUtil.send(player, key, args);
         }
     }
 
@@ -241,19 +267,21 @@ public class IslandCreateTask extends BukkitRunnable {
             }
 
             if (success) {
-                player.sendMessage("§a================================");
-                player.sendMessage("§a岛屿创建成功！");
-                player.sendMessage("§a创建用时: §e" + timeFormatted);
-                player.sendMessage("§a岛屿ID: §e" + island.getId());
-                player.sendMessage("§a中心位置: §e" + startX + ", " + y + ", " + startZ);
-                player.sendMessage("§a================================");
+                MessageUtil.send(player, "island.create.divider");
+                MessageUtil.send(player, "island.create.success-header");
+                MessageUtil.send(player, "island.create.success-time", Map.of("time", timeFormatted));
+                MessageUtil.send(player, "island.create.success-id", Map.of("id", island.getId()));
+                MessageUtil.send(player, "island.create.success-position",
+                        Map.of("x", startX, "y", y, "z", startZ));
+                MessageUtil.send(player, "island.create.divider");
             } else {
-                player.sendMessage("§c================================");
-                player.sendMessage("§c岛屿创建成功，但结构文件加载失败！");
-                player.sendMessage("§c创建用时: §e" + timeFormatted);
-                player.sendMessage("§c岛屿ID: §e" + island.getId());
-                player.sendMessage("§c中心位置: §e" + startX + ", " + y + ", " + startZ);
-                player.sendMessage("§c================================");
+                MessageUtil.send(player, "island.create.divider-error");
+                MessageUtil.send(player, "island.create.partial-success");
+                MessageUtil.send(player, "island.create.success-time-error", Map.of("time", timeFormatted));
+                MessageUtil.send(player, "island.create.success-id-error", Map.of("id", island.getId()));
+                MessageUtil.send(player, "island.create.success-position-error",
+                        Map.of("x", startX, "y", y, "z", startZ));
+                MessageUtil.send(player, "island.create.divider-error");
             }
 
             if (plugin.getConfigManager().isTeleportOnCreate()) {
@@ -266,15 +294,15 @@ public class IslandCreateTask extends BukkitRunnable {
                 Location spawnLocation = new Location(world, teleportX, teleportY, teleportZ,
                         (float) offsets[3], (float) offsets[4]);
                 player.teleport(spawnLocation);
-                player.sendMessage("§a已自动传送到你的岛屿！");
+                MessageUtil.send(player, "island.create.teleported");
 
             }
 
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 if (onlinePlayer.hasPermission("skyblock.admin")
                         && !onlinePlayer.getUniqueId().equals(playerUuid)) {
-                    onlinePlayer.sendMessage("§e玩家 " + player.getName() + " 已创建新岛屿 (ID: " + island.getId()
-                            + ")，用时 " + timeFormatted + "。");
+                    MessageUtil.send(onlinePlayer, "island.create.admin-broadcast",
+                            Map.of("player", player.getName(), "id", island.getId(), "time", timeFormatted));
                 }
             }
         }

@@ -18,6 +18,15 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import com.google.gson.Gson;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import org.bukkit.Bukkit;
 
 /**
  * 岛屿管理器 —— 核心业务层，负责岛屿的 CRUD、成员管理、区块查询和权限持久化。
@@ -33,10 +42,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class IslandManager {
 
-    private static final com.google.gson.Gson GSON = new com.google.gson.Gson();
+    private static final Gson GSON = new Gson();
     /** 岛屿创建时间格式（不可变、线程安全，替代每次 createIsland 都新建 SimpleDateFormat） */
-    private static final java.time.format.DateTimeFormatter CREATED_AT_FORMAT =
-            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter CREATED_AT_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final ConfigManager configManager;
     private final PermissionConfigManager permissionConfigManager;
@@ -85,7 +94,7 @@ public class IslandManager {
         int maxId = -1;
         // 收集启动期需要设置默认权限的岛屿,循环结束后一次 batch flush,
         // 避免在每个需要补权限的岛屿上独立 writeLock → prepare → executeUpdate。
-        java.util.Map<Integer, String> defaultPermissionUpdates = new java.util.HashMap<>();
+        Map<Integer, String> defaultPermissionUpdates = new HashMap<>();
 
         for (IslandRepository.IslandRow row : islandRepo.loadAllIslands()) {
             int id = row.id();
@@ -99,10 +108,10 @@ public class IslandManager {
             island.setBaselineExperience(row.baselineExperience());
             island.setAuraSkillsContribution(row.auraskillsContribution());
             try {
-                java.util.Map<String, Object> baselineMap = GSON.fromJson(row.baselineBlockCounts(), new TypeToken<Map<String, Object>>(){}.getType());
+                Map<String, Object> baselineMap = GSON.fromJson(row.baselineBlockCounts(), new TypeToken<Map<String, Object>>(){}.getType());
                 if (baselineMap != null && !baselineMap.isEmpty()) {
-                    java.util.Map<String, Long> parsed = new java.util.HashMap<>();
-                    for (java.util.Map.Entry<String, Object> entry : baselineMap.entrySet()) {
+                    Map<String, Long> parsed = new HashMap<>();
+                    for (Map.Entry<String, Object> entry : baselineMap.entrySet()) {
                         if (entry.getValue() instanceof Number num) {
                             parsed.put(entry.getKey(), num.longValue());
                         }
@@ -113,10 +122,10 @@ public class IslandManager {
                 MessageUtil.consoleWarn("解析岛屿模板基线 JSON 失败，ID: " + id);
             }
             try {
-                java.util.Map<String, Object> blockCountsMap = GSON.fromJson(row.blockCounts(), new TypeToken<Map<String, Object>>(){}.getType());
+                Map<String, Object> blockCountsMap = GSON.fromJson(row.blockCounts(), new TypeToken<Map<String, Object>>(){}.getType());
                 if (blockCountsMap != null && !blockCountsMap.isEmpty()) {
-                    java.util.Map<String, Long> parsed = new java.util.HashMap<>();
-                    for (java.util.Map.Entry<String, Object> entry : blockCountsMap.entrySet()) {
+                    Map<String, Long> parsed = new HashMap<>();
+                    for (Map.Entry<String, Object> entry : blockCountsMap.entrySet()) {
                         if (entry.getValue() instanceof Number num) {
                             parsed.put(entry.getKey(), num.longValue());
                         }
@@ -220,7 +229,7 @@ public class IslandManager {
         island.setCenterChunkX(location.chunkX());
         island.setCenterChunkZ(location.chunkZ());
 
-        Player owner = org.bukkit.Bukkit.getPlayer(ownerId);
+        Player owner = Bukkit.getPlayer(ownerId);
         if (owner != null) {
             playerRepo.savePlayerName(ownerId, owner.getName());
         }
@@ -230,7 +239,7 @@ public class IslandManager {
                 island.getPermissionsJson(), island.getSettingsJson(),
                 island.getGeneratorLevel());
 
-        island.setCreatedAt(java.time.LocalDateTime.now().format(CREATED_AT_FORMAT));
+        island.setCreatedAt(LocalDateTime.now().format(CREATED_AT_FORMAT));
 
         islandsById.put(islandId, island);
         islandsByOwner.put(ownerId, island);
@@ -272,12 +281,12 @@ public class IslandManager {
     }
 
     /** 查询某玩家以合作者身份可访问的所有岛屿列表 */
-    public java.util.List<Island> getIslandsByCoop(UUID playerUuid) {
+    public List<Island> getIslandsByCoop(UUID playerUuid) {
         Set<Integer> ids = coopToIslandsIndex.get(playerUuid);
         if (ids == null || ids.isEmpty()) {
-            return java.util.Collections.emptyList();
+            return Collections.emptyList();
         }
-        java.util.List<Island> result = new java.util.ArrayList<>(ids.size());
+        List<Island> result = new ArrayList<>(ids.size());
         for (Integer id : ids) {
             Island island = islandsById.get(id);
             if (island != null) {
@@ -288,13 +297,14 @@ public class IslandManager {
     }
 
     /** 根据玩家名称查询其岛屿（离线兼容） */
-    @SuppressWarnings("deprecation")
     public Optional<Island> getIslandByPlayerName(String playerName) {
-        org.bukkit.OfflinePlayer offlinePlayer = org.bukkit.Bukkit.getOfflinePlayer(playerName);
-        if (offlinePlayer.hasPlayedBefore() || offlinePlayer.isOnline()) {
-            return getIsland(offlinePlayer.getUniqueId());
+        // 先查在线玩家（O(1) 哈希查找），未命中再走启动预热的名字缓存（无 Mojang 网络阻塞）；
+        // 两者都未命中视为未知玩家，返回空，避免触发 getOfflinePlayer(String) 的阻塞 Mojang 请求
+        Player online = Bukkit.getPlayerExact(playerName);
+        if (online != null) {
+            return getIsland(online.getUniqueId());
         }
-        return Optional.empty();
+        return playerRepo.getUUID(playerName).flatMap(this::getIsland);
     }
 
     /** 根据岛屿名称查询岛屿（名称不区分大小写，返回第一个匹配项） */
@@ -305,10 +315,10 @@ public class IslandManager {
     }
 
     /** 根据岛屿名称查询所有匹配的岛屿（可能存在同名岛屿） */
-    public java.util.List<Island> getIslandsByName(String islandName) {
+    public List<Island> getIslandsByName(String islandName) {
         Set<Integer> ids = islandNameIndex.get(islandName.toLowerCase());
-        if (ids == null || ids.isEmpty()) return java.util.Collections.emptyList();
-        java.util.List<Island> result = new java.util.ArrayList<>(ids.size());
+        if (ids == null || ids.isEmpty()) return Collections.emptyList();
+        List<Island> result = new ArrayList<>(ids.size());
         for (Integer id : ids) {
             Island island = islandsById.get(id);
             if (island != null) {
@@ -319,7 +329,7 @@ public class IslandManager {
     }
 
     /** 返回所有已加载的岛屿集合 */
-    public java.util.Collection<Island> getAllIslands() {
+    public Collection<Island> getAllIslands() {
         return islandsById.values();
     }
 
@@ -454,7 +464,7 @@ public class IslandManager {
             islandRepo.addMember(islandId, memberUuid, role.name());
         }
 
-        Player member = org.bukkit.Bukkit.getPlayer(memberUuid);
+        Player member = Bukkit.getPlayer(memberUuid);
         if (member != null) {
             playerRepo.savePlayerName(memberUuid, member.getName());
         }
@@ -494,7 +504,7 @@ public class IslandManager {
         if (island != null) {
             islandRepo.addCoop(islandId, playerUuid);
 
-            Player player = org.bukkit.Bukkit.getPlayer(playerUuid);
+            Player player = Bukkit.getPlayer(playerUuid);
             if (player != null) {
                 playerRepo.savePlayerName(playerUuid, player.getName());
             }
@@ -605,7 +615,7 @@ public class IslandManager {
         int cellSize = gridManager.getGridCellSize();
         int gx = (int) Math.round((double) island.getCenterChunkX() / cellSize);
         int gz = (int) Math.round((double) island.getCenterChunkZ() / cellSize);
-        long key = (((long) gx) << 32) | (gz & 0xffffffffL);
+        long key = GridKeys.encode(gx, gz);
         islandGridIndex.put(key, island.getId());
     }
 
@@ -614,7 +624,7 @@ public class IslandManager {
         int cellSize = gridManager.getGridCellSize();
         int gx = (int) Math.round((double) island.getCenterChunkX() / cellSize);
         int gz = (int) Math.round((double) island.getCenterChunkZ() / cellSize);
-        long key = (((long) gx) << 32) | (gz & 0xffffffffL);
+        long key = GridKeys.encode(gx, gz);
         islandGridIndex.remove(key);
     }
 
@@ -659,14 +669,32 @@ public class IslandManager {
      * 使用 Math.round 将区块坐标映射到最近的网格中心，保证岛屿负方向区块也能正确归位。
      */
     public Optional<Island> getIslandAt(int chunkX, int chunkZ) {
+        return findIslandInGrid(chunkX, chunkZ, false);
+    }
+
+    /**
+     * 根据区块坐标在网格索引中查找所属岛屿。
+     * <p>
+     * {@code getIslandAt}（当前半径内）与 {@code getIslandAtMaxRange}（最大可扩展半径内）
+     * 仅在边界判定谓词上不同，合并为单方法以 {@code maxRange} 标志区分，避免逐字重复。
+     * 使用 Math.round 将区块坐标映射到最近的网格中心，保证岛屿负方向区块也能正确归位。
+     * </p>
+     *
+     * @param chunkX   区块 X 坐标
+     * @param chunkZ   区块 Z 坐标
+     * @param maxRange true 用最大可扩展半径判定，false 用当前半径判定
+     * @return 所属岛屿，找不到时返回 {@link Optional#empty()}
+     */
+    private Optional<Island> findIslandInGrid(int chunkX, int chunkZ, boolean maxRange) {
         int cellSize = gridManager.getGridCellSize();
         int gx = (int) Math.round((double) chunkX / cellSize);
         int gz = (int) Math.round((double) chunkZ / cellSize);
-        long key = (((long) gx) << 32) | (gz & 0xffffffffL);
-        Integer id = islandGridIndex.get(key);
+        Integer id = islandGridIndex.get(GridKeys.encode(gx, gz));
         if (id != null) {
             Island island = islandsById.get(id);
-            if (island != null && island.isChunkWithinIsland(chunkX, chunkZ)) {
+            if (island != null && (maxRange
+                    ? island.isChunkWithinMaxRange(chunkX, chunkZ)
+                    : island.isChunkWithinIsland(chunkX, chunkZ))) {
                 return Optional.of(island);
             }
         }
@@ -678,18 +706,7 @@ public class IslandManager {
      * 用于边界显示和传送门检测等需要"预判"扩展区域的场景。
      */
     public Optional<Island> getIslandAtMaxRange(int chunkX, int chunkZ) {
-        int cellSize = gridManager.getGridCellSize();
-        int gx = (int) Math.round((double) chunkX / cellSize);
-        int gz = (int) Math.round((double) chunkZ / cellSize);
-        long key = (((long) gx) << 32) | (gz & 0xffffffffL);
-        Integer id = islandGridIndex.get(key);
-        if (id != null) {
-            Island island = islandsById.get(id);
-            if (island != null && island.isChunkWithinMaxRange(chunkX, chunkZ)) {
-                return Optional.of(island);
-            }
-        }
-        return Optional.empty();
+        return findIslandInGrid(chunkX, chunkZ, true);
     }
 
     /** 从内存索引中移除岛屿（保留数据库记录，用于重载等场景） */

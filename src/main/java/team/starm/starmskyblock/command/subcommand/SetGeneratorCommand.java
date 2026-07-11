@@ -10,12 +10,20 @@ import team.starm.starmskyblock.message.MessageUtil;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * {@code /isadmin setgenerator <岛屿ID> <等级>} 子命令 -- 设置指定岛屿的方块生成器等级。
+ * <p>
+ * 仅在生成器功能启用时生效，等级须在 1 至配置上限之间。
+ */
 public class SetGeneratorCommand extends AdminSubCommand {
 
     public SetGeneratorCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 解析岛屿 ID 与生成器等级，校验启用状态与等级范围后写入。
+     */
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (args.length != 3) {

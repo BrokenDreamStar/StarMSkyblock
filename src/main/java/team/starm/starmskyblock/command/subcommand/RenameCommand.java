@@ -11,15 +11,25 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import team.starm.starmskyblock.StarMSkyblock;
 
+/**
+ * {@code /is rename} 子命令 -- 重命名所属岛屿。
+ * <p>
+ * 受重命名权限和冷却时间限制，名称长度不得超过配置上限。
+ */
 public class RenameCommand extends SubCommand {
 
+    /** 每个玩家上次重命名的时间戳，用于冷却控制。 */
     private final Map<UUID, Long> renameCooldowns = new ConcurrentHashMap<>();
 
-    public RenameCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public RenameCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 校验权限与冷却后重命名岛屿。参数中空格拼接为完整名称。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());

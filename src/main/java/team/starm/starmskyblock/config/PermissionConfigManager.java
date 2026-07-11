@@ -39,10 +39,12 @@ public class PermissionConfigManager {
         this.plugin = plugin;
     }
 
+    /** 加载 permissions.yml 并解析所有身份的默认权限 */
     public void initialize() {
         loadPermissionsConfig();
     }
 
+    /** 释放 permissions.yml（首次启动）并加载继承式权限模型 */
     public void loadPermissionsConfig() {
         if (!plugin.getDataFolder().exists()) {
             plugin.getDataFolder().mkdirs();
@@ -137,10 +139,12 @@ public class PermissionConfigManager {
         return set;
     }
 
+    /** 返回某身份等级的全部默认权限（副本） */
     public Set<IslandPermission> getDefaultPermissions(IslandPermissionLevel level) {
         return new HashSet<>(defaultPermissions.getOrDefault(level, Collections.emptySet()));
     }
 
+    /** 判断某身份等级是否默认拥有指定权限 */
     public boolean hasDefaultPermission(IslandPermissionLevel level, IslandPermission permission) {
         Set<IslandPermission> perms = defaultPermissions.get(level);
         if (perms == null)
@@ -176,6 +180,7 @@ public class PermissionConfigManager {
         return levels;
     }
 
+    /** 将 permissions.yml 写回磁盘 */
     public void savePermissionsConfig() {
         if (permissionsConfig != null && permissionsFile != null) {
             try {
@@ -186,6 +191,7 @@ public class PermissionConfigManager {
         }
     }
 
+    /** 重载权限配置 */
     public void reloadPermissionsConfig() {
         loadPermissionsConfig();
     }

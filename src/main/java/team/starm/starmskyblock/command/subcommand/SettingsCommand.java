@@ -11,13 +11,23 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import team.starm.starmskyblock.StarMSkyblock;
 
+/**
+ * 岛屿设置命令（/is settings [设置项] [true|false|toggle]）
+ * <p>
+ * 查看或切换岛屿设置（如爆炸、火焰蔓延、PvP、幻翼生成等开关）。
+ * 仅持有 EDIT_SETTINGS 权限的成员可修改，无参数时列出全部设置项及其当前状态。
+ */
 public class SettingsCommand extends SubCommand {
 
-    public SettingsCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public SettingsCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 执行 /is settings 命令：无参数则列出全部设置；带设置项与开关值则切换指定设置。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
@@ -80,6 +90,9 @@ public class SettingsCommand extends SubCommand {
         return true;
     }
 
+    /**
+     * 列出全部岛屿设置项及其当前启用/禁用状态。
+     */
     private boolean displaySettings(Player player, Island island) {
         MessageUtil.send(player, "settings.list.header");
 
@@ -94,6 +107,9 @@ public class SettingsCommand extends SubCommand {
         return true;
     }
 
+    /**
+     * Tab 补全：第二参数补设置项 key，第三参数补 true/false。
+     */
     @Override
     public List<String> onTabComplete(Player player, String[] args) {
         if (args.length == 2) {

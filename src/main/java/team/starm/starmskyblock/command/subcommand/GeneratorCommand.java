@@ -18,10 +18,20 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * 岛屿发电机产物开关命令（/is generator [维度] [矿石|all] [true|false|toggle]）
+ * <p>
+ * 查看或切换岛屿发电机各维度的产物启用状态。发电机等级决定可用产物及权重，
+ * 玩家可逐个或批量（all）启停非默认产物；默认产物（主世界圆石、末地末地石、下界玄武岩）不可禁用。
+ * 修改需 SET_GENERATOR 权限，结果以禁用集合 JSON 持久化。消息中矿石名走客户端可翻译组件。
+ */
 public class GeneratorCommand extends SubCommand {
 
+    /** 三个维度的 key，用于参数解析与状态遍历。 */
     private static final List<String> DIMENSIONS = List.of("normal", "nether", "end");
+    /** 第四参数的合法取值。 */
     private static final List<String> TOGGLE_VALUES = List.of("true", "false", "toggle");
+    /** 维度 key -> 中文显示名，用于消息展示。 */
     private static final Map<String, String> DIMENSION_DISPLAY = new LinkedHashMap<>();
 
     static {
@@ -44,6 +54,9 @@ public class GeneratorCommand extends SubCommand {
         super(plugin);
     }
 
+    /**
+     * 执行 /is generator 命令：按参数层级解析维度、矿石与开关值，分发到状态查看或单/批量切换。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         if (!assertMaxArgs(player, args, 4, "/is generator [维度] [矿石] [true/false/toggle]")) return true;
@@ -187,6 +200,9 @@ public class GeneratorCommand extends SubCommand {
         return true;
     }
 
+    /**
+     * Tab 补全：第二参数补维度，第三参数补矿石名或 all（排除默认产物），第四参数补开关值。
+     */
     @Override
     public List<String> onTabComplete(Player player, String[] args) {
         if (args.length == 2) {
@@ -250,6 +266,7 @@ public class GeneratorCommand extends SubCommand {
         return null;
     }
 
+    /** 展示发电机状态：列出指定维度（或全部维度）下各产物的权重百分比与启停标记。 */
     private void showGeneratorStatus(Player player, Island island, String targetDim) {
         GeneratorConfigManager.GeneratorTier tier = plugin.getGeneratorConfigManager()
                 .getTier(island.getGeneratorLevel());
@@ -291,6 +308,7 @@ public class GeneratorCommand extends SubCommand {
         MessageUtil.send(player, "generator.usage.help");
     }
 
+    /** 根据岛屿禁用集合构建产物 -> 是否启用的映射。 */
     private Map<String, Boolean> buildEnabledMap(Island island, String dim, Map<String, Double> rates) {
         Map<String, Boolean> result = new LinkedHashMap<>();
         Set<String> disabled = island.getDisabledGeneratorOres().get(dim);
@@ -300,6 +318,7 @@ public class GeneratorCommand extends SubCommand {
         return result;
     }
 
+    /** 按维度 key 从发电机档位中取出对应的产物权重表。 */
     private Map<String, Double> getDimensionRates(GeneratorConfigManager.GeneratorTier tier, String dimension) {
         return switch (dimension) {
             case "normal" -> tier.normal();

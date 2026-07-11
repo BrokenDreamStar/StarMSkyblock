@@ -24,6 +24,24 @@ import team.starm.starmskyblock.config.GeneratorConfigManager;
 import team.starm.starmskyblock.config.UpgradeConfigManager;
 import team.starm.starmskyblock.util.OreDisplayName;
 
+import java.util.HashMap;
+import java.util.Locale;
+import org.bukkit.Location;
+
+/**
+ * PlaceholderAPI 扩展 -- 向外暴露 {@code starmskyblock} 占位符标识符。
+ * <p>
+ * 注册到 PlaceholderAPI 后，外部插件/显示板可通过 {@code %starmskyblock_<params>%}
+ * 读取岛屿名称、等级、身份、刷石机配置、升级金额等信息。
+ * <p>
+ * 派发策略：
+ * <ul>
+ *   <li>精确匹配 placeholder 走 {@link #exactDispatch} Map，O(1) 哈希查找</li>
+ *   <li>带前缀的 placeholder（如 {@code generator_*}/{@code island_list_*}）走 fallback chain，
+ *       委托至 {@link IslandListHandler}/{@link SettingsHandler}/{@link PermissionHandler}/
+ *       {@code TaskPlaceholderHandler}</li>
+ * </ul>
+ */
 public class SkyblockExpansion extends PlaceholderExpansion {
 
     private final StarMSkyblock plugin;
@@ -39,7 +57,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
      * 将 O(n) 线性扫描压为 O(1) 哈希查找。带前缀的 placeholder(如 {@code generator_*}
      * /{@code upgrades_*})不在此表,仍走下方 fallback chain。
      */
-    private final Map<String, Function<LazyContext, String>> exactDispatch = new java.util.HashMap<>();
+    private final Map<String, Function<LazyContext, String>> exactDispatch = new HashMap<>();
 
     public SkyblockExpansion(StarMSkyblock plugin) {
         this.plugin = plugin;
@@ -54,54 +72,54 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         // 注:lambda 捕获 this.plugin,执行时再解析当前 plugin 状态(而非构造时快照)
         exactDispatch.put("island_name_here", ctx -> {
             if (!plugin.getWorldManager().isSkyblockWorld(ctx.player.getWorld())) {
-                return "公共区域";
+                return MessageUtil.format("placeholder.public-area");
             }
-            return getIslandName(plugin.getIslandManager(), ctx.chunkX(), ctx.chunkZ());
+            return getIslandName(ctx.chunkX(), ctx.chunkZ());
         });
         exactDispatch.put("island_name", ctx ->
-                getPlayerOwnIslandName(plugin.getIslandManager(), ctx.player.getUniqueId()));
+                getPlayerOwnIslandName(ctx.player.getUniqueId()));
         exactDispatch.put("role_here", ctx -> {
             if (!plugin.getWorldManager().isSkyblockWorld(ctx.player.getWorld())) {
                 return IslandPermissionLevel.VISITOR.getDisplayName();
             }
-            return getPlayerRole(plugin.getIslandManager(), ctx.chunkX(), ctx.chunkZ(), ctx.player.getUniqueId());
+            return getPlayerRole(ctx.chunkX(), ctx.chunkZ(), ctx.player.getUniqueId());
         });
         exactDispatch.put("role", ctx ->
-                getPlayerOwnRole(plugin.getIslandManager(), ctx.player.getUniqueId()));
+                getPlayerOwnRole(ctx.player.getUniqueId()));
         exactDispatch.put("level_here", ctx -> {
             if (!plugin.getWorldManager().isSkyblockWorld(ctx.player.getWorld())) {
                 return "&f-";
             }
-            return getIslandLevelHere(plugin.getIslandManager(), ctx.chunkX(), ctx.chunkZ());
+            return getIslandLevelHere(ctx.chunkX(), ctx.chunkZ());
         });
         exactDispatch.put("total_points_here", ctx -> {
             if (!plugin.getWorldManager().isSkyblockWorld(ctx.player.getWorld())) {
                 return "&f-";
             }
-            return getIslandValueHere(plugin.getIslandManager(), ctx.chunkX(), ctx.chunkZ(), "total_points");
+            return getIslandValueHere(ctx.chunkX(), ctx.chunkZ(), "total_points");
         });
         exactDispatch.put("experience_here", ctx -> {
             if (!plugin.getWorldManager().isSkyblockWorld(ctx.player.getWorld())) {
                 return "&f-";
             }
-            return getIslandValueHere(plugin.getIslandManager(), ctx.chunkX(), ctx.chunkZ(), "experience");
+            return getIslandValueHere(ctx.chunkX(), ctx.chunkZ(), "experience");
         });
         exactDispatch.put("blocks_counted_here", ctx -> {
             if (!plugin.getWorldManager().isSkyblockWorld(ctx.player.getWorld())) {
                 return "&f-";
             }
-            return getIslandValueHere(plugin.getIslandManager(), ctx.chunkX(), ctx.chunkZ(), "blocks_counted");
+            return getIslandValueHere(ctx.chunkX(), ctx.chunkZ(), "blocks_counted");
         });
         exactDispatch.put("generator_level_here", ctx -> {
             if (!plugin.getWorldManager().isSkyblockWorld(ctx.player.getWorld())) {
                 return "&f-";
             }
-            return getGeneratorLevelHere(plugin.getIslandManager(), ctx.chunkX(), ctx.chunkZ());
+            return getGeneratorLevelHere(ctx.chunkX(), ctx.chunkZ());
         });
         exactDispatch.put("dimension", ctx -> switch (ctx.player.getWorld().getEnvironment()) {
-            case NORMAL -> "主世界";
-            case NETHER -> "下界";
-            case THE_END -> "末地";
+            case NORMAL -> MessageUtil.format("dimension.normal");
+            case NETHER -> MessageUtil.format("dimension.nether");
+            case THE_END -> MessageUtil.format("dimension.end");
             default -> ctx.player.getWorld().getEnvironment().name();
         });
         exactDispatch.put("own_island", ctx -> {
@@ -152,7 +170,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             GeneratorConfigManager genConfig = plugin.getGeneratorConfigManager();
             int currentLevel = islandOpt.get().getGeneratorLevel();
             Optional<GeneratorConfigManager.GeneratorTier> nextTierOpt = genConfig.getNextTier(currentLevel);
-            if (nextTierOpt.isEmpty()) return "&f已达到最高等级";
+            if (nextTierOpt.isEmpty()) return MessageUtil.format("placeholder.max-level-reached");
             return buildGeneratorLevelString(nextTierOpt.get());
         });
         exactDispatch.put("upgrades_generator_next_level_money", ctx -> {
@@ -161,7 +179,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             Island island = islandOpt.get();
             UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
             var next = upgradeConfig.getNextGeneratorUpgrade(island.getGeneratorLevel());
-            if (next.isEmpty()) return "&f已达到最高等级";
+            if (next.isEmpty()) return MessageUtil.format("placeholder.max-level-reached");
             return String.valueOf((long) next.get().money());
         });
         exactDispatch.put("upgrades_island_radius_next_level_money", ctx -> {
@@ -170,7 +188,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             Island island = islandOpt.get();
             UpgradeConfigManager upgradeConfig = plugin.getUpgradeConfigManager();
             var next = upgradeConfig.getNextRadiusUpgrade(island.getRadius());
-            if (next.isEmpty()) return "&f已达到最高等级";
+            if (next.isEmpty()) return MessageUtil.format("placeholder.max-level-reached");
             return String.valueOf((long) next.get().money());
         });
         exactDispatch.put("upgrades_generator_has_money", ctx -> {
@@ -209,7 +227,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
     @Override
     public String getVersion() {
-        return plugin.getDescription().getVersion();
+        return plugin.getPluginMeta().getVersion();
     }
 
     @Override
@@ -233,6 +251,14 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         return islandListHandler;
     }
 
+    /**
+     * PlaceholderAPI 主入口 -- 依 params 派发到精确匹配表或前缀 fallback chain。
+     * <p>任一分支抛出的异常都会被顶层 catch 兜住并记录日志，返回 null（PAPI 对 null 静默处理）。
+     *
+     * @param player 请求占位符的玩家
+     * @param params 占位符参数（不含前缀标识符）
+     * @return 渲染后的字符串，无法识别时返回 null
+     */
     @Override
     public String onPlaceholderRequest(Player player, String params) {
 
@@ -249,13 +275,13 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             IslandManager islandManager = plugin.getIslandManager();
             LazyContext ctx = new LazyContext(player, islandManager);
 
-            // 精确匹配 placeholder —— Map 派发,O(1)
-            Function<LazyContext, String> exactHandler = exactDispatch.get(params.toLowerCase(java.util.Locale.ROOT));
+            // 精确匹配 placeholder -- Map 派发,O(1)
+            Function<LazyContext, String> exactHandler = exactDispatch.get(params.toLowerCase(Locale.ROOT));
             if (exactHandler != null) {
                 return exactHandler.apply(ctx);
             }
 
-            // 带前缀的 placeholder —— fallback chain
+            // 带前缀的 placeholder -- fallback chain
             if (params.startsWith("generator_level_next_")) {
                 String dim = params.substring("generator_level_next_".length()).toLowerCase();
                 if (!Set.of("normal", "nether", "end").contains(dim)) return "&f-";
@@ -266,7 +292,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                 GeneratorConfigManager genConfig = plugin.getGeneratorConfigManager();
                 int currentLevel = islandOpt.get().getGeneratorLevel();
                 Optional<GeneratorConfigManager.GeneratorTier> nextTierOpt = genConfig.getNextTier(currentLevel);
-                if (nextTierOpt.isEmpty()) return "&f已达到最高等级";
+                if (nextTierOpt.isEmpty()) return MessageUtil.format("placeholder.max-level-reached");
 
                 GeneratorConfigManager.GeneratorTier nextTier = nextTierOpt.get();
                 Map<String, Double> rates = switch (dim) {
@@ -404,134 +430,85 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         return null;
     }
 
-    private String getIslandName(
-            IslandManager islandManager,
-            int chunkX,
-            int chunkZ
-    ) {
+    // ==================== 岛屿查找 + 渲染 helper（#24 去重）====================
 
+    /**
+     * 在 (chunkX, chunkZ) 查找岛屿：先精确匹配区块，再尝试最大范围回退。
+     * 抽取自原 getIslandName/getPlayerRole/getIslandLevelHere/getIslandValueHere/getGeneratorLevelHere
+     * 中重复出现的 "getIslandAt -> ifEmpty getIslandAtMaxRange" 双重查找。
+     */
+    private Optional<Island> findIslandAt(int chunkX, int chunkZ) {
+        IslandManager islandManager = plugin.getIslandManager();
+        Optional<Island> opt = islandManager.getIslandAt(chunkX, chunkZ);
+        if (opt.isEmpty()) {
+            opt = islandManager.getIslandAtMaxRange(chunkX, chunkZ);
+        }
+        return opt;
+    }
+
+    /**
+     * 带异常兜底与默认值的"按位置查找岛屿"渲染。
+     * 查找失败或提取器抛异常时返回 fallback，并记录一次警告日志。
+     */
+    private <T> T withIslandAt(int chunkX, int chunkZ, T fallback, Function<Island, T> extractor) {
         try {
+            return findIslandAt(chunkX, chunkZ).map(extractor).orElse(fallback);
+        } catch (RuntimeException e) {
+            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
+            return fallback;
+        }
+    }
 
-            Optional<Island> islandOpt =
-                    islandManager.getIslandAt(chunkX, chunkZ);
+    /**
+     * 带异常兜底与默认值的"按玩家查找所属岛屿"渲染。
+     */
+    private <T> T withOwnIsland(UUID playerUuid, T fallback, Function<Island, T> extractor) {
+        try {
+            return plugin.getIslandManager().getIslandByPlayer(playerUuid).map(extractor).orElse(fallback);
+        } catch (RuntimeException e) {
+            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
+            return fallback;
+        }
+    }
 
-            if (islandOpt.isEmpty()) {
-                islandOpt =
-                        islandManager.getIslandAtMaxRange(chunkX, chunkZ);
-            }
+    /** 访客身份显示（带颜色前缀），用于 role 类 placeholder 的回退值 */
+    private String visitorRoleDisplay() {
+        IslandPermissionLevel v = IslandPermissionLevel.VISITOR;
+        return v.getColor() + v.getDisplayName();
+    }
 
-            if (islandOpt.isEmpty()) {
-                return "公共区域";
-            }
+    /** 格式化玩家在岛屿中的身份显示：成员 -> 合作者 -> 访客 */
+    private String formatRole(Island island, UUID playerUuid) {
+        IslandPermissionLevel role = island.getMemberRole(playerUuid);
+        if (role != IslandPermissionLevel.VISITOR) {
+            return role.getColor() + role.getDisplayName();
+        }
+        if (island.isCoop(playerUuid)) {
+            return IslandPermissionLevel.COOP.getColor() + IslandPermissionLevel.COOP.getDisplayName();
+        }
+        return visitorRoleDisplay();
+    }
 
-            Island island = islandOpt.get();
-
+    private String getIslandName(int chunkX, int chunkZ) {
+        return withIslandAt(chunkX, chunkZ, MessageUtil.format("placeholder.public-area"), island -> {
             String name = island.getName();
-
-            if (name == null || name.isBlank()) {
-                return "岛屿 #" + island.getId();
-            }
-
-            return name;
-
-        } catch (RuntimeException e) {
-            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
-        }
-
-        return "公共区域";
+            return (name == null || name.isBlank())
+                    ? MessageUtil.format("placeholder.island-id", Map.of("id", island.getId()))
+                    : name;
+        });
     }
 
-    private String getPlayerRole(
-            IslandManager islandManager,
-            int chunkX,
-            int chunkZ,
-            UUID playerUuid
-    ) {
-
-        try {
-
-            Optional<Island> islandOpt =
-                    islandManager.getIslandAt(chunkX, chunkZ);
-
-            if (islandOpt.isEmpty()) {
-                islandOpt =
-                        islandManager.getIslandAtMaxRange(chunkX, chunkZ);
-            }
-
-            if (islandOpt.isEmpty()) {
-                return IslandPermissionLevel.VISITOR.getDisplayName();
-            }
-
-            Island island = islandOpt.get();
-
-            IslandPermissionLevel role =
-                    island.getMemberRole(playerUuid);
-
-            if (role != IslandPermissionLevel.VISITOR) {
-                return role.getColor() + role.getDisplayName();
-            }
-
-            if (island.isCoop(playerUuid)) {
-                return IslandPermissionLevel.COOP.getColor() + IslandPermissionLevel.COOP.getDisplayName();
-            }
-
-            return IslandPermissionLevel.VISITOR.getColor() + IslandPermissionLevel.VISITOR.getDisplayName();
-
-        } catch (RuntimeException e) {
-            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
-        }
-
-        return IslandPermissionLevel.VISITOR.getColor() + IslandPermissionLevel.VISITOR.getDisplayName();
+    private String getPlayerRole(int chunkX, int chunkZ, UUID playerUuid) {
+        return withIslandAt(chunkX, chunkZ, IslandPermissionLevel.VISITOR.getDisplayName(),
+                island -> formatRole(island, playerUuid));
     }
 
-    private String getIslandLevelHere(
-            IslandManager islandManager,
-            int chunkX,
-            int chunkZ
-    ) {
-        try {
-            Optional<Island> islandOpt =
-                    islandManager.getIslandAt(chunkX, chunkZ);
-
-            if (islandOpt.isEmpty()) {
-                islandOpt =
-                        islandManager.getIslandAtMaxRange(chunkX, chunkZ);
-            }
-
-            if (islandOpt.isEmpty()) {
-                return "&f-";
-            }
-
-            return String.valueOf(islandOpt.get().getLevel());
-
-        } catch (RuntimeException e) {
-            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
-        }
-
-        return "&f-";
+    private String getIslandLevelHere(int chunkX, int chunkZ) {
+        return withIslandAt(chunkX, chunkZ, "&f-", island -> String.valueOf(island.getLevel()));
     }
 
-    private String getIslandValueHere(
-            IslandManager islandManager,
-            int chunkX,
-            int chunkZ,
-            String type
-    ) {
-        try {
-            Optional<Island> islandOpt =
-                    islandManager.getIslandAt(chunkX, chunkZ);
-
-            if (islandOpt.isEmpty()) {
-                islandOpt =
-                        islandManager.getIslandAtMaxRange(chunkX, chunkZ);
-            }
-
-            if (islandOpt.isEmpty()) {
-                return "&f-";
-            }
-
-            Island island = islandOpt.get();
-
+    private String getIslandValueHere(int chunkX, int chunkZ, String type) {
+        return withIslandAt(chunkX, chunkZ, "&f-", island -> {
             if ("total_points".equals(type) || "experience".equals(type)) {
                 return String.format("%.2f", island.getExperience());
             } else if ("blocks_counted".equals(type)) {
@@ -541,70 +518,26 @@ public class SkyblockExpansion extends PlaceholderExpansion {
                 }
                 return String.valueOf(total);
             }
-
             return "&f-";
-
-        } catch (RuntimeException e) {
-            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
-        }
-
-        return "&f-";
+        });
     }
 
-    private String getGeneratorLevelHere(
-            IslandManager islandManager,
-            int chunkX,
-            int chunkZ
-    ) {
-        try {
-            Optional<Island> islandOpt =
-                    islandManager.getIslandAt(chunkX, chunkZ);
-
-            if (islandOpt.isEmpty()) {
-                islandOpt =
-                        islandManager.getIslandAtMaxRange(chunkX, chunkZ);
-            }
-
-            if (islandOpt.isEmpty()) {
-                return "&f-";
-            }
-
-            return String.valueOf(islandOpt.get().getGeneratorLevel());
-
-        } catch (RuntimeException e) {
-            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
-        }
-
-        return "&f-";
+    private String getGeneratorLevelHere(int chunkX, int chunkZ) {
+        return withIslandAt(chunkX, chunkZ, "&f-", island -> String.valueOf(island.getGeneratorLevel()));
     }
 
-    private String getPlayerOwnIslandName(
-            IslandManager islandManager,
-            UUID playerUuid
-    ) {
-        try {
-            Optional<Island> islandOpt =
-                    islandManager.getIslandByPlayer(playerUuid);
-
-            if (islandOpt.isEmpty()) {
-                return null;
-            }
-
-            Island island = islandOpt.get();
-
+    private String getPlayerOwnIslandName(UUID playerUuid) {
+        return withOwnIsland(playerUuid, null, island -> {
             String name = island.getName();
+            return (name == null || name.isBlank())
+                    ? MessageUtil.format("placeholder.island-id", Map.of("id", island.getId()))
+                    : name;
+        });
+    }
 
-            if (name == null || name.isBlank()) {
-                return "岛屿 #" + island.getId();
-            }
-
-            return name;
-
-        } catch (RuntimeException e) {
-            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
-        }
-
-        return null;
+    private String getPlayerOwnRole(UUID playerUuid) {
+        return withOwnIsland(playerUuid, IslandPermissionLevel.VISITOR.getDisplayName(),
+                island -> formatRole(island, playerUuid));
     }
 
     private String buildGeneratorDimensionString(Optional<Island> islandOpt, Player player, String dim) {
@@ -647,11 +580,11 @@ public class SkyblockExpansion extends PlaceholderExpansion {
     private String buildGeneratorLevelString(GeneratorConfigManager.GeneratorTier tier) {
 
         StringBuilder sb = new StringBuilder();
-        appendDimensionRates(sb, "主世界", tier.normal());
+        appendDimensionRates(sb, MessageUtil.format("dimension.normal"), tier.normal());
         sb.append("\n");
-        appendDimensionRates(sb, "下界", tier.nether());
+        appendDimensionRates(sb, MessageUtil.format("dimension.nether"), tier.nether());
         sb.append("\n");
-        appendDimensionRates(sb, "末地", tier.end());
+        appendDimensionRates(sb, MessageUtil.format("dimension.end"), tier.end());
 
         return sb.toString();
     }
@@ -747,7 +680,9 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         if (material == null || !rates.containsKey(material)) return "&f-";
 
         Set<String> disabled = island.getDisabledGeneratorOres().get(dim);
-        return (disabled == null || !disabled.contains(material)) ? "&a是" : "&c否";
+        return (disabled == null || !disabled.contains(material))
+                ? MessageUtil.format("placeholder.yes")
+                : MessageUtil.format("placeholder.no");
     }
 
     private String getGeneratorOreStatus(Optional<Island> islandOpt, Player player, String oreName) {
@@ -775,43 +710,15 @@ public class SkyblockExpansion extends PlaceholderExpansion {
         if (material == null || !rates.containsKey(material)) return "false";
 
         Set<String> disabled = island.getDisabledGeneratorOres().get(dim);
-        return (disabled == null || !disabled.contains(material)) ? "&a是" : "&c否";
+        return (disabled == null || !disabled.contains(material))
+                ? MessageUtil.format("placeholder.yes")
+                : MessageUtil.format("placeholder.no");
     }
 
-    private String getPlayerOwnRole(
-            IslandManager islandManager,
-            UUID playerUuid
-    ) {
-        try {
-            Optional<Island> islandOpt =
-                    islandManager.getIslandByPlayer(playerUuid);
-
-            if (islandOpt.isEmpty()) {
-                return IslandPermissionLevel.VISITOR.getDisplayName();
-            }
-
-            Island island = islandOpt.get();
-
-            IslandPermissionLevel role =
-                    island.getMemberRole(playerUuid);
-
-            if (role != IslandPermissionLevel.VISITOR) {
-                return role.getColor() + role.getDisplayName();
-            }
-
-            if (island.isCoop(playerUuid)) {
-                return IslandPermissionLevel.COOP.getColor() + IslandPermissionLevel.COOP.getDisplayName();
-            }
-
-            return IslandPermissionLevel.VISITOR.getColor() + IslandPermissionLevel.VISITOR.getDisplayName();
-
-        } catch (RuntimeException e) {
-            MessageUtil.consoleWarn("SkyblockExpansion placeholder 渲染失败: " + e.getMessage());
-        }
-
-        return IslandPermissionLevel.VISITOR.getColor() + IslandPermissionLevel.VISITOR.getDisplayName();
-    }
-
+    /**
+     * 占位符请求的惰性求值上下文 -- 仅在实际需要时才解析 chunk 坐标与所属岛屿，
+     * 避免每个占位符都付出 {@code player.getLocation()} 与 island grid 查询的开销。
+     */
     private static final class LazyContext {
         final Player player;
         final IslandManager islandManager;
@@ -839,7 +746,7 @@ public class SkyblockExpansion extends PlaceholderExpansion {
 
         private void resolveChunk() {
             // 用位运算避免 location.getChunk() 强制加载区块,且只取一次 Location
-            org.bukkit.Location loc = player.getLocation();
+            Location loc = player.getLocation();
             chunkX = loc.getBlockX() >> 4;
             chunkZ = loc.getBlockZ() >> 4;
             chunkResolved = true;

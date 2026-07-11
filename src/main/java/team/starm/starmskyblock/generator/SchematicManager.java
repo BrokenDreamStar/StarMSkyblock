@@ -28,13 +28,27 @@ import java.util.concurrent.ConcurrentHashMap;
 import team.starm.starmskyblock.message.MessageUtil;
 import team.starm.starmskyblock.util.reflection.FaweReflection;
 
+/**
+ * 结构文件管理器
+ * <p>
+ * 负责加载、缓存与粘贴 WorldEdit/FAWE schematic 文件（岛屿初始结构）。
+ * 自动检测 FAWE 是否安装，FAWE 路径走异步高性能引擎，否则回退到标准 WorldEdit。
+ * 加载时扫描结构中的基岩与告示牌位置，以基岩为原点将告示牌偏移打包进缓存条目，
+ * 供岛屿创建时定位告示牌。读取遇到 FAWE 不兼容时自动回退到 Sponge v2 格式。
+ * </p>
+ */
 public class SchematicManager {
 
+    /** 结构文件存放目录 */
     private final File schematicFolder;
+    /** 已加载结构缓存：文件名 -> clipboard + 告示牌偏移，原子化打包避免半加载态 */
     private final Map<String, SchematicEntry> schematicCache = new ConcurrentHashMap<>();
+    /** 配置是否启用 FAWE 模式 */
     private final boolean faweMode;
+    /** 服务器是否实际安装了 FAWE */
     private final boolean faweAvailable;
 
+    /** FAWE 反射句柄，启用且可用时初始化 */
     private FaweReflection faweReflection;
 
     /** 结构文件缓存条目 —— 把 clipboard 与 signOffsets 打包成单一对象，确保两者要么同时可见要么同时不可见 */
@@ -48,6 +62,10 @@ public class SchematicManager {
         }
     }
 
+    /**
+     * 构造管理器并初始化 FAWE 模式：确保结构目录存在、检测 FAWE 安装情况，
+     * 启用且可用时创建 {@link FaweReflection} 句柄，否则回退到标准 WorldEdit 并告警。
+     */
     public SchematicManager(File schematicFolder, boolean faweMode) {
         this.schematicFolder = schematicFolder;
         this.faweMode = faweMode;
@@ -74,6 +92,7 @@ public class SchematicManager {
         return faweMode && faweAvailable && faweReflection != null && faweReflection.isAvailable();
     }
 
+    /** 通过反射检测服务器是否安装了 FAWE（避免编译期硬依赖） */
     private static boolean isFaweInstalled() {
         try {
             Class.forName("com.fastasyncworldedit.core.Fawe");
@@ -83,12 +102,14 @@ public class SchematicManager {
         }
     }
 
+    /** 获取结构文件的 clipboard，未加载或加载失败时返回 null */
     @SuppressWarnings("deprecation")
     public Clipboard getSchematic(String fileName) {
         SchematicEntry entry = getEntry(fileName);
         return entry == null ? null : entry.clipboard;
     }
 
+    /** 获取结构文件中告示牌相对基岩原点的偏移量列表，供岛屿创建后定位告示牌 */
     public List<BlockVector3> getSignOffsets(String fileName) {
         SchematicEntry entry = getEntry(fileName);
         return entry == null ? null : entry.signOffsets;
@@ -105,6 +126,12 @@ public class SchematicManager {
         return schematicCache.computeIfAbsent(fileName, this::loadEntry);
     }
 
+    /**
+     * 从磁盘加载结构文件并构造缓存条目。
+     * <p>扫描结构底部 6 层方块，定位首个基岩作为粘贴原点并收集所有告示牌位置，
+     * 将告示牌转为相对基岩的偏移量。未找到基岩时使用默认原点并告警。</p>
+     */
+    @SuppressWarnings("deprecation")
     private SchematicEntry loadEntry(String fileName) {
         File file = new File(schematicFolder, fileName);
         if (!file.exists()) {
@@ -208,6 +235,7 @@ public class SchematicManager {
         return null;
     }
 
+    /** 判断方块类型是否为告示牌（按 id 中是否含 sign/SIGN 判定，兼容各木种告示牌） */
     @SuppressWarnings("removal")
     private static boolean isSignBlockType(BlockType type) {
         String id = type.getId();
@@ -233,10 +261,21 @@ public class SchematicManager {
         }
     }
 
+    /** 粘贴结构文件（保留空气方块，即仅覆盖非空气位置） */
     public boolean pasteSchematic(String fileName, World world, int x, int y, int z) {
         return pasteSchematic(fileName, world, x, y, z, false);
     }
 
+    /**
+     * 粘贴结构文件到指定坐标。
+     * <p>FAWE 模式走异步引擎，标准模式走同步 EditSession；粘贴完成后刷新 FAWE 队列确保提交。</p>
+     *
+     * @param fileName         结构文件名
+     * @param world            目标 Bukkit 世界
+     * @param x y z            粘贴原点坐标
+     * @param ignoreAirBlocks  是否跳过空气方块（true 时不覆盖已有非空气方块）
+     * @return 粘贴成功返回 true，结构不存在或发生异常返回 false
+     */
     public boolean pasteSchematic(String fileName, World world, int x, int y, int z, boolean ignoreAirBlocks) {
         Clipboard clipboard = getSchematic(fileName);
         if (clipboard == null) {
@@ -262,6 +301,12 @@ public class SchematicManager {
         }
     }
 
+    /**
+     * 计算结构在指定粘贴点处的实际方块边界。
+     * <p>以结构 origin 为基准换算 min/max 坐标，供等级系统基线扫描确定区域。</p>
+     *
+     * @return {minX, minY, minZ, maxX, maxY, maxZ}，结构不存在时返回 null
+     */
     public int[] getSchematicBounds(String fileName, int pasteX, int pasteY, int pasteZ) {
         Clipboard clipboard = getSchematic(fileName);
         if (clipboard == null) {
@@ -282,6 +327,12 @@ public class SchematicManager {
         return new int[]{minX, minY, minZ, maxX, maxY, maxZ};
     }
 
+    /**
+     * 用空气清空指定立方体区域内的所有方块。
+     * <p>岛屿删除时调用以清除结构，FAWE 模式下走异步引擎。</p>
+     *
+     * @return 成功返回 true，发生异常返回 false
+     */
     @SuppressWarnings("null")
     public boolean clearArea(World world, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         com.sk89q.worldedit.world.World weWorld = BukkitAdapter.adapt(world);

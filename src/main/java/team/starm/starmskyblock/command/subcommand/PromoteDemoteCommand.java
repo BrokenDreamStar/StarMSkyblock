@@ -12,13 +12,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import team.starm.starmskyblock.StarMSkyblock;
 
+/**
+ * 成员升/降级命令（/is promote|demote <玩家名>）
+ * <p>
+ * 通过 {@code args[0]} 区分 promote 与 demote 两种子动作，在同一处理器内复用权限校验与角色阶梯逻辑。
+ * 角色阶梯：MEMBER -> MOD -> ADMIN，执行者只能调整比自己权限等级更低的成员，
+ * 岛主不可被调整。需 SET_ROLE 权限。
+ */
 public class PromoteDemoteCommand extends SubCommand {
 
-    public PromoteDemoteCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public PromoteDemoteCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 执行 promote/demote 命令：校验权限与角色等级后调整目标成员角色并通知双方。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
@@ -112,6 +123,9 @@ public class PromoteDemoteCommand extends SubCommand {
         return true;
     }
 
+    /**
+     * Tab 补全：第二参数补全比自己权限等级低的成员名。
+     */
     @Override
     public List<String> onTabComplete(Player player, String[] args) {
         if (args.length == 2) {

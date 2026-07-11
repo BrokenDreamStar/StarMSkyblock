@@ -12,13 +12,23 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import team.starm.starmskyblock.StarMSkyblock;
 
+/**
+ * 岛屿协作（coop）管理命令（/is coop add|remove <玩家名>）
+ * <p>
+ * coop 是介于成员与访客之间的临时授权：被协作的玩家获得本岛 coop 级别权限，但不计入正式成员。
+ * add 需 INVITE_COOP 权限且目标须拥有自己的岛屿；remove 需 REMOVE_COOP 权限。
+ */
 public class CoopCommand extends SubCommand {
 
-    public CoopCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public CoopCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 执行 /is coop 命令：按子参数分发到 add 或 remove 处理器。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         if (args.length < 2) {
@@ -39,6 +49,7 @@ public class CoopCommand extends SubCommand {
         };
     }
 
+    /** 处理 /is coop add：将目标在线玩家协作授权至本岛屿。 */
     private boolean handleAdd(Player player, String[] args) {
         if (!assertMaxArgs(player, args, 3, "/is coop add <玩家名>")) return true;
 
@@ -95,6 +106,7 @@ public class CoopCommand extends SubCommand {
         return true;
     }
 
+    /** 处理 /is coop remove：按名称匹配并撤销目标玩家的协作授权。 */
     private boolean handleRemove(Player player, String[] args) {
         if (!assertMaxArgs(player, args, 3, "/is coop remove <玩家名>")) return true;
 
@@ -145,6 +157,9 @@ public class CoopCommand extends SubCommand {
         return true;
     }
 
+    /**
+     * Tab 补全：第二参数补全 add/remove；第三参数按子动作补全在线玩家或已协作玩家名。
+     */
     @Override
     public List<String> onTabComplete(Player player, String[] args) {
         if (args.length == 2) {

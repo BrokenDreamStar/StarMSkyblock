@@ -12,6 +12,9 @@ import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.generator.VoidChunkGenerator;
 import team.starm.starmskyblock.message.MessageUtil;
 import team.starm.starmskyblock.util.reflection.EnderDragonReflection;
+import java.io.File;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 
 /**
  * 空岛世界管理器。
@@ -21,10 +24,15 @@ import team.starm.starmskyblock.util.reflection.EnderDragonReflection;
  */
 public class SkyblockWorldManager {
 
+    /** 配置管理器，提供世界名称、生物群系等配置 */
     private final ConfigManager configManager;
+    /** 插件主类实例，用于 Multiverse 导入命令中的插件名 */
     private final StarMSkyblock plugin;
+    /** 主世界实例（懒加载） */
     private World skyblockWorld;
+    /** 下界世界实例（懒加载） */
     private World skyblockNether;
+    /** 末地世界实例（懒加载） */
     private World skyblockEnd;
 
     public SkyblockWorldManager(ConfigManager configManager, StarMSkyblock plugin) {
@@ -32,6 +40,7 @@ public class SkyblockWorldManager {
         this.plugin = plugin;
     }
 
+    /** 懒加载获取或创建主世界实例 */
     public World getOrCreateSkyblockWorld() {
         if (skyblockWorld == null) {
             skyblockWorld = createWorld(configManager.getWorldNameNormal(), World.Environment.NORMAL,
@@ -40,6 +49,7 @@ public class SkyblockWorldManager {
         return skyblockWorld;
     }
 
+    /** 懒加载获取或创建下界世界实例 */
     public World getOrCreateSkyblockNether() {
         if (skyblockNether == null) {
             skyblockNether = createWorld(configManager.getWorldNameNether(), World.Environment.NETHER,
@@ -48,6 +58,7 @@ public class SkyblockWorldManager {
         return skyblockNether;
     }
 
+    /** 懒加载获取或创建末地世界实例 */
     public World getOrCreateSkyblockEnd() {
         if (skyblockEnd == null) {
             skyblockEnd = createWorld(configManager.getWorldNameEnd(), World.Environment.THE_END,
@@ -56,6 +67,11 @@ public class SkyblockWorldManager {
         return skyblockEnd;
     }
 
+    /**
+     * 创建或加载一个空岛虚空世界。
+     * <p>若世界目录已存在（含 level.dat）则直接加载；否则用 {@link VoidChunkGenerator} 创建新世界，
+     * 设置出生点、按需向 Multiverse-Core 注册、并对末地禁用末影龙战斗。</p>
+     */
     @SuppressWarnings({"deprecation"})
     private World createWorld(String worldName, World.Environment environment, String biomeName, Biome defaultBiome) {
         World world = Bukkit.getWorld(worldName);
@@ -68,8 +84,8 @@ public class SkyblockWorldManager {
         };
 
         if (world == null) {
-            java.io.File worldFolder = new java.io.File(Bukkit.getWorldContainer(), worldName);
-            java.io.File levelFile = new java.io.File(worldFolder, "level.dat");
+            File worldFolder = new File(Bukkit.getWorldContainer(), worldName);
+            File levelFile = new File(worldFolder, "level.dat");
             boolean existingData = worldFolder.isDirectory() && levelFile.isFile();
 
             if (existingData) {
@@ -85,8 +101,8 @@ public class SkyblockWorldManager {
 
             Biome biome = defaultBiome;
             try {
-                org.bukkit.NamespacedKey key = org.bukkit.NamespacedKey.minecraft(biomeName.toLowerCase());
-                Biome configBiome = org.bukkit.Registry.BIOME.get(key);
+                NamespacedKey key = NamespacedKey.minecraft(biomeName.toLowerCase());
+                Biome configBiome = Registry.BIOME.get(key);
                 if (configBiome != null) {
                     biome = configBiome;
                 } else {
@@ -166,10 +182,12 @@ public class SkyblockWorldManager {
         return worldName != null && worldName.equals(configManager.getWorldNameNormal());
     }
 
+    /** 判断世界名称是否为下界世界 */
     public boolean isNetherWorld(String worldName) {
         return worldName != null && worldName.equals(configManager.getWorldNameNether());
     }
 
+    /** 判断世界名称是否为末地世界 */
     public boolean isEndWorld(String worldName) {
         return worldName != null && worldName.equals(configManager.getWorldNameEnd());
     }
@@ -187,6 +205,10 @@ public class SkyblockWorldManager {
         return configManager.isPublicWorld(worldName);
     }
 
+    /**
+     * 在末地世界禁用末影龙战斗：标记为已击败、通过反射关闭战斗机制、并清除已存在的末影龙与末地水晶。
+     * 用于空岛末地不需要末影龙战斗的场景，避免龙破坏岛屿。
+     */
     private void disableEnderDragonFight(World world) {
         try {
             DragonBattle battle = world.getEnderDragonBattle();

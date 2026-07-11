@@ -11,8 +11,26 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * 任务系统 PlaceholderAPI 占位符处理器
+ * <p>
+ * 处理以 {@code task_} 为前缀的占位符，支持任务级与章节级查询。
+ * 任务通过 {@code <章节号>_<任务号>} 定位，章节通过章节号定位。
+ * 支持的占位符形态：
+ * <ul>
+ *   <li>{@code task_<c>_<m>_percentage_<key>} -- 某需求类型当前百分比</li>
+ *   <li>{@code task_<c>_<m>_value_<key>} -- 某需求类型当前数量</li>
+ *   <li>{@code task_completed_count} / {@code task_total_count} -- 全局完成数/总数</li>
+ *   <li>{@code task_<c>_<m>_progress} / {@code task_<c>_progress} -- 任务/章节进度百分比</li>
+ *   <li>{@code task_<c>_<m>_completed} / {@code task_<c>_completed} -- 是否完成（未领取）</li>
+ *   <li>{@code task_<c>_<m>_claimed} -- 是否已领取奖励</li>
+ *   <li>{@code task_<c>_<m>_count} -- 任务已完成次数</li>
+ * </ul>
+ * </p>
+ */
 public class TaskPlaceholderHandler {
 
+    /** 占位符前缀，调用方需先以此过滤再分发到本处理器 */
     public static final String PREFIX = "task_";
 
     private final StarMSkyblock plugin;
@@ -21,6 +39,15 @@ public class TaskPlaceholderHandler {
         this.plugin = plugin;
     }
 
+    /**
+     * 解析并返回占位符对应的值。
+     * <p>注意查询顺序：含 {@code _percentage_} / {@code _value_} 的中缀模式必须先于
+     * {@code _progress} 等后缀模式匹配，否则会被后缀分支错误截断。任何异常返回 null（占位符不替换）。</p>
+     *
+     * @param player 查询玩家
+     * @param params 占位符完整参数（含前缀）
+     * @return 对应值字符串，无法解析返回 null
+     */
     public String handle(Player player, String params) {
         try {
             TaskManager taskManager = plugin.getTaskManager();
@@ -28,7 +55,7 @@ public class TaskPlaceholderHandler {
 
             String rest = params.substring(PREFIX.length());
 
-            // _percentage_ and _value_ use indexOf — check before endsWith patterns
+            // _percentage_ and _value_ use indexOf - check before endsWith patterns
             int pctIdx = rest.indexOf("_percentage_");
             if (pctIdx > 0) {
                 String id = rest.substring(0, pctIdx);
@@ -88,6 +115,7 @@ public class TaskPlaceholderHandler {
         return null;
     }
 
+    /** 按 {@code <章节号>_<任务号>} 解析任务，格式不符返回 null */
     private TaskDefinition resolveTask(String id) {
         String[] parts = id.split("_");
         if (parts.length != 2) return null;
@@ -100,6 +128,7 @@ public class TaskPlaceholderHandler {
         }
     }
 
+    /** 按章节号解析章节，非数字返回 null */
     private TaskCategory resolveChapter(String id) {
         try {
             int chapter = Integer.parseInt(id);
@@ -109,6 +138,7 @@ public class TaskPlaceholderHandler {
         }
     }
 
+    /** 任务是否已完成但未领取奖励（claimable 状态） */
     private boolean isCompleted(Player player, TaskDefinition def) {
         if (player == null || def == null) return false;
         UUID uuid = player.getUniqueId();
@@ -118,11 +148,13 @@ public class TaskPlaceholderHandler {
         return prog.isCompleted(def) && !prog.isClaimed();
     }
 
+    /** 任务奖励是否已领取 */
     private boolean isClaimed(Player player, TaskDefinition def) {
         if (player == null || def == null) return false;
         return plugin.getTaskManager().isTaskCompleted(player.getUniqueId(), def.getId());
     }
 
+    /** 章节内所有任务是否均已领取奖励 */
     private boolean isChapterCompleted(Player player, TaskCategory category) {
         if (player == null || category == null) return false;
         UUID uuid = player.getUniqueId();
@@ -134,6 +166,7 @@ public class TaskPlaceholderHandler {
         return true;
     }
 
+    /** 全部任务中已领取奖励的数量 */
     private int getTotalCompletedCount(Player player) {
         if (player == null) return 0;
         UUID uuid = player.getUniqueId();
@@ -147,6 +180,7 @@ public class TaskPlaceholderHandler {
         return count;
     }
 
+    /** 任务整体完成百分比（0~100 字符串） */
     private String getProgress(Player player, TaskDefinition def) {
         if (player == null || def == null) return "0";
         UUID uuid = player.getUniqueId();
@@ -156,6 +190,7 @@ public class TaskPlaceholderHandler {
         return String.valueOf((int) Math.round(prog.getProgressPercent(def) * 100));
     }
 
+    /** 章节内各任务完成百分比的平均值（0~100） */
     private int getChapterProgress(Player player, TaskCategory category) {
         if (player == null || category == null || category.getTasks().isEmpty()) return 0;
         UUID uuid = player.getUniqueId();
@@ -170,12 +205,14 @@ public class TaskPlaceholderHandler {
         return (int) Math.round(total / category.getTasks().size() * 100);
     }
 
+    /** 任务已完成次数 */
     private int getCompletedCount(Player player, TaskDefinition def) {
         if (player == null || def == null) return 0;
         TaskProgress prog = plugin.getTaskManager().getPlayerProgressMap(player.getUniqueId()).get(def.getId());
         return prog != null ? prog.getCompletedCount() : 0;
     }
 
+    /** 任务某需求类型的当前累计数量（字符串） */
     private String getValue(Player player, TaskDefinition def, String key) {
         if (player == null || def == null) return "0";
         UUID uuid = player.getUniqueId();
@@ -184,6 +221,7 @@ public class TaskPlaceholderHandler {
         return String.valueOf(prog.getProgress().getOrDefault(key, 0));
     }
 
+    /** 任务某需求类型相对目标数量的百分比（上限 100） */
     private String getPercentage(Player player, TaskDefinition def, String key) {
         if (player == null || def == null) return "0";
         UUID uuid = player.getUniqueId();

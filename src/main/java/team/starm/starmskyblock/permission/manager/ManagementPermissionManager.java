@@ -1,10 +1,13 @@
 package team.starm.starmskyblock.permission.manager;
 
+import org.bukkit.plugin.java.JavaPlugin;
+
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.config.PublicAreaConfigManager;
 import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.world.SkyblockWorldManager;
 import team.starm.starmskyblock.permission.BasePermissionManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 
@@ -26,8 +29,9 @@ public class ManagementPermissionManager extends BasePermissionManager {
 
     public ManagementPermissionManager(IslandManager islandManager, ConfigManager configManager,
                                         PublicAreaConfigManager publicAreaConfig,
-                                        LockedAreaConfigManager lockedAreaConfig) {
-        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+                                        LockedAreaConfigManager lockedAreaConfig,
+                                        JavaPlugin plugin, SkyblockWorldManager worldManager) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig, plugin, worldManager);
     }
 
     /**

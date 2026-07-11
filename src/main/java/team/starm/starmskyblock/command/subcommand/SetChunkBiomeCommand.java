@@ -14,14 +14,25 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import team.starm.starmskyblock.StarMSkyblock;
 
+/**
+ * 区块生物群系设置命令（/is setchunkbiome <生物群系>）
+ * <p>
+ * 仅修改玩家当前所在单个区块的生物群系（按 4 格步长采样全高度列），覆盖主世界与下界。
+ * 需 SET_BIOME 权限且目标区块须位于岛屿已解锁半径内；末地不支持。
+ * 类上 {@code @SuppressWarnings("deprecation")} 用于 {@code World.setBiome(int,int,int,Biome)} 旧重载。
+ */
 @SuppressWarnings("deprecation")
 public class SetChunkBiomeCommand extends SubCommand {
 
-    public SetChunkBiomeCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public SetChunkBiomeCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 执行 /is setchunkbiome 命令：将玩家当前所在区块的生物群系改为指定值。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         var optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
@@ -107,6 +118,9 @@ public class SetChunkBiomeCommand extends SubCommand {
         return true;
     }
 
+    /**
+     * Tab 补全：第二参数按玩家当前维度补全可用生物群系显示名。
+     */
     @Override
     public List<String> onTabComplete(Player player, String[] args) {
         if (args.length == 2) {

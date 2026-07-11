@@ -28,10 +28,12 @@ public class PublicAreaConfigManager {
         this.permissionConfigManager = permissionConfigManager;
     }
 
+    /** 加载公共区域权限与设置配置 */
     public void initialize() {
         loadConfig();
     }
 
+    /** 从 permissions.yml 的 public-area 章节读取权限与设置默认值 */
     public void loadConfig() {
         FileConfiguration config = permissionConfigManager.getPermissionsConfig();
         if (config == null) {
@@ -70,6 +72,7 @@ public class PublicAreaConfigManager {
         return settingDefaults.getOrDefault(setting, true);
     }
 
+    /** 重载配置 */
     public void reload() {
         loadConfig();
     }

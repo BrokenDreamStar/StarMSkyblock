@@ -6,16 +6,26 @@ import org.bukkit.entity.Player;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandDeleteTask;
 import team.starm.starmskyblock.message.MessageUtil;
+import team.starm.starmskyblock.StarMSkyblock;
 
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * {@code /is delete} 子命令 -- 删除岛屿。
+ * <p>
+ * 需要二次确认（{@code /is delete confirm}），且受最大删除次数限制。
+ * 删除前将岛上玩家逐出至主世界出生点，再委托 {@link IslandDeleteTask} 异步清块。
+ */
 public class DeleteCommand extends SubCommand {
 
-    public DeleteCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public DeleteCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 执行删除流程：校验归属权 -> 二次确认 -> 删除次数上限 -> 逐出岛上玩家 -> 启动异步删除。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         Optional<Island> optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());

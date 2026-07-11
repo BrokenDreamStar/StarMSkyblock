@@ -15,12 +15,21 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * 管理员任务进度命令（/isadmin settask <玩家> <章节> <任务> complete|reset）
+ * <p>
+ * 强制将指定玩家的某项任务标记为完成或重置进度，用于运维纠偏。
+ * 章节与任务以数字序号定位（对应 {@link TaskConfigScanner} 中的 chapter/mission 编号）。
+ */
 public class SetTaskCommand extends AdminSubCommand {
 
     public SetTaskCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 执行 /isadmin settask 命令：解析玩家、任务后强制完成或重置其进度。
+     */
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (args.length != 5) {
@@ -84,6 +93,9 @@ public class SetTaskCommand extends AdminSubCommand {
         return true;
     }
 
+    /**
+     * 将在线玩家名解析为 UUID；离线玩家返回 null（本命令仅处理在线玩家）。
+     */
     private UUID resolvePlayer(String name) {
         Player online = Bukkit.getPlayerExact(name);
         if (online != null) {
@@ -92,6 +104,9 @@ public class SetTaskCommand extends AdminSubCommand {
         return null;
     }
 
+    /**
+     * Tab 补全：依次补全在线玩家名、章节号、任务号、操作（complete/reset）。
+     */
     @Override
     public List<String> onTabComplete(CommandSender sender, String[] args) {
         if (args.length == 2) {

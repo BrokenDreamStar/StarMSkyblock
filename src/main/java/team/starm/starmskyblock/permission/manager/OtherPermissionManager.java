@@ -1,9 +1,9 @@
 package team.starm.starmskyblock.permission.manager;
 
 import org.bukkit.Location;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Material;
 import org.bukkit.Tag;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.type.CaveVines;
@@ -28,13 +28,11 @@ import org.bukkit.inventory.ItemStack;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.config.PublicAreaConfigManager;
 import team.starm.starmskyblock.config.LockedAreaConfigManager;
-import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.world.SkyblockWorldManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.BasePermissionManager;
 import team.starm.starmskyblock.tag.ItemTags;
-
-import java.util.Optional;
 
 /**
  * 其它权限管理器
@@ -44,8 +42,9 @@ public class OtherPermissionManager extends BasePermissionManager {
 
     public OtherPermissionManager(IslandManager islandManager, ConfigManager configManager,
                                    PublicAreaConfigManager publicAreaConfig,
-                                   LockedAreaConfigManager lockedAreaConfig) {
-        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+                                   LockedAreaConfigManager lockedAreaConfig,
+                                   JavaPlugin plugin, SkyblockWorldManager worldManager) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig, plugin, worldManager);
     }
 
     /**
@@ -223,52 +222,22 @@ public class OtherPermissionManager extends BasePermissionManager {
      */
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onPlayerPortal(PlayerPortalEvent event) {
-        Player player = event.getPlayer();
         TeleportCause cause = event.getCause();
-
         if (cause != TeleportCause.NETHER_PORTAL && cause != TeleportCause.END_PORTAL) {
             return;
         }
 
+        Player player = event.getPlayer();
         Location from = event.getFrom();
-        World fromWorld = from.getWorld();
-        if (fromWorld == null) return;
-
-        // 只在空岛世界进行检查
-        String worldName = fromWorld.getName();
-        boolean isSkyblockWorld = worldName.equals(configManager.getWorldNameNormal())
-                || worldName.equals(configManager.getWorldNameNether())
-                || worldName.equals(configManager.getWorldNameEnd());
-        if (!isSkyblockWorld) return;
-
-        // 查找传送门所在岛屿
-        int chunkX = from.getChunk().getX();
-        int chunkZ = from.getChunk().getZ();
-        Optional<Island> optionalIsland = islandManager.getIslandAt(chunkX, chunkZ);
-        if (optionalIsland.isEmpty()) {
-            optionalIsland = islandManager.getIslandAtMaxRange(chunkX, chunkZ);
-        }
-        if (optionalIsland.isEmpty()) {
-            // 回退：按玩家关联查找
-            optionalIsland = islandManager.getIslandByPlayer(player.getUniqueId());
-        }
-        if (optionalIsland.isEmpty()) return;
-
         IslandPermission permission = (cause == TeleportCause.NETHER_PORTAL)
                 ? IslandPermission.ENTER_NETHER_PORTAL
                 : IslandPermission.ENTER_END_PORTAL;
 
-        // OP 或拥有 skyblock.bypass 权限节点的玩家可以绕过传送门权限检查
-        if (player.isOp() || player.hasPermission("skyblock.bypass")) {
-            return;
-        }
-
-        if (!optionalIsland.get().hasPermission(player.getUniqueId(), permission)) {
-            event.setCancelled(true);
-            // 此分支未走标准 resolve 路径，清除该玩家上次的解析缓存，使 sendDenyMessage 走默认 no-permission 提示
-            lastCheckResult.remove(player.getUniqueId());
-            sendDenyMessage(player, permission);
-        }
+        // 走标准 resolve 流程：玩家处于 locked-area（已解锁半径外、最大半径内）时使用
+        // lockedAreaConfig 覆盖，公共区域使用 publicAreaConfig，从而不再直接取岛屿自身权限。
+        // resolve 内部用 >>4 取区块坐标，避免 from.getChunk() 同步加载区块；
+        // bypass、非空岛世界、null world 等情形亦由 resolve/check 统一处理。
+        enforce(event, from, player, permission);
     }
 
     /**

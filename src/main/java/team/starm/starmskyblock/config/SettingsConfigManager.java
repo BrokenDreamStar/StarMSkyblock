@@ -27,10 +27,12 @@ public class SettingsConfigManager {
         this.plugin = plugin;
     }
 
+    /** 加载 settings.yml 并读取各设置项默认值 */
     public void initialize() {
         loadSettingsConfig();
     }
 
+    /** 释放 settings.yml（首次启动）并加载所有 IslandSetting 的默认值 */
     public void loadSettingsConfig() {
         if (!plugin.getDataFolder().exists()) {
             plugin.getDataFolder().mkdirs();
@@ -65,6 +67,7 @@ public class SettingsConfigManager {
         return defaultSettings.getOrDefault(setting, true);
     }
 
+    /** 将 settings.yml 写回磁盘 */
     public void saveSettingsConfig() {
         if (settingsConfig != null && settingsFile != null) {
             try {
@@ -75,6 +78,7 @@ public class SettingsConfigManager {
         }
     }
 
+    /** 重载设置配置 */
     public void reloadSettingsConfig() {
         loadSettingsConfig();
     }

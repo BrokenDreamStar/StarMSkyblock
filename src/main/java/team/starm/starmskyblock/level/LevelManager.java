@@ -216,7 +216,7 @@ public class LevelManager {
         // 显示超阈值信息（使用 TranslatableComponent 显示方块译名）
         if (!results.getBlocksOverLimit().isEmpty()) {
             TextComponent.Builder builder = Component.text()
-                    .append(Component.text("  超出阈值的方块: ", NamedTextColor.GREEN));
+                    .append(Component.text(MessageUtil.format("level.blocks-over-limit-header"), NamedTextColor.GREEN));
             for (Map.Entry<Material, Long> entry : results.getBlocksOverLimit().entrySet()) {
                 if (entry.getValue() > 0) {
                     builder.append(Component.text(" ", NamedTextColor.WHITE))

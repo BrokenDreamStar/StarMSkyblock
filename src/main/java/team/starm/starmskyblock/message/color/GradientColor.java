@@ -8,10 +8,16 @@ package team.starm.starmskyblock.message.color;
 import java.awt.Color;
 import java.util.List;
 
-import net.md_5.bungee.api.ChatColor;
 import team.starm.starmskyblock.message.tag.TagContentExtractor;
 import team.starm.starmskyblock.message.tag.TagContentInfo;
 
+/**
+ * 渐变颜色标签处理器。
+ * <p>
+ * 解析 {@code <gradient:color1:color2[:...]>text</gradient>} 标签，按文本长度在多个
+ * 颜色间线性插值生成逐字符渐变。单色退化、颜色数 >= 字符数、颜色数 < 字符数三种情形分别处理。
+ * 来源于 LiteCommandEditor 项目。
+ */
 public class GradientColor
     implements FunctionalColor
 {
@@ -21,6 +27,15 @@ public class GradientColor
         return instance;
     }
 
+    /**
+     * 解析文本中所有 {@code gradient} 标签并着色。
+     * <p>
+     * 对每个标签按其内容长度生成渐变色数组，再用 {@link ColorUtils#coloring} 逐字符着色，
+     * 并以 {@code <previousColor>} 占位符衔接标签外的既有颜色/字体。
+     *
+     * @param content 待着色文本
+     * @return 渐变着色后的文本
+     */
     @Override
     public String coloring(String content) {
         String original = content;
@@ -29,14 +44,23 @@ public class GradientColor
             if (tagContent.getAttribute() == null) continue;
             String[] colorList = tagContent.getAttribute().split(":", -1);
             String text = tagContent.getContent();
-            ChatColor[] colors = makeGradient(colorList, text.length());
+            String[] colors = makeGradient(colorList, text.length());
             content = tagContent.replace(content, (tagContent.getCloseTag() != null ? "<previousColor>" : "") + ColorUtils.coloring(text, colors, ColorUtils.getPreviousTypeface(original, tagContent.getStartPosition())) + (tagContent.getCloseTag() != null ? "</previousColor>" : ""));
         }
         return content;
     }
 
-    public static ChatColor[] makeGradient(String[] containsColors, int depth) {
-        ChatColor[] result = new ChatColor[depth];
+    /**
+     * 在指定颜色列表间线性插值，生成 depth 个字符长度的渐变颜色数组。
+     * <p>
+     * 不支持 RGB 的旧版本服务端会回退到最接近的经典颜色字符。
+     *
+     * @param containsColors 颜色名/Hex 列表
+     * @param depth          目标字符数（渐变采样点数）
+     * @return 逐字符的 §-字符串数组
+     */
+    public static String[] makeGradient(String[] containsColors, int depth) {
+        String[] result = new String[depth];
         Color[] colors = new Color[depth];
         if (depth == 0 || containsColors.length == 0) return result;
         if (containsColors.length == 1) {
@@ -72,9 +96,9 @@ public class GradientColor
         }
         for (int i = 0;i < result.length;i++) {
             if (ColorUtils.isSupportsRGBVersions()) {
-                result[i] = ChatColor.of(colors[i]);
+                result[i] = LegacyColor.toLegacy(colors[i]);
             } else {
-                result[i] = ChatColor.getByChar(ColorUtils.toNearestColor(colors[i]));
+                result[i] = LegacyColor.legacyChar(ColorUtils.toNearestColor(colors[i]));
             }
         }
         return result;

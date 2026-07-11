@@ -1,12 +1,20 @@
 package team.starm.starmskyblock.util;
 
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Registry;
 import org.bukkit.block.Biome;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 空岛可用生物群系列举。
+ * <p>
+ * 每个枚举常量绑定中文显示名、所属维度与颜色前缀，用于 {@code /is biome} 列表展示
+ * 与切换。{@link #toBukkitBiome()} 通过 {@link RegistryKey#BIOME} 转换为服务端实际生物群系，
+ * {@link #fromInput(String)} 支持按枚举名或中文显示名模糊匹配用户输入。
+ */
 public enum SkyblockBiome {
 
     // ====================== 主世界 ======================
@@ -72,6 +80,7 @@ public enum SkyblockBiome {
     SOUL_SAND_VALLEY("灵魂沙峡谷", Dimension.NETHER, "&3"),
     BASALT_DELTAS("玄武岩三角洲", Dimension.NETHER, "&7");
 
+    /** 维度分类：主世界 / 下界（用于按维度过滤可用生物群系）。 */
     public enum Dimension {
         OVERWORLD, NETHER
     }
@@ -90,6 +99,11 @@ public enum SkyblockBiome {
         return displayName;
     }
 
+    /**
+     * 返回带颜色前缀与加粗的显示名（如 {@code &a&l平原}），用于菜单展示。
+     *
+     * @return 着色显示名
+     */
     public String getColoredDisplayName() {
         return colorPrefix + "&l" + displayName;
     }
@@ -98,12 +112,23 @@ public enum SkyblockBiome {
         return dimension;
     }
 
+    /**
+     * 将本枚举转换为 Bukkit {@link Biome}（通过 {@link RegistryAccess#getRegistry(RegistryKey)} 以 {@link RegistryKey#BIOME} 按 namespaced key 查询）。
+     *
+     * @return 对应的 Bukkit 生物群系，未注册时为 null
+     */
     public Biome toBukkitBiome() {
         NamespacedKey key = NamespacedKey.minecraft(name().toLowerCase());
-        Biome biome = Registry.BIOME.get(key);
+        Biome biome = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME).get(key);
         return biome;
     }
 
+    /**
+     * 按枚举名或中文显示名匹配用户输入（大小写不敏感）。
+     *
+     * @param input 用户输入
+     * @return 匹配到的生物群系，无匹配返回 null
+     */
     public static SkyblockBiome fromInput(String input) {
         for (SkyblockBiome biome : values()) {
             if (biome.name().equalsIgnoreCase(input) || biome.displayName.equals(input)) {
@@ -113,6 +138,12 @@ public enum SkyblockBiome {
         return null;
     }
 
+    /**
+     * 返回指定维度下的所有生物群系枚举。
+     *
+     * @param dimension 维度
+     * @return 该维度下的生物群系列表
+     */
     public static List<SkyblockBiome> valuesFor(Dimension dimension) {
         List<SkyblockBiome> result = new ArrayList<>();
         for (SkyblockBiome biome : values()) {
@@ -123,6 +154,12 @@ public enum SkyblockBiome {
         return result;
     }
 
+    /**
+     * 返回指定维度下所有生物群系的枚举名（用于 tab 补全）。
+     *
+     * @param dimension 维度
+     * @return 枚举名列表
+     */
     public static List<String> namesFor(Dimension dimension) {
         List<String> result = new ArrayList<>();
         for (SkyblockBiome biome : values()) {
@@ -133,6 +170,12 @@ public enum SkyblockBiome {
         return result;
     }
 
+    /**
+     * 返回指定维度下所有生物群系的中文显示名（用于菜单展示）。
+     *
+     * @param dimension 维度
+     * @return 显示名列表
+     */
     public static List<String> displayNamesFor(Dimension dimension) {
         List<String> result = new ArrayList<>();
         for (SkyblockBiome biome : values()) {

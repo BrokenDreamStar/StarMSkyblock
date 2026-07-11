@@ -11,12 +11,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * 岛屿升级命令（/is upgrade [radius|generator]）
+ * <p>
+ * 依赖 Vault 经济，提供两条升级路径：岛屿半径（解锁更多区块）与发电机等级（解锁更多产物）。
+ * 仅岛主可执行；无子参数时展示当前等级、下一级花费与上限信息。Vault 缺失时直接报错。
+ */
 public class UpgradeCommand extends SubCommand {
 
     public UpgradeCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 执行 /is upgrade 命令：无子参数展示信息，radius/generator 分别走对应升级流程。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         Economy economy = plugin.getEconomy();
@@ -51,6 +60,7 @@ public class UpgradeCommand extends SubCommand {
         return true;
     }
 
+    /** Tab 补全：第二参数补全 radius / generator。 */
     @Override
     public List<String> onTabComplete(Player player, String[] args) {
         if (args.length == 2) {
@@ -62,6 +72,7 @@ public class UpgradeCommand extends SubCommand {
         return List.of();
     }
 
+    /** 展示当前半径/发电机等级、是否已达上限及下一级花费。 */
     private void showUpgradeInfo(Player player, Island island, Economy economy) {
         int maxRadius = plugin.getConfigManager().getIslandMaxRadius();
         int genMaxLevel = plugin.getGeneratorConfigManager().getMaxLevel();
@@ -98,6 +109,7 @@ public class UpgradeCommand extends SubCommand {
         MessageUtil.send(player, "upgrade.usage.generator");
     }
 
+    /** 执行半径升级：校验上限与余额后扣款并写入新半径。 */
     private void handleRadiusUpgrade(Player player, Island island, Economy economy) {
         int maxRadius = plugin.getConfigManager().getIslandMaxRadius();
         if (island.getRadius() >= maxRadius) {
@@ -130,6 +142,7 @@ public class UpgradeCommand extends SubCommand {
         MessageUtil.send(player, "upgrade.radius.success", Map.of("radius", upgrade.radius()));
     }
 
+    /** 执行发电机升级：校验上限与余额后扣款并写入新发电机等级。 */
     private void handleGeneratorUpgrade(Player player, Island island, Economy economy) {
         int genMaxLevel = plugin.getGeneratorConfigManager().getMaxLevel();
         if (island.getGeneratorLevel() >= genMaxLevel) {

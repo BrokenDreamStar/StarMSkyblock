@@ -17,6 +17,7 @@ public enum GeneratorType {
     /** 非生成器场景 */
     NONE(null);
 
+    /** 玄武岩生成器检测时需环绕检查蓝冰的水平/上方朝向 */
     private static final BlockFace[] BASALT_FACES = {
             BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST, BlockFace.UP
     };

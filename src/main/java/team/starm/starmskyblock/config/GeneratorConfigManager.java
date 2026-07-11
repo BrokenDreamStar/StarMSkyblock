@@ -17,7 +17,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.Optional;
 
+/**
+ * 刷石机生成配置管理器（generator.yml）。
+ * <p>
+ * 加载按最低等级分层的刷石机配方（{@link GeneratorTier}），支持主世界/下界/末地
+ * 三套独立的方块产出权重。每个 tier 预构建累积权重表（{@link WeightedEntry}），
+ * 供运行时按随机数二分查找 O(log n) 落点。
+ */
 public class GeneratorConfigManager {
 
     private final StarMSkyblock plugin;
@@ -29,8 +37,13 @@ public class GeneratorConfigManager {
     private int deepslateYThreshold;
     private TreeMap<Integer, GeneratorTier> tiers;
 
+    /** 累积权重条目 -- 将原始权重转为前缀和,运行时按随机数二分查找落点。 */
     public record WeightedEntry(double cumulativeWeight, String material) {}
 
+    /**
+     * 单个等级档位的刷石机配置。
+     * <p>每个环境(normal/end/nether)维护一份材料->权重映射及预构建的累积权重表。
+     */
     public record GeneratorTier(int minLevel,
                                 Map<String, Double> normal,
                                 Map<String, Double> end,
@@ -65,6 +78,7 @@ public class GeneratorConfigManager {
         this.plugin = plugin;
     }
 
+    /** 加载 generator.yml，若文件不存在则从 jar 释放默认配置。 */
     public void initialize() {
         configFile = new File(plugin.getDataFolder(), "generator.yml");
         if (!configFile.exists()) {
@@ -73,6 +87,7 @@ public class GeneratorConfigManager {
         reload();
     }
 
+    /** 重载配置并重建各档累积权重表。 */
     public void reload() {
         config = YamlConfiguration.loadConfiguration(configFile);
 
@@ -145,12 +160,22 @@ public class GeneratorConfigManager {
         return tiers.lastKey();
     }
 
-    public java.util.Optional<GeneratorTier> getNextTier(int generatorLevel) {
+    /**
+     * 返回高于当前等级的下一档配置；已是最高档时返回 {@link Optional#empty()}。
+     *
+     * @param generatorLevel 当前刷石机等级
+     * @return 下一档配置，或 empty
+     */
+    public Optional<GeneratorTier> getNextTier(int generatorLevel) {
         Integer nextKey = tiers.higherKey(generatorLevel);
-        if (nextKey == null) return java.util.Optional.empty();
-        return java.util.Optional.of(tiers.get(nextKey));
+        if (nextKey == null) return Optional.empty();
+        return Optional.of(tiers.get(nextKey));
     }
 
+    /**
+     * 返回当前刷石机等级对应的档位 -- 取 {@code floorEntry}(不超过该等级的最大档)，
+     * 等级低于首档时回退到首档。
+     */
     public GeneratorTier getTier(int generatorLevel) {
         Map.Entry<Integer, GeneratorTier> entry = tiers.floorEntry(generatorLevel);
         if (entry == null) {

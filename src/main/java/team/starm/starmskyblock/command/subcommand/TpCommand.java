@@ -13,13 +13,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import team.starm.starmskyblock.StarMSkyblock;
 
+/**
+ * 岛屿传送命令（/is tp <岛屿名称> [岛屿ID] [confirm]）
+ * <p>
+ * 按岛屿名称搜索目标岛屿并传送过去。重名时需用岛屿 ID 消歧；目标岛屿关闭 TP 设置则禁止传送。
+ * 落点优先使用岛屿自定义 home，否则按配置偏移回到岛中心。落点不安全时需玩家追加 confirm 强制传送；
+ * 若服务器配置了传送倒计时则走倒计时流程。
+ */
 public class TpCommand extends SubCommand {
 
-    public TpCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public TpCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 执行 /is tp 命令：解析目标岛屿、校验 TP 开关与落点安全后执行传送。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         if (args.length < 2) {
@@ -128,6 +139,7 @@ public class TpCommand extends SubCommand {
         return true;
     }
 
+    /** 列出所有重名岛屿的 ID 与岛主，供玩家用 ID 消歧。 */
     private void showIslandList(Player player, List<Island> islands) {
         MessageUtil.send(player, "tp.list.header");
         for (Island island : islands) {
@@ -139,6 +151,9 @@ public class TpCommand extends SubCommand {
         MessageUtil.send(player, "tp.list.footer");
     }
 
+    /**
+     * Tab 补全：第二参数补全岛屿名称；第三参数在重名时补全候选岛屿 ID。
+     */
     @Override
     public List<String> onTabComplete(Player player, String[] args) {
         if (args.length == 2) {

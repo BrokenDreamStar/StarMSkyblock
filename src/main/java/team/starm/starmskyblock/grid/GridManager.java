@@ -27,39 +27,9 @@ public class GridManager {
      * @return 包含中心区块坐标的 GridLocation 对象
      */
     public GridLocation getChunkLocation(int index) {
-        // 数学推导的 O(1) 螺旋坐标计算 (Ulam Spiral)
-        // 使用 1-based index 传入公式
-        int n = index + 1;
-        int k = (int) Math.ceil((Math.sqrt(n) - 1) / 2.0);
-        int t = 2 * k;
-        int m = (t + 1) * (t + 1);
-
-        int x = 0;
-        int z = 0;
-
-        // 根据 n 在螺旋上的位置确定 (x, z)
-        if (n >= m - t) {
-            x = k - (m - n);
-            z = -k;
-        } else {
-            m -= t;
-            if (n >= m - t) {
-                x = -k;
-                z = -k + (m - n);
-            } else {
-                m -= t;
-                if (n >= m - t) {
-                    x = -k + (m - n);
-                    z = k;
-                } else {
-                    x = k;
-                    z = k - (m - n - t);
-                }
-            }
-        }
-
-        // 计算出网格坐标后，乘以单个网格的尺寸，得到中心区块的坐标
-        return new GridLocation(x * gridCellSize, z * gridCellSize);
+        // Ulam 螺旋 O(1) 坐标计算抽至 UlamSpiral（可单测）；此处乘以网格单元尺寸得中心区块坐标
+        int[] offset = UlamSpiral.spiralOffset(index);
+        return new GridLocation(offset[0] * gridCellSize, offset[1] * gridCellSize);
     }
 
     /** 获取网格单元大小（区块数） */

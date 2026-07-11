@@ -15,6 +15,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 岛屿升级配置管理器（upgrades.yml）。
+ * <p>
+ * 加载两条升级路径的阶梯配置，供 Vault 经济扣费升级使用：
+ * <ul>
+ *   <li>岛屿半径升级（{@link RadiusUpgrade}）</li>
+ *   <li>刷石机等级升级（{@link GeneratorUpgrade}）</li>
+ * </ul>
+ * 升级档位按 tier 升序排列，{@code getNext*Upgrade} 返回首个超过当前值的档位。
+ */
 public class UpgradeConfigManager {
 
     private final StarMSkyblock plugin;
@@ -24,13 +34,16 @@ public class UpgradeConfigManager {
     private List<RadiusUpgrade> radiusUpgrades;
     private List<GeneratorUpgrade> generatorUpgrades;
 
+    /** 岛屿半径升级档位：达到该 tier 后岛屿半径扩展为 {@code radius}，花费 {@code money}。 */
     public record RadiusUpgrade(int tier, int radius, double money) {}
+    /** 刷石机等级升级档位：达到该 tier 后刷石机等级提升为 {@code generatorLevel}，花费 {@code money}。 */
     public record GeneratorUpgrade(int tier, int generatorLevel, double money) {}
 
     public UpgradeConfigManager(StarMSkyblock plugin) {
         this.plugin = plugin;
     }
 
+    /** 加载 upgrades.yml，若文件不存在则从 jar 释放默认配置。 */
     public void initialize() {
         configFile = new File(plugin.getDataFolder(), "upgrades.yml");
         if (!configFile.exists()) {
@@ -39,6 +52,7 @@ public class UpgradeConfigManager {
         reload();
     }
 
+    /** 重载配置并按 tier 升序重排两条升级路径。 */
     public void reload() {
         config = YamlConfiguration.loadConfiguration(configFile);
 
@@ -84,6 +98,12 @@ public class UpgradeConfigManager {
         MessageUtil.consolePrint("已加载升级配置");
     }
 
+    /**
+     * 返回首个半径超过当前值的升级档位。
+     *
+     * @param currentRadius 当前岛屿半径
+     * @return 下一档升级，已满级时返回 empty
+     */
     public Optional<RadiusUpgrade> getNextRadiusUpgrade(int currentRadius) {
         for (RadiusUpgrade upgrade : radiusUpgrades) {
             if (upgrade.radius() > currentRadius) {
@@ -93,6 +113,12 @@ public class UpgradeConfigManager {
         return Optional.empty();
     }
 
+    /**
+     * 返回首个等级超过当前值的刷石机升级档位。
+     *
+     * @param currentLevel 当前刷石机等级
+     * @return 下一档升级，已满级时返回 empty
+     */
     public Optional<GeneratorUpgrade> getNextGeneratorUpgrade(int currentLevel) {
         for (GeneratorUpgrade upgrade : generatorUpgrades) {
             if (upgrade.generatorLevel() > currentLevel) {

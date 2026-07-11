@@ -13,13 +13,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import team.starm.starmskyblock.StarMSkyblock;
 
+/**
+ * 岛屿信息查看命令（/is info）
+ * <p>
+ * 展示当前玩家所在岛屿的基本信息：名称、ID、等级、区块尺寸，
+ * 以及按角色分组（岛主/管理员/协管/成员）列出的成员名单。
+ */
 public class InfoCommand extends SubCommand {
 
-    public InfoCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public InfoCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 执行 /is info 命令：查询并展示玩家所在岛屿的信息。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         if (!assertMaxArgs(player, args, 1, "/is info")) return true;
@@ -81,6 +91,12 @@ public class InfoCommand extends SubCommand {
         return true;
     }
 
+    /**
+     * 获取玩家显示名：优先从数据库取玩家名，其次走 Bukkit 离线玩家缓存，均失败时返回占位文本。
+     *
+     * @param uuid 玩家 UUID
+     * @return 玩家名，无法解析时返回"未知"
+     */
     private String getPlayerNameWithFallback(UUID uuid) {
         Optional<String> dbName = plugin.getPlayerRepo().getPlayerName(uuid);
         if (dbName.isPresent()) return dbName.get();

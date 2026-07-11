@@ -17,8 +17,17 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
+/**
+ * 岛屿排行榜占位符处理器（前缀 {@code island_list_}）。
+ * <p>
+ * 提供按等级降序排列的岛屿列表渲染：分页（每页 {@value #ISLANDS_PER_PAGE} 项）、
+ * 槽位字段（名称/岛主/等级/成员/创建时间）等。
+ * <p>
+ * 排序列表带 1 秒 TTL 缓存（{@link #sortedIslandsCache}），避免每次 PAPI 刷新都重新排序全量岛屿。
+ */
 public class IslandListHandler {
 
+    /** 占位符前缀 */
     public static final String PREFIX = "island_list_";
 
     private static final String SIZE = "island_list_size";
@@ -31,8 +40,11 @@ public class IslandListHandler {
     private static final int ISLANDS_PER_PAGE = 28;
 
     private final StarMSkyblock plugin;
+    /** 按等级降序排列的岛屿缓存（volatile：写仅 reload 线程，读多线程）。 */
     private volatile List<Island> sortedIslandsCache;
+    /** 缓存写入时间戳，TTL 1 秒 */
     private volatile long sortedIslandsCacheTime;
+    /** 每个玩家当前查看的排行榜页码（用于多行占位符渲染） */
     private final Map<UUID, Integer> playerListPages = new ConcurrentHashMap<>();
 
     public IslandListHandler(StarMSkyblock plugin) {
@@ -59,6 +71,13 @@ public class IslandListHandler {
         getSortedIslands();
     }
 
+    /**
+     * 处理岛屿排行榜占位符请求。
+     *
+     * @param player 请求占位符的玩家
+     * @param params 占位符参数（含前缀）
+     * @return 渲染结果，无法识别时返回 null
+     */
     public String handle(Player player, String params) {
 
         try {
@@ -102,6 +121,7 @@ public class IslandListHandler {
         return null;
     }
 
+    /** 获取按等级降序排列的岛屿列表（带 1 秒 TTL 缓存）。 */
     private List<Island> getSortedIslands() {
 
         long now = System.currentTimeMillis();
@@ -133,6 +153,7 @@ public class IslandListHandler {
         return list;
     }
 
+    /** 解析 {@code island_list_<slot>_<field>} 格式的列表项占位符，按玩家当前页码定位槽位。 */
     private String handleListItem(Player player, String params) {
 
         try {

@@ -18,12 +18,27 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * /is task 子命令
+ * <p>
+ * 路由玩家任务相关操作：{@code list}（列出章节/任务，可按章节号过滤）、
+ * {@code submit}（手动提交 ITEM 型任务物品）、{@code claim}（领取已完成任务奖励）。
+ * submit/claim 均以 {@code <章节号> <任务号>} 定位任务。无子命令时等价于 list。
+ * </p>
+ */
 public class TaskCommand extends SubCommand {
 
     public TaskCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 分发子命令。
+     *
+     * @param player 执行者
+     * @param args   参数，args[1] 为子命令名
+     * @return 是否已处理
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         TaskManager taskManager = plugin.getTaskManager();
@@ -99,6 +114,14 @@ public class TaskCommand extends SubCommand {
         return true;
     }
 
+    /**
+     * 渲染任务列表文本。
+     * <p>按章节顺序输出，每章节先判锁定，再逐任务按状态选择图标：
+     * 章节或任务未解锁为锁、已 claim 为完成、可领取（非 ITEM 且已完成未 claim）为感叹号、否则为未完成。
+     * ITEM 型任务不显示"可领取"标记（需手动 submit）。</p>
+     *
+     * @param chapterFilter 章节号过滤，{@code -1} 表示不过滤
+     */
     private void showTaskList(Player player, TaskManager taskManager, int chapterFilter) {
         UUID uuid = player.getUniqueId();
         Map<String, TaskCategory> categories = taskManager.getTaskConfig().getCategories();
@@ -123,6 +146,7 @@ public class TaskCommand extends SubCommand {
                 } else {
                     TaskProgress prog = taskManager.getPlayerProgressMap(uuid).get(def.getId());
                     boolean completed = prog != null && prog.isClaimed();
+                    // ITEM 型需手动 submit，不展示"可领取"感叹号标记
                     boolean canComplete = def.getTaskType() == TaskType.ITEM
                             ? false
                             : (prog != null && !prog.isClaimed() && prog.isCompleted(def));
@@ -149,6 +173,9 @@ public class TaskCommand extends SubCommand {
         MessageUtil.send(player, "task.list.footer-claim");
     }
 
+    /**
+     * Tab 补全：第二参数补 list/submit/claim，其后补章节号、再补任务号。
+     */
     @Override
     public List<String> onTabComplete(Player player, String[] args) {
         TaskManager taskManager = plugin.getTaskManager();
@@ -187,6 +214,7 @@ public class TaskCommand extends SubCommand {
         return List.of();
     }
 
+    /** 不区分大小写的前缀过滤 */
     private static List<String> filterPrefix(List<String> options, String prefix) {
         String lower = prefix.toLowerCase();
         return options.stream()

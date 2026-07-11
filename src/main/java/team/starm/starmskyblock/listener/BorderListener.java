@@ -179,6 +179,11 @@ public class BorderListener implements Listener {
         return border;
     }
 
+    /**
+     * 根据岛屿中心区块与解锁半径构造 WorldBorder。
+     * <p>边长 = (半径*2+1)*16（半径以区块为单位，围绕中心区块向四周扩展），
+     * 中心取中心区块的方块中心（chunk*16+8）。</p>
+     */
     private static WorldBorder createIslandBorder(Island island, int radiusChunks) {
         double sideLength = (radiusChunks * 2 + 1) * 16.0;
         double centerX = island.getCenterChunkX() * 16.0 + 8.0;
@@ -190,5 +195,6 @@ public class BorderListener implements Listener {
         return border;
     }
 
+    /** 缓存的岛屿边界：记录构造时的半径，半径变更时丢弃旧对象重建 */
     private record CachedBorder(int radius, WorldBorder border) {}
 }

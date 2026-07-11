@@ -33,7 +33,8 @@ import java.util.function.BiConsumer;
  *   <li>通过公式将总经验换算为岛屿等级</li>
  * </ol>
  * <p>
- * 性能优化：每 tick 处理 16 区块，空区块跳过，异步方块计数。
+ * 性能优化：通过 Paper 的 getChunkAtAsync 异步加载区块（加载在 Paper 内部线程完成，
+ * 不阻塞主线程），空区块跳过，快照在主线程回调取回后提交异步线程做方块计数。
  */
 public class IslandLevelCalculator extends BukkitRunnable {
 
@@ -58,8 +59,10 @@ public class IslandLevelCalculator extends BukkitRunnable {
     /** 原始方块计数（未扣除基线、未应用限制，所有批次汇总后统一处理） */
     private final Map<Material, Long> rawTotalCounts = new HashMap<>();
 
-    /** 异步未完成任务计数 */
+    /** 异步方块计数任务计数（processSnapshots 在异步线程执行） */
     private final AtomicInteger pendingAsyncTasks = new AtomicInteger(0);
+    /** 飞行中的 getChunkAtAsync 请求数（区块加载在 Paper 异步线程，回调在主线程执行） */
+    private final AtomicInteger pendingChunkLoads = new AtomicInteger(0);
     /** 扫描结果 */
     private final LevelResults results = new LevelResults();
     /** 各世界已扫描区块数（processSnapshots 在异步线程累加，用原子类型避免并发丢增量） */
@@ -141,47 +144,83 @@ public class IslandLevelCalculator extends BukkitRunnable {
     // ==================== 阶段 2：逐批加载 + 提交异步处理 ====================
 
     private void loadingPhase() {
+        // 区块坐标队列已空 -> 进入等待阶段（可能仍有待回调的 getChunkAtAsync / processSnapshots）
+        if (chunkQueue.isEmpty()) {
+            phase = Phase.WAITING;
+            return;
+        }
+
         // 取下一批区块坐标
         List<ChunkPos> batch = new ArrayList<>();
         while (!chunkQueue.isEmpty() && batch.size() < BATCH_SIZE) {
             batch.add(chunkQueue.poll());
         }
 
-        if (batch.isEmpty()) {
-            // 所有区块已出队，等待异步任务完成
-            phase = Phase.WAITING;
-            return;
-        }
-
-        // 加载这批区块并取快照
-        List<SnapshotTask> snapshotTasks = new ArrayList<>();
+        // 展开本批的 (ChunkPos, World) 组合，跳过未生成的区块（避免无谓生成空空气区块）
+        List<ChunkPos> positions = new ArrayList<>();
+        List<World> targetWorlds = new ArrayList<>();
         for (ChunkPos pos : batch) {
             for (World world : worlds) {
                 if (!world.isChunkGenerated(pos.x, pos.z)) continue;
-                Chunk chunk = world.getChunkAt(pos.x, pos.z);
-                int minY = world.getMinHeight();
-                int maxY = world.getMaxHeight();
-                ChunkSnapshot snapshot = chunk.getChunkSnapshot();
-                if (snapshot != null) {
-                    snapshotTasks.add(new SnapshotTask(snapshot, pos.x, pos.z, minY, maxY));
-                }
+                positions.add(pos);
+                targetWorlds.add(world);
             }
         }
+        if (positions.isEmpty()) {
+            // 本批无可加载位置，下个 tick 继续取下一批
+            return;
+        }
 
-        // 提交异步处理
-        pendingAsyncTasks.incrementAndGet();
-        int remainingPositions = chunkQueue.size() * worlds.size();
+        // 用 Paper 的 getChunkAtAsync 异步加载区块：加载/生成在 Paper 内部线程完成，
+        // 回调在主线程执行（Paper 保证）。原实现 world.getChunkAt(...) 是主线程同步加载，
+        // 区块未驻留时会触发磁盘 IO / 区块生成，卡主线程（大半径岛屿可达数秒）。
+        // getChunkAtAsync 把加载移出主线程；回调内仅做 getChunkSnapshot（内存拷贝，远轻于加载）。
+        // 回调全在主线程，故 snapshotTasks / batchRemaining 的访问无并发问题；
+        // 提交 runTaskAsynchronously 时 scheduler 建立 happens-before，异步线程可见全部快照。
+        final List<SnapshotTask> snapshotTasks = new ArrayList<>();
+        final AtomicInteger batchRemaining = new AtomicInteger(positions.size());
+        final int remainingPositions = chunkQueue.size() * worlds.size();
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            processSnapshots(snapshotTasks, remainingPositions);
-            pendingAsyncTasks.decrementAndGet();
-        });
+        for (int i = 0; i < positions.size(); i++) {
+            final ChunkPos pos = positions.get(i);
+            final World world = targetWorlds.get(i);
+            pendingChunkLoads.incrementAndGet();
+            // getChunkAtAsync(x, z, gen) 返回 CompletableFuture，其完成始终在主线程（Paper 保证），
+            // 故 whenComplete 回调在主线程执行，getChunkSnapshot 线程安全。
+            // 用 whenComplete 而非 thenAccept：确保即使加载失败（future 异常完成）也递减计数，
+            // 否则 waitingPhase 会永久等待、等级计算卡死。gen=true 与原 getChunkAt 语义一致（加载或生成）。
+            world.getChunkAtAsync(pos.x, pos.z, true).whenComplete((chunk, ex) -> {
+                try {
+                    if (ex == null && chunk != null) {
+                        ChunkSnapshot snapshot = chunk.getChunkSnapshot();
+                        if (snapshot != null) {
+                            snapshotTasks.add(new SnapshotTask(snapshot, pos.x, pos.z,
+                                    world.getMinHeight(), world.getMaxHeight()));
+                        }
+                    } else if (ex != null) {
+                        MessageUtil.consoleWarn("等级扫描异步加载区块失败: " + world.getName()
+                                + " @(" + pos.x + "," + pos.z + "): " + ex.getMessage());
+                    }
+                } finally {
+                    pendingChunkLoads.decrementAndGet();
+                    // 本批全部回调完成 -> 提交异步方块计数
+                    if (batchRemaining.decrementAndGet() == 0) {
+                        pendingAsyncTasks.incrementAndGet();
+                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                            processSnapshots(snapshotTasks, remainingPositions);
+                            pendingAsyncTasks.decrementAndGet();
+                        });
+                    }
+                }
+            });
+        }
     }
 
     // ==================== 阶段 3：等待异步任务全部完成 ====================
 
     private void waitingPhase() {
-        if (pendingAsyncTasks.get() > 0) {
+        // 等待所有飞行中的 getChunkAtAsync 回调与异步方块计数任务全部完成
+        if (pendingChunkLoads.get() > 0 || pendingAsyncTasks.get() > 0) {
             return; // 继续等待
         }
         phase = Phase.FINISH;
@@ -225,11 +264,8 @@ public class IslandLevelCalculator extends BukkitRunnable {
 
             if (diminishingActive && expValue > 0) {
                 // 对超额部分应用递减公式：max(value / (1 + decay * i), minimum)
-                double decay = experienceConfig.getDiminishingDecay();
-                double minimum = experienceConfig.getDiminishingMinimum();
-                for (long i = 0; i < overLimit; i++) {
-                    exp += Math.round(Math.max(expValue / (1 + decay * i), minimum));
-                }
+                exp += LevelFormula.diminishingReturns(overLimit, expValue,
+                        experienceConfig.getDiminishingDecay(), experienceConfig.getDiminishingMinimum());
                 results.addBlockCount(material, overLimit);
                 results.addBlockOverLimit(material, overLimit);
             } else if (overLimit > 0) {
@@ -245,38 +281,17 @@ public class IslandLevelCalculator extends BukkitRunnable {
         int level;
 
         if (experienceConfig.hasLevelCost()) {
-            // 幂函数增长模型：cost(L) = round(base * L^power)
-            // 累计：total(L) = Σ round(base * i^power) for i = 1 to L
-            // 反推：遍历 L 从 1 递增累加，直到超出 totalExp
-            double base = experienceConfig.getLevelExpBase();
-            double power = experienceConfig.getLevelExpPower();
-
-            if (totalExp < Math.round(base)) {
-                level = 0;
-            } else {
-                double cumulative = 0;
-                int lvl = 0;
-                while (true) {
-                    lvl++;
-                    long cost = Math.round(base * Math.pow(lvl, power));
-                    if (cost <= 0) { // 防溢出/无限循环
-                        level = lvl - 1;
-                        break;
-                    }
-                    cumulative += cost;
-                    if (cumulative > totalExp) {
-                        level = lvl - 1;
-                        break;
-                    }
-                }
-            }
+            // 幂函数增长模型：cost(L) = round(base * L^power)，累计 total(L) = Σ cost(i)，反推等级。
+            // 溢出/退化（cost<=0）保护由 LevelFormula 内部处理，详见其单元测试。
+            level = LevelFormula.fromPowerCurve(totalExp,
+                    experienceConfig.getLevelExpBase(), experienceConfig.getLevelExpPower());
         } else {
             // 旧版公式回退（兼容 {points} 和 {experience}）
             String expr = experienceConfig.getLevelFormula()
                     .replace("{experience}", String.valueOf((long) totalExp))
                     .replace("{points}", String.valueOf((long) totalExp));
             try {
-                level = (int) Math.floor(evaluateSimpleExpression(expr));
+                level = (int) Math.floor(ExpressionParser.evaluate(expr));
             } catch (Exception e) {
                 MessageUtil.consoleError("等级公式计算失败: " + expr, e);
                 level = (int) (totalExp / 100);
@@ -333,61 +348,6 @@ public class IslandLevelCalculator extends BukkitRunnable {
         int done = results.getTotalChunksScanned() - remainingPositions + chunksScanned.get();
         int total = results.getTotalChunksScanned();
         levelManager.sendProgress(island.getOwnerId(), done, total);
-    }
-
-    // ==================== 简易表达式计算器 ====================
-
-    private static double evaluateSimpleExpression(String expr) {
-        expr = expr.trim().replaceAll("\\s+", "");
-        return parseAddSub(expr, new int[]{0});
-    }
-
-    private static double parseAddSub(String expr, int[] pos) {
-        double left = parseMulDiv(expr, pos);
-        while (pos[0] < expr.length()) {
-            char op = expr.charAt(pos[0]);
-            if (op == '+' || op == '-') {
-                pos[0]++;
-                double right = parseMulDiv(expr, pos);
-                left = (op == '+') ? left + right : left - right;
-            } else {
-                break;
-            }
-        }
-        return left;
-    }
-
-    private static double parseMulDiv(String expr, int[] pos) {
-        double left = parsePrimary(expr, pos);
-        while (pos[0] < expr.length()) {
-            char op = expr.charAt(pos[0]);
-            if (op == '*' || op == '/') {
-                pos[0]++;
-                double right = parsePrimary(expr, pos);
-                left = (op == '*') ? left * right : left / right;
-            } else {
-                break;
-            }
-        }
-        return left;
-    }
-
-    private static double parsePrimary(String expr, int[] pos) {
-        if (pos[0] >= expr.length()) return 0;
-        char c = expr.charAt(pos[0]);
-        if (c == '(') {
-            pos[0]++;
-            double val = parseAddSub(expr, pos);
-            if (pos[0] < expr.length() && expr.charAt(pos[0]) == ')') pos[0]++;
-            return val;
-        }
-        // 数字
-        int start = pos[0];
-        while (pos[0] < expr.length() && (Character.isDigit(expr.charAt(pos[0])) || expr.charAt(pos[0]) == '.')) {
-            pos[0]++;
-        }
-        if (start == pos[0]) return 0;
-        return Double.parseDouble(expr.substring(start, pos[0]));
     }
 
     // ==================== 内部类 ====================

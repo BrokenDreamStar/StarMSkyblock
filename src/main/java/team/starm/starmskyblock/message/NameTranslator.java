@@ -7,6 +7,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 
+/**
+ * 材质/实体名 -> 客户端可翻译组件转换器。
+ * <p>
+ * 将 Bukkit 的 {@link Material}/{@link EntityType} 枚举名（SCREAMING_SNAKE_CASE）解析为
+ * Adventure {@link Component#translatable(String)}，由客户端按自身语言设置渲染，
+ * 从而避免在服务端为每种语言维护翻译表。解析失败时回退为纯文本组件。
+ */
 public final class NameTranslator {
 
     private NameTranslator() {}

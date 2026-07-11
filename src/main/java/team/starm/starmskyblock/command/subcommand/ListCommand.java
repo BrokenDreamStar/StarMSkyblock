@@ -5,13 +5,22 @@ import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.List;
 import java.util.Map;
+import team.starm.starmskyblock.StarMSkyblock;
 
+/**
+ * {@code /is list} 子命令 -- 浏览岛屿列表翻页。
+ * <p>
+ * 依赖 PlaceholderAPI 扩展的页面状态，支持 next/prev/first 翻页操作。
+ */
 public class ListCommand extends SubCommand {
 
-    public ListCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public ListCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 执行翻页操作。PAPI 未加载或无参数时提示用法。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         var expansion = plugin.getSkyblockExpansion();
@@ -61,6 +70,7 @@ public class ListCommand extends SubCommand {
         return true;
     }
 
+    /** Tab 补全 next/prev/home。 */
     @Override
     public List<String> onTabComplete(Player player, String[] args) {
         if (args.length == 2) {

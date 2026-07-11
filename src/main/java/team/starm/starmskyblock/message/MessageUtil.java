@@ -3,6 +3,7 @@ package team.starm.starmskyblock.message;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
@@ -10,8 +11,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import org.bukkit.ChatColor;
 
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +56,8 @@ public class MessageUtil {
             .hexColors()
             .useUnusualXRepeatedCharacterHexFormat()
             .build();
+
+    private static final PlainTextComponentSerializer PLAIN_TEXT = PlainTextComponentSerializer.plainText();
 
     /**
      * 将包含颜色代码的字符串解析为 Component
@@ -111,7 +112,7 @@ public class MessageUtil {
      */
     public static void broadcast(@Nullable String message) {
         if (message == null) return;
-        Bukkit.broadcastMessage(colorize(message));
+        Bukkit.broadcast(SECTION_SERIALIZER.deserialize(colorize(message)));
     }
 
     // ==================== i18n key-based API ====================
@@ -146,7 +147,7 @@ public class MessageUtil {
      * 广播 i18n 消息（带命名占位符）。
      */
     public static void broadcastKey(@NotNull String key, @Nullable Map<String, ?> args) {
-        Bukkit.broadcastMessage(colorize(format(key, args)));
+        Bukkit.broadcast(SECTION_SERIALIZER.deserialize(colorize(format(key, args))));
     }
 
     /**
@@ -182,7 +183,7 @@ public class MessageUtil {
      */
     public static String stripColor(@Nullable String text) {
         if (text == null) return null;
-        return ChatColor.stripColor(ColorUtils.toColor(text));
+        return PLAIN_TEXT.serialize(parse(text));
     }
 
     /**

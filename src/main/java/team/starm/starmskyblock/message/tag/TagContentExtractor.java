@@ -9,6 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 颜色标签内容提取器。
+ * <p>
+ * 从文本中按标签名（{@code <tag>...</tag>}）或显式开闭标签提取 {@link TagContentInfo}，
+ * 支持属性标签（{@code <tag:attr>...</tag>}）、自闭合单标签、嵌套深度计数与大小写忽略。
+ * 是 {@code ColorUtils} 富文本着色管线的基础设施。来源于 LiteCommandEditor 项目。
+ */
 public class TagContentExtractor
 {
     /**
@@ -325,6 +332,12 @@ public class TagContentExtractor
         return results;
     }
 
+    /**
+     * 按起始位置升序排序标签列表，供需要按文本顺序处理标签的调用方使用。
+     *
+     * @param tags 待排序标签
+     * @return 升序排序后的新列表
+     */
     public static List<TagContentInfo> sortTags(List<TagContentInfo> tags) {
         return tags.stream().sorted((TagContentInfo tag1, TagContentInfo tag2) -> tag1.getStartPosition() > tag2.getStartPosition() ? 1 : -1).collect(Collectors.toList());
     }

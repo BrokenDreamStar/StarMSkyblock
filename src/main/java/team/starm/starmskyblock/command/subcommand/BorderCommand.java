@@ -2,15 +2,24 @@ package team.starm.starmskyblock.command.subcommand;
 
 import org.bukkit.entity.Player;
 import team.starm.starmskyblock.message.MessageUtil;
+import team.starm.starmskyblock.StarMSkyblock;
 
 import java.util.List;
 
+/**
+ * {@code /is border} 子命令 -- 查看或切换岛屿边界显示。
+ * <p>
+ * 支持 {@code true}/{@code false}/{@code toggle} 参数，无参数时显示当前状态。
+ */
 public class BorderCommand extends SubCommand {
 
-    public BorderCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public BorderCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 无参数显示当前边界状态；有参数则设置并立即刷新该玩家的边界。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         var borderListener = plugin.getBorderListener();
@@ -52,6 +61,7 @@ public class BorderCommand extends SubCommand {
         return true;
     }
 
+    /** Tab 补全 true/false/toggle。 */
     @Override
     public List<String> onTabComplete(Player player, String[] args) {
         if (args.length == 2) {

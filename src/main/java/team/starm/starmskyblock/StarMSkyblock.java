@@ -51,6 +51,14 @@ import me.arasple.mc.trmenu.module.internal.script.js.JavaScriptAgent;
 import team.starm.starmskyblock.world.SkyblockWorldManager;
 import team.starm.starmskyblock.task.TaskManager;
 import team.starm.starmskyblock.task.config.TaskConfigScanner;
+import net.milkbowl.vault.economy.Economy;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.server.PluginEnableEvent;
+import team.starm.starmskyblock.command.IslandCommand;
 
 /**
  * StarMSkyblock 插件的主入口类。
@@ -108,11 +116,11 @@ public class StarMSkyblock extends JavaPlugin {
     private TaskManager taskManager;
 
     // Vault 经济
-    private net.milkbowl.vault.economy.Economy economy;
+    private Economy economy;
 
     // 具名监听器字段（onDisable 时由 HandlerList.unregisterAll(this) 统一注销）
-    private org.bukkit.event.Listener skullRefreshListener;
-    private org.bukkit.event.Listener trMenuLateLoadListener;
+    private Listener skullRefreshListener;
+    private Listener trMenuLateLoadListener;
 
     /**
      * 插件启用入口。将初始化分解为独立步骤，保证依赖关系正确。
@@ -259,7 +267,7 @@ public class StarMSkyblock extends JavaPlugin {
     }
 
     private void initPermissions() {
-        permissionCoordinator = new IslandPermissionManager(islandManager, configManager, publicAreaConfigManager, lockedAreaConfigManager, this);
+        permissionCoordinator = new IslandPermissionManager(islandManager, configManager, publicAreaConfigManager, lockedAreaConfigManager, this, worldManager);
     }
 
     private void registerIntegrations() {
@@ -269,10 +277,10 @@ public class StarMSkyblock extends JavaPlugin {
             MessageUtil.consolePrint("已注册 PlaceholderAPI 扩展");
         }
 
-        skullRefreshListener = new org.bukkit.event.Listener() {
-            @org.bukkit.event.EventHandler
-            public void onJoin(org.bukkit.event.player.PlayerJoinEvent event) {
-                org.bukkit.entity.Player player = event.getPlayer();
+        skullRefreshListener = new Listener() {
+            @EventHandler
+            public void onJoin(PlayerJoinEvent event) {
+                Player player = event.getPlayer();
                 getServer().getScheduler().runTaskAsynchronously(
                         StarMSkyblock.this,
                         () -> SkullManager.refreshTexture(player.getUniqueId(), player.getName()));
@@ -281,9 +289,9 @@ public class StarMSkyblock extends JavaPlugin {
         getServer().getPluginManager().registerEvents(skullRefreshListener, this);
 
         // TrMenu 后加载场景：PluginEnableEvent 触发时再 hook 一次
-        trMenuLateLoadListener = new org.bukkit.event.Listener() {
-            @org.bukkit.event.EventHandler
-            public void onPluginEnable(org.bukkit.event.server.PluginEnableEvent event) {
+        trMenuLateLoadListener = new Listener() {
+            @EventHandler
+            public void onPluginEnable(PluginEnableEvent event) {
                 if ("TrMenu".equals(event.getPlugin().getName())) {
                     hookTrMenu();
                 }
@@ -343,7 +351,7 @@ public class StarMSkyblock extends JavaPlugin {
         teleportCountdownListener = new TeleportCountdownListener(this);
         getServer().getPluginManager().registerEvents(teleportCountdownListener, this);
 
-        new IslandSettingManager(islandManager, configManager, publicAreaConfigManager, lockedAreaConfigManager, this);
+        new IslandSettingManager(islandManager, configManager, publicAreaConfigManager, lockedAreaConfigManager, this, worldManager);
 
         getServer().getPluginManager().registerEvents(new EndProtectionListener(worldManager), this);
 
@@ -360,7 +368,7 @@ public class StarMSkyblock extends JavaPlugin {
 
         if (configManager.isObsidianToLava()) {
             getServer().getPluginManager().registerEvents(
-                    new ObsidianToLavaListener(islandManager, configManager, publicAreaConfigManager, lockedAreaConfigManager), this);
+                    new ObsidianToLavaListener(islandManager, configManager, publicAreaConfigManager, lockedAreaConfigManager, this, worldManager), this);
 //            MessageUtil.consolePrint("已注册黑曜石转熔岩监听器");
         }
 
@@ -377,8 +385,8 @@ public class StarMSkyblock extends JavaPlugin {
         }
 
         if (getCommand("is") != null) {
-            team.starm.starmskyblock.command.IslandCommand islandCmd =
-                    new team.starm.starmskyblock.command.IslandCommand(this);
+            IslandCommand islandCmd =
+                    new IslandCommand(this);
             islandCmd.registerCommands();
             getCommand("is").setExecutor(islandCmd);
             getCommand("is").setTabCompleter(islandCmd);
@@ -397,9 +405,9 @@ public class StarMSkyblock extends JavaPlugin {
 
         // 注销本插件注册的所有 Listener（含权限/设置组合监听器、skullRefresh、trMenuLateLoad 等），
         // 避免 /reload 后旧监听器残留导致内存泄漏和重复触发
-        org.bukkit.event.HandlerList.unregisterAll(this);
+        HandlerList.unregisterAll(this);
 
-        org.bukkit.Bukkit.getScheduler().cancelTasks(this);
+        Bukkit.getScheduler().cancelTasks(this);
 
         if (sqliteManager != null) {
             sqliteManager.close();
@@ -443,9 +451,9 @@ public class StarMSkyblock extends JavaPlugin {
         return languageManager;
     }
 
-    public net.milkbowl.vault.economy.Economy getEconomy() {
+    public Economy getEconomy() {
         if (economy == null) {
-            var rsp = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+            var rsp = getServer().getServicesManager().getRegistration(Economy.class);
             if (rsp != null && rsp.getPlugin().isEnabled()) {
                 economy = rsp.getProvider();
             }

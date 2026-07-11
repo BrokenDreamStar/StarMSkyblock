@@ -10,10 +10,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The project uses Gradle (Groovy DSL - `build.gradle`) with Shadow plugin. Output is a fat JAR. Gradle properties enable configuration cache, parallel builds, and build caching.
 
-- **Java toolchain**: 25 (runs on Paper 1.26.x servers, Java 21+)
-- **API target**: Spigot 26.1.2 (Paper)
+- **Java toolchain**: 25; bytecode target Java 25 (`options.release = 25`). Runtime requires Java 25 — Paper 26.1.2 stable's paper-api is Java 25 (class major 69), so any Paper 26.1.2 stable server is already Java 25. (Previously targeted Java 21 against a stale Java-17 `spigot-api` snapshot.)
+- **API target**: Paper API (`io.papermc.paper:paper-api:26.1.2.build.70-stable`, compileOnly) — superset of the Spigot API; provides Paper-only events (`EntityLoadCrossbowEvent`, `PlayerLaunchProjectileEvent`) used to intercept projectile consumption cleanly. VaultAPI's transitive `org.bukkit:bukkit` is excluded to avoid a capability conflict with paper-api's declared `org.bukkit:bukkit` capability.
 - Output JAR is a shadow (fat) JAR - all dependencies are bundled.
-- **No tests** - `./gradlew test` is not used in this project.
+- **Tests** - 纯逻辑单元测试（JUnit 5 Jupiter），覆盖 Ulam 螺旋 / 表达式解析器 / 等级公式 / 权限层级 / 坐标位打包；`./gradlew test` 执行（`./gradlew build` 自动跑），不依赖 Bukkit 运行时。纯逻辑抽成无 Bukkit 依赖的 helper 类（`level/ExpressionParser`、`level/LevelFormula`、`grid/UlamSpiral`、`util/BlockCoordKeys`）。
 - **Compile-only `libs/` jars** (must exist to compile, provided by the server at runtime via the respective soft-depend plugin):
   - `libs/AuraSkills-2.3.12.jar` - island level skill contribution
   - `libs/mcMMO.jar` - island level skill contribution (alternative to AuraSkills)

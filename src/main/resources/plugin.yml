@@ -6,7 +6,7 @@ api-version: '26.1.2'
 load: POSTWORLD
 softdepend: [ FastAsyncWorldEdit, WorldEdit, Multiverse-Core, PlaceholderAPI, TrMenu, Vault, AuraSkills, mcMMO ]
 
-authors: [ BrokenDream_Star,DeepSeek,Gemini,Grok ]
+authors: [ BrokenDream_Star,DeepSeek,GLM,Gemini,Kimi,Gork ]
 website: https://starm.team/
 description: StarM的空岛插件
 
@@ -27,3 +27,6 @@ permissions:
   skyblock.admin:
     description: 允许玩家使用管理员空岛命令
     default: op
+  skyblock.bypass:
+    description: 绕过所有岛屿权限检查(需配合 /isadmin bypass 开启)
+    default: false

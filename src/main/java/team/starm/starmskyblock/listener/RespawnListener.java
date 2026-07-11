@@ -22,12 +22,13 @@ import java.util.Optional;
  * 玩家在岛屿上死亡后将在岛屿的传送坐标处复活，
  * 从而避免出现"你的床或已充能的重生锚不存在"的提示。
  */
-public class
+public class RespawnListener implements Listener {
 
-RespawnListener implements Listener {
-
+    /** 岛屿管理器，根据玩家 UUID 查询其所属岛屿 */
     private final IslandManager islandManager;
+    /** 配置管理器，读取 set-respawn-on-join 开关、岛屿高度与传送偏移量 */
     private final ConfigManager configManager;
+    /** 世界管理器，根据岛屿自定义 home 的维度类型获取对应世界实例 */
     private final SkyblockWorldManager worldManager;
 
     public RespawnListener(IslandManager islandManager, ConfigManager configManager, SkyblockWorldManager worldManager) {
@@ -36,6 +37,14 @@ RespawnListener implements Listener {
         this.worldManager = worldManager;
     }
 
+    /**
+     * 监听玩家重生事件
+     * <p>
+     * 当配置项 {@code set-respawn-on-join} 启用且玩家无有效床/重生锚时，
+     * 依次尝试将重生点设为：玩家自定义岛屿 home（{@code /is setspawn}）、
+     * 岛屿默认传送点、配置的 fallback-spawn。
+     * </p>
+     */
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         if (!configManager.isSetRespawnOnJoin()) {

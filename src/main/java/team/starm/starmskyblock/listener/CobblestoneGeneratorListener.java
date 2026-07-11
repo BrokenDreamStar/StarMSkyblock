@@ -22,10 +22,25 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * 刷石机生成监听器
+ * <p>
+ * 拦截熔岩/水流动与方块生成事件，将原版圆石/玄武岩/石头产物替换为岛屿刷石机配置表中的加权随机方块。
+ * 根据岛屿所在维度（主世界/下界/末地）选取对应的产物列表，并对 Y0 以下方块应用深层岩变种替换。
+ * 监听两类事件：
+ * <ul>
+ *   <li>{@link BlockFromToEvent}：熔岩流向水/玄武岩生成器的主动拦截</li>
+ *   <li>{@link BlockFormEvent}：兜底拦截未在 from-to 阶段处理的圆石/玄武岩生成</li>
+ * </ul>
+ * </p>
+ */
 public class CobblestoneGeneratorListener implements Listener {
 
+    /** 刷石机配置，提供各等级各维度的加权产物表与深层岩开关 */
     private final GeneratorConfigManager generatorConfig;
+    /** 岛屿管理器，根据位置查询岛屿及其刷石机等级 */
     private final IslandManager islandManager;
+    /** 世界管理器，判定事件位置所在维度 */
     private final SkyblockWorldManager worldManager;
 
     public CobblestoneGeneratorListener(GeneratorConfigManager generatorConfig, IslandManager islandManager,
@@ -168,6 +183,7 @@ public class CobblestoneGeneratorListener implements Listener {
         return selected;
     }
 
+    /** 判断生成的方块类型是否属于本监听器应替换的刷石机产物（主世界/末地的圆石、下界的玄武岩） */
     private boolean isGeneratorProduct(Material type, String worldName) {
         if (type == Material.COBBLESTONE) {
             return worldManager.isNormalWorld(worldName) || worldManager.isEndWorld(worldName);
@@ -178,6 +194,7 @@ public class CobblestoneGeneratorListener implements Listener {
         return false;
     }
 
+    /** 根据维度从刷石机等级配置中取出对应的加权产物条目列表 */
     private List<GeneratorConfigManager.WeightedEntry> getDimensionEntries(GeneratorConfigManager.GeneratorTier tier, String worldName) {
         if (worldManager.isNormalWorld(worldName)) {
             return tier.normalEntries();
@@ -189,6 +206,11 @@ public class CobblestoneGeneratorListener implements Listener {
         return List.of();
     }
 
+    /**
+     * 按累计权重随机选取产物。
+     * <p>条目列表已按累计权重升序排列，对随机值做二分查找定位首个累计权重大于等于随机的条目。
+     * 用 {@link Collections#binarySearch} 替代线性遍历，产物表较大时从 O(n) 降到 O(log n)。</p>
+     */
     private Material selectMaterialFast(List<GeneratorConfigManager.WeightedEntry> entries) {
         if (entries.isEmpty()) return null;
         double totalWeight = entries.get(entries.size() - 1).cumulativeWeight();
@@ -202,6 +224,7 @@ public class CobblestoneGeneratorListener implements Listener {
         return Material.matchMaterial(entries.get(idx).material());
     }
 
+    /** 若岛屿在该维度禁用了选中的矿石，则回退为维度默认方块（玩家手动关闭特定矿石生成） */
     private Material applyGeneratorToggle(Material selected, Island island, String worldName, Material defaultBlock) {
         if (island.isGeneratorOreDisabled(getDimensionKey(worldName), selected.name())) {
             return defaultBlock;
@@ -209,6 +232,7 @@ public class CobblestoneGeneratorListener implements Listener {
         return selected;
     }
 
+    /** 将世界名映射为刷石机配置使用的维度键字符串（normal/end/nether） */
     private String getDimensionKey(String worldName) {
         if (worldManager.isNormalWorld(worldName)) return "normal";
         if (worldManager.isEndWorld(worldName)) return "end";
@@ -216,6 +240,7 @@ public class CobblestoneGeneratorListener implements Listener {
         return "normal";
     }
 
+    /** 判断方块是否为 level=0 的熔岩源（流熔岩 level>0 不视为源，避免触发黑曜石路径） */
     private boolean isLavaSource(Block block) {
         if (block.getBlockData() instanceof Levelled levelled) {
             return levelled.getLevel() == 0;
@@ -223,12 +248,17 @@ public class CobblestoneGeneratorListener implements Listener {
         return false;
     }
 
+    /** 各维度的默认回退方块：下界玄武岩、末地末地石、主世界圆石 */
     private Material getDimensionDefaultBlock(String worldName) {
         if (worldManager.isNetherWorld(worldName)) return Material.BASALT;
         if (worldManager.isEndWorld(worldName)) return Material.END_STONE;
         return Material.COBBLESTONE;
     }
 
+    /**
+     * 主世界 Y0 以下将普通矿石/石头替换为深层岩变种。
+     * <p>仅主世界生效；下界/末地原样返回。替换表覆盖圆石、石头及各类矿石。</p>
+     */
     private Material applyDeepslateReplacement(Material selected, Location loc, String worldName) {
         if (!worldManager.isNormalWorld(worldName)) return selected;
         if (!generatorConfig.isDeepslateEnabled()) return selected;

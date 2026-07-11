@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.md_5.bungee.api.ChatColor;
 import team.starm.starmskyblock.message.MessageUtil;
 
 import org.bukkit.Bukkit;
@@ -19,6 +18,16 @@ import org.bukkit.Bukkit;
 import team.starm.starmskyblock.message.tag.TagContentExtractor;
 import team.starm.starmskyblock.message.tag.TagContentInfo;
 
+/**
+ * 颜色解析核心工具类。
+ * <p>
+ * 统一处理传统颜色代码（{@code &}/{@code §}）、Hex 颜色（{@code &#RRGGBB}）以及
+ * 富文本标签（{@code <gradient>}/{@code <rainbow>}/{@code <color>}/{@code <transition>}）。
+ * 颜色标签的实际着色委托给 {@link FunctionalColor} 实现链，标签内容提取由
+ * {@link TagContentExtractor} 完成；本类负责串接「预着色 -> 标签着色 -> Hex 着色」三阶段管线。
+ * <p>
+ * 来源于 LiteCommandEditor 项目，经适配后用于本插件的颜色/消息系统。
+ */
 public class ColorUtils
 {
     private static final Map<Color, Character> colorRGBValues = new HashMap<>();
@@ -157,7 +166,7 @@ public class ColorUtils
         if (text == null) return text;
         try {
             //Preliminary coloring
-            String content = ChatColor.translateAlternateColorCodes('&', text);
+            String content = LegacyColor.translateAmp(text);
 
             //Functional coloring (Tag identification)
             for (FunctionalColor function : colors) content = function.coloring(content);
@@ -171,7 +180,7 @@ public class ColorUtils
             //Hexadecimal coloring
             List<String> hexadecimalColors = getHexadecimalColors(content);
             for (String color : hexadecimalColors) {
-                content = content.replace(color, isSupportsRGBVersions() ? ChatColor.of(color).toString() : ChatColor.getByChar(toNearestColor(color)).toString());
+                content = content.replace(color, isSupportsRGBVersions() ? LegacyColor.toLegacy(color) : LegacyColor.legacyChar(toNearestColor(color)));
             }
             return content;
         } catch (Exception ex) {
@@ -187,7 +196,7 @@ public class ColorUtils
      * @param previousTypeface Previous typeface of text
      * @return
      */
-    public static String coloring(String text, ChatColor[] colors, String previousTypeface) {
+    public static String coloring(String text, String[] colors, String previousTypeface) {
         if (text == null || text.isEmpty()) return text;
         StringBuilder builder = new StringBuilder();
         String colorName = "";

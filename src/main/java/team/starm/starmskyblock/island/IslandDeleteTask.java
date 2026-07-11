@@ -9,10 +9,13 @@ import org.bukkit.util.BoundingBox;
 import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.message.MessageUtil;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
- * 岛屿删除异步任务 —— 清空三个世界的方块 → 清理实体 → 删除数据库记录。
+ * 岛屿删除异步任务 -- 清空三个世界的方块 -> 清理实体 -> 删除数据库记录。
  * <p>
  * 分两步执行：
  * <ol>
@@ -42,7 +45,7 @@ public class IslandDeleteTask extends BukkitRunnable {
         this.maxDeleteTimes = maxDeleteTimes;
     }
 
-    /** 异步执行方块清空 → 调度主线程清理实体和数据库 */
+    /** 异步执行方块清空 -> 调度主线程清理实体和数据库 */
     @Override
     public void run() {
         try {
@@ -63,7 +66,7 @@ public class IslandDeleteTask extends BukkitRunnable {
             int maxZ = maxChunkZ * 16 + 15;
 
             // FAWE 引擎可在异步线程安全修改区块；标准 WorldEdit 必须在主线程执行，
-            // 否则会从异步线程直接改 chunk → 区块损坏。
+            // 否则会从异步线程直接改 chunk -> 区块损坏。
             boolean faweActive = plugin.getSchematicManager().isFaweActive();
 
             Runnable clearTask = () -> {
@@ -84,7 +87,7 @@ public class IslandDeleteTask extends BukkitRunnable {
             Runnable finalizeTask = () -> finalizeDeletion(world, netherWorld, endWorld, minX, maxX, minZ, maxZ);
 
             if (faweActive) {
-                // FAWE：异步线程清空方块 → 主线程清理实体和数据库
+                // FAWE：异步线程清空方块 -> 主线程清理实体和数据库
                 clearTask.run();
                 new BukkitRunnable() {
                     @Override
@@ -113,7 +116,7 @@ public class IslandDeleteTask extends BukkitRunnable {
                 public void run() {
                     Player player = Bukkit.getPlayer(playerUuid);
                     if (player != null && player.isOnline()) {
-                        player.sendMessage("§c删除岛屿时发生意外错误，请联系管理员！");
+                        MessageUtil.send(player, "island.delete.task-error");
                     }
                 }
             }.runTask(plugin);
@@ -129,10 +132,10 @@ public class IslandDeleteTask extends BukkitRunnable {
             // 玩家检测：用岛屿 chunk 集合做 O(1) 包含判定，替代对每个在线玩家
             // 调用 BoundingBox.contains(Vector)。高度信息对"是否站在岛上"无意义
             // （玩家在岛屿 XZ 范围内的任意高度都应被踢出）。
-            java.util.Set<Long> islandChunks = new java.util.HashSet<>();
+            Set<Long> islandChunks = new HashSet<>();
             for (int cz = minZ >> 4; cz <= maxZ >> 4; cz++) {
                 for (int cx = minX >> 4; cx <= maxX >> 4; cx++) {
-                    islandChunks.add(((long) cx << 32) | (cz & 0xffffffffL));
+                    islandChunks.add(GridKeys.encode(cx, cz));
                 }
             }
             for (Player p : Bukkit.getOnlinePlayers()) {
@@ -140,11 +143,10 @@ public class IslandDeleteTask extends BukkitRunnable {
                 boolean inSkyblockWorld = pWorld != null &&
                         (pWorld.equals(world) || pWorld.equals(netherWorld) || pWorld.equals(endWorld));
                 if (!inSkyblockWorld) continue;
-                long chunkKey = ((long) (p.getLocation().getBlockX() >> 4) << 32)
-                        | ((p.getLocation().getBlockZ() >> 4) & 0xffffffffL);
+                long chunkKey = GridKeys.encode(p.getLocation().getBlockX() >> 4, p.getLocation().getBlockZ() >> 4);
                 if (islandChunks.contains(chunkKey)) {
                     if (spawnLoc != null) p.teleport(spawnLoc);
-                    p.sendMessage("§c你的岛屿已被删除，你已被传送至主城！");
+                    MessageUtil.send(p, "island.delete.task-ejected");
                 }
             }
 
@@ -173,18 +175,20 @@ public class IslandDeleteTask extends BukkitRunnable {
 
                 Player player = Bukkit.getPlayer(playerUuid);
                 if (player != null && player.isOnline()) {
-                    player.sendMessage("§a岛屿已成功删除！你已删除 " + (deleteCount + 1) + "/" + maxDeleteTimes + " 次岛屿。");
+                    MessageUtil.send(player, "island.delete.task-success",
+                            Map.of("current", deleteCount + 1, "max", maxDeleteTimes));
                 }
 
                 for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                     if (onlinePlayer.hasPermission("skyblock.admin") && !onlinePlayer.getUniqueId().equals(playerUuid)) {
-                        onlinePlayer.sendMessage("§e玩家 " + (player != null ? player.getName() : playerUuid.toString()) + " 已删除其岛屿。");
+                        String displayName = (player != null) ? player.getName() : playerUuid.toString();
+                        MessageUtil.send(onlinePlayer, "island.delete.admin-broadcast", Map.of("player", displayName));
                     }
                 }
             } else {
                 Player player = Bukkit.getPlayer(playerUuid);
                 if (player != null && player.isOnline()) {
-                    player.sendMessage("§c删除岛屿数据时发生错误，请联系管理员！");
+                    MessageUtil.send(player, "island.delete.task-data-error");
                 }
             }
         } catch (Exception e) {
@@ -196,7 +200,7 @@ public class IslandDeleteTask extends BukkitRunnable {
     private void notifyError() {
         Player player = Bukkit.getPlayer(playerUuid);
         if (player != null && player.isOnline()) {
-            player.sendMessage("§c删除岛屿时发生意外错误，请联系管理员！");
+            MessageUtil.send(player, "island.delete.task-error");
         }
     }
 }

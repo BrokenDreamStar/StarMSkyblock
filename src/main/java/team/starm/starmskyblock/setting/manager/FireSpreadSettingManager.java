@@ -1,6 +1,7 @@
 package team.starm.starmskyblock.setting.manager;
 
 import org.bukkit.Material;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBurnEvent;
@@ -10,6 +11,7 @@ import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.config.PublicAreaConfigManager;
 import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.world.SkyblockWorldManager;
 import team.starm.starmskyblock.setting.BaseSettingManager;
 import team.starm.starmskyblock.setting.IslandSetting;
 
@@ -27,8 +29,9 @@ public class FireSpreadSettingManager extends BaseSettingManager {
 
     public FireSpreadSettingManager(IslandManager islandManager, ConfigManager configManager,
                                       PublicAreaConfigManager publicAreaConfig,
-                                      LockedAreaConfigManager lockedAreaConfig) {
-        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
+                                      LockedAreaConfigManager lockedAreaConfig,
+                                      JavaPlugin plugin, SkyblockWorldManager worldManager) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig, plugin, worldManager);
     }
 
     /**

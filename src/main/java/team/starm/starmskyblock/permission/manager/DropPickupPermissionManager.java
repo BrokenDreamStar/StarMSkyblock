@@ -19,6 +19,7 @@ import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.config.PublicAreaConfigManager;
 import team.starm.starmskyblock.island.IslandManager;
+import team.starm.starmskyblock.world.SkyblockWorldManager;
 import team.starm.starmskyblock.permission.IslandPermission;
 import team.starm.starmskyblock.permission.BasePermissionManager;
 
@@ -32,14 +33,11 @@ import team.starm.starmskyblock.permission.BasePermissionManager;
  */
 public class DropPickupPermissionManager extends BasePermissionManager {
 
-    /** 插件主类实例，用于调度任务 */
-    private final JavaPlugin plugin;
-
     public DropPickupPermissionManager(IslandManager islandManager, ConfigManager configManager,
                                           PublicAreaConfigManager publicAreaConfig,
-                                          LockedAreaConfigManager lockedAreaConfig, JavaPlugin plugin) {
-        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig);
-        this.plugin = plugin;
+                                          LockedAreaConfigManager lockedAreaConfig,
+                                          JavaPlugin plugin, SkyblockWorldManager worldManager) {
+        super(islandManager, configManager, publicAreaConfig, lockedAreaConfig, plugin, worldManager);
     }
 
     /**

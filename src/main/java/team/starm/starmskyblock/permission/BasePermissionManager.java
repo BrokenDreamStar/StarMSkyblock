@@ -13,14 +13,15 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Listener;
 
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import team.starm.starmskyblock.StarMSkyblock;
 import team.starm.starmskyblock.config.ConfigManager;
 import team.starm.starmskyblock.config.LockedAreaConfigManager;
 import team.starm.starmskyblock.config.PublicAreaConfigManager;
 import team.starm.starmskyblock.island.Island;
 import team.starm.starmskyblock.island.IslandManager;
 import team.starm.starmskyblock.message.MessageUtil;
+import team.starm.starmskyblock.world.SkyblockWorldManager;
 
 /**
  * 权限检查基类
@@ -45,6 +46,12 @@ public abstract class BasePermissionManager implements Listener {
     protected final PublicAreaConfigManager publicAreaConfig;
     /** 未解锁区域配置管理器 */
     protected final LockedAreaConfigManager lockedAreaConfig;
+    /** 插件主类实例，供子管理器调度同步任务（如 DropPickup 的 Bundle 还原、Tool 的实体状态同步）。
+     *  注入基类以统一 12 个子管理器的构造器签名，消除每子类各自获取 plugin 的不一致方式。 */
+    protected final JavaPlugin plugin;
+    /** 世界管理器，用于权限检查热路径上的 isSkyblockWorldName/isPublicWorld 判定。
+     *  原实现每次检查都走 {@code worldManager}，耦合全局单例且无法单测。 */
+    protected final SkyblockWorldManager worldManager;
     /** 记录每个玩家最近一次收到权限拒绝消息的时间戳，用于消息冷却防刷屏。
      *  synchronizedMap 包裹保证多线程访问安全（accessOrder=true 提供 LRU 淘汰，上限 256 条）。 */
     protected final Map<UUID, Long> lastDenyMessageTime = Collections.synchronizedMap(
@@ -66,13 +73,29 @@ public abstract class BasePermissionManager implements Listener {
                 }
             });
 
+    /** 全局无视权限开关。默认关闭：所有玩家(含OP)均需遵守岛屿权限。
+     *  开启后恢复原 bypass 行为(OP 与 skyblock.bypass 权限节点持有者绕过)。
+     *  仅存内存，服务器重启后恢复为关闭。由 /isadmin bypass 命令控制。 */
+    private static volatile boolean bypassEnabled = false;
+
+    public static boolean isBypassEnabled() {
+        return bypassEnabled;
+    }
+
+    public static void setBypassEnabled(boolean enabled) {
+        bypassEnabled = enabled;
+    }
+
     public BasePermissionManager(IslandManager islandManager, ConfigManager configManager,
                                   PublicAreaConfigManager publicAreaConfig,
-                                  LockedAreaConfigManager lockedAreaConfig) {
+                                  LockedAreaConfigManager lockedAreaConfig,
+                                  JavaPlugin plugin, SkyblockWorldManager worldManager) {
         this.islandManager = islandManager;
         this.configManager = configManager;
         this.publicAreaConfig = publicAreaConfig;
         this.lockedAreaConfig = lockedAreaConfig;
+        this.plugin = plugin;
+        this.worldManager = worldManager;
     }
 
     /**
@@ -103,9 +126,9 @@ public abstract class BasePermissionManager implements Listener {
      * 统一的权限检查方法（使用最大岛屿范围）
      */
     public boolean checkPermission(Location location, UUID uuid, IslandPermission permission) {
-        // OP 或拥有 skyblock.bypass 权限节点的玩家可以绕过所有权限检查
+        // 全局无视权限开关开启时，OP 或拥有 skyblock.bypass 权限节点的玩家可以绕过所有权限检查
         Player bypassPlayer = Bukkit.getPlayer(uuid);
-        if (bypassPlayer != null && (bypassPlayer.isOp() || bypassPlayer.hasPermission("skyblock.bypass"))) {
+        if (bypassPlayer != null && isBypassEnabled() && (bypassPlayer.isOp() || bypassPlayer.hasPermission("skyblock.bypass"))) {
             return true;
         }
         if (bypassPlayer == null) {
@@ -120,7 +143,7 @@ public abstract class BasePermissionManager implements Listener {
      * 权限检查重载 —— 当调用方已持有 Player 引用时直接传入,免去内部 Bukkit.getPlayer(uuid) 反查。
      */
     public boolean checkPermission(Location location, Player player, IslandPermission permission) {
-        if (player.isOp() || player.hasPermission("skyblock.bypass")) {
+        if (isBypassEnabled() && (player.isOp() || player.hasPermission("skyblock.bypass"))) {
             return true;
         }
         return check(resolve(location, player), permission);
@@ -158,7 +181,7 @@ public abstract class BasePermissionManager implements Listener {
      * chunk 坐标计算等开销(原实现每次 checkPermission 都重复 7-8 次同样的解析)。
      */
     public PermissionCheckResult resolve(Location location, Player player) {
-        if (player.isOp() || player.hasPermission("skyblock.bypass")) {
+        if (isBypassEnabled() && (player.isOp() || player.hasPermission("skyblock.bypass"))) {
             return PermissionCheckResult.bypass(player);
         }
         World world = location.getWorld();
@@ -169,8 +192,8 @@ public abstract class BasePermissionManager implements Listener {
             return r;
         }
         String worldName = world.getName();
-        if (!StarMSkyblock.getInstance().getWorldManager().isSkyblockWorldName(worldName)) {
-            boolean inPublicWorld = StarMSkyblock.getInstance().getWorldManager().isPublicWorld(worldName);
+        if (!worldManager.isSkyblockWorldName(worldName)) {
+            boolean inPublicWorld = worldManager.isPublicWorld(worldName);
             PermissionCheckResult r = PermissionCheckResult.outsideSkyblockWorld(player, inPublicWorld);
             lastCheckResult.put(player.getUniqueId(), r);
             return r;
@@ -204,8 +227,8 @@ public abstract class BasePermissionManager implements Listener {
             return r;
         }
         String worldName = world.getName();
-        if (!StarMSkyblock.getInstance().getWorldManager().isSkyblockWorldName(worldName)) {
-            boolean inPublicWorld = StarMSkyblock.getInstance().getWorldManager().isPublicWorld(worldName);
+        if (!worldManager.isSkyblockWorldName(worldName)) {
+            boolean inPublicWorld = worldManager.isPublicWorld(worldName);
             PermissionCheckResult r = PermissionCheckResult.outsideSkyblockWorld(uuid, inPublicWorld);
             lastCheckResult.put(uuid, r);
             return r;

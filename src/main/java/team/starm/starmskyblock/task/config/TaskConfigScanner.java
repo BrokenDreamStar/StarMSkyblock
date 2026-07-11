@@ -22,18 +22,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * 任务配置扫描器
+ * <p>
+ * 启动时从 {@code plugins/StarMSkyblock/tasks/} 读取章节索引文件 {@code tasks.yml}
+ * 与各章节目录下的任务 YAML，构建四套索引：按章节 ID、按任务 ID、按类型、按材料。
+ * 内置任务文件在首次运行时从 jar 资源释放（已存在则跳过，不覆盖用户改动）。
+ * </p>
+ */
 public class TaskConfigScanner {
 
     private final StarMSkyblock plugin;
+    /** 任务根目录 {@code plugins/StarMSkyblock/tasks/} */
     private File tasksDir;
+    /** 章节索引文件 {@code tasks/tasks.yml} */
     private File configFile;
 
+    /** 章节目录名 -> {@link TaskCategory} */
     private Map<String, TaskCategory> categories;
+    /** 任务 ID -> {@link TaskDefinition}（全量任务索引） */
     private Map<String, TaskDefinition> taskIndex;
+    /** 任务类型 -> 该类型任务列表，供监听器按类型查找相关任务 */
     private Map<TaskType, List<TaskDefinition>> typeIndex;
-    /** 材料→任务索引：用于 BLOCK_BREAK/BLOCK_PLACE 快速查找相关任务 */
+    /** 材料->任务索引：用于 BLOCK_BREAK/BLOCK_PLACE 快速查找相关任务 */
     private Map<String, Set<TaskDefinition>> materialTaskIndex;
 
+    /** 内置任务资源路径（相对 tasks/ 目录），首次启动时从 jar 释放 */
     private static final String[] BUILTIN_TASKS = {
         "tasks.yml",
         "Chapter1/task1_1.yml",
@@ -69,6 +83,7 @@ public class TaskConfigScanner {
         this.plugin = plugin;
     }
 
+    /** 初始化目录、释放内置任务文件并执行首次扫描 */
     public void initialize() {
         tasksDir = new File(plugin.getDataFolder(), "tasks");
         if (!tasksDir.exists()) tasksDir.mkdirs();
@@ -77,6 +92,7 @@ public class TaskConfigScanner {
         scan();
     }
 
+    /** 从 jar 释放内置任务文件，已存在的保留不动以尊重用户改动 */
     private void extractBuiltinTasks() {
         int created = 0;
         for (String path : BUILTIN_TASKS) {
@@ -96,6 +112,12 @@ public class TaskConfigScanner {
         }
     }
 
+    /**
+     * 扫描 tasks.yml 与各章节任务文件，重建四套索引。
+     * <p>章节以 tasks.yml 的 {@code Chapters.<n>} 声明，含 {@code directory}、{@code name}、
+     * {@code tasks}（任务文件名列表）、可选 {@code required}（前置章节 ID）。
+     * 扫描完成后单独构建材料索引以加速方块类事件。</p>
+     */
     public void scan() {
         categories = new LinkedHashMap<>();
         taskIndex = new LinkedHashMap<>();
@@ -171,7 +193,7 @@ public class TaskConfigScanner {
 
         MessageUtil.consolePrint("已加载任务配置 共" + categories.size() + "个章节 " + taskIndex.size() + "个任务");
 
-        // 构建材料→任务索引，加速 BLOCK_BREAK/BLOCK_PLACE 事件处理
+        // 构建材料->任务索引，加速 BLOCK_BREAK/BLOCK_PLACE 事件处理
         for (TaskDefinition def : taskIndex.values()) {
             TaskType type = def.getTaskType();
             if (type != TaskType.BLOCK_BREAK && type != TaskType.BLOCK_PLACE) continue;
@@ -183,6 +205,17 @@ public class TaskConfigScanner {
         }
     }
 
+    /**
+     * 解析单个任务 YAML 文件为 {@link TaskDefinition}。
+     * <p>读取 name/description/task_type/task_required/only-natural/request/reward 等字段，
+     * 任一必填字段缺失则记录告警并返回 null。{@code request} 段按多组需求解析（组间 AND、组内 OR）。</p>
+     *
+     * @param file           任务文件
+     * @param categoryId     所属章节目录名
+     * @param missionId      任务全 ID（目录/文件名）
+     * @param missionNumber  章节内序号
+     * @return 解析得到的任务定义，校验失败返回 null
+     */
     private TaskDefinition parseMissionFile(File file, String categoryId, String missionId, int missionNumber) {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
 
@@ -236,6 +269,7 @@ public class TaskConfigScanner {
                 taskType, requiredMissions, onlyNatural, requirements, rewards);
     }
 
+    /** 解析 task_required 字段，兼容列表与单字符串两种写法（{@code []} 视为空） */
     private List<String> parseRequiredMissions(YamlConfiguration config) {
         if (config.isList("task_required")) {
             return config.getStringList("task_required");
@@ -248,12 +282,14 @@ public class TaskConfigScanner {
         return Collections.emptyList();
     }
 
+    /** 读取 reward.money，无 reward 段返回 0 */
     private double parseRewardMoney(YamlConfiguration config) {
         ConfigurationSection rewardSection = config.getConfigurationSection("reward");
         if (rewardSection == null) return 0;
         return rewardSection.getDouble("money", 0);
     }
 
+    /** 读取 reward.command 列表，无则返回空列表 */
     private List<String> parseRewardCommands(YamlConfiguration config) {
         ConfigurationSection rewardSection = config.getConfigurationSection("reward");
         if (rewardSection == null) return Collections.emptyList();
@@ -261,6 +297,7 @@ public class TaskConfigScanner {
         return cmds != null ? cmds : Collections.emptyList();
     }
 
+    /** 读取 reward.item 物品奖励列表，逐条解析 material+amount */
     private List<TaskReward.ItemReward> parseRewardItems(YamlConfiguration config) {
         ConfigurationSection rewardSection = config.getConfigurationSection("reward");
         if (rewardSection == null) return Collections.emptyList();
@@ -291,6 +328,7 @@ public class TaskConfigScanner {
         return materialTaskIndex.getOrDefault(material, Collections.emptySet());
     }
 
+    /** 按章节号 + 任务号定位任务（用于 /is task submit/claim） */
     public TaskDefinition getTaskByChapterAndMission(int chapterNumber, int missionNumber) {
         for (TaskCategory cat : categories.values()) {
             if (cat.getChapterNumber() == chapterNumber) {
@@ -304,6 +342,7 @@ public class TaskConfigScanner {
         return null;
     }
 
+    /** 按章节号定位章节 */
     public TaskCategory getCategoryByChapterNumber(int chapterNumber) {
         for (TaskCategory cat : categories.values()) {
             if (cat.getChapterNumber() == chapterNumber) {
@@ -313,6 +352,7 @@ public class TaskConfigScanner {
         return null;
     }
 
+    /** 反查任务所属章节号，找不到返回 0 */
     public int getChapterNumberByTaskId(String taskId) {
         TaskDefinition def = taskIndex.get(taskId);
         if (def == null) return 0;
@@ -324,10 +364,12 @@ public class TaskConfigScanner {
         return 0;
     }
 
+    /** 判断给定 ID 是否为章节 ID（用于 task_required 中区分章节级与任务级前置） */
     public boolean isChapterId(String id) {
         return categories.containsKey(id);
     }
 
+    /** 返回章节内全部任务 ID（用于章节级前置解锁判定） */
     public List<String> getChapterTaskIds(String chapterId) {
         TaskCategory cat = categories.get(chapterId);
         if (cat == null) return Collections.emptyList();

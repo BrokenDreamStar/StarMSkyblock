@@ -14,14 +14,26 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import team.starm.starmskyblock.StarMSkyblock;
 
+/**
+ * 全岛生物群系设置命令（/is setbiome <生物群系> [confirm]）
+ * <p>
+ * 批量修改整座岛屿有效半径内所有区块的生物群系。因涉及区块数量较多，
+ * 首次执行需玩家追加 {@code confirm} 确认以避免误操作。仅覆盖主世界与下界，末地不支持。
+ * 需 SET_BIOME 权限。类上 {@code @SuppressWarnings("deprecation")} 用于
+ * {@code World.setBiome(int,int,int,Biome)} 旧重载。
+ */
 @SuppressWarnings("deprecation")
 public class SetBiomeCommand extends SubCommand {
 
-    public SetBiomeCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public SetBiomeCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 执行 /is setbiome 命令：未确认时给出影响区块数提示，确认后批量修改全岛生物群系。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         var optionalIsland = plugin.getIslandManager().getIslandByPlayer(player.getUniqueId());
@@ -114,6 +126,9 @@ public class SetBiomeCommand extends SubCommand {
         return true;
     }
 
+    /**
+     * Tab 补全：第二参数按玩家当前维度补全可用生物群系显示名。
+     */
     @Override
     public List<String> onTabComplete(Player player, String[] args) {
         if (args.length == 2) {

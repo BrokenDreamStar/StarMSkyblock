@@ -1070,7 +1070,7 @@ level-cost:
 # 技能等级对岛屿等级的贡献配置
 # 岛屿所有成员的技能 PowerLevel 总和将按比例转换为额外的岛屿等级
 # ============================================
-auraskills:
+skill-contribution:
   # 选择技能插件类型: auraskills | mcmmo
   type: mcmmo
   # 是否启用技能加成

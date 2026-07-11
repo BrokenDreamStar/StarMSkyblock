@@ -10,13 +10,23 @@ import team.starm.starmskyblock.message.MessageUtil;
 
 import java.util.Map;
 import java.util.Optional;
+import team.starm.starmskyblock.StarMSkyblock;
 
+/**
+ * {@code /is spawn} 子命令 -- 传送回岛屿出生点。
+ * <p>
+ * 优先使用自定义出生点(由 {@code /is setspawn} 设置)；无自定义出生点时
+ * 按蓝图偏移回到岛屿默认生成位置。位置不安全时需 {@code confirm} 确认强制传送。
+ */
 public class SpawnCommand extends SubCommand {
 
-    public SpawnCommand(team.starm.starmskyblock.StarMSkyblock plugin) {
+    public SpawnCommand(StarMSkyblock plugin) {
         super(plugin);
     }
 
+    /**
+     * 计算出生点位置并传送。位置不安全时提示需 confirm 确认。
+     */
     @Override
     public boolean execute(Player player, String[] args) {
         if (!assertMaxArgs(player, args, 2, "/is spawn [confirm]")) return true;
