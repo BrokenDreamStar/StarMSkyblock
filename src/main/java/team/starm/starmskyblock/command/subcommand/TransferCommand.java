@@ -88,7 +88,7 @@ public class TransferCommand extends SubCommand {
     }
 
     /**
-     * Tab 补全：补全当前岛屿成员中权限等级低于岛主的玩家名（用于转让目标选择）
+     * Tab 补全：补全当前岛屿所有成员的玩家名（用于选择转让目标）
      */
     @Override
     public List<String> onTabComplete(Player player, String[] args) {

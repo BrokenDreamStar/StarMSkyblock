@@ -148,6 +148,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         MessageUtil.send(player, "help.entry.upgrade");
         MessageUtil.send(player, "help.entry.level");
         MessageUtil.send(player, "help.entry.top");
+        MessageUtil.send(player, "help.entry.transfer");
     }
 
     @Override
