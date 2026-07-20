@@ -45,7 +45,7 @@ public class Island {
     /**
      * 岛主 UUID
      */
-    private final UUID ownerId;
+    private UUID ownerId;
     /**
      * 岛屿显示名称
      */
@@ -218,6 +218,10 @@ public class Island {
 
     public UUID getOwnerId() {
         return ownerId;
+    }
+
+    public void setOwnerId(UUID ownerId) {
+        this.ownerId = ownerId;
     }
 
     public String getName() {
