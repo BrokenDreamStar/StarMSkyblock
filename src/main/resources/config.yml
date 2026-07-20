@@ -69,9 +69,9 @@ max-delete-times: 3
 
 # 传送点设置权限配置
 # 是否允许玩家在下界使用 /is setspawn 设置岛屿传送点
-allow-setspawn-in-nether: true
+allow-setspawn-in-nether: false
 # 是否允许玩家在末地使用 /is setspawn 设置岛屿传送点
-allow-setspawn-in-end: true
+allow-setspawn-in-end: false
 
 # 是否允许玩家在岛屿下界维度放置末地传送门
 allow-end-portal-in-nether: false

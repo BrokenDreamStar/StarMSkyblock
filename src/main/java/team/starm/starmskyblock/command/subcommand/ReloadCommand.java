@@ -38,7 +38,7 @@ public class ReloadCommand extends AdminSubCommand {
         plugin.getLanguageManager().reload();
 
         long elapsed = System.currentTimeMillis() - start;
-        MessageUtil.send(sender, "command.admin.reload-success", Map.of("elapsed", elapsed));
+        MessageUtil.send(sender, "command.is.admin.reload-success", Map.of("elapsed", elapsed));
         return true;
     }
 }

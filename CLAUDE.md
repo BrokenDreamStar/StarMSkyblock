@@ -31,8 +31,8 @@ Each step is a private `init*()` method; order encodes the dependency graph.
 1. `printLogo()` then `checkWorldEdit()` -> abort (disable plugin) if WorldEdit/FAWE absent
 2. `initConfigs()` - initialize **7** config managers: `ConfigManager`, `PermissionConfigManager`, `SettingsConfigManager`, `GeneratorConfigManager`, `UpgradeConfigManager`, `PublicAreaConfigManager`, `LockedAreaConfigManager` (the last two wrap the permission config manager). The old per-feature `sign` config was merged into the main config system.
 3. `initLanguage()` - `LanguageManager` (i18n), injected into `MessageUtil` (see i18n section)
-4. `extractSchematics()` - async file IO, extracts built-in `.schem` files to `plugins/StarMSkyblock/schematics/`
-5. `initDatabase()` - open SQLite, run migrations; `PlayerRepository` warms up its name cache async
+4. `extractSchematics()` - extracts built-in `.schem` files to `plugins/StarMSkyblock/schematics/`
+5. `initDatabase()` - open SQLite, run migrations; `PlayerRepository` warms up its name cache
 6. `initTasks()` - `TaskConfigScanner` + `TaskManager` (must come after DB, before islands)
 7. `initSchematicManager()` - load schematics via WorldEdit API
 8. `initGridAndIslands()` - `GridManager` + `IslandManager`, loads all islands from DB into in-memory indices

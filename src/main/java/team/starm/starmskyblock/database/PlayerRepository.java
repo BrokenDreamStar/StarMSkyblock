@@ -64,8 +64,7 @@ public class PlayerRepository {
         try {
             playerNameCache.put(uuid, playerName);
             nameToUuidCache.put(playerName.toLowerCase(), uuid);
-            Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, uuid.toString());
                 pstmt.setString(2, playerName);
                 pstmt.executeUpdate();
@@ -90,8 +89,7 @@ public class PlayerRepository {
         String sql = "SELECT player_name FROM players WHERE player_uuid = ?";
         dbLock.readLock().lock();
         try {
-            Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, uuid.toString());
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
@@ -122,8 +120,7 @@ public class PlayerRepository {
         String sql = "SELECT player_uuid FROM players WHERE LOWER(player_name) = ?";
         dbLock.readLock().lock();
         try {
-            Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, playerName.toLowerCase());
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
@@ -148,8 +145,7 @@ public class PlayerRepository {
         String sql = "SELECT border_enabled FROM players WHERE player_uuid = ?";
         dbLock.readLock().lock();
         try {
-            Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, playerUuid.toString());
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
@@ -173,8 +169,7 @@ public class PlayerRepository {
         String sql = "SELECT border_enabled FROM players WHERE player_uuid = ?";
         dbLock.readLock().lock();
         try {
-            Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, playerUuid.toString());
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
@@ -195,8 +190,7 @@ public class PlayerRepository {
                 "ON CONFLICT(player_uuid) DO UPDATE SET border_enabled = excluded.border_enabled";
         dbLock.writeLock().lock();
         try {
-            Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, playerUuid.toString());
                 pstmt.setBoolean(2, enabled);
                 pstmt.executeUpdate();
@@ -223,8 +217,7 @@ public class PlayerRepository {
         String sql = "SELECT first_nether_join FROM players WHERE player_uuid = ?";
         dbLock.readLock().lock();
         try {
-            Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, playerUuid.toString());
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
@@ -249,8 +242,7 @@ public class PlayerRepository {
         dbLock.writeLock().lock();
         try {
             firstNetherJoinCache.put(playerUuid, firstJoin);
-            Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, playerUuid.toString());
                 pstmt.setBoolean(2, firstJoin);
                 pstmt.executeUpdate();
@@ -272,8 +264,7 @@ public class PlayerRepository {
         String sql = "SELECT tasks FROM players WHERE player_uuid = ?";
         dbLock.readLock().lock();
         try {
-            Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, playerUuid.toString());
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
@@ -289,42 +280,54 @@ public class PlayerRepository {
         return "{}";
     }
 
-    public void saveTasks(UUID playerUuid, String tasksJson) {
+    /**
+     * 保存单个玩家任务进度。
+     * @return true 保存成功，false 保存失败（已记录错误日志）
+     */
+    public boolean saveTasks(UUID playerUuid, String tasksJson) {
         String sql = "INSERT INTO players (player_uuid, player_name, tasks) VALUES (?, '', ?) " +
                 "ON CONFLICT(player_uuid) DO UPDATE SET tasks = excluded.tasks";
         dbLock.writeLock().lock();
         try {
-            Connection conn = sqliteManager.getConnection();
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(sql)) {
                 pstmt.setString(1, playerUuid.toString());
                 pstmt.setString(2, tasksJson);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
                 MessageUtil.consoleError("保存任务数据失败！UUID: " + playerUuid, e);
+                return false;
             }
         } finally {
             dbLock.writeLock().unlock();
         }
+        return true;
     }
 
-    public void batchSaveTasks(Map<UUID, String> playerTasks) {
-        if (playerTasks == null || playerTasks.isEmpty()) return;
+    /**
+     * 批量保存任务进度。
+     * @return true 全部保存成功，false 保存失败（已记录错误日志，调用方应保留脏标记以便重试）
+     */
+    public boolean batchSaveTasks(Map<UUID, String> playerTasks) {
+        if (playerTasks == null || playerTasks.isEmpty()) return true;
         String sql = "INSERT INTO players (player_uuid, player_name, tasks) VALUES (?, '', ?) " +
                 "ON CONFLICT(player_uuid) DO UPDATE SET tasks = excluded.tasks";
         try {
             sqliteManager.executeInTransaction(conn -> {
-                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                    for (Map.Entry<UUID, String> entry : playerTasks.entrySet()) {
-                        pstmt.setString(1, entry.getKey().toString());
-                        pstmt.setString(2, entry.getValue());
-                        pstmt.addBatch();
-                    }
-                    pstmt.executeBatch();
+                // 注意：不使用 try-with-resources——prepareCached 返回的语句由缓存管理生命周期，
+                // 关闭它会破坏缓存导致下一个调用方拿不到。见 OPTIMIZATION.md #10。
+                PreparedStatement pstmt = sqliteManager.prepareCached(sql);
+                for (Map.Entry<UUID, String> entry : playerTasks.entrySet()) {
+                    pstmt.setString(1, entry.getKey().toString());
+                    pstmt.setString(2, entry.getValue());
+                    pstmt.addBatch();
                 }
+                pstmt.executeBatch();
                 return null;
             });
+            return true;
         } catch (SQLException e) {
             MessageUtil.consoleError("批量保存任务数据失败！", e);
+            return false;
         }
     }
 

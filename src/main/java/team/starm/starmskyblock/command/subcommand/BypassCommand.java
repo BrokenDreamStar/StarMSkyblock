@@ -35,19 +35,19 @@ public class BypassCommand extends AdminSubCommand {
         switch (args[1].toLowerCase()) {
             case "on" -> {
                 BasePermissionManager.setBypassEnabled(true);
-                MessageUtil.send(sender, "command.admin.bypass-enabled");
+                MessageUtil.send(sender, "command.is.admin.bypass-enabled");
             }
             case "off" -> {
                 BasePermissionManager.setBypassEnabled(false);
-                MessageUtil.send(sender, "command.admin.bypass-disabled");
+                MessageUtil.send(sender, "command.is.admin.bypass-disabled");
             }
             case "toggle" -> {
                 boolean now = !BasePermissionManager.isBypassEnabled();
                 BasePermissionManager.setBypassEnabled(now);
-                MessageUtil.send(sender, now ? "command.admin.bypass-enabled" : "command.admin.bypass-disabled");
+                MessageUtil.send(sender, now ? "command.is.admin.bypass-enabled" : "command.is.admin.bypass-disabled");
             }
             case "status" -> sendStatus(sender);
-            default -> MessageUtil.send(sender, "command.admin.usage-bypass");
+            default -> MessageUtil.send(sender, "command.is.admin.usage-bypass");
         }
         return true;
     }
@@ -55,7 +55,7 @@ public class BypassCommand extends AdminSubCommand {
     /** 向发送方报告当前 bypass 开关的启用/关闭状态。 */
     private void sendStatus(CommandSender sender) {
         MessageUtil.send(sender, BasePermissionManager.isBypassEnabled()
-                ? "command.admin.bypass-status-on" : "command.admin.bypass-status-off");
+                ? "command.is.admin.bypass-status-on" : "command.is.admin.bypass-status-off");
     }
 
     /** Tab 补全：第二参数补全 on/off/toggle/status。 */

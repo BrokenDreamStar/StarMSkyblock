@@ -133,8 +133,7 @@ public class StarMSkyblock extends JavaPlugin {
         if (!checkWorldEdit()) return;
         initConfigs();
         initLanguage();
-        // extractSchematics 是纯文件 IO,异步执行不阻塞主线程启动链
-        Bukkit.getScheduler().runTaskAsynchronously(this, this::extractSchematics);
+        extractSchematics();
         initDatabase();         // 必须在 initTasks() 之前，因为 TaskManager 依赖 PlayerRepository
         initTasks();
         initSchematicManager();
@@ -222,8 +221,7 @@ public class StarMSkyblock extends JavaPlugin {
         sqliteManager = new SQLiteManager(getDataFolder());
         sqliteManager.init();
         playerRepo = new PlayerRepository(sqliteManager);
-        // warmUpPlayerNameCache 是纯 DB 全表扫描 + 缓存填充,异步执行避免主线程启动阻塞
-        Bukkit.getScheduler().runTaskAsynchronously(this, playerRepo::warmUpPlayerNameCache);
+        playerRepo.warmUpPlayerNameCache();
         SkullManager.initDatabase(sqliteManager);
     }
 

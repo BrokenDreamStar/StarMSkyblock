@@ -386,6 +386,16 @@ public class SkyblockExpansion extends PlaceholderExpansion {
             if (params.regionMatches(
                     true,
                     0,
+                    IslandListHandler.TOP_PREFIX,
+                    0,
+                    IslandListHandler.TOP_PREFIX.length()
+            )) {
+                return islandListHandler.handleTop(player, params);
+            }
+
+            if (params.regionMatches(
+                    true,
+                    0,
                     SettingsHandler.PREFIX,
                     0,
                     SettingsHandler.PREFIX.length()

@@ -27,8 +27,10 @@ import java.util.regex.Pattern;
  */
 public class IslandListHandler {
 
-    /** 占位符前缀 */
+    /** 占位符前缀（岛屿列表，分页槽位） */
     public static final String PREFIX = "island_list_";
+    /** 占位符前缀（岛屿排行榜，绝对排名） */
+    public static final String TOP_PREFIX = "island_top_";
 
     private static final String SIZE = "island_list_size";
     private static final String MAX_PAGE = "island_list_max_page";
@@ -36,8 +38,13 @@ public class IslandListHandler {
 
     private static final Pattern ITEM_PATTERN =
             Pattern.compile("island_list_(\\d+)(?:_(\\w+))?", Pattern.CASE_INSENSITIVE);
+    /** 绝对排名占位符：island_top_<rank>_<field> 或 island_top_<field>（无排名 = 自己岛屿） */
+    private static final Pattern TOP_ITEM_PATTERN =
+            Pattern.compile("island_top_(\\d+)_(\\w+)", Pattern.CASE_INSENSITIVE);
 
     private static final int ISLANDS_PER_PAGE = 28;
+    /** 排行榜每页显示数 */
+    private static final int TOP_PER_PAGE = 10;
 
     private final StarMSkyblock plugin;
     /** 按等级降序排列的岛屿缓存（volatile：写仅 reload 线程，读多线程）。 */
@@ -46,6 +53,8 @@ public class IslandListHandler {
     private volatile long sortedIslandsCacheTime;
     /** 每个玩家当前查看的排行榜页码（用于多行占位符渲染） */
     private final Map<UUID, Integer> playerListPages = new ConcurrentHashMap<>();
+    /** 每个玩家当前查看的 top 排行榜页码（与 island_list 页码独立） */
+    private final Map<UUID, Integer> playerTopPages = new ConcurrentHashMap<>();
 
     public IslandListHandler(StarMSkyblock plugin) {
         this.plugin = plugin;
@@ -65,6 +74,36 @@ public class IslandListHandler {
     public void resetPlayerPage(Player player) {
         if (player == null) return;
         playerListPages.remove(player.getUniqueId());
+    }
+
+    /** 设置玩家的 top 排行榜页码（1-based）。 */
+    public void setTopPlayerPage(Player player, int page) {
+        if (player == null) return;
+        if (page < 1) page = 1;
+        playerTopPages.put(player.getUniqueId(), page);
+    }
+
+    /** 获取玩家的 top 排行榜页码（默认第 1 页）。 */
+    public int getTopPlayerPage(Player player) {
+        if (player == null) return 1;
+        return playerTopPages.getOrDefault(player.getUniqueId(), 1);
+    }
+
+    /** 重置玩家的 top 排行榜页码（回到第 1 页）。 */
+    public void resetTopPlayerPage(Player player) {
+        if (player == null) return;
+        playerTopPages.remove(player.getUniqueId());
+    }
+
+    /** 获取总页数（每页 {@value #TOP_PER_PAGE} 项）。 */
+    public int getTopTotalPages() {
+        return Math.max(1,
+                (int) Math.ceil((double) getSortedIslands().size() / TOP_PER_PAGE));
+    }
+
+    /** 公开排序缓存供 {@code TopCommand} 使用。 */
+    public List<Island> getSortedIslandsPublic() {
+        return getSortedIslands();
     }
 
     public void warmUpSortedCache() {
@@ -119,6 +158,92 @@ public class IslandListHandler {
         }
 
         return null;
+    }
+
+    /**
+     * 处理 {@code island_top_} 前缀的排行榜占位符。
+     * <p>
+     * 支持两种形式：
+     * <ul>
+     *   <li>{@code island_top_<rank>_<field>} —— 绝对排名（1-based），取第 rank 名的岛屿字段</li>
+     *   <li>{@code island_top_<field>} —— 无排名号，返回玩家自己岛屿的字段</li>
+     * </ul>
+     * 字段：name/id/owner/level/members/memberlist/creationtime（与 island_list 一致）。
+     *
+     * @param player 请求占位符的玩家
+     * @param params 完整占位符参数（含前缀）
+     * @return 渲染结果，无法识别时返回 null
+     */
+    public String handleTop(Player player, String params) {
+        try {
+            // 先尝试匹配 island_top_<rank>_<field> 格式
+            var matcher = TOP_ITEM_PATTERN.matcher(params);
+            if (matcher.matches()) {
+                int rank;
+                try {
+                    rank = Integer.parseInt(matcher.group(1));
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+                String field = matcher.group(2);
+                List<Island> sorted = getSortedIslands();
+                if (rank < 1 || rank > sorted.size()) {
+                    return "NONE";
+                }
+                Island island = sorted.get(rank - 1);
+                return getFieldValue(island, field);
+            }
+
+            // 再尝试 island_top_<field>（无排名号，返回自己岛屿）
+            if (params.startsWith("island_top_")) {
+                String field = params.substring("island_top_".length());
+                if (field.isEmpty()) return null;
+
+                var islandOpt = plugin.getIslandManager()
+                        .getIslandByPlayer(player.getUniqueId());
+                if (islandOpt.isEmpty()) return "NONE";
+
+                // 特例：rank 字段返回岛屿在全局排行榜中的排名
+                if (field.equalsIgnoreCase("rank")) {
+                    Island own = islandOpt.get();
+                    List<Island> sorted = getSortedIslands();
+                    for (int i = 0; i < sorted.size(); i++) {
+                        if (sorted.get(i).getId() == own.getId()) {
+                            return String.valueOf(i + 1);
+                        }
+                    }
+                    return "N/A";
+                }
+
+                return getFieldValue(islandOpt.get(), field);
+            }
+
+        } catch (Throwable throwable) {
+            MessageUtil.consoleError("处理岛屿排行榜占位符时发生错误", throwable);
+        }
+
+        return null;
+    }
+
+    /** 从岛屿提取指定字段的值（复用 island_list 的字段逻辑）。 */
+    private String getFieldValue(Island island, String field) {
+        if (field == null || field.equalsIgnoreCase("name")) {
+            String islandName = island.getName();
+            if (islandName == null || islandName.isBlank()) {
+                return "岛屿 #" + island.getId();
+            }
+            return islandName;
+        }
+
+        return switch (field.toLowerCase()) {
+            case "id" -> String.valueOf(island.getId());
+            case "owner" -> getOwnerName(island);
+            case "level" -> String.valueOf(island.getLevel());
+            case "members" -> String.valueOf(island.getMembers().size() + 1);
+            case "memberlist" -> getMemberList(island);
+            case "creationtime" -> island.getCreatedAt();
+            default -> null;
+        };
     }
 
     /** 获取按等级降序排列的岛屿列表（带 1 秒 TTL 缓存）。 */

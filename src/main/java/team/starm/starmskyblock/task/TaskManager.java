@@ -203,16 +203,18 @@ public class TaskManager {
         return new ConcurrentHashMap<>(map);
     }
 
-    /** 同步落盘单个玩家进度并清除脏标记 */
+    /** 同步落盘单个玩家进度并清除脏标记（仅在落盘成功时清除，失败时保留以便重试） */
     public void savePlayerProgress(UUID uuid) {
         Map<String, TaskProgress> progress = playerProgress.get(uuid);
         if (progress == null) return;
         String json = gson.toJson(progress);
-        playerRepo.saveTasks(uuid, json);
-        dirtyPlayers.remove(uuid);
+        if (playerRepo.saveTasks(uuid, json)) {
+            dirtyPlayers.remove(uuid);
+        }
+        // 保存失败时保留脏标记，下次自动保存周期重试
     }
 
-    /** 批量落盘所有脏玩家进度（由自动保存定时器调用） */
+    /** 批量落盘所有脏玩家进度（由自动保存定时器调用）。保存成功才清除脏标记，失败保留以便下个周期重试。 */
     public void saveAllDirty() {
         if (dirtyPlayers.isEmpty()) return;
         Map<UUID, String> toSave = new HashMap<>();
@@ -221,14 +223,21 @@ public class TaskManager {
             if (progress != null) {
                 toSave.put(uuid, gson.toJson(progress));
             }
-            dirtyPlayers.remove(uuid);
         }
         if (!toSave.isEmpty()) {
-            playerRepo.batchSaveTasks(toSave);
+            if (playerRepo.batchSaveTasks(toSave)) {
+                // 仅保存成功时清除脏标记；失败则保留，下次自动保存周期重试
+                for (UUID uuid : toSave.keySet()) {
+                    dirtyPlayers.remove(uuid);
+                }
+            }
+        } else {
+            // 所有脏玩家均无进度数据（已离线清理），直接清除脏标记
+            dirtyPlayers.clear();
         }
     }
 
-    /** 全量落盘所有玩家进度（停服时调用） */
+    /** 全量落盘所有玩家进度（停服时调用）。无论成败均清除脏标记（进程即将退出，无重试价值）。 */
     public void saveAll() {
         Map<UUID, String> toSave = new HashMap<>();
         for (Map.Entry<UUID, Map<String, TaskProgress>> entry : playerProgress.entrySet()) {

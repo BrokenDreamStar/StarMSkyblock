@@ -231,6 +231,45 @@ public class SQLiteManager {
         }
     }
 
+    /**
+     * 只读事务 — 使用 readLock 而非 writeLock，避免长时间批量写阻塞简单读。
+     * <p>
+     * 注意：当前 SQLite 单个 Connection 被多线程共享（见 #3），readLock 允许多个并发 reader
+     * 但底层 Connection 非线程安全。此方法与现有 readLock 用法（如 loadAllSkinTextures、
+     * PlayerRepository 各 getter）处于同一风险等级——不引入新风险，但也不修复既有问题。
+     * #3 解决后（连接池或全 writeLock）此方法自然安全。
+     * </p>
+     *
+     * @param callback 只读操作回调（不应包含任何写操作）
+     * @return callback 的返回值
+     * @throws SQLException callback 抛出的 SQLException
+     */
+    public <T> T executeReadTransaction(TransactionCallback<T> callback) throws SQLException {
+        dbLock.readLock().lock();
+        try {
+            connection.setAutoCommit(false);
+            try {
+                T result = callback.execute(connection);
+                connection.commit();
+                return result;
+            } catch (Throwable t) {
+                try {
+                    connection.rollback();
+                } catch (SQLException re) {
+                    MessageUtil.consoleWarn("只读事务回滚失败: " + re.getMessage());
+                }
+                if (t instanceof SQLException sqle) throw sqle;
+                if (t instanceof Error error) throw error;
+                if (t instanceof RuntimeException re) throw re;
+                throw new RuntimeException(t);
+            } finally {
+                connection.setAutoCommit(true);
+            }
+        } finally {
+            dbLock.readLock().unlock();
+        }
+    }
+
     public void batchWrite(List<Consumer<Connection>> operations) {
         dbLock.writeLock().lock();
         try {

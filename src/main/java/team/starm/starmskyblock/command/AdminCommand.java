@@ -77,12 +77,12 @@ public class AdminCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendUsage(CommandSender sender) {
-        MessageUtil.send(sender, "command.admin.usage-header");
-        MessageUtil.send(sender, "command.admin.usage-setradius");
-        MessageUtil.send(sender, "command.admin.usage-setgenerator");
-        MessageUtil.send(sender, "command.admin.usage-settask");
-        MessageUtil.send(sender, "command.admin.usage-reload");
-        MessageUtil.send(sender, "command.admin.usage-bypass");
+        MessageUtil.send(sender, "command.is.admin.usage-header");
+        MessageUtil.send(sender, "command.is.admin.usage-setradius");
+        MessageUtil.send(sender, "command.is.admin.usage-setgenerator");
+        MessageUtil.send(sender, "command.is.admin.usage-settask");
+        MessageUtil.send(sender, "command.is.admin.usage-reload");
+        MessageUtil.send(sender, "command.is.admin.usage-bypass");
     }
 
     @Override

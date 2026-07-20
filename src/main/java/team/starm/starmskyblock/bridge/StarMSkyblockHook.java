@@ -65,7 +65,7 @@ public class StarMSkyblockHook extends HookAbstract {
      * @return 玩家头颅 ItemStack
      */
     public ItemStack getPlayerHead(Player player, String value) {
-        if (value != null && value.startsWith("island_list_")) {
+        if (value != null && (value.startsWith("island_list_") || value.startsWith("island_top_"))) {
             String resolved = PlaceholderAPI.setPlaceholders(player, "%starmskyblock_" + value + "%");
             if (resolved != null && !resolved.isEmpty() && !resolved.equals("NONE")) {
                 return SkullManager.getPlayerHead(resolved);

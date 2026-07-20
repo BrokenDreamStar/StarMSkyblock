@@ -24,6 +24,7 @@ import team.starm.starmskyblock.world.SkyblockWorldManager;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,11 +50,18 @@ public class LevelManager {
     private final SkyblockWorldManager worldManager;
 
     /**
-     * 玩家冷却 Map（玩家 UUID → 上次触发时间戳）
+     * 玩家冷却 Map（玩家 UUID → 上次触发时间戳）。
+     * {@link #evictStaleCooldowns} 在每次 put 时附带清理过期条目，防止随独立玩家数无界增长。
      */
     private static final Gson GSON = new Gson();
 
     private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
+
+    /**
+     * 正在计算中的岛屿拥有者集合 —— 防止 cooldown=0 时同一玩家并发跑两个 calculator，
+     * 导致双重 updateLevel + 双消息。add 在 calculateIsland 入口，remove 在回调完成时。
+     */
+    private final Set<UUID> calculating = ConcurrentHashMap.newKeySet();
 
     public LevelManager(StarMSkyblock plugin, ExperienceConfig experienceConfig,
                         AuraSkillsContributionConfig auraskillsConfig,
@@ -74,6 +82,12 @@ public class LevelManager {
     public void calculateIsland(Island island, Player player) {
         UUID ownerId = island.getOwnerId();
 
+        // 防重入：同一岛屿正在计算中时拒绝重复请求（cooldown=0 时可并发进入）
+        if (!calculating.add(ownerId)) {
+            MessageUtil.send(player, "level.already-calculating");
+            return;
+        }
+
         // 冷却检查（从 config.yml 读取，设为 0 表示无冷却）
         int cooldownSeconds = plugin.getConfigManager().getLevelCooldown();
         if (cooldownSeconds > 0) {
@@ -85,10 +99,12 @@ public class LevelManager {
                 if (elapsed < cooldownMs) {
                     long remaining = cooldownSeconds - (elapsed / 1000);
                     MessageUtil.send(player, "level.cooldown", Map.of("remaining", remaining));
+                    calculating.remove(ownerId);
                     return;
                 }
             }
             cooldowns.put(ownerId, now);
+            evictStaleCooldowns(now, cooldownSeconds * 1000L);
         }
 
         MessageUtil.send(player, "level.calculating");
@@ -98,11 +114,29 @@ public class LevelManager {
                 (calculatedIsland, results) -> {
                     // 主线程回调：持久化结果 + 发消息
                     plugin.getServer().getScheduler().runTask(plugin, () -> {
-                        onCalculationComplete(calculatedIsland, results, player);
+                        try {
+                            onCalculationComplete(calculatedIsland, results, player);
+                        } finally {
+                            calculating.remove(ownerId);
+                        }
                     });
                 });
 
         calculator.runTaskTimer(plugin, 1L, 1L);
+    }
+
+    /**
+     * 附带清理过期冷却条目（now - value > 2 * cooldownMs），防止 {@link #cooldowns} 随独立玩家数无界增长。
+     * ConcurrentHashMap 的迭代器为弱一致性，迭代中 remove 安全；过期阈值取 2 倍冷却时长，
+     * 确保冷却刚过期但玩家可能立刻重试的边界场景不被误清。
+     */
+    private void evictStaleCooldowns(long now, long cooldownMs) {
+        long threshold = 2 * cooldownMs;
+        for (Map.Entry<UUID, Long> entry : cooldowns.entrySet()) {
+            if (now - entry.getValue() > threshold) {
+                cooldowns.remove(entry.getKey());
+            }
+        }
     }
 
     /**
@@ -164,12 +198,25 @@ public class LevelManager {
                     );
                     sendLevelResults(player, island, results, oldLevel, finalBlockLevel);
                 });
+            }).exceptionally(e -> {
+                // 技能加成查询失败（AuraSkills/mcMMO 异步线程异常或超时）：
+                // 内存中 island.level 已被设为 blockLevel（无加成），此处落库回退到纯方块等级，
+                // 避免内存/DB 不一致导致重启后等级回退。
+                MessageUtil.consoleError("岛屿 #" + island.getId() + " 技能加成查询失败，回退到纯方块等级", e);
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    islandManager.getIslandRepository().updateLevel(
+                            island.getId(), finalBlockLevel, results.getTotalExperience(),
+                            serializeBlockCounts(results.getBlockCounts()), 0
+                    );
+                    sendLevelResults(player, island, results, oldLevel, finalBlockLevel);
+                });
+                return null;
             });
         } else {
             // 无技能加成：直接持久化并发送结果
             islandManager.getIslandRepository().updateLevel(
                     island.getId(), blockLevel, results.getTotalExperience(),
-                    serializeBlockCounts(results.getBlockCounts())
+                    serializeBlockCounts(results.getBlockCounts()), 0
             );
             sendLevelResults(player, island, results, oldLevel, blockLevel);
         }
