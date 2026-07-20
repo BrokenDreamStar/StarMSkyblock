@@ -52,6 +52,8 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         subCommands.put("upgrade", new UpgradeCommand(plugin));
         subCommands.put("task", new TaskCommand(plugin));
         subCommands.put("level", new LevelCommand(plugin));
+        subCommands.put("top", new TopCommand(plugin));
+        subCommands.put("transfer", new TransferCommand(plugin));
 
         subCommands.put("help", new HelpCommand(plugin, this));
         subCommands.put("portalinfo", new PortalInfoCommand(plugin));
@@ -145,6 +147,7 @@ public class IslandCommand implements CommandExecutor, TabCompleter {
         MessageUtil.send(player, "help.entry.generator");
         MessageUtil.send(player, "help.entry.upgrade");
         MessageUtil.send(player, "help.entry.level");
+        MessageUtil.send(player, "help.entry.top");
     }
 
     @Override
