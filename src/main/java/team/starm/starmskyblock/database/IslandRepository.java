@@ -448,26 +448,24 @@ public class IslandRepository {
     /**
      * 在事务中删除岛屿的所有关联数据（合作者 → 成员 → 岛屿本身）。
      * 调用方需自行清理内存索引。
+     *
+     * @throws SQLException 删除失败时抛出（调用方据此决定是否计次/通知，避免幽灵岛屿）
      */
-    public void deleteIslandCascade(int islandId) {
-        try {
-            sqliteManager.executeInTransaction(conn -> {
-                deleteCoopsForIsland(conn, islandId);
-                try (PreparedStatement pstmt = sqliteManager.prepareCached(
-                        "DELETE FROM island_members WHERE island_id = ?")) {
-                    pstmt.setInt(1, islandId);
-                    pstmt.executeUpdate();
-                }
-                try (PreparedStatement pstmt = sqliteManager.prepareCached(
-                        "DELETE FROM islands WHERE id = ?")) {
-                    pstmt.setInt(1, islandId);
-                    pstmt.executeUpdate();
-                }
-                return null;
-            });
-        } catch (SQLException e) {
-            MessageUtil.consoleError("从数据库删除岛屿失败！ID: " + islandId, e);
-        }
+    public void deleteIslandCascade(int islandId) throws SQLException {
+        sqliteManager.executeInTransaction(conn -> {
+            deleteCoopsForIsland(conn, islandId);
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(
+                    "DELETE FROM island_members WHERE island_id = ?")) {
+                pstmt.setInt(1, islandId);
+                pstmt.executeUpdate();
+            }
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(
+                    "DELETE FROM islands WHERE id = ?")) {
+                pstmt.setInt(1, islandId);
+                pstmt.executeUpdate();
+            }
+            return null;
+        });
     }
 
     // ==================== 成员→合作者迁移（事务内） ====================
@@ -496,6 +494,43 @@ public class IslandRepository {
             });
         } catch (SQLException e) {
             MessageUtil.consoleError("合作者转成员失败！岛屿ID: " + islandId + ", 玩家UUID: " + playerUuid, e);
+        }
+    }
+
+    /**
+     * 在事务中完成岛屿所有权转让：更新 owner_uuid、移除新岛主的成员记录、
+     * 将旧岛主添加为 MEMBER。调用方需自行更新内存索引。
+     */
+    public void transferOwnership(int islandId, UUID newOwnerUuid, UUID oldOwnerUuid) {
+        try {
+            sqliteManager.executeInTransaction(conn -> {
+                // 1. 更新岛屿 owner_uuid
+                try (PreparedStatement pstmt = sqliteManager.prepareCached(
+                        "UPDATE islands SET owner_uuid = ? WHERE id = ?")) {
+                    pstmt.setString(1, newOwnerUuid.toString());
+                    pstmt.setInt(2, islandId);
+                    pstmt.executeUpdate();
+                }
+                // 2. 移除新岛主的成员记录（新岛主不再是普通成员）
+                try (PreparedStatement pstmt = sqliteManager.prepareCached(
+                        "DELETE FROM island_members WHERE island_id = ? AND player_uuid = ?")) {
+                    pstmt.setInt(1, islandId);
+                    pstmt.setString(2, newOwnerUuid.toString());
+                    pstmt.executeUpdate();
+                }
+                // 3. 将旧岛主添加为 MEMBER
+                try (PreparedStatement pstmt = sqliteManager.prepareCached(
+                        "INSERT INTO island_members (island_id, player_uuid, role) VALUES (?, ?, ?)")) {
+                    pstmt.setInt(1, islandId);
+                    pstmt.setString(2, oldOwnerUuid.toString());
+                    pstmt.setString(3, "MEMBER");
+                    pstmt.executeUpdate();
+                }
+                return null;
+            });
+        } catch (SQLException e) {
+            MessageUtil.consoleError("岛屿所有权转让失败！岛屿ID: " + islandId
+                    + ", 旧岛主: " + oldOwnerUuid + ", 新岛主: " + newOwnerUuid, e);
         }
     }
 
