@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.google.gson.Gson;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -547,6 +548,49 @@ public class IslandManager {
         return false;
     }
 
+    /**
+     * 转让岛屿所有权：将岛主身份从旧岛主转移到新岛主（必须是现有成员）。
+     * 旧岛主降为 MEMBER 留在岛上，同步更新所有内存索引和数据库。
+     *
+     * @param islandId      岛屿 ID
+     * @param newOwnerUuid  新岛主 UUID（必须已是该岛屿成员）
+     */
+    public void transferIsland(int islandId, UUID newOwnerUuid) {
+        Island island = islandsById.get(islandId);
+        if (island == null) return;
+
+        UUID oldOwnerUuid = island.getOwnerId();
+
+        // 1. 从成员列表中移除新岛主（新岛主不再是普通成员）
+        island.removeMember(newOwnerUuid);
+
+        // 2. 将旧岛主加入成员列表（降级为 MEMBER）
+        island.addMember(oldOwnerUuid, IslandPermissionLevel.MEMBER);
+
+        // 3. 更新岛屿的 ownerId
+        island.setOwnerId(newOwnerUuid);
+
+        // 4. 更新 islandsByOwner 索引
+        islandsByOwner.remove(oldOwnerUuid);
+        islandsByOwner.put(newOwnerUuid, island);
+
+        // 5. memberToIslandIndex 保持不变 —— 两者都已在索引中
+        //    （createIsland / loadIslandsFromDatabase 也会将岛主放入此索引）
+
+        // 6. 持久化到数据库
+        islandRepo.transferOwnership(islandId, newOwnerUuid, oldOwnerUuid);
+
+        // 7. 保存新老岛主的玩家名到缓存
+        Player newOwner = Bukkit.getPlayer(newOwnerUuid);
+        if (newOwner != null) {
+            playerRepo.savePlayerName(newOwnerUuid, newOwner.getName());
+        }
+        Player oldOwner = Bukkit.getPlayer(oldOwnerUuid);
+        if (oldOwner != null) {
+            playerRepo.savePlayerName(oldOwnerUuid, oldOwner.getName());
+        }
+    }
+
     /** 更新岛屿刷石机等级，同步写库 */
     public boolean updateIslandGeneratorLevel(int islandId, int generatorLevel) {
         Island island = islandsById.get(islandId);
@@ -714,16 +758,28 @@ public class IslandManager {
         cleanupIndices(island);
     }
 
-    /** 从数据库删除岛屿（含成员和合作者级联删除），保留内存索引 */
+    /** 从数据库删除岛屿（含成员和合作者级联删除），保留内存索引。
+     * @return true 删除成功，false 删除失败（DB 错误，内存索引保留，调用方不应计次） */
     public boolean deleteIslandFromDatabase(Island island) {
-        islandRepo.deleteIslandCascade(island.getId());
-        playerRepo.setFirstNetherJoin(island.getOwnerId(), true);
-        return true;
+        try {
+            islandRepo.deleteIslandCascade(island.getId());
+            playerRepo.setFirstNetherJoin(island.getOwnerId(), true);
+            return true;
+        } catch (SQLException e) {
+            MessageUtil.consoleError("从数据库删除岛屿失败！ID: " + island.getId() + "，内存索引已保留，重启后岛屿仍存在", e);
+            return false;
+        }
     }
 
-    /** 完整删除岛屿：数据库 + 所有内存索引全部清理 */
+    /** 完整删除岛屿：数据库 + 所有内存索引全部清理。
+     * @return true 删除成功，false DB 删除失败（内存索引保留，调用方不应计次） */
     public boolean deleteIsland(Island island) {
-        islandRepo.deleteIslandCascade(island.getId());
+        try {
+            islandRepo.deleteIslandCascade(island.getId());
+        } catch (SQLException e) {
+            MessageUtil.consoleError("从数据库删除岛屿失败！ID: " + island.getId() + "，内存索引已保留", e);
+            return false;
+        }
         cleanupIndices(island);
         return true;
     }
