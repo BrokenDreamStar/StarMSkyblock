@@ -240,16 +240,6 @@ island:
     first-page: "&c已经在第一页了。"
     page-switched: "&a已切换到第 &e{current} &a页，共 &e{total} &a页"
     page-reset: "&a已返回第 1 页，共 &e{total} &a页"
-  top:
-    papi-not-loaded: "&cPlaceholderAPI 未加载，无法使用此功能。"
-    usage: "&c用法: /is top <next|prev|home>"
-    empty: "&7暂无排行数据。"
-    header: "&a=== 岛屿排行榜 === &7(第 &e{page}&7/&e{total}&7 页)"
-    entry: "&e#{rank} &f- &b{name} &f(&e{owner}&f) &7- 等级 &d{level}"
-    page: "&7使用 &e/is top next|prev &7翻页"
-    last-page: "&c已经是最后一页了。"
-    first-page: "&c已经在第一页了。"
-    page-switched: "&a已切换到第 &e{current} &a页，共 &e{total} &a页"
   rename:
     no-permission: "&c你没有权限修改岛屿名称！"
     usage: "&c用法: /is rename <新名称>"
@@ -435,7 +425,6 @@ help:
     generator: "&b/is generator [维度] [矿石] [true/false/toggle] &f- 查看/控制刷石机矿石生成"
     upgrade: "&b/is upgrade [radius|generator] &f- 升级岛屿范围或刷石机等级"
     level: "&b/is level &f- 扫描全岛并计算等级"
-    top: "&b/is top [next|prev|home] &f- 查看岛屿等级排行榜"
     transfer: "&b/is transfer <玩家> &f- 转让岛屿所有权"
 command:
   is:

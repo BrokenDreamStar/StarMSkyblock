@@ -500,38 +500,35 @@ public class IslandRepository {
     /**
      * 在事务中完成岛屿所有权转让：更新 owner_uuid、移除新岛主的成员记录、
      * 将旧岛主添加为 MEMBER。调用方需自行更新内存索引。
+     *
+     * @throws SQLException 转让失败时抛出（调用方据此回滚内存状态并通知玩家）
      */
-    public void transferOwnership(int islandId, UUID newOwnerUuid, UUID oldOwnerUuid) {
-        try {
-            sqliteManager.executeInTransaction(conn -> {
-                // 1. 更新岛屿 owner_uuid
-                try (PreparedStatement pstmt = sqliteManager.prepareCached(
-                        "UPDATE islands SET owner_uuid = ? WHERE id = ?")) {
-                    pstmt.setString(1, newOwnerUuid.toString());
-                    pstmt.setInt(2, islandId);
-                    pstmt.executeUpdate();
-                }
-                // 2. 移除新岛主的成员记录（新岛主不再是普通成员）
-                try (PreparedStatement pstmt = sqliteManager.prepareCached(
-                        "DELETE FROM island_members WHERE island_id = ? AND player_uuid = ?")) {
-                    pstmt.setInt(1, islandId);
-                    pstmt.setString(2, newOwnerUuid.toString());
-                    pstmt.executeUpdate();
-                }
-                // 3. 将旧岛主添加为 MEMBER
-                try (PreparedStatement pstmt = sqliteManager.prepareCached(
-                        "INSERT INTO island_members (island_id, player_uuid, role) VALUES (?, ?, ?)")) {
-                    pstmt.setInt(1, islandId);
-                    pstmt.setString(2, oldOwnerUuid.toString());
-                    pstmt.setString(3, "MEMBER");
-                    pstmt.executeUpdate();
-                }
-                return null;
-            });
-        } catch (SQLException e) {
-            MessageUtil.consoleError("岛屿所有权转让失败！岛屿ID: " + islandId
-                    + ", 旧岛主: " + oldOwnerUuid + ", 新岛主: " + newOwnerUuid, e);
-        }
+    public void transferOwnership(int islandId, UUID newOwnerUuid, UUID oldOwnerUuid) throws SQLException {
+        sqliteManager.executeInTransaction(conn -> {
+            // 1. 更新岛屿 owner_uuid
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(
+                    "UPDATE islands SET owner_uuid = ? WHERE id = ?")) {
+                pstmt.setString(1, newOwnerUuid.toString());
+                pstmt.setInt(2, islandId);
+                pstmt.executeUpdate();
+            }
+            // 2. 移除新岛主的成员记录（新岛主不再是普通成员）
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(
+                    "DELETE FROM island_members WHERE island_id = ? AND player_uuid = ?")) {
+                pstmt.setInt(1, islandId);
+                pstmt.setString(2, newOwnerUuid.toString());
+                pstmt.executeUpdate();
+            }
+            // 3. 将旧岛主添加为 MEMBER
+            try (PreparedStatement pstmt = sqliteManager.prepareCached(
+                    "INSERT INTO island_members (island_id, player_uuid, role) VALUES (?, ?, ?)")) {
+                pstmt.setInt(1, islandId);
+                pstmt.setString(2, oldOwnerUuid.toString());
+                pstmt.setString(3, "MEMBER");
+                pstmt.executeUpdate();
+            }
+            return null;
+        });
     }
 
     // ==================== 玩家统计 ====================

@@ -554,12 +554,15 @@ public class IslandManager {
      *
      * @param islandId      岛屿 ID
      * @param newOwnerUuid  新岛主 UUID（必须已是该岛屿成员）
+     * @return true 转让成功，false 数据库写入失败（内存状态已回滚）
      */
-    public void transferIsland(int islandId, UUID newOwnerUuid) {
+    public boolean transferIsland(int islandId, UUID newOwnerUuid) {
         Island island = islandsById.get(islandId);
-        if (island == null) return;
+        if (island == null) return false;
 
         UUID oldOwnerUuid = island.getOwnerId();
+        // 保存新岛主在转让前的权限组，用于 DB 失败时回滚
+        IslandPermissionLevel newOwnerOldRole = island.getMemberRole(newOwnerUuid);
 
         // 1. 从成员列表中移除新岛主（新岛主不再是普通成员）
         island.removeMember(newOwnerUuid);
@@ -578,7 +581,21 @@ public class IslandManager {
         //    （createIsland / loadIslandsFromDatabase 也会将岛主放入此索引）
 
         // 6. 持久化到数据库
-        islandRepo.transferOwnership(islandId, newOwnerUuid, oldOwnerUuid);
+        try {
+            islandRepo.transferOwnership(islandId, newOwnerUuid, oldOwnerUuid);
+        } catch (SQLException e) {
+            // 回滚所有内存状态
+            islandsByOwner.remove(newOwnerUuid);
+            islandsByOwner.put(oldOwnerUuid, island);
+            island.setOwnerId(oldOwnerUuid);
+            island.removeMember(oldOwnerUuid);
+            if (newOwnerOldRole != IslandPermissionLevel.OWNER && newOwnerOldRole != IslandPermissionLevel.VISITOR) {
+                island.addMember(newOwnerUuid, newOwnerOldRole);
+            }
+            MessageUtil.consoleError("岛屿所有权转让失败！岛屿ID: " + islandId
+                    + ", 旧岛主: " + oldOwnerUuid + ", 新岛主: " + newOwnerUuid, e);
+            return false;
+        }
 
         // 7. 保存新老岛主的玩家名到缓存
         Player newOwner = Bukkit.getPlayer(newOwnerUuid);
@@ -589,6 +606,8 @@ public class IslandManager {
         if (oldOwner != null) {
             playerRepo.savePlayerName(oldOwnerUuid, oldOwner.getName());
         }
+
+        return true;
     }
 
     /** 更新岛屿刷石机等级，同步写库 */

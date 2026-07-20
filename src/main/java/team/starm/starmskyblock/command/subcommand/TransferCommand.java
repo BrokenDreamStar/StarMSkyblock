@@ -74,7 +74,10 @@ public class TransferCommand extends SubCommand {
         }
 
         // 6. 执行转让
-        plugin.getIslandManager().transferIsland(island.getId(), targetUuid);
+        if (!plugin.getIslandManager().transferIsland(island.getId(), targetUuid)) {
+            MessageUtil.send(player, "general.operation-failed");
+            return true;
+        }
 
         // 7. 通知双方
         String islandName = island.getName().isEmpty() ? String.valueOf(island.getId()) : island.getName();
